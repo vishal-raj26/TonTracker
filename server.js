@@ -5649,13 +5649,47 @@ function startServer() {
   }
 }
 
+let giftSnapshotWorkerRunning = false;
+
+async function runGiftSnapshotWorker(reason = "scheduled") {
+  if (giftSnapshotWorkerRunning) {
+    console.log(`[gift-snapshot-worker] skipped ${reason}; previous run still active`);
+    return;
+  }
+  giftSnapshotWorkerRunning = true;
+  console.log(`[gift-snapshot-worker] ${reason} run started`);
+  try {
+    const state = await collectGiftFloorSnapshotsNow({ force: true });
+    console.log(
+      `[gift-snapshot-worker] ${reason} run complete: ${state.ok}/${state.total} collections, ${state.modelSnapshots} model points, ${state.errors} errors`
+    );
+  } catch (error) {
+    console.warn(`[gift-snapshot-worker] ${reason} run failed`, error.message);
+  } finally {
+    giftSnapshotWorkerRunning = false;
+  }
+}
+
+function startGiftSnapshotWorker() {
+  console.log(`[gift-snapshot-worker] running every ${Math.round(giftSnapshotIntervalMs / 60000)} minutes`);
+  runGiftSnapshotWorker("startup").catch((error) => console.warn("[gift-snapshot-worker] startup failed", error.message));
+  setInterval(() => {
+    runGiftSnapshotWorker("hourly").catch((error) => console.warn("[gift-snapshot-worker] hourly failed", error.message));
+  }, giftSnapshotIntervalMs);
+}
+
 if (require.main === module) {
-  startServer();
+  if (process.env.TONTRACK_MODE === "gift-snapshot-worker") {
+    startGiftSnapshotWorker();
+  } else {
+    startServer();
+  }
 }
 
 module.exports = {
   collectGiftFloorSnapshotsNow,
   giftSnapshotHistory,
   getGiftSnapshotCollectorState: () => ({ ...giftSnapshotCollectorState }),
+  startGiftSnapshotWorker,
   startServer
 };
