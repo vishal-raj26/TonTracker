@@ -661,7 +661,6 @@ function snapshotNumbersMatch(a, b, tolerance = 0.000001) {
 
 function collectionSnapshotUnchanged(row = {}, record = {}) {
   return snapshotNumbersMatch(row.floor_ton, record.floorTon)
-    && snapshotNumbersMatch(row.floor_usd, record.floorUsd, 0.0001)
     && snapshotNumbersMatch(row.listed_count, record.listedCount, 0)
     && snapshotNumbersMatch(row.total_supply, record.totalSupply, 0)
     && snapshotNumbersMatch(row.volume_24h_ton, record.volume24hTon)
@@ -670,7 +669,6 @@ function collectionSnapshotUnchanged(row = {}, record = {}) {
 
 function modelSnapshotUnchanged(row = {}, record = {}) {
   return snapshotNumbersMatch(row.floor_ton, record.floorTon)
-    && snapshotNumbersMatch(row.floor_usd, record.floorUsd, 0.0001)
     && snapshotNumbersMatch(row.listed_count, record.listedCount, 0)
     && snapshotNumbersMatch(row.deals_30d, record.deals30d, 0)
     && snapshotNumbersMatch(row.avg_30d_ton, record.avg30dTon)
@@ -1187,6 +1185,57 @@ async function giftSnapshotStoreStatus(collection = "") {
     points,
     models,
     modelPoints,
+  };
+}
+
+async function giftSnapshotStorageHealth() {
+  const pool = await ensureGiftSnapshotTables();
+  const volumeLimitMb = Number(process.env.RAILWAY_POSTGRES_VOLUME_MB || 500);
+  if (pool) {
+    const result = await pool.query(
+      `SELECT
+        pg_database_size(current_database())::bigint AS "databaseBytes",
+        (SELECT COUNT(*)::bigint FROM gift_floor_snapshots) AS "collectionPoints",
+        (SELECT COUNT(*)::bigint FROM gift_model_floor_snapshots) AS "modelPoints",
+        (SELECT COUNT(DISTINCT collection_key || ':' || model_key)::bigint FROM gift_model_floor_snapshots) AS "models",
+        (SELECT MAX(sampled_at) FROM gift_model_floor_snapshots) AS "lastModelSnapshotAt",
+        (SELECT MAX(sampled_at) FROM gift_floor_snapshots) AS "lastCollectionSnapshotAt"`
+    );
+    const row = result.rows[0] || {};
+    const databaseMb = Number(row.databaseBytes || 0) / 1024 / 1024;
+    const limitMb = volumeLimitMb > 0 ? volumeLimitMb : 500;
+    const usedPct = limitMb ? (databaseMb / limitMb) * 100 : 0;
+    const remainingMb = Math.max(0, limitMb - databaseMb);
+    const risk = usedPct >= 95 ? "urgent" : usedPct >= 80 ? "high" : usedPct >= 60 ? "watch" : "ok";
+    return {
+      storage: "postgres",
+      databaseMb: Number(databaseMb.toFixed(2)),
+      volumeLimitMb: limitMb,
+      usedPct: Number(usedPct.toFixed(1)),
+      remainingMb: Number(remainingMb.toFixed(2)),
+      risk,
+      retentionDays: giftSnapshotRetentionDays,
+      unchangedHeartbeatHours: Number((giftSnapshotUnchangedIntervalMs / 3600000).toFixed(1)),
+      snapshotIntervalMinutes: Number((giftSnapshotIntervalMs / 60000).toFixed(1)),
+      collections: Number(row.collectionPoints || 0),
+      models: Number(row.models || 0),
+      modelPoints: Number(row.modelPoints || 0),
+      lastCollectionSnapshotAt: row.lastCollectionSnapshotAt || "",
+      lastModelSnapshotAt: row.lastModelSnapshotAt || "",
+      policy: "write on TON floor/stat change; unchanged models write roughly once per day",
+    };
+  }
+  const status = await giftSnapshotStoreStatus();
+  const fileBytes = fs.existsSync(giftFloorSnapshotsFile) ? fs.statSync(giftFloorSnapshotsFile).size : 0;
+  return {
+    storage: "json",
+    databaseMb: Number((fileBytes / 1024 / 1024).toFixed(2)),
+    volumeLimitMb: 0,
+    usedPct: 0,
+    remainingMb: 0,
+    risk: "local",
+    ...status,
+    policy: "local JSON only; production uses Postgres",
   };
 }
 
@@ -5510,6 +5559,13 @@ async function handleApi(req, res, url) {
         state: giftSnapshotCollectorState,
         ...status,
       });
+    } catch (error) {
+      return json(res, 502, { error: error.message });
+    }
+  }
+  if (url.pathname === "/api/snapshot-storage-status") {
+    try {
+      return json(res, 200, await giftSnapshotStorageHealth());
     } catch (error) {
       return json(res, 502, { error: error.message });
     }
