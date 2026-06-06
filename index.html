@@ -1,0 +1,408 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#070806" />
+    <title>TonTrack Portfolio</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="./styles.css?v=token-screen-59" />
+  </head>
+  <body>
+    <div class="app-frame">
+      <main class="screen is-active" data-screen="home">
+        <header class="app-header">
+          <button class="identity" type="button" data-screen-target="settings">
+            <span class="identity-mark">VT</span>
+            <span>
+              <b>TonTrack</b>
+              <small>TON portfolio tracker</small>
+            </span>
+          </button>
+          <button class="wallet-chip js-connect-wallet" type="button">
+            <i data-lucide="wallet"></i>
+            <span>Connect</span>
+          </button>
+        </header>
+
+        <section class="graph-card">
+          <div class="graph-head">
+            <div>
+              <p>Total portfolio</p>
+              <h1>$0.00</h1>
+            </div>
+          </div>
+          <div class="portfolio-actions-row">
+            <span>+$0.00 | +0.00%</span>
+            <button class="refresh-button" type="button" aria-label="Refresh prices"><i data-lucide="refresh-cw"></i></button>
+          </div>
+          <div class="value-graph" aria-label="Portfolio value graph">
+            <svg viewBox="0 0 340 160" role="img">
+              <defs>
+                <linearGradient id="graphFill" x1="0" x2="0" y1="0" y2="1">
+                  <stop offset="0%" stop-color="#2e79ff" stop-opacity="0.52" />
+                  <stop offset="100%" stop-color="#2e79ff" stop-opacity="0" />
+                </linearGradient>
+              </defs>
+              <path class="grid-line" d="M0 36 H340 M0 78 H340 M0 120 H340" />
+              <path class="area" d="M0 132 L340 132 V160 H0 Z" />
+              <path class="line" d="M0 132 L340 132" />
+            </svg>
+            <div class="graph-ruler" id="portfolioGraphRuler"></div>
+            <div class="range-selector" aria-label="Portfolio time range">
+              <button class="is-active" type="button" data-range="1D">1D</button>
+              <button type="button" data-range="7D">7D</button>
+              <button type="button" data-range="1M">1M</button>
+            </div>
+          </div>
+          <small class="graph-updated" id="portfolioUpdatedAt">Last updated on May 17, 12:00</small>
+        </section>
+
+        <section class="allocation-card">
+          <div class="section-heading">
+            <h2>Allocation</h2>
+          </div>
+          <div class="donut-layout">
+            <div class="donut-chart" aria-label="Portfolio allocation donut"><span>$0.00</span></div>
+            <div class="allocation-list">
+              <article><span class="legend-pill gift-dot"></span><div><b>Gifts</b><small>0%</small></div><strong>$0.00</strong></article>
+              <article><span class="legend-pill token-dot"></span><div><b>TON Tokens</b><small>100%</small></div><strong>$0.00</strong></article>
+              <article><span class="legend-pill sticker-dot"></span><div><b>Stickers</b><small>0%</small></div><strong>$0.00</strong></article>
+            </div>
+          </div>
+        </section>
+
+        <section class="performer-row">
+          <article data-screen-target="detail" data-asset="toncoin"><small>Top Performer</small><b>TON Tokens</b><strong class="positive">+0.0%</strong></article>
+          <article data-screen-target="detail" data-asset="toncoin"><small>Worst Performer</small><b>TON Tokens</b><strong class="negative">+0.0%</strong></article>
+        </section>
+
+        <section class="panel activity-panel bottom-pad">
+          <div class="section-heading">
+            <h2>Recent Activity</h2>
+            <button class="text-action" type="button" data-screen-target="activity">See all</button>
+          </div>
+          <article class="activity-row"><span class="activity-dot gift-bg"><i data-lucide="gem"></i></span><div><b>Diamond Ring</b><small>3 min ago</small></div><strong class="positive">Floor +8.1% · 143 TON</strong></article>
+          <article class="activity-row"><span class="activity-dot token-bg"><i data-lucide="coins"></i></span><div><b>Toncoin</b><small>12 min ago</small></div><strong class="positive">+92 TON</strong></article>
+          <article class="activity-row"><span class="activity-dot sticker-bg"><i data-lucide="sticker"></i></span><div><b>Neon Cat Set</b><small>Today</small></div><strong class="negative">Floor -6.4% · 31 TON</strong></article>
+          <article class="activity-row"><span class="activity-dot gift-bg"><i data-lucide="gift"></i></span><div><b>Royal Crown</b><small>Today</small></div><strong class="negative">-1 Gift</strong></article>
+          <article class="activity-row"><span class="activity-dot token-bg"><i data-lucide="send"></i></span><div><b>Toncoin</b><small>Yesterday</small></div><strong class="negative">-18 TON</strong></article>
+        </section>
+      </main>
+
+      <main class="screen" data-screen="assets">
+        <header class="page-header">
+          <h1>Assets</h1>
+          <button class="icon-button" type="button" data-screen-target="activity" aria-label="Activity"><i data-lucide="clock-3"></i></button>
+        </header>
+        <section class="portfolio-strip">
+          <article><small>Total</small><b>$0.00</b></article>
+          <article><small>Items</small><b>148</b></article>
+          <article><small>24h</small><b class="positive">+2.37%</b></article>
+        </section>
+        <section class="category-stack">
+          <article data-screen-target="tokens"><span class="asset-icon token-bg"><i data-lucide="coins"></i></span><div><b>TON Token Holdings</b><small>TON, Jettons, balances, prices</small></div><strong>$5.74K</strong></article>
+          <article data-screen-target="gifts"><span class="asset-icon gift-bg"><i data-lucide="gift"></i></span><div><b>Telegram Gifts</b><small>Traits, tag numbers, floors, PnL</small></div><strong>$8.72K</strong></article>
+          <article data-screen-target="stickers"><span class="asset-icon sticker-bg"><i data-lucide="sticker"></i></span><div><b>Sticker Packs</b><small>Formats, creators, floors, PnL</small></div><strong>$3.96K</strong></article>
+        </section>
+        <section class="mini-detail-card bottom-pad" data-screen-target="detail" data-asset="diamond-ring">
+          <div class="section-heading"><h2>Top Asset</h2><button class="text-action" type="button">View</button></div>
+          <article class="feature-asset"><span class="asset-icon gift-bg"><i data-lucide="gem"></i></span><div><b>Diamond Ring</b><small>#4821 · +$840 PnL</small></div><strong>$2,840</strong></article>
+        </section>
+      </main>
+
+      <main class="screen" data-screen="tokens">
+        <header class="page-header"><button class="icon-button" type="button" data-screen-target="assets"><i data-lucide="arrow-left"></i></button><h1>TON Tokens</h1><button class="icon-button" type="button" data-token-sort-open aria-haspopup="true" aria-controls="tokenSortSheet"><i data-lucide="list-filter"></i></button></header>
+        <section class="summary-card"><small>Total tokens value</small><h2>$5,740</h2></section>
+        <section class="holdings-list bottom-pad">
+          <article data-screen-target="detail" data-asset="toncoin"><span class="asset-icon token-bg">TON</span><div><b>Toncoin</b><small>1,340 TON · $3.12 each</small></div><aside><b>$4,180</b><small>+2.4%</small></aside></article>
+          <article data-screen-target="detail" data-asset="notcoin"><span class="asset-icon token-bg">NOT</span><div><b>Notcoin</b><small>18,400 NOT · $0.008</small></div><aside><b>$1,120</b><small>-1.1%</small></aside></article>
+          <article data-screen-target="detail" data-asset="jetton-basket"><span class="asset-icon token-bg">JET</span><div><b>Jetton Basket</b><small>Multiple wallet holdings</small></div><aside><b>$440</b><small>+0.8%</small></aside></article>
+        </section>
+      </main>
+
+      <main class="screen" data-screen="gifts">
+        <header class="page-header"><button class="icon-button" type="button" data-screen-target="assets"><i data-lucide="arrow-left"></i></button><h1>Gifts</h1><button class="icon-button"><i data-lucide="sliders-horizontal"></i></button></header>
+        <section class="asset-total-banner">
+          <small>Total Gifts Value</small>
+          <div><h2>$8,720</h2><span>2,795 TON</span></div>
+          <strong class="positive">+$328.40 · +3.91% 24h</strong>
+          <p>Gift unrealized PnL: <b class="positive">+$1,628 · +22.9%</b></p>
+        </section>
+        <section class="control-bar">
+          <label>Sort
+            <select id="giftSort">
+              <option value="floor-desc">Floor Price ↓</option>
+              <option value="floor-asc">Floor Price ↑</option>
+              <option value="pnl-desc">PnL %</option>
+              <option value="daily-desc">Daily Change</option>
+              <option value="date-desc">Acquired Date</option>
+              <option value="tag-asc">Tag Number</option>
+              <option value="model-rarity">Model Rarity</option>
+              <option value="mint-asc">Mint Number</option>
+            </select>
+          </label>
+          <label>Filter
+            <select id="giftFilter">
+              <option value="all">All Gifts</option>
+              <option value="collection:Diamond Ring">Diamond Ring</option>
+              <option value="model:Hypnotoad">Model: Hypnotoad</option>
+              <option value="backdrop:Electric Indigo">Backdrop: Electric Indigo</option>
+              <option value="symbol:Coin">Symbol: Coin</option>
+              <option value="listed">Listed</option>
+              <option value="unlisted">Unlisted</option>
+            </select>
+          </label>
+        </section>
+        <section class="collectible-grid bottom-pad" id="giftGrid"></section>
+      </main>
+
+      <main class="screen" data-screen="gift-brand">
+        <header class="page-header"><button class="icon-button" type="button" data-screen-target="gifts"><i data-lucide="arrow-left"></i></button><h1 id="giftBrandTitle">Gift Collection</h1><button class="icon-button"><i data-lucide="gift"></i></button></header>
+        <section class="asset-total-banner" id="giftBrandSummary">
+          <small>Collection gifts</small>
+          <div><h2>$0.00</h2><span>0 gifts</span></div>
+          <strong>Open a gift to see details</strong>
+        </section>
+        <section class="collectible-grid bottom-pad" id="giftBrandGrid"></section>
+      </main>
+
+      <main class="screen" data-screen="stickers">
+        <header class="page-header"><button class="icon-button" type="button" data-screen-target="assets"><i data-lucide="arrow-left"></i></button><h1>Stickers</h1><button class="icon-button"><i data-lucide="sliders-horizontal"></i></button></header>
+        <section class="asset-total-banner">
+          <small>Total Stickers Value</small>
+          <div><h2>$3,960</h2><span>1,269 TON</span></div>
+          <strong class="negative">-$42.80 · -1.07% 24h</strong>
+          <p>Sticker unrealized PnL: <b class="positive">+$522 · +15.2%</b></p>
+        </section>
+        <section class="control-bar">
+          <label>Sort
+            <select id="stickerSort">
+              <option value="floor-desc">Floor Price ↓</option>
+              <option value="floor-asc">Floor Price ↑</option>
+              <option value="pnl-desc">PnL %</option>
+              <option value="daily-desc">Daily Change</option>
+              <option value="date-desc">Acquired Date</option>
+              <option value="name-asc">Pack Name</option>
+            </select>
+          </label>
+          <label>Filter
+            <select id="stickerFilter">
+              <option value="all">All Packs</option>
+              <option value="format:Animated">Animated</option>
+              <option value="format:Static">Static</option>
+              <option value="format:Video">Video</option>
+              <option value="creator:PudgyArt">Creator: PudgyArt</option>
+              <option value="edition:Limited Drop">Limited Drop</option>
+              <option value="edition:Open Edition">Open Edition</option>
+              <option value="listed">Listed</option>
+              <option value="unlisted">Unlisted</option>
+            </select>
+          </label>
+        </section>
+        <section class="search-card sticker-search-card"><i data-lucide="search"></i><input id="stickerSearch" type="search" placeholder="Search sticker packs" autocomplete="off" /><small id="stickerCountLabel">0 stickers</small></section>
+        <section class="collectible-grid bottom-pad" id="stickerGrid"></section>
+      </main>
+
+      <main class="screen" data-screen="sticker-brand">
+        <header class="page-header"><button class="icon-button" type="button" data-screen-target="stickers"><i data-lucide="arrow-left"></i></button><h1 id="stickerBrandTitle">Sticker Brand</h1><button class="icon-button"><i data-lucide="sticker"></i></button></header>
+        <section class="asset-total-banner" id="stickerBrandSummary">
+          <small>Brand stickers</small>
+          <div><h2>$0.00</h2><span>0 stickers</span></div>
+          <strong>Open a sticker to see details</strong>
+        </section>
+        <section class="collectible-grid bottom-pad" id="stickerBrandGrid"></section>
+      </main>
+
+      <main class="screen" data-screen="analytics">
+        <header class="page-header"><h1>Analytics</h1><button class="icon-button"><i data-lucide="calendar-days"></i></button></header>
+        <section class="graph-card compact"><div class="graph-head"><div><p>Performance</p><h1>$0.00</h1></div><span>90D</span></div><div class="value-graph"><svg viewBox="0 0 340 140"><path class="grid-line" d="M0 36 H340 M0 78 H340 M0 120 H340" /><path class="line" d="M0 110 C48 96 70 42 118 58 C162 72 170 112 220 78 C262 50 286 44 340 24" /></svg></div></section>
+        <section class="insight-grid">
+          <article><small>Best performer</small><b>Diamond Ring</b><strong class="positive">+12.2%</strong></article>
+          <article><small>Worst performer</small><b>Neon Cat Set</b><strong class="negative">-1.8%</strong></article>
+          <article><small>Unrealized P/L</small><b>+$3,280</b><strong class="positive">+21.6%</strong></article>
+          <article><small>Snapshots</small><b>36</b><strong>History</strong></article>
+        </section>
+      </main>
+
+      <main class="screen" data-screen="watchlist">
+        <header class="page-header"><h1>Watchlist</h1><button class="icon-button"><i data-lucide="plus"></i></button></header>
+        <section class="summary-card"><small>Monitoring</small><h2>9 assets</h2><p>Add TON tokens, gift collections, or sticker packs and set price alerts.</p></section>
+        <section class="holdings-list bottom-pad">
+          <article><span class="asset-icon token-bg">TON</span><div><b>Toncoin</b><small>Alert above $3.50</small></div><aside><b>$3.12</b><small>+2.4%</small></aside></article>
+          <article><span class="asset-icon gift-bg"><i data-lucide="gift"></i></span><div><b>Plush Pepe Gift</b><small>Alert below 90 TON</small></div><aside><b>112 TON</b><small>+0.6%</small></aside></article>
+          <article><span class="asset-icon sticker-bg"><i data-lucide="sticker"></i></span><div><b>Arcade Stickers</b><small>Add to portfolio</small></div><aside><b>$240</b><small>-0.4%</small></aside></article>
+        </section>
+      </main>
+
+      <main class="screen" data-screen="activity">
+        <header class="page-header"><button class="icon-button" type="button" data-screen-target="home"><i data-lucide="arrow-left"></i></button><h1>Activity</h1><button class="icon-button"><i data-lucide="download"></i></button></header>
+        <section class="search-card"><i data-lucide="search"></i><input id="activitySearch" type="search" placeholder="Search asset or wallet address" autocomplete="off" /></section>
+        <section class="activity-filter-row">
+          <button class="pill active" type="button" data-activity-filter="All">All</button>
+          <button class="pill" type="button" data-activity-filter="Sent">Sent</button>
+          <button class="pill" type="button" data-activity-filter="Received">Received</button>
+          <button class="pill" type="button" data-activity-filter="Swap">Swap</button>
+        </section>
+        <section class="holdings-list bottom-pad">
+          <article><span class="asset-icon gift-bg"><i data-lucide="gift"></i></span><div><b>Gift received</b><small>Diamond Ring · Today</small></div><aside><b>$2,840</b><small>Receive</small></aside></article>
+          <article><span class="asset-icon token-bg"><i data-lucide="arrow-down-left"></i></span><div><b>TON received</b><small>Main wallet · 3m ago</small></div><aside><b>30 TON</b><small>Transfer</small></aside></article>
+          <article><span class="asset-icon sticker-bg"><i data-lucide="sticker"></i></span><div><b>Sticker pack acquired</b><small>Neon Cat Set · Apr 28</small></div><aside><b>$620</b><small>Acquire</small></aside></article>
+        </section>
+      </main>
+
+      <main class="screen" data-screen="detail">
+        <header class="page-header"><button class="icon-button" type="button" data-screen-target="assets"><i data-lucide="arrow-left"></i></button><h1>Asset Detail</h1><button class="icon-button"><i data-lucide="external-link"></i></button></header>
+        <section id="giftDetailMount" class="bottom-pad" style="display:none"></section>
+        <section class="detail-hero enhanced-detail-hero" id="detailHero">
+          <span class="detail-ghost" id="detailGhost"><i data-lucide="gem"></i></span>
+          <span class="asset-icon gift-bg" id="detailIcon"><i data-lucide="gem"></i></span>
+          <small id="detailCategory">Telegram Gift</small>
+          <h2 id="detailName">Diamond Ring</h2>
+          <strong id="detailValue">$2,840 · +12.2%</strong>
+          <p id="detailMintLine">#4821 · 1,240 of 6,962 issued</p>
+        </section>
+        <section class="trait-panel" id="detailTraitPanel"></section>
+        <section class="detail-note-stack" id="detailMetaStack"></section>
+        <section class="financial-grid">
+          <article><small id="detailStatOneLabel">Current Floor</small><b id="detailStatOne">143 TON · $2,840</b></article>
+          <article><small id="detailStatTwoLabel">Cost Basis</small><b id="detailStatTwo">$2,000 · May 1</b></article>
+          <article><small>Unrealized PnL</small><b class="positive" id="detailPnl">+$840 · +42%</b></article>
+          <article><small id="detailStatThreeLabel">Quick Sell Estimate</small><b id="detailStatThree">135.8 TON · $2,698</b></article>
+        </section>
+        <small class="acquired-label" id="detailAcquiredLabel">Acquired May 15, 2026</small>
+        <section class="price-panel">
+          <div class="section-heading"><h2>Floor Price</h2><button class="toggle-chip" id="priceToggle" data-price-toggle type="button">USD</button></div>
+          <svg id="detailPriceChart" viewBox="0 0 340 150" role="img" aria-label="Floor price chart"></svg>
+          <div class="chart-tooltip" id="chartTooltip">May 15 · $2,000</div>
+        </section>
+        <section class="sales-panel">
+          <div class="section-heading"><h2>Recent Sales</h2><button class="text-action" type="button">Exact Variant</button></div>
+          <div class="sales-table" id="detailSalesTable"></div>
+        </section>
+        <section class="market-intel bottom-pad">
+          <div class="section-heading"><h2>Market Intel</h2><button class="text-action" type="button">Live</button></div>
+          <div id="detailMarketIntel"></div>
+        </section>
+      </main>
+
+      <main class="screen" data-screen="wallets">
+        <header class="page-header"><button class="icon-button" type="button" data-screen-target="settings"><i data-lucide="arrow-left"></i></button><h1>Wallets</h1><button class="icon-button"><i data-lucide="qr-code"></i></button></header>
+        <section class="connect-panel small"><span class="wallet-glyph"><i data-lucide="wallet-cards"></i></span><h2>Connect TON wallet.</h2><p>Support for Tonkeeper, MyTonWallet, QR scan, and address input.</p><button class="js-connect-wallet" type="button">Connect TON Wallet</button></section>
+        <section class="holdings-list bottom-pad"><article><span class="asset-icon token-bg"><i data-lucide="wallet"></i></span><div><b>Main wallet</b><small>UQ72...A9f4 · 64 assets</small></div><aside><b>$7.2K</b><small>Label</small></aside></article><article><span class="asset-icon gift-bg"><i data-lucide="message-circle"></i></span><div><b>Telegram account</b><small>Gifts and stickers</small></div><aside><b>Linked</b><small>Manage</small></aside></article></section>
+      </main>
+
+      <main class="screen" data-screen="settings">
+        <header class="page-header"><h1>Settings</h1><button class="icon-button" type="button" data-screen-target="wallets"><i data-lucide="wallet"></i></button></header>
+        <section class="profile-actions bottom-pad">
+          <button class="currency-setting" type="button"><i data-lucide="badge-dollar-sign"></i><span id="currencySettingLabel">Currency: USD</span><span class="currency-options"><b data-currency-option="USD" class="is-active">USD</b><b data-currency-option="TON">TON</b></span></button>
+          <button type="button" data-settings-alerts><i data-lucide="bell-ring"></i><span>Price alerts</span><i data-lucide="chevron-right"></i></button>
+          <button type="button" data-settings-privacy><i data-lucide="eye-off"></i><span>Privacy mode</span><i data-lucide="chevron-right"></i></button>
+          <button type="button" data-settings-refresh><i data-lucide="refresh-cw"></i><span>Refresh frequency</span><i data-lucide="chevron-right"></i></button>
+          <button type="button" data-settings-theme><i data-lucide="sun-moon"></i><span>Theme: System</span><i data-lucide="chevron-right"></i></button>
+          <button type="button"><i data-lucide="life-buoy"></i><span>Feedback and support</span><i data-lucide="chevron-right"></i></button>
+          <button type="button" data-wallet-logout><i data-lucide="log-out"></i><span>Disconnect wallet</span><i data-lucide="chevron-right"></i></button>
+        </section>
+      </main>
+
+      <nav class="dock five" aria-label="Main navigation">
+        <button class="is-active" type="button" data-screen-target="home" aria-label="Home"><i data-lucide="house"></i><span>Home</span></button>
+        <button type="button" data-screen-target="assets" aria-label="Assets"><i data-lucide="layers-3"></i><span>Assets</span></button>
+        <button type="button" data-screen-target="analytics" aria-label="Analytics"><i data-lucide="chart-no-axes-combined"></i><span>Analytics</span></button>
+        <button type="button" data-screen-target="watchlist" aria-label="Watchlist"><i data-lucide="radar"></i><span>Watchlist</span></button>
+        <button type="button" data-screen-target="settings" aria-label="Settings"><i data-lucide="settings-2"></i><span>Settings</span></button>
+      </nav>
+
+      <div class="wallet-sheet" id="walletSheet" aria-hidden="true">
+        <button class="wallet-sheet-backdrop" type="button" aria-label="Close wallet sheet"></button>
+        <section class="wallet-sheet-panel" role="dialog" aria-modal="true" aria-labelledby="walletSheetTitle">
+          <span class="sheet-handle"></span>
+          <div class="wallet-sheet-head">
+            <div>
+              <small>TON wallet</small>
+              <h2 id="walletSheetTitle">Connect wallet</h2>
+            </div>
+            <button class="icon-button wallet-sheet-close" type="button" aria-label="Close"><i data-lucide="x"></i></button>
+          </div>
+          <div class="wallet-options">
+            <button type="button" data-wallet-connect="Tonkeeper"><span class="asset-icon token-bg"><i data-lucide="shield-check"></i></span><div><b>Tonkeeper</b><small>Recommended wallet</small></div><i data-lucide="chevron-right"></i></button>
+            <button type="button" data-wallet-connect="MyTonWallet"><span class="asset-icon gift-bg"><i data-lucide="wallet-cards"></i></span><div><b>MyTonWallet</b><small>Connect browser or mobile</small></div><i data-lucide="chevron-right"></i></button>
+            <button type="button" data-wallet-connect="Address"><span class="asset-icon sticker-bg"><i data-lucide="scan-line"></i></span><div><b>Scan or paste address</b><small>Read-only portfolio import</small></div><i data-lucide="chevron-right"></i></button>
+          </div>
+          <form class="wallet-address-form" id="walletAddressForm">
+            <label for="walletAddressInput">Wallet address</label>
+            <div>
+              <input id="walletAddressInput" name="address" autocomplete="off" placeholder="UQ... or EQ..." />
+              <button type="submit">Import</button>
+            </div>
+            <small id="walletImportStatus">Paste a TON wallet address to fetch live balances.</small>
+          </form>
+        </section>
+      </div>
+      <div class="token-sort-popover" id="tokenSortSheet" aria-hidden="true">
+        <button type="button" data-token-sort="value"><i data-lucide="badge-dollar-sign"></i><span>By value</span></button>
+        <button type="button" data-token-sort="name"><i data-lucide="arrow-down-a-z"></i><span>By name</span></button>
+        <button type="button" data-token-sort="change"><i data-lucide="trending-up"></i><span>By 24h change</span></button>
+      </div>
+      <div class="wallet-action-sheet" id="walletActionSheet" aria-hidden="true">
+        <button class="wallet-action-backdrop" type="button" aria-label="Close wallet actions"></button>
+        <section class="wallet-action-panel">
+          <span class="sheet-handle"></span>
+          <div class="wallet-action-meta" id="walletActionMeta">
+            <small>TON wallet</small>
+            <b id="walletActionTitle">Connected wallet</b>
+            <span id="walletActionAddress">UQ72...A9f4</span>
+          </div>
+          <button type="button" data-screen-target="wallets"><i data-lucide="wallet"></i><span>Manage wallet</span></button>
+          <button type="button" data-wallet-open-tonviewer><i data-lucide="external-link"></i><span>Open on Tonviewer</span></button>
+          <button type="button" data-wallet-open-tonscan><i data-lucide="globe"></i><span>Open on TONScan</span></button>
+          <button type="button" data-wallet-logout><i data-lucide="log-out"></i><span>Disconnect wallet</span></button>
+        </section>
+      </div>
+      <div class="tx-sheet" id="txSheet" aria-hidden="true">
+        <button class="tx-sheet-backdrop" type="button" aria-label="Close transaction details"></button>
+        <section class="tx-sheet-panel" role="dialog" aria-modal="true">
+          <span class="tx-sheet-handle"></span>
+          <button class="tx-sheet-close" type="button" aria-label="Close"><i data-lucide="x"></i></button>
+          <div class="tx-logo-stack" id="txLogoStack"></div>
+          <h2 id="txAmountTitle">0 TON</h2>
+          <strong class="tx-usd-value" id="txUsdValue">$0.00</strong>
+          <p id="txSubtitle">Transaction</p>
+          <div class="tx-detail-list" id="txDetailList"></div>
+          <button class="primary-button" type="button" id="txTonscanButton">View on TONScan</button>
+        </section>
+      </div>
+      <div class="import-loader" id="importLoader" aria-hidden="true">
+        <div class="import-loader-shell">
+          <small class="import-loader-wordmark">TonTrack</small>
+          <div class="import-loader-core" aria-hidden="true">
+            <span class="import-loader-orbit import-loader-orbit-inner"></span>
+            <span class="import-loader-orbit import-loader-orbit-middle"></span>
+            <span class="import-loader-orbit import-loader-orbit-outer"></span>
+            <span class="import-loader-dot import-loader-dot-inner"></span>
+            <span class="import-loader-dot import-loader-dot-middle"></span>
+            <span class="import-loader-dot import-loader-dot-outer"></span>
+            <span class="import-loader-diamond-glow"></span>
+            <svg class="import-loader-diamond" viewBox="0 0 80 80" fill="none">
+              <path d="M40 9L60 22.5L58 54.5L40 70L22 54.5L20 22.5L40 9Z" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/>
+              <path d="M29 27H51L40 48L29 27Z" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/>
+              <path d="M40 27V58" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+              <path d="M29 27L40 58L51 27" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/>
+            </svg>
+            <svg class="import-loader-check" viewBox="0 0 32 32" fill="none">
+              <path d="M7 16.5L13 22.5L25 10.5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <p class="import-loader-status" id="importLoaderText">Preparing wallet import...</p>
+          <div class="import-loader-progress-track"><b id="importLoaderBar"></b></div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    <script src="https://unpkg.com/@tonconnect/ui@2.4.4/dist/tonconnect-ui.min.js"></script>
+    <script src="./app.js?v=thermos-gift-models-114"></script>
+  </body>
+</html>

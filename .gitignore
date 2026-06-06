@@ -1,0 +1,34 @@
+node_modules/
+
+# Local environment and secrets
+.env
+.env.local
+
+# Runtime logs
+*.log
+*.err
+*.out
+*.pid
+
+# Tunnel/runtime output
+cloudflared*.log
+localtunnel*.log
+localhostrun*.log
+tunnel*.log
+ssh-tunnel.*
+
+# Generated caches and local snapshot data
+data/history-cache/
+data/*.json
+!data/*.schema.sql
+
+# Local probes and generated artifacts
+.xgift_probe_deps/
+__pycache__/
+xgift-*.js
+gift-history-audit.json
+*`r`n
+preview-*.png
+wallet-history-*.json
+wallet-test.json
+tonapi-events-sample.json

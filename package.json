@@ -1,0 +1,19 @@
+{
+  "name": "vaulton-portfolio",
+  "version": "0.1.0",
+  "private": true,
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "worker:gift-snapshots": "node gift-snapshot-worker.js",
+    "worker:gift-snapshots:once": "node gift-snapshot-once.js",
+    "worker:gift-models:once": "node gift-model-snapshot-once.js",
+    "worker:gift-snapshots:15m": "set GIFT_SNAPSHOT_INTERVAL_MS=900000&& node gift-snapshot-worker.js"
+  },
+  "dependencies": {
+    "@ton/core": "^0.63.1",
+    "@tonconnect/ui": "^2.4.4",
+    "pg": "^8.13.1"
+  }
+}
