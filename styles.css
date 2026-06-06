@@ -3755,6 +3755,44 @@ small {
   touch-action: none;
 }
 
+.gift-chart-loading {
+  position: relative;
+  width: 100%;
+  height: 190px;
+  margin-top: 8px;
+  overflow: hidden;
+  border-radius: 14px;
+}
+
+.gift-chart-loading-line {
+  position: absolute;
+  left: 10%;
+  right: 6%;
+  height: 1px;
+  opacity: .72;
+}
+
+.gift-chart-loading-line.is-top {
+  top: 34%;
+}
+
+.gift-chart-loading-line.is-mid {
+  top: 54%;
+}
+
+.gift-chart-loading-line.is-low {
+  top: 74%;
+}
+
+.gift-chart-loading-pill {
+  position: absolute;
+  left: 6%;
+  bottom: 18px;
+  width: 118px;
+  height: 28px;
+  border-radius: 999px;
+}
+
 .gift-detail-chart-image {
   display: block;
   width: 100%;

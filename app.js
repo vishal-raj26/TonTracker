@@ -1288,12 +1288,13 @@ function renderGiftDetailPage(detail, { loading = false } = {}) {
   const priceChangeClass = Number(detail.dailyPct || 0) < 0 ? "negative" : "positive";
   const floorLabel = Number(detail.floorUsd || 0) > 0 ? money(detail.floorUsd) : "—";
   const floorSubLabel = Number(detail.floorTon || 0) > 0 ? `${detail.floorTon.toFixed(2)} TON` : "—";
+  const chartIsLoading = loading || detail.floorHistoryLoading || detail.priceLoading;
   const chartSourceLabel = detail.floorHistoryAvailable
     ? detail.floorHistorySource === "sales-derived" ? "Sales-derived floor"
       : detail.floorHistorySource === "see.tg-graphics" ? "see.tg floor history"
       : detail.floorHistorySource === "tontrack-snapshots" ? "TonTrack snapshots"
       : "Live floor history"
-    : "Floor history unavailable";
+    : chartIsLoading ? "Loading floor history..." : "Floor history unavailable";
   const rows = traits.map((trait) => {
     const percent = giftTraitPercent(trait);
     const tone = giftTraitTone(percent);
@@ -1368,8 +1369,13 @@ function renderGiftDetailPage(detail, { loading = false } = {}) {
             <button type="button" class="mini-button ${priceMode === "TON" ? "active" : ""}" data-gift-price-mode="TON">TON</button>
           </div>
         </div>
-        <svg id="giftDetailPriceChart" viewBox="0 0 340 140" role="img" aria-label="Gift floor price chart" class="gift-detail-chart"></svg>
-        <div id="giftDetailChartTooltip" class="chart-tooltip">${loading ? "Loading chart..." : (detail.floorHistoryAvailable ? `Latest: ${money(detail.floorUsd || 0)}` : "Floor history unavailable")}</div>
+        ${chartIsLoading ? `<div class="gift-chart-loading" aria-label="Loading gift floor chart">
+          <span class="skeleton gift-chart-loading-line is-top"></span>
+          <span class="skeleton gift-chart-loading-line is-mid"></span>
+          <span class="skeleton gift-chart-loading-line is-low"></span>
+          <span class="skeleton gift-chart-loading-pill"></span>
+        </div>` : `<svg id="giftDetailPriceChart" viewBox="0 0 340 140" role="img" aria-label="Gift floor price chart" class="gift-detail-chart"></svg>
+        <div id="giftDetailChartTooltip" class="chart-tooltip">${detail.floorHistoryAvailable ? `Latest: ${money(detail.floorUsd || 0)}` : "Floor history unavailable"}</div>`}
         <div class="gift-detail-chart-footer">
           <div class="gift-detail-toggle-row">
             <button class="mini-button ${giftDetailRange === "7d" ? "active" : ""}" type="button" data-gift-detail-range="7d">7D</button>
@@ -1394,19 +1400,21 @@ function renderGiftDetailPage(detail, { loading = false } = {}) {
         <div>${marketRows || `<p class="detail-empty-state">No market links available</p>`}</div>
       </article>
     </section>`;
-  drawDetailPriceChart(detail, {
-    svgSelector: "#giftDetailPriceChart",
-    tooltipSelector: "#giftDetailChartTooltip",
-    height: 190,
-    referenceText: "Your cost",
-    collectibleRange: giftDetailRange,
-    emptyTooltip: "Floor history unavailable",
-    hideReferenceWhenMissing: true,
-    requireHistory: true,
-    showAxes: true,
-    showArea: true,
-    interactive: true,
-  });
+  if (!chartIsLoading) {
+    drawDetailPriceChart(detail, {
+      svgSelector: "#giftDetailPriceChart",
+      tooltipSelector: "#giftDetailChartTooltip",
+      height: 190,
+      referenceText: "Your cost",
+      collectibleRange: giftDetailRange,
+      emptyTooltip: "Floor history unavailable",
+      hideReferenceWhenMissing: true,
+      requireHistory: true,
+      showAxes: true,
+      showArea: true,
+      interactive: true,
+    });
+  }
   const externalButton = document.querySelector('[data-screen="detail"] .page-header .icon-button:last-child');
   if (externalButton) {
     externalButton.onclick = () => {
