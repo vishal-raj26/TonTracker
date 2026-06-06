@@ -690,7 +690,7 @@ async function appendGiftFloorSnapshotDb(record) {
   if (latest.rows[0]?.id && Date.now() - latestTime < 20 * 60 * 1000) {
     await pool.query(
       `UPDATE gift_floor_snapshots SET
-        sampled_at = $2, floor_ton = $3, floor_usd = $4, ton_usd_rate = $5, source = $6,
+        collection_key = $1, sampled_at = $2, floor_ton = $3, floor_usd = $4, ton_usd_rate = $5, source = $6,
         listed_count = $7, total_supply = $8, opened = $9, onchain = $10, holders = $11,
         volume_24h_ton = $12, volume_24h_usd = $13, sales_24h = $14, sales_30d = $15,
         change_24h_pct = $16, period_change_pct = $17, ath_floor_usd = $18, market_updated_at = $19
@@ -821,7 +821,7 @@ async function appendGiftModelFloorSnapshotsDb(records = []) {
     if (latest.rows[0]?.id && Date.now() - latestTime < 20 * 60 * 1000) {
       await pool.query(
         `UPDATE gift_model_floor_snapshots SET
-          model_name = $3, sampled_at = $4, floor_ton = $5, floor_usd = $6, ton_usd_rate = $7,
+          collection_key = $1, model_key = $2, model_name = $3, sampled_at = $4, floor_ton = $5, floor_usd = $6, ton_usd_rate = $7,
           source = $8, listed_count = $9, deals_30d = $10, avg_30d_ton = $11, avg_30d_usd = $12,
           model_count = $13, rarity = $14, market_updated_at = $15, icon_url = $16
          WHERE id = ${Number(latest.rows[0].id)}`,
