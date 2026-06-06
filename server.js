@@ -115,6 +115,8 @@ let historyBuildQueue = Promise.resolve();
 let lastTonApiAt = 0;
 const tonApiMinDelay = tonApiKey ? 160 : 950;
 const giftSnapshotIntervalMs = Number(process.env.GIFT_SNAPSHOT_INTERVAL_MS || 60 * 60 * 1000);
+const giftSnapshotUnchangedIntervalMs = Number(process.env.GIFT_SNAPSHOT_UNCHANGED_INTERVAL_MS || 23 * 60 * 60 * 1000);
+const giftSnapshotRetentionDays = Number(process.env.GIFT_SNAPSHOT_RETENTION_DAYS || 370);
 const giftSnapshotDelayMs = Number(process.env.GIFT_SNAPSHOT_DELAY_MS || 15000);
 const giftModelRetryDelayMs = Number(process.env.GIFT_MODEL_RETRY_DELAY_MS || 120000);
 const giftModelRetryCount = Number(process.env.GIFT_MODEL_RETRY_COUNT || 2);
@@ -648,6 +650,33 @@ async function ensureGiftSnapshotTables() {
   return giftSnapshotPgInitPromise;
 }
 
+function snapshotNumber(value) {
+  const numberValue = Number(value || 0);
+  return Number.isFinite(numberValue) ? numberValue : 0;
+}
+
+function snapshotNumbersMatch(a, b, tolerance = 0.000001) {
+  return Math.abs(snapshotNumber(a) - snapshotNumber(b)) <= tolerance;
+}
+
+function collectionSnapshotUnchanged(row = {}, record = {}) {
+  return snapshotNumbersMatch(row.floor_ton, record.floorTon)
+    && snapshotNumbersMatch(row.floor_usd, record.floorUsd, 0.0001)
+    && snapshotNumbersMatch(row.listed_count, record.listedCount, 0)
+    && snapshotNumbersMatch(row.total_supply, record.totalSupply, 0)
+    && snapshotNumbersMatch(row.volume_24h_ton, record.volume24hTon)
+    && snapshotNumbersMatch(row.sales_24h, record.sales24h, 0);
+}
+
+function modelSnapshotUnchanged(row = {}, record = {}) {
+  return snapshotNumbersMatch(row.floor_ton, record.floorTon)
+    && snapshotNumbersMatch(row.floor_usd, record.floorUsd, 0.0001)
+    && snapshotNumbersMatch(row.listed_count, record.listedCount, 0)
+    && snapshotNumbersMatch(row.deals_30d, record.deals30d, 0)
+    && snapshotNumbersMatch(row.avg_30d_ton, record.avg30dTon)
+    && snapshotNumbersMatch(row.model_count, record.modelCount, 0);
+}
+
 async function appendGiftFloorSnapshotDb(record) {
   const pool = await ensureGiftSnapshotTables();
   if (!pool) return false;
@@ -662,7 +691,8 @@ async function appendGiftFloorSnapshotDb(record) {
     [record.key, record.name, record.giftId || "", JSON.stringify(record.recentSales || [])]
   );
   const latest = await pool.query(
-    `SELECT id, sampled_at FROM gift_floor_snapshots WHERE collection_key = $1 ORDER BY sampled_at DESC LIMIT 1`,
+    `SELECT id, sampled_at, floor_ton, floor_usd, listed_count, total_supply, volume_24h_ton, sales_24h
+     FROM gift_floor_snapshots WHERE collection_key = $1 ORDER BY sampled_at DESC LIMIT 1`,
     [record.key]
   );
   const values = [
@@ -687,6 +717,13 @@ async function appendGiftFloorSnapshotDb(record) {
     record.marketUpdatedAt,
   ];
   const latestTime = latest.rows[0]?.sampled_at ? new Date(latest.rows[0].sampled_at).getTime() : 0;
+  if (
+    latest.rows[0]?.id
+    && Date.now() - latestTime < giftSnapshotUnchangedIntervalMs
+    && collectionSnapshotUnchanged(latest.rows[0], record)
+  ) {
+    return true;
+  }
   if (latest.rows[0]?.id && Date.now() - latestTime < 20 * 60 * 1000) {
     await pool.query(
       `UPDATE gift_floor_snapshots SET
@@ -794,7 +831,8 @@ async function appendGiftModelFloorSnapshotsDb(records = []) {
       [record.collectionKey, record.collectionName, record.giftId || ""]
     );
     const latest = await pool.query(
-      `SELECT id, sampled_at FROM gift_model_floor_snapshots
+      `SELECT id, sampled_at, floor_ton, floor_usd, listed_count, deals_30d, avg_30d_ton, model_count
+       FROM gift_model_floor_snapshots
        WHERE collection_key = $1 AND model_key = $2
        ORDER BY sampled_at DESC LIMIT 1`,
       [record.collectionKey, record.modelKey]
@@ -818,6 +856,13 @@ async function appendGiftModelFloorSnapshotsDb(records = []) {
       record.iconUrl,
     ];
     const latestTime = latest.rows[0]?.sampled_at ? new Date(latest.rows[0].sampled_at).getTime() : 0;
+    if (
+      latest.rows[0]?.id
+      && Date.now() - latestTime < giftSnapshotUnchangedIntervalMs
+      && modelSnapshotUnchanged(latest.rows[0], record)
+    ) {
+      continue;
+    }
     if (latest.rows[0]?.id && Date.now() - latestTime < 20 * 60 * 1000) {
       await pool.query(
         `UPDATE gift_model_floor_snapshots SET
@@ -886,6 +931,27 @@ async function appendGiftModelFloorSnapshots(name, payload = {}) {
   if (!records.length) return [];
   if (await appendGiftModelFloorSnapshotsDb(records)) return records;
   return appendGiftModelFloorSnapshotsJson(records);
+}
+
+async function pruneGiftSnapshotStorage() {
+  const retentionDays = Math.max(0, Math.floor(giftSnapshotRetentionDays));
+  if (!retentionDays) return;
+  const pool = await ensureGiftSnapshotTables();
+  if (!pool) return;
+  try {
+    await pool.query(
+      `DELETE FROM gift_model_floor_snapshots
+       WHERE sampled_at < now() - ($1::int * interval '1 day')`,
+      [retentionDays]
+    );
+    await pool.query(
+      `DELETE FROM gift_floor_snapshots
+       WHERE sampled_at < now() - ($1::int * interval '1 day')`,
+      [retentionDays]
+    );
+  } catch (error) {
+    console.warn("[gift-snapshot] retention prune failed", error.message);
+  }
 }
 
 function latestGiftModelFloorsJson(collection = "") {
@@ -1224,6 +1290,7 @@ async function collectGiftFloorSnapshotsNow({ force = false } = {}) {
           console.warn(`[gift-model-snapshot] Thermos attributes chunk failed: ${error.message}`);
         }
       }
+      await pruneGiftSnapshotStorage();
       giftSnapshotCollectorState.status = "idle";
       giftSnapshotCollectorState.completedAt = new Date().toISOString();
       return giftSnapshotCollectorState;
