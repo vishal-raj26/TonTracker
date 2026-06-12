@@ -31,6 +31,17 @@ def number(value, default=0.0):
         return default
 
 
+def media_kind(url):
+    text = str(url or "")
+    if text.lower().endswith(".json"):
+        return "lottie"
+    if any(text.lower().endswith(ext) for ext in (".webm", ".mp4", ".mov")):
+        return "video"
+    if text:
+        return "image"
+    return ""
+
+
 def load_canonical_names():
     try:
         import xgift
@@ -191,6 +202,22 @@ async def gift_model_floors(name):
                         continue
                     canonical = row.get("giftName") or canonical
                     gift_id = str(row.get("giftTypeId") or gift_id or "")
+                    raw_icon = str(row.get("iconUrl") or "").strip()
+                    animation_url = str(
+                        row.get("animationUrl")
+                        or row.get("animatedUrl")
+                        or row.get("lottieUrl")
+                        or (raw_icon if raw_icon.lower().endswith(".json") else "")
+                        or ""
+                    ).strip()
+                    icon_url = str(
+                        row.get("imageUrl")
+                        or row.get("previewUrl")
+                        or row.get("posterUrl")
+                        or row.get("thumbnailUrl")
+                        or (raw_icon if raw_icon and not raw_icon.lower().endswith(".json") else "")
+                        or ""
+                    ).strip()
                     models.append({
                         "model": model,
                         "modelKey": normalize_name(model),
@@ -204,7 +231,9 @@ async def gift_model_floors(name):
                         "modelCount": int(number(row.get("modelCount"), 0.0)),
                         "rarity": number(row.get("modelRare"), 0.0),
                         "marketUpdatedAt": row.get("marketDataUpdatedAt") or row.get("updateTime") or "",
-                        "iconUrl": row.get("iconUrl") or "",
+                        "iconUrl": icon_url,
+                        "animationUrl": animation_url,
+                        "mediaType": media_kind(animation_url or icon_url),
                     })
                 if models:
                     return {
@@ -223,6 +252,73 @@ async def gift_model_floors(name):
         await raw.close()
 
 
+def xgift_attribute_row(row, trait_type):
+    fields = {
+        "models": ("model", "modelRare", "modelCount"),
+        "backdrops": ("backdrop", "backdropRare", "backdropCount"),
+        "symbols": ("pattern", "patternRare", "patternCount"),
+    }
+    name_key, rarity_key, count_key = fields[trait_type]
+    value_name = str(row.get(name_key) or "").strip()
+    if not value_name:
+        return None
+    floor_ton = number(row.get("floorPriceTon") or row.get("floorPrice") or row.get("floor_price"))
+    return {
+        "name": value_name,
+        "rarity_per_mille": number(row.get(rarity_key), 0.0),
+        "stats": {
+            "count": int(number(row.get(count_key), 0.0)),
+            "floor": str(int(round(floor_ton * 1_000_000_000))) if floor_ton > 0 else "0",
+        },
+        "image_url": row.get("iconUrl") or row.get("imageUrl") or "",
+        "source": "xgift",
+        "market_updated_at": row.get("marketDataUpdatedAt") or row.get("updateTime") or "",
+    }
+
+
+async def gift_attributes(name):
+    from xgift.raw import GiftRaw
+
+    raw = GiftRaw()
+    try:
+        last_error = None
+        for candidate in candidate_names(name):
+            try:
+                with contextlib.redirect_stdout(sys.stderr):
+                    payload = await raw.CollectionGifts(candidate)
+                if not isinstance(payload, dict):
+                    continue
+                groups = {}
+                for output_key, input_key in (
+                    ("models", "giftModel"),
+                    ("backdrops", "giftBackdrop"),
+                    ("symbols", "giftSymbol"),
+                ):
+                    groups[output_key] = [
+                        item
+                        for row in (payload.get(input_key) or [])
+                        if isinstance(row, dict)
+                        for item in [xgift_attribute_row(row, output_key)]
+                        if item
+                    ]
+                if any(groups.values()):
+                    canonical = next(
+                        (
+                            row.get("giftName")
+                            for input_key in ("giftModel", "giftBackdrop", "giftSymbol")
+                            for row in (payload.get(input_key) or [])
+                            if isinstance(row, dict) and row.get("giftName")
+                        ),
+                        candidate,
+                    )
+                    return {"ok": True, "canonicalName": canonical, **groups}
+            except Exception as exc:
+                last_error = str(exc)
+        return {"ok": False, "error": last_error or "No xGift attributes", "models": [], "backdrops": [], "symbols": []}
+    finally:
+        await raw.close()
+
+
 async def main():
     payload = json.loads(sys.stdin.read() or "{}")
     command = payload.get("command")
@@ -230,6 +326,8 @@ async def main():
         result = await gift_floor(payload.get("name") or payload.get("collection") or "", payload.get("period") or "7d")
     elif command == "gift-model-floors":
         result = await gift_model_floors(payload.get("name") or payload.get("collection") or "")
+    elif command == "gift-attributes":
+        result = await gift_attributes(payload.get("name") or payload.get("collection") or "")
     elif command == "gift-list":
         names = []
         try:
@@ -258,7 +356,7 @@ async def main():
             result = {"ok": False, "error": str(exc), "names": []}
     else:
         result = {"ok": False, "error": "Unknown command"}
-    print(json.dumps(result, ensure_ascii=False))
+    print(json.dumps(result))
 
 
 if __name__ == "__main__":

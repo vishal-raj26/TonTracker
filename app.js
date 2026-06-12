@@ -646,9 +646,34 @@ function renderGiftGrid() {
   if (!grid) return;
   const sort = document.querySelector("#giftSort")?.value || "floor-desc";
   const filter = document.querySelector("#giftFilter")?.value || "all";
-  const items = sortAssets(filterAssets(giftAssets, filter), sort);
-  grid.innerHTML = items.map(renderGiftCard).join("");
+  const query = (document.querySelector("#giftSearch")?.value || "").trim().toLowerCase();
+  const searched = query
+    ? giftAssets.filter((asset) => [
+      asset.name,
+      asset.collection,
+      asset.model,
+      asset.backdrop,
+      asset.symbol,
+      ...(asset.traits || []).flatMap((trait) => [trait.label, trait.value]),
+      ...(asset.children || []).flatMap((child) => [
+        child.name,
+        child.collection,
+        child.model,
+        child.backdrop,
+        child.symbol,
+        ...(child.traits || []).flatMap((trait) => [trait.label, trait.value]),
+      ]),
+    ].filter(Boolean).join(" ").toLowerCase().includes(query))
+    : giftAssets;
+  const items = sortAssets(filterAssets(searched, filter), sort);
+  const countLabel = document.querySelector("#giftCountLabel");
+  if (countLabel) {
+    const count = items.reduce((sum, asset) => sum + Number(asset.count || 1), 0);
+    countLabel.textContent = `${count} gift${count === 1 ? "" : "s"}`;
+  }
+  grid.innerHTML = items.length ? items.map(renderGiftCard).join("") : `<article class="collectible-card"><div class="value-stack"><strong>No gifts found</strong><small>Try a different search.</small></div></article>`;
   window.lucide?.createIcons();
+  initCollectibleAnimations(grid);
   applyCurrencyDisplay();
 }
 
@@ -679,6 +704,7 @@ function renderStickerGrid() {
   }
   grid.innerHTML = items.length ? items.map(renderStickerCard).join("") : `<article class="collectible-card"><div class="value-stack"><strong>No stickers found</strong><small>Try a different search.</small></div></article>`;
   window.lucide?.createIcons();
+  initCollectibleAnimations(grid);
   applyCurrencyDisplay();
 }
 
@@ -720,7 +746,8 @@ function floorSourceLine(asset = {}) {
   const parts = ["Floor"];
   if (asset.floorSource === "model") parts.push("Model");
   if (Number(asset.floorTon || 0) > 0) parts.push(`${Number(asset.floorTon).toFixed(2)} TON`);
-  if (asset.marketPlatform) parts.push(asset.marketPlatform);
+  const platform = marketSourceLabel(asset.marketPlatform);
+  if (platform && platform !== "xGift Model" && platform !== "Model Floor") parts.push(platform);
   if (Number(asset.initTon || 0) > 0) parts.push(`Init ${Number(asset.initTon).toFixed(2)} TON`);
   else if (Number(asset.initUsd || 0) > 0) parts.push(`Init ${money(asset.initUsd)}`);
   return parts.map((part) => escapeHtml(String(part))).join(" · ");
@@ -730,19 +757,23 @@ function renderGiftCard(asset) {
   if (asset.priceLoading && !(Number(asset.floorUsd || 0) > 0)) return renderCollectiblePriceSkeletonCard(asset, "gift");
   const dailyClass = asset.dailyUsd >= 0 ? "positive" : "negative";
   const pnlClass = asset.pnlUsd >= 0 ? "positive" : "negative";
-  const statusClass = asset.status === "Unlisted" ? "is-unlisted" : "is-listed";
+  const listed = asset.status && asset.status !== "Unlisted";
+  const title = asset.name || asset.collection || "Gift";
+  const subtitle = [asset.creator, asset.collection].find((value) => value && collectibleKey(value) !== collectibleKey(title)) || "";
+  const provenance = asset.provenance && collectibleKey(asset.provenance) !== collectibleKey(title)
+    && collectibleKey(asset.provenance) !== collectibleKey(subtitle) ? asset.provenance : "";
   const hasPrice = Number(asset.floorUsd) > 0;
   const floorNote = hasPrice
     ? floorSourceLine(asset)
     : "No market price available";
   return `
-    <article class="collectible-card" data-screen-target="gift-brand" data-asset="${asset.id}">
+    <article class="collectible-card is-gift-card" data-screen-target="gift-brand" data-asset="${asset.id}">
       <div class="collectible-top">
         ${collectibleArtHtml(asset, "gift")}
-        <div><h3>${asset.name}</h3><small>${escapeHtml(asset.creator || asset.collection)}</small></div>
+        <div><h3>${escapeHtml(title)}</h3>${subtitle ? `<small>${escapeHtml(subtitle)}</small>` : ""}</div>
         <span class="tag-number">${Number(asset.count || 1)} gift${Number(asset.count || 1) === 1 ? "" : "s"}</span>
       </div>
-      <div class="card-meta-line"><span>${escapeHtml(asset.provenance || "Gift collection")}</span><b class="status-badge ${statusClass}">${asset.status}</b></div>
+      ${provenance || listed ? `<div class="card-meta-line ${provenance ? "" : "is-status-only"}">${provenance ? `<span>${escapeHtml(provenance)}</span>` : ""}${listed ? `<b class="status-badge is-listed">${escapeHtml(asset.status)}</b>` : ""}</div>` : ""}
       <div class="value-stack"><strong>${hasPrice ? money(asset.floorUsd) : "Price unavailable"}</strong><small>${floorNote}</small></div>
       <div class="pnl-row">
         <span class="pnl-box"><small>Daily PnL</small><b class="${dailyClass}">${hasPrice ? `${signedMoney(asset.dailyUsd)} · ${signedPct(asset.dailyPct)}` : "—"}</b></span>
@@ -756,6 +787,7 @@ function renderGiftBrand(assetId) {
   if (!brand) return;
   const children = brand.children?.length ? brand.children : [brand];
   children.forEach((child) => { assetDetails[child.id] = child; });
+  const groupedChildren = groupGiftBrandChildren(children);
   setText("#giftBrandTitle", brand.name || "Gift Collection");
   const summary = document.querySelector("#giftBrandSummary");
   if (summary) {
@@ -766,24 +798,422 @@ function renderGiftBrand(assetId) {
     summary.innerHTML = `<small>${escapeHtml(brand.creator || brand.collection || "Gift collection")}</small><div><h2>${money(totalValue)}</h2><span>${count} gift${count === 1 ? "" : "s"}</span></div><strong class="${pnl < 0 ? "negative" : "positive"}">${init ? `${signedMoney(pnl)} · ${signedPct((pnl / init) * 100)}` : "Open a gift to see details"}</strong>`;
   }
   const grid = document.querySelector("#giftBrandGrid");
-  if (grid) grid.innerHTML = children.map(renderGiftBrandItem).join("");
+  groupedChildren.forEach((item) => { assetDetails[item.id] = item; });
+  if (grid) grid.innerHTML = groupedChildren.map(renderGiftBrandItem).join("");
   window.lucide?.createIcons();
+  if (grid) initCollectibleAnimations(grid);
   applyCurrencyDisplay();
+}
+
+function giftBrandNumberList(asset = {}) {
+  const numbers = (asset.children?.length ? asset.children : [asset])
+    .map(giftBrandMintLabel)
+    .filter(Boolean);
+  return [...new Set(numbers)];
+}
+
+function giftDetailHeroMeta(detail = {}) {
+  const count = Number(detail.count || detail.children?.length || 1);
+  const numbers = giftBrandNumberList(detail);
+  const parts = [
+    detail.creator || detail.collection || "Gift collection",
+    `${count} gift${count === 1 ? "" : "s"}`,
+  ].filter(Boolean);
+  if (!numbers.length) return escapeHtml(parts.join(" · "));
+  return escapeHtml(parts.join(" · "));
+}
+
+function giftBrandModelLabel(asset = {}) {
+  return giftModelTrait(asset) || asset.name || asset.collection || "Gift";
+}
+
+function giftDetailTitle(detail = {}) {
+  return String(detail.name || detail.collection || "Gift")
+    .replace(/\s*#\d+\b/g, "")
+    .trim() || "Gift";
+}
+
+function giftBrandMintLabel(asset = {}) {
+  const nameMatch = String(asset.name || asset.collection || "").match(/#(\d{1,7})\b/);
+  const value = nameMatch?.[1] || asset.tag || asset.mint?.current || "";
+  const cleaned = String(value || "").replace(/[^\d]/g, "");
+  if (!cleaned || cleaned.length > 7) return "";
+  return `#${cleaned}`;
+}
+
+function giftBrandImageKey(asset = {}) {
+  return collectibleKey(asset.animatedImage || asset.animationUrl || asset.image || asset.iconUrl || asset.previewUrl || "");
+}
+
+function groupGiftBrandChildren(children = []) {
+  const groups = new Map();
+  children.forEach((asset) => {
+    const key = collectibleKey(`${asset.collection || ""}:${giftBrandModelLabel(asset)}`);
+    const item = groups.get(key) || {
+      ...asset,
+      id: asset.id,
+      children: [],
+      count: 0,
+      floorUsd: 0,
+      floorTon: 0,
+      priceLoading: false,
+      tagList: [],
+      previewImages: [],
+    };
+    item.children.push(asset);
+    item.count += Number(asset.count || 1);
+    item.floorUsd += Number(asset.floorUsd || 0);
+    item.floorTon += Number(asset.floorTon || 0);
+    item.initUsd = Number(item.initUsd || 0) + Number(asset.initUsd || asset.costBasis || 0);
+    item.priceLoading = item.priceLoading || Boolean(asset.priceLoading && !(Number(asset.floorUsd || 0) > 0));
+    item.modelFloor = item.modelFloor || asset.modelFloor || null;
+    const tag = giftBrandMintLabel(asset);
+    if (tag) item.tagList.push(tag);
+    const media = giftMediaDescriptor(asset);
+    if (media.url && !item.previewImages.some((entry) => entry.url === media.url)) item.previewImages.push(media);
+    groups.set(key, item);
+  });
+  return Array.from(groups.values())
+    .map((item) => ({
+      ...item,
+      pnlUsd: Number(item.initUsd || 0) ? Number(item.floorUsd || 0) - Number(item.initUsd || 0) : Number(item.pnlUsd || 0),
+      pnlPct: Number(item.initUsd || 0) ? ((Number(item.floorUsd || 0) - Number(item.initUsd || 0)) / Number(item.initUsd || 1)) * 100 : Number(item.pnlPct || 0),
+    }))
+    .sort((a, b) => {
+      const aValue = Number(a.floorUsd || 0);
+      const bValue = Number(b.floorUsd || 0);
+      if (bValue !== aValue) return bValue - aValue;
+      return String(giftBrandModelLabel(a)).localeCompare(String(giftBrandModelLabel(b)));
+    });
 }
 
 function renderGiftBrandItem(asset) {
   if (asset.priceLoading && !(Number(asset.floorUsd || 0) > 0)) return renderCollectiblePriceSkeletonCard(asset, "gift");
   const hasPrice = Number(asset.floorUsd) > 0;
   const floorNote = hasPrice ? floorSourceLine(asset) : (asset.marketPlatform ? `Floor · ${escapeHtml(asset.marketPlatform)}` : "Open details");
+  const count = Number(asset.count || asset.children?.length || 1);
+  const imageStack = count > 1 ? giftBrandImageStack(asset) : "";
+  const modelLabel = giftBrandModelLabel(asset);
+  const modelCount = giftBrandModelNumber(asset);
+  const modelMeta = modelCount > 0 ? `${modelLabel} · model ${modelCount.toLocaleString()}` : modelLabel;
+  const target = count > 1 ? "gift-model-group" : "detail";
   return `
-    <article class="collectible-card" data-screen-target="detail" data-asset="${asset.id}">
+    <article class="collectible-card is-gift-card ${imageStack ? "has-gift-stack" : ""} ${count > 1 ? "is-grouped-gift" : ""}" data-screen-target="${target}" data-asset="${asset.id}">
       <div class="collectible-top">
-        ${collectibleArtHtml(asset, "gift")}
-        <div><h3>${escapeHtml(asset.collection || asset.name)}</h3><small>${escapeHtml(asset.name || "Gift")}</small></div>
-        <span class="tag-number">#${escapeHtml(String(asset.tag || asset.mint?.current || ""))}</span>
+        ${imageStack || collectibleArtHtml(asset, "gift")}
+        <div><h3>${escapeHtml(asset.collection || asset.name)}</h3><small>${escapeHtml(modelMeta)}</small></div>
+        <span class="gift-model-badges">
+          <b>${count} gift${count === 1 ? "" : "s"}</b>
+          ${modelCount > 0 ? `<small>${modelCount.toLocaleString()} model</small>` : ""}
+        </span>
       </div>
       <div class="value-stack"><strong>${hasPrice ? money(asset.floorUsd) : "Price unavailable"}</strong><small>${floorNote}</small></div>
     </article>`;
+}
+
+function renderGiftModelGroup(assetId) {
+  const group = assetDetails[assetId];
+  if (!group) return;
+  const children = (group.children?.length ? group.children : [group])
+    .slice()
+    .sort((a, b) => Number(b.floorUsd || 0) - Number(a.floorUsd || 0));
+  children.forEach((child) => { assetDetails[child.id] = child; });
+  setText("#giftBrandTitle", group.collection || group.name || "Gift Model");
+  const summary = document.querySelector("#giftBrandSummary");
+  if (summary) {
+    const totalValue = children.reduce((sum, item) => sum + Number(item.floorUsd || 0), 0);
+    summary.innerHTML = `<small>${escapeHtml(giftBrandModelLabel(group))}</small><div><h2>${money(totalValue)}</h2><span>${children.length} gift${children.length === 1 ? "" : "s"}</span></div><strong class="positive">Tap a gift to open details</strong>`;
+  }
+  const grid = document.querySelector("#giftBrandGrid");
+  if (grid) grid.innerHTML = children.map(renderGiftIndividualItem).join("");
+  window.lucide?.createIcons();
+  applyCurrencyDisplay();
+}
+
+function renderGiftIndividualItem(asset) {
+  const hasPrice = Number(asset.floorUsd) > 0;
+  const number = giftBrandMintLabel(asset);
+  const modelLabel = giftBrandModelLabel(asset);
+  const title = giftDetailTitle(asset);
+  return `
+    <article class="collectible-card is-gift-card is-individual-gift" data-screen-target="detail" data-asset="${asset.id}">
+      <div class="collectible-top">
+        ${collectibleArtHtml(asset, "gift")}
+        <div>
+          <h3>${escapeHtml(title)}</h3>
+          <small>${escapeHtml(modelLabel)}</small>
+        </div>
+        ${number ? `<span class="tag-number">${escapeHtml(number)}</span>` : ""}
+      </div>
+      <div class="value-stack"><strong>${hasPrice ? money(asset.floorUsd) : "Price unavailable"}</strong><small>${hasPrice ? floorSourceLine(asset) : "Open details"}</small></div>
+    </article>`;
+}
+
+function giftBrandModelNumber(asset = {}) {
+  const direct = Number(asset.modelFloor?.modelCount || 0);
+  if (direct > 0) return direct;
+  const child = (asset.children || []).find((item) => Number(item.modelFloor?.modelCount || 0) > 0);
+  return Number(child?.modelFloor?.modelCount || 0);
+}
+
+function giftBrandImageStack(asset = {}) {
+  const previews = (asset.children?.length ? asset.children : [asset]).slice(0, 2);
+  if (!previews.length) return "";
+  const extra = Number(asset.count || previews.length) - previews.length;
+  return `<button type="button" class="gift-pfp-stack" data-gift-pfp-tray="${escapeHtml(asset.id)}" aria-label="Show gift previews">${previews.map((item) => collectibleArtHtml(item, "gift")).join("")}${extra > 0 ? `<b>+${extra}</b>` : ""}</button>`;
+}
+
+function giftMediaDescriptor(asset = {}) {
+  const animated = asset.animatedImage || asset.animationUrl || asset.animatedUrl || asset.mediaUrl || "";
+  const fallback = asset.image || asset.iconUrl || asset.previewUrl || "";
+  const animatedUrl = resolveAnimationMediaUrl(animated || "");
+  const fallbackUrl = resolveTokenImage(fallback || "");
+  const inferredType = /\.(?:lottie\.)?json(?:[?#].*)?$/i.test(String(animatedUrl))
+    ? "lottie"
+    : (asset.mediaType || (/(\.webm|\.mp4|\.mov)(?:[?#].*)?$/i.test(String(animatedUrl)) ? "video" : "image"));
+  if (inferredType === "lottie") {
+    return { url: animatedUrl || fallbackUrl || "", type: "lottie", fallback: fallbackUrl, animationUrl: animatedUrl, mediaType: "lottie" };
+  }
+  const url = animatedUrl || fallbackUrl || "";
+  return { url, type: inferredType, fallback: fallbackUrl };
+}
+
+function giftCollectionLabel(asset = {}) {
+  return String(asset.collection || asset.name || "Gift").replace(/\s*#\d+\b/g, "").trim() || "Gift";
+}
+
+function giftLayerDescriptor(asset = {}) {
+  const modelTrait = giftModelTrait(asset);
+  const backdropTrait = String((asset.traits || []).find((trait) => /backdrop/i.test(String(trait.label || "")))?.value || "").trim();
+  const patternTrait = String((asset.traits || []).find((trait) => /symbol/i.test(String(trait.label || "")))?.value || "").trim();
+  const isVintageCigarTest = /vintage cigars?/i.test(giftCollectionLabel(asset))
+    && modelTrait === "Golden Hour"
+    && backdropTrait === "Shamrock Green"
+    && patternTrait === "The Eye";
+  const layered = asset.layeredMedia || (isVintageCigarTest ? {
+    collectionName: "Vintage Cigar",
+    giftName: "Vintage Cigar",
+    modelName: modelTrait,
+    backdropName: backdropTrait,
+    patternName: patternTrait,
+    modelAnimationUrl: "/assets/gifts/vintage-cigar/models/golden-hour.json",
+    patternImageUrl: "/assets/gifts/vintage-cigar/patterns/the-eye.png",
+    backdropPalette: {
+      centerColor: "#8ab163",
+      edgeColor: "#559345",
+      patternColor: "#126b00",
+      textColor: "#d5fbc8",
+    },
+    mediaType: "lottie",
+  } : {});
+  if (!layered.modelAnimationUrl && !layered.modelImageUrl && !asset.animationUrl && !asset.animatedImage) return null;
+  const collectionName = String(layered.collectionName || giftCollectionLabel(asset)).trim();
+  const giftName = String(layered.giftName || collectionName).trim();
+  const modelName = String(layered.modelName || modelTrait).trim();
+  const backdropName = String(layered.backdropName || backdropTrait).trim();
+  const patternName = String(layered.patternName || patternTrait).trim();
+  const modelAnimationUrl = resolveAnimationMediaUrl(layered.modelAnimationUrl || asset.animationUrl || asset.animatedImage || "");
+  const modelImageUrl = resolveTokenImage(layered.modelImageUrl || "");
+  const patternImageUrl = resolveTokenImage(layered.patternImageUrl || "");
+  const mediaUrl = modelAnimationUrl || modelImageUrl;
+  if (!mediaUrl || !layered.backdropPalette) return null;
+  const mediaType = /\.(?:lottie\.)?json(?:[?#].*)?$/i.test(String(mediaUrl))
+    ? "lottie"
+    : (layered.mediaType || (/(\.webm|\.mp4|\.mov)(?:[?#].*)?$/i.test(String(mediaUrl)) ? "video" : "image"));
+  return {
+    collectionName,
+    giftName,
+    modelName,
+    backdropName,
+    patternName,
+    modelAnimationUrl,
+    modelImageUrl,
+    patternImageUrl,
+    mediaType,
+    backdropPalette: layered.backdropPalette,
+  };
+}
+
+const giftPatternPositions = [
+  ["10%", "26.5%", "8%", 10], ["10%", "75.5%", "8%", 10],
+  ["43%", "0.5%", "8%", 10], ["43%", "101.5%", "8%", 10],
+  ["98%", "51%", "8%", 10], ["12%", "51%", "8%", 15],
+  ["26.5%", "10.3%", "8%", 15], ["26.5%", "91.8%", "8%", 15],
+  ["68%", "7.3%", "8%", 15], ["68%", "94.6%", "8%", 15],
+  ["89.2%", "13.8%", "8%", 15], ["89.2%", "35.8%", "8%", 15],
+  ["89.2%", "66.2%", "8%", 15], ["89.2%", "88%", "8%", 15],
+  ["21.5%", "34%", "10%", 24], ["21.5%", "65.5%", "10%", 24],
+  ["35%", "23.2%", "8%", 24], ["35%", "78.8%", "8%", 24],
+  ["50%", "16%", "11%", 24], ["50%", "82.8%", "11%", 24],
+  ["75%", "24.5%", "9%", 24], ["75%", "76%", "9%", 24],
+  ["79.5%", "50.5%", "9%", 24],
+];
+
+function giftPatternLayerHtml(layer = {}) {
+  if (!layer.patternImageUrl) return "";
+  return `<span class="gift-layer-pattern" aria-hidden="true">${giftPatternPositions.map(([top, left, size, opacity]) => `<span style="top:${top};left:${left};width:${size};height:${size};opacity:${opacity / 100};--gift-pattern-image:url('${escapeHtml(layer.patternImageUrl)}')"></span>`).join("")}</span>`;
+}
+
+function giftLayeredArtHtml(asset = {}, wrapperClass = "animated-art") {
+  const layer = giftLayerDescriptor(asset);
+  if (!layer?.modelAnimationUrl) return "";
+  const media = { url: layer.modelAnimationUrl, type: layer.mediaType || "lottie", fallback: "" };
+  const palette = layer.backdropPalette;
+  const className = `${wrapperClass} gift-layer-art`.trim();
+  return `<span class="${escapeHtml(className)}">
+    <span class="gift-layer-backdrop" style="--gift-center:${escapeHtml(palette.centerColor || "#7ac7ff")};--gift-edge:${escapeHtml(palette.edgeColor || "#17385e")};--gift-pattern:${escapeHtml(palette.patternColor || "#dbf1ff")};--gift-text:${escapeHtml(palette.textColor || "#ffffff")}"></span>
+    ${giftPatternLayerHtml(layer)}
+    <span class="gift-layer-model">${collectibleMediaHtml(media, asset.name || "Gift", "gift-layer-model-media")}</span>
+  </span>`;
+}
+
+function giftDetailAnimationHtml(asset = {}) {
+  const media = giftMediaDescriptor(asset);
+  if (!media.url || !["lottie", "video"].includes(media.type)) return "";
+  return collectibleMediaHtml({ ...media, fallback: "" }, asset.name || "Gift");
+}
+
+function collectibleMediaHtml(media = {}, alt = "Collectible", className = "") {
+  const url = resolveTokenImage(media.url || "");
+  if (!url) return "";
+  const fallback = resolveTokenImage(media.fallback || "");
+  const classList = className ? ` ${escapeHtml(className)}` : "";
+  if (media.type === "video") {
+    return `<video class="${classList.trim()}" src="${escapeHtml(url)}" autoplay muted loop playsinline preload="metadata" ${fallback ? `poster="${escapeHtml(fallback)}"` : ""}></video>`;
+  }
+  if (media.type === "lottie") {
+    return `<span class="lottie-host${classList}" data-lottie-src="${escapeHtml(url)}" ${fallback ? `data-lottie-fallback="${escapeHtml(fallback)}"` : ""}>${fallback ? `<img class="lottie-fallback" src="${escapeHtml(fallback)}" alt="${escapeHtml(alt)}" loading="eager" decoding="async">` : ""}</span>`;
+  }
+  return `<img class="${classList.trim()}" src="${escapeHtml(url)}" alt="${escapeHtml(alt)}" loading="eager" decoding="async">`;
+}
+
+let collectibleLottieLibraryPromise = null;
+const collectibleLottieDataCache = new Map();
+
+function ensureCollectibleLottieLibrary() {
+  if (window.lottie?.loadAnimation) return Promise.resolve(window.lottie);
+  if (collectibleLottieLibraryPromise) return collectibleLottieLibraryPromise;
+  collectibleLottieLibraryPromise = new Promise((resolve, reject) => {
+    const existing = document.querySelector('script[data-lottie-runtime="1"]');
+    if (existing) {
+      existing.addEventListener("load", () => resolve(window.lottie), { once: true });
+      existing.addEventListener("error", reject, { once: true });
+      return;
+    }
+    const script = document.createElement("script");
+    script.src = "https://cdnjs.cloudflare.com/ajax/libs/bodymovin/5.12.2/lottie.min.js";
+    script.async = true;
+    script.dataset.lottieRuntime = "1";
+    script.onload = () => resolve(window.lottie);
+    script.onerror = reject;
+    document.head.appendChild(script);
+  }).catch((error) => {
+    collectibleLottieLibraryPromise = null;
+    throw error;
+  });
+  return collectibleLottieLibraryPromise;
+}
+
+function loadCollectibleLottieData(src = "") {
+  if (!src) return Promise.reject(new Error("Missing Lottie source"));
+  if (collectibleLottieDataCache.has(src)) return collectibleLottieDataCache.get(src);
+  const request = fetch(src, { cache: "force-cache" })
+    .then((response) => {
+      if (!response.ok) throw new Error(`Lottie request failed (${response.status})`);
+      return response.json();
+    })
+    .catch((error) => {
+      collectibleLottieDataCache.delete(src);
+      throw error;
+    });
+  collectibleLottieDataCache.set(src, request);
+  return request;
+}
+
+function initCollectibleAnimations(scope = document) {
+  const hosts = [...scope.querySelectorAll("[data-lottie-src]:not([data-lottie-bound])")];
+  if (!hosts.length) return;
+  hosts.forEach((host) => { host.dataset.lottieBound = "1"; });
+  ensureCollectibleLottieLibrary()
+    .then((lottie) => {
+      hosts.forEach((host) => {
+        const src = host.dataset.lottieSrc;
+        if (!src || host.__lottieAnimation) return;
+        host.classList.add("is-lottie-loading");
+        loadCollectibleLottieData(src).then((animationData) => {
+          if (!host.isConnected || host.__lottieAnimation) return;
+          const animation = lottie.loadAnimation({
+            container: host,
+            renderer: "svg",
+            loop: true,
+            autoplay: true,
+            animationData,
+            rendererSettings: {
+              progressiveLoad: true,
+              preserveAspectRatio: "xMidYMid meet",
+            },
+          });
+          host.__lottieAnimation = animation;
+          const markReady = () => {
+            host.classList.remove("is-lottie-loading");
+            host.classList.add("is-lottie-ready");
+          };
+          const markFailed = () => {
+            host.classList.remove("is-lottie-loading");
+            host.classList.add("is-lottie-failed");
+          };
+          animation.addEventListener?.("DOMLoaded", markReady);
+          animation.addEventListener?.("data_failed", markFailed);
+          animation.addEventListener?.("error", markFailed);
+        }).catch(() => {
+          host.classList.remove("is-lottie-loading");
+          host.classList.add("is-lottie-failed");
+        });
+      });
+    })
+    .catch(() => {
+      hosts.forEach((host) => host.classList.add("is-lottie-failed"));
+    });
+}
+
+function openGiftPfpTray(assetId, trigger = null) {
+  const asset = assetDetails[assetId];
+  if (!asset) return;
+  closeGiftPfpTray();
+  const children = asset.children?.length ? asset.children : [asset];
+  const tray = document.createElement("div");
+  tray.className = "gift-pfp-tray-backdrop";
+  tray.innerHTML = `
+    <div class="gift-pfp-tray">
+      <span class="gift-pfp-tray-handle" aria-hidden="true"></span>
+      <div class="gift-pfp-tray-head">
+        <button type="button" data-close-gift-pfp-tray><i data-lucide="x"></i></button>
+      </div>
+      <div class="gift-pfp-tray-grid">
+        ${children.map((item) => {
+          const number = giftBrandMintLabel(item);
+          return `<button type="button" data-screen-target="detail" data-asset="${escapeHtml(item.id)}">
+            ${collectibleArtHtml(item, "gift")}
+            <span>${escapeHtml(giftBrandModelLabel(item))}</span>
+            <small>${number ? escapeHtml(number) : "Gift"}</small>
+          </button>`;
+        }).join("")}
+      </div>
+    </div>`;
+  const rect = trigger?.getBoundingClientRect();
+  tray.style.setProperty("--gift-tray-origin-x", `${rect ? rect.left + rect.width / 2 : window.innerWidth / 2}px`);
+  tray.style.setProperty("--gift-tray-origin-y", `${rect ? rect.top + rect.height / 2 : window.innerHeight / 2}px`);
+  document.body.appendChild(tray);
+  window.lucide?.createIcons();
+  requestAnimationFrame(() => tray.classList.add("is-open"));
+}
+
+function closeGiftPfpTray() {
+  const tray = document.querySelector(".gift-pfp-tray-backdrop");
+  if (!tray || tray.classList.contains("is-closing")) return;
+  tray.classList.add("is-closing");
+  tray.classList.remove("is-open");
+  setTimeout(() => tray.remove(), 220);
 }
 
 function collectibleKey(value) {
@@ -794,6 +1224,10 @@ function giftModelTrait(asset = {}) {
   return (asset.traits || []).find((trait) => /model/i.test(String(trait.label || "")))?.value || "";
 }
 
+function giftTraitValue(asset = {}, label = "") {
+  return (asset.traits || []).find((trait) => String(trait.label || "").toLowerCase() === label.toLowerCase())?.value || "";
+}
+
 function applyGiftModelFloor(asset, model = {}) {
   const floorUsd = Number(model.floorUsd || 0);
   const floorTon = Number(model.floorTon || 0);
@@ -802,8 +1236,20 @@ function applyGiftModelFloor(asset, model = {}) {
   asset.floorTon = floorTon;
   asset.marketVerified = true;
   asset.priceLoading = false;
-  asset.marketPlatform = "Thermos Model";
+  asset.marketPlatform = "Model Floor";
   asset.floorSource = "model";
+  if (model.iconUrl || model.animationUrl) {
+    if (model.iconUrl) {
+      asset.iconUrl = model.iconUrl || asset.iconUrl || "";
+    }
+    if (model.animationUrl) {
+      asset.animatedImage = model.animationUrl || asset.animatedImage || "";
+      asset.animationUrl = model.animationUrl || asset.animationUrl || "";
+    }
+    asset.mediaType = model.mediaType
+      || asset.mediaType
+      || (/\.(?:lottie\.)?json(?:[?#].*)?$/i.test(String(model.animationUrl || model.iconUrl || "")) ? "lottie" : (/(\.webm|\.mp4|\.mov)(?:[?#].*)?$/i.test(String(model.animationUrl || model.iconUrl || "")) ? "video" : "image"));
+  }
   asset.modelFloor = {
     model: model.model || giftModelTrait(asset),
     listedCount: Number(model.listedCount || 0),
@@ -811,7 +1257,19 @@ function applyGiftModelFloor(asset, model = {}) {
     avg30dTon: Number(model.avg30dTon || 0),
     rarity: Number(model.rarity || 0),
     updatedAt: model.marketUpdatedAt || "",
+    iconUrl: model.iconUrl || "",
+    animationUrl: model.animationUrl || "",
+    mediaType: model.mediaType || "",
+    source: model.source || "",
   };
+  const traitRarities = new Map(
+    Object.entries(model.traitRarities || {})
+      .map(([label, rarity]) => [collectibleKey(label), Number(rarity || 0)])
+  );
+  asset.traits = (asset.traits || []).map((trait) => {
+    const rarity = traitRarities.get(collectibleKey(trait.label)) || 0;
+    return rarity > 0 ? { ...trait, rarity: `${rarity}%` } : trait;
+  });
   asset.quickSellTon = floorTon * 0.95;
   asset.quickSellUsd = floorUsd * 0.95;
   const costBasis = Number(asset.costBasis || asset.initUsd || 0);
@@ -841,7 +1299,7 @@ function recomputeGiftGroup(group) {
   group.initUsd = children.reduce((sum, child) => sum + Number(child.initUsd || child.costBasis || 0), 0);
   group.initTon = children.reduce((sum, child) => sum + Number(child.initTon || 0), 0);
   group.priceLoading = children.some((child) => child.priceLoading && !(Number(child.floorUsd || 0) > 0));
-  group.marketPlatform = children.some((child) => child.floorSource === "model") ? "Thermos Model" : group.marketPlatform;
+  group.marketPlatform = children.some((child) => child.floorSource === "model") ? "Model Floor" : group.marketPlatform;
   group.marketVerified = group.floorUsd > 0 || group.floorTon > 0;
   group.quickSellUsd = group.floorUsd * 0.95;
   group.quickSellTon = group.floorTon * 0.95;
@@ -852,27 +1310,58 @@ function recomputeGiftGroup(group) {
 async function hydrateGiftModelFloors(groups = []) {
   const giftGroups = groups.filter((group) => group?.type === "gift");
   if (!giftGroups.length) return;
-  await Promise.allSettled(giftGroups.map(async (group) => {
+  const pairMap = new Map();
+  giftGroups.forEach((group) => {
     const collection = group.collection || group.name;
-    if (!collection) return;
-    (group.children || []).forEach(resetGiftCollectionFloorPlaceholder);
-    recomputeGiftGroup(group);
-    const payload = await fetchJson(`/api/gift-model-floors?collection=${encodeURIComponent(collection)}`);
-    const models = new Map((payload.models || []).map((model) => [collectibleKey(model.model || model.modelKey), model]));
-    let changed = false;
     (group.children || []).forEach((child) => {
-      const modelName = giftModelTrait(child);
-      const model = models.get(collectibleKey(modelName));
-      if (model && applyGiftModelFloor(child, model)) changed = true;
+      resetGiftCollectionFloorPlaceholder(child);
+      const model = giftModelTrait(child);
+      const backdrop = giftTraitValue(child, "Backdrop");
+      const symbol = giftTraitValue(child, "Symbol");
+      if (collection && model) {
+        const key = [collection, model, backdrop, symbol].map(collectibleKey).join(":");
+        pairMap.set(key, { collection, model, backdrop, symbol });
+      }
     });
     recomputeGiftGroup(group);
-    group.children?.forEach((child) => { assetDetails[child.id] = child; });
-    assetDetails[group.id] = group;
-  }));
-  renderCollectibleGrids();
-  updateAllocationUi();
-  syncAssetsSummary();
-  updateCategoryAndTopAsset();
+  });
+  let pending = [...pairMap.values()];
+  const applyPayload = (payload = {}) => {
+    const models = new Map((payload.models || []).map((model) => [
+      [model.collection, model.model || model.modelKey, model.backdrop, model.symbol].map(collectibleKey).join(":"),
+      model,
+    ]));
+    giftGroups.forEach((group) => {
+      (group.children || []).forEach((child) => {
+        const model = models.get([
+          group.collection || group.name,
+          giftModelTrait(child),
+          giftTraitValue(child, "Backdrop"),
+          giftTraitValue(child, "Symbol"),
+        ].map(collectibleKey).join(":"));
+        if (model) applyGiftModelFloor(child, model);
+        assetDetails[child.id] = child;
+      });
+      recomputeGiftGroup(group);
+      assetDetails[group.id] = group;
+    });
+    const activeDetail = assetDetails[currentDetailAssetId()];
+    if (activeDetail?.type === "gift") renderGiftDetailPage(activeDetail, { loading: false });
+    renderCollectibleGrids();
+    updateAllocationUi();
+    syncAssetsSummary();
+    updateCategoryAndTopAsset();
+  };
+  for (let attempt = 0; pending.length && attempt < 7; attempt += 1) {
+    if (attempt) await delay(Math.min(8000, 1000 * (2 ** (attempt - 1))));
+    const payload = await requestJson("/api/gift-model-floors/bulk", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ pairs: pending }),
+    }, "Gift model floors failed");
+    applyPayload(payload);
+    pending = Array.isArray(payload.pending) ? payload.pending : [];
+  }
 }
 
 function renderStickerCard(asset) {
@@ -880,6 +1369,7 @@ function renderStickerCard(asset) {
   const dailyClass = asset.dailyUsd >= 0 ? "positive" : "negative";
   const pnlClass = asset.pnlUsd >= 0 ? "positive" : "negative";
   const statusClass = asset.status === "Unlisted" ? "is-unlisted" : "is-listed";
+  const statusBadge = asset.status && asset.status !== "Unlisted" ? `<span class="status-badge ${statusClass}">${escapeHtml(asset.status)}</span>` : "";
   const editionClass = asset.edition === "Limited Drop" ? "is-limited" : "is-open";
   const hasPrice = Number(asset.floorUsd) > 0;
   const floorNote = hasPrice
@@ -892,7 +1382,7 @@ function renderStickerCard(asset) {
         <div><h3>${asset.name}</h3><small>${escapeHtml(asset.subtitle || asset.creator || asset.collection || "Sticker Brand")}</small></div>
         <span class="tag-number">${asset.count} sticker${asset.count === 1 ? "" : "s"}</span>
       </div>
-      <div class="sticker-badge-row"><span class="format-badge">${asset.format}</span><span class="edition-badge ${editionClass}">${asset.edition}</span><span class="status-badge ${statusClass}">${asset.status}</span></div>
+      <div class="sticker-badge-row"><span class="format-badge">${asset.format}</span><span class="edition-badge ${editionClass}">${asset.edition}</span>${statusBadge}</div>
       <div class="value-stack"><strong>${hasPrice ? money(asset.floorUsd) : "Price unavailable"}</strong><small>${floorNote}</small></div>
       <div class="pnl-row">
         <span class="pnl-box"><small>Daily PnL</small><b class="${dailyClass}">${hasPrice ? `${signedMoney(asset.dailyUsd)} · ${signedPct(asset.dailyPct)}` : "—"}</b></span>
@@ -904,7 +1394,7 @@ function renderStickerCard(asset) {
 function renderCollectiblePriceSkeletonCard(asset, kind = "gift") {
   const count = Number(asset.count || 1);
   return `
-    <article class="collectible-card">
+    <article class="collectible-card ${kind === "gift" ? "is-gift-card" : ""}">
       <div class="collectible-top">
         ${collectibleArtHtml(asset, kind)}
         <div><h3>${escapeHtml(asset.name || (kind === "gift" ? "Gift" : "Sticker"))}</h3><small>${escapeHtml(asset.creator || asset.collection || "Loading market data")}</small></div>
@@ -919,11 +1409,12 @@ function renderCollectiblePriceSkeletonCard(asset, kind = "gift") {
 }
 
 function collectibleArtHtml(asset, fallback = "gift") {
-  const image = resolveTokenImage(asset.image || "");
+  const image = resolveTokenImage(asset.image || asset.iconUrl || asset.previewUrl || "");
   const icon = asset.icon || (fallback === "sticker" ? "sticker" : "gift");
+  const artClass = fallback === "gift" ? "animated-art is-gift-art" : "animated-art";
   return image
-    ? `<span class="animated-art"><img src="${escapeHtml(image)}" alt="${escapeHtml(asset.name)}" loading="eager" decoding="async" onerror="this.outerHTML='<i data-lucide=&quot;${icon}&quot;></i>'"></span>`
-    : `<span class="animated-art"><i data-lucide="${icon}"></i></span>`;
+    ? `<span class="${artClass}"><img src="${escapeHtml(image)}" alt="${escapeHtml(asset.name || "Collectible")}" loading="lazy" decoding="async"></span>`
+    : `<span class="${artClass}"><i data-lucide="${icon}"></i></span>`;
 }
 
 function renderStickerBrand(assetId) {
@@ -964,7 +1455,7 @@ function marketSourceLabel(value = "") {
   if (!source) return "";
   if (source.includes("stickers tools")) return "Stickers Tools";
   if (source.includes("getgems")) return "Getgems";
-  if (source.includes("thermos")) return "Thermos";
+  if (source.includes("thermos")) return "Verified Market";
   if (source.includes("mrkt") || source.includes("tgmrkt")) return "MRKT";
   if (source.includes("tonapi")) return "TonAPI";
   if (source.includes("stickerdom")) return "Stickerdom";
@@ -981,12 +1472,12 @@ function renderAssetDetail(assetId) {
     const cachedGift = getGiftDetailCachedPayload(detail);
     if (cachedGift) {
       applyGiftDetailPayload(detail, cachedGift);
-      renderGiftDetailPage(detail, { loading: false });
+      renderGiftDetailPage(detail, { loading: !detail.floorHistoryAvailable });
       setTimeout(() => {
         if (currentDetailAssetId() === detail.id) loadGiftDetail(detail, { forceRefresh: true });
       }, 0);
     } else {
-      renderGiftDetailPage(detail, { loading: false });
+      renderGiftDetailPage(detail, { loading: true });
       setTimeout(() => {
         if (currentDetailAssetId() === detail.id) loadGiftDetail(detail);
       }, 0);
@@ -1277,10 +1768,8 @@ function renderGiftDetailPage(detail, { loading = false } = {}) {
   const mount = document.getElementById("giftDetailMount");
   if (!mount) return;
   const traits = (detail.traits || []).slice(0, 3);
-  const listingClass = /listed/i.test(String(detail.status || "")) && !/unlisted/i.test(String(detail.status || "")) ? "is-listed" : "is-unlisted";
-  const listingLabel = listingClass === "is-listed" ? "Listed" : "Unlisted";
+  const isListed = /listed/i.test(String(detail.status || "")) && !/unlisted/i.test(String(detail.status || ""));
   const glow = giftGlowFromBackdrop(detail);
-  const image = resolveTokenImage(detail.image || "");
   const sourceLabel = detail.marketPlatform ? `Floor · ${escapeHtml(detail.marketPlatform)}` : "Price source unavailable";
   const upgradeState = giftUpgradeState(detail);
   const eligibility = giftEligibility(detail);
@@ -1326,13 +1815,13 @@ function renderGiftDetailPage(detail, { loading = false } = {}) {
   mount.innerHTML = `
     <section class="gift-detail-layout">
       <article class="gift-detail-hero-card">
-        <span class="status-badge ${listingClass}" style="position:absolute;top:14px;right:14px;">${listingLabel}</span>
+        ${isListed ? `<span class="status-badge is-listed" style="position:absolute;top:14px;right:14px;">Listed</span>` : ""}
         <div class="gift-detail-glow" style="background:radial-gradient(circle, ${glow} 0%, rgba(0,0,0,0) 68%);"></div>
         <div class="gift-detail-hero-inner">
-          <span class="gift-detail-hero-art">${image ? `<img src="${escapeHtml(image)}" alt="${escapeHtml(detail.name)}" />` : `<i data-lucide="gift"></i>`}</span>
+          ${giftLayeredArtHtml(detail, "gift-detail-hero-art") || `<span class="gift-detail-hero-art">${giftDetailAnimationHtml(detail) || `<span class="detail-skeleton-line"></span>`}</span>`}
           <div class="gift-detail-title-block">
-            <h2>${escapeHtml(detail.name)}</h2>
-            <small>${escapeHtml(detail.collection || "Collection")} · #${escapeHtml(String(detail.tag || detail.mint?.current || "—"))}${detail.mint?.total ? ` of ${Number(detail.mint.total).toLocaleString()}` : ""}</small>
+            <h2>${escapeHtml(giftDetailTitle(detail))}</h2>
+            <small>${giftDetailHeroMeta(detail)}</small>
           </div>
           <div class="gift-detail-pill-row">${giftTraitPills(detail)}</div>
           <div class="gift-detail-floor-row">
@@ -1346,9 +1835,6 @@ function renderGiftDetailPage(detail, { loading = false } = {}) {
       <article class="card gift-detail-card">
         <div class="section-heading"><h2>Traits & Rarity</h2></div>
         ${rows || `<p class="detail-empty-state">—</p>`}
-        <div class="gift-detail-divider"></div>
-        <div class="gift-detail-inline-row"><span>Combo Rank</span><span>${escapeHtml(giftComboRank(detail))}</span></div>
-        <small class="gift-detail-footnote">${detail.rarity?.expectedComboCount ? "Estimated using live trait rarity across current supply." : "Rarity based on trait combination across full collection."}</small>
       </article>
 
       <article class="card gift-detail-card">
@@ -1370,10 +1856,15 @@ function renderGiftDetailPage(detail, { loading = false } = {}) {
           </div>
         </div>
         ${chartIsLoading ? `<div class="gift-chart-loading" aria-label="Loading gift floor chart">
-          <span class="skeleton gift-chart-loading-line is-top"></span>
-          <span class="skeleton gift-chart-loading-line is-mid"></span>
-          <span class="skeleton gift-chart-loading-line is-low"></span>
-          <span class="skeleton gift-chart-loading-pill"></span>
+          <span class="gift-chart-gridline is-top"></span>
+          <span class="gift-chart-gridline is-mid"></span>
+          <span class="gift-chart-gridline is-low"></span>
+          <span class="gift-chart-scan"></span>
+          <span class="gift-chart-loader-line"></span>
+          <span class="gift-chart-loader-dot is-one"></span>
+          <span class="gift-chart-loader-dot is-two"></span>
+          <span class="gift-chart-loader-dot is-three"></span>
+          <span class="gift-chart-loading-label">Fetching live floor history</span>
         </div>` : `<svg id="giftDetailPriceChart" viewBox="0 0 340 140" role="img" aria-label="Gift floor price chart" class="gift-detail-chart"></svg>
         <div id="giftDetailChartTooltip" class="chart-tooltip">${detail.floorHistoryAvailable ? `Latest: ${money(detail.floorUsd || 0)}` : "Floor history unavailable"}</div>`}
         <div class="gift-detail-chart-footer">
@@ -1415,6 +1906,8 @@ function renderGiftDetailPage(detail, { loading = false } = {}) {
       interactive: true,
     });
   }
+  window.lucide?.createIcons();
+  initCollectibleAnimations(mount);
   const externalButton = document.querySelector('[data-screen="detail"] .page-header .icon-button:last-child');
   if (externalButton) {
     externalButton.onclick = () => {
@@ -1655,7 +2148,7 @@ function applyGiftVerifiedFloor(detail, payload = {}) {
   detail.floorUsd = verifiedFloor ? Number(floor.floorUsd || 0) : 0;
   detail.dailyPct = verifiedFloor ? Number(floor.change24hPct || 0) : 0;
   detail.dailyUsd = detail.floorUsd && detail.dailyPct ? detail.floorUsd * (detail.dailyPct / 100) : 0;
-  detail.marketPlatform = verifiedFloor ? (floor.marketPlatform || "Thermos") : "";
+  detail.marketPlatform = verifiedFloor ? (marketSourceLabel(floor.marketPlatform || floor.source) || "Verified Market") : "";
   detail.marketUrl = verifiedFloor ? (floor.marketUrl || "") : "";
   detail.graphImageUrl = "";
   detail.marketVerified = verifiedFloor && detail.floorUsd > 0;
@@ -1718,16 +2211,24 @@ function applyGiftDetailPayload(detail, payload = {}) {
 
 async function loadGiftDetail(detail, { forceRefresh = false } = {}) {
   const requestId = ++activeGiftDetailRequest;
+  detail.floorHistoryLoading = true;
+  if (currentDetailAssetId() === detail.id) {
+    renderGiftDetailPage(detail, { loading: true });
+    window.lucide?.createIcons();
+    applyCurrencyDisplay();
+  }
   try {
     const payload = forceRefresh ? await fetchGiftDetailPayload(detail) : (getGiftDetailCachedPayload(detail) || await fetchGiftDetailPayload(detail));
     if (requestId !== activeGiftDetailRequest) return;
     applyGiftDetailPayload(detail, payload);
+    detail.floorHistoryLoading = false;
     renderGiftDetailPage(detail, { loading: false });
     window.lucide?.createIcons();
     applyCurrencyDisplay();
   } catch (error) {
     console.warn("Gift detail load failed", error);
     if (requestId !== activeGiftDetailRequest) return;
+    detail.floorHistoryLoading = false;
     renderGiftDetailPage(detail, { loading: false });
     window.lucide?.createIcons();
     applyCurrencyDisplay();
@@ -2259,6 +2760,31 @@ function flattenCollectibleAssets(assets = []) {
   return assets.flatMap((asset) => asset.children?.length ? asset.children : [asset]);
 }
 
+const preloadedGiftImages = new Set();
+
+function preloadGiftStaticImages(assets = []) {
+  const queue = flattenCollectibleAssets(assets)
+    .map((asset) => resolveTokenImage(asset.image || asset.iconUrl || asset.previewUrl || ""))
+    .filter((url) => url && !preloadedGiftImages.has(url));
+  let active = 0;
+  const pump = () => {
+    while (active < 6 && queue.length) {
+      const url = queue.shift();
+      preloadedGiftImages.add(url);
+      active += 1;
+      const image = new Image();
+      const done = () => {
+        active -= 1;
+        pump();
+      };
+      image.onload = done;
+      image.onerror = done;
+      image.src = url;
+    }
+  };
+  pump();
+}
+
 function refreshCollectibleDerivedUi() {
   updateAllocationUi(true);
   updateCategoryAndTopAsset();
@@ -2321,7 +2847,7 @@ function prefetchStickerDetails(assets = stickerAssets) {
               asset.floorUsd = Number(floor.floorUsd || asset.floorUsd || 0);
               asset.dailyPct = Number(floor.change24hPct || asset.dailyPct || 0);
               asset.dailyUsd = asset.floorUsd && asset.dailyPct ? asset.floorUsd * (asset.dailyPct / 100) : 0;
-              asset.marketPlatform = floor.marketPlatform || asset.marketPlatform || marketSourceLabel(floor.source || "");
+              asset.marketPlatform = marketSourceLabel(floor.marketPlatform || floor.source) || asset.marketPlatform || "";
               asset.marketUrl = floor.marketUrl || asset.marketUrl || "";
               asset.pnlUsd = asset.costBasis ? asset.floorUsd - asset.costBasis : asset.pnlUsd;
               asset.pnlPct = asset.costBasis ? ((asset.floorUsd - asset.costBasis) / asset.costBasis) * 100 : asset.pnlPct;
@@ -2640,6 +3166,7 @@ function attachDetailChartInteraction(svg, points = [], width, height, padX, pad
 }
 
 function renderWalletState() {
+  document.querySelector(".app-frame")?.classList.toggle("has-wallet", walletConnected);
   walletButtons.forEach((button) => {
     const textNode = button.querySelector("span");
     const label = walletConnected ? "Connected" : "Connect";
@@ -3141,6 +3668,7 @@ async function restoreSavedWallet() {
   try {
     await importWallet(savedAddress);
   } catch (error) {
+    renderWalletState();
     updateHistoryStatus("Connect wallet to load live portfolio.");
     console.warn("Saved wallet restore failed", error);
   }
@@ -3795,6 +4323,10 @@ function resolveTokenImage(url) {
   const value = String(url);
   if (value.includes("ton.org/download/ton_symbol.png")) return TON_LOGO_URL;
   return value.startsWith("ipfs://") ? `https://ipfs.io/ipfs/${value.slice(7)}` : value;
+}
+
+function resolveAnimationMediaUrl(url) {
+  return resolveTokenImage(url);
 }
 
 function decimalBalance(rawBalance, decimals = 0) {
@@ -4498,6 +5030,7 @@ async function updateCollectiblesFromGetgems(walletAddress, kind, options = {}) 
     setCollectiblesBanner(kind, "");
     renderCollectibleGrids();
     if (kind === "gifts") {
+      preloadGiftStaticImages(assets);
       setCollectiblesBanner(kind, "Loading model floors...");
       hydrateGiftModelFloors(assets).finally(() => {
         if (hasPendingCollectiblePrices("gifts")) setCollectiblesBanner(kind, "Some model floors are still unavailable");
@@ -4706,9 +5239,17 @@ function setCollectiblesBanner(kind, message) {
 function liveCollectibleAsset(item, kind, index, options = {}) {
   const isGift = kind === "gift";
   const attrs = Array.isArray(item.attributes) ? item.attributes : [];
+  const attr = (label) => attrs.find((item) => String(item.trait_type || item.type || item.label || "").toLowerCase().includes(label));
   const attrValue = (label, fallback = "—") => {
-    const hit = attrs.find((attr) => String(attr.trait_type || attr.type || attr.label || "").toLowerCase().includes(label));
+    const hit = attr(label);
     return String(hit?.value || fallback);
+  };
+  const attrRarity = (label) => {
+    const value = attr(label)?.rarity;
+    if (value === undefined || value === null || value === "") return "";
+    const text = String(value);
+    const numeric = Number(value);
+    return text.includes("%") ? text : (Number.isFinite(numeric) ? `${numeric}%` : "");
   };
   const costBasis = Number(item.initUsd || 0) || (Number(item.lastSaleTon || 0) ? Number(item.lastSaleTon) * usdTonRate : 0);
   const marketVerified = options.suppressMarket ? false : ((Number(item.floorUsd || 0) > 0 || Number(item.floorTon || 0) > 0) && Boolean(item.marketPlatform || item.source || item.marketUrl));
@@ -4721,14 +5262,18 @@ function liveCollectibleAsset(item, kind, index, options = {}) {
     collection: item.collection || "Telegram Collection",
     creator: item.collection || "Telegram",
     image: item.image,
+    animatedImage: item.animatedImage || item.animationUrl || item.animatedUrl || item.mediaUrl || "",
+    animationUrl: item.animationUrl || item.animatedImage || "",
+    mediaType: item.mediaType || "",
+    layeredMedia: item.layeredMedia || null,
     collectionAddress: item.collectionAddress,
     tokenAddress: item.tokenAddress,
     icon: isGift ? "gift" : "sticker",
     tag: Number(item.mintIndex || index + 1),
     traits: [
-      { label: "Model", value: attrValue("model", "TON NFT"), rarity: "Live" },
-      { label: "Backdrop", value: attrValue("backdrop", item.collection?.slice(0, 16) || "Collection"), rarity: "Live" },
-      { label: "Symbol", value: attrValue("symbol", "Wallet"), rarity: "Imported" },
+      { label: "Model", value: attrValue("model", "TON NFT"), rarity: attrRarity("model") },
+      { label: "Backdrop", value: attrValue("backdrop", item.collection?.slice(0, 16) || "Collection"), rarity: attrRarity("backdrop") },
+      { label: "Symbol", value: attrValue("symbol", "Wallet"), rarity: attrRarity("symbol") },
     ],
     mint: { current: Number(item.mintIndex || index + 1), total: Math.max(Number(item.mintIndex || index + 1), 1) },
     floorUsd,
@@ -5851,6 +6396,18 @@ function renderAnalyticsChart() {
 }
 
 document.addEventListener("click", (event) => {
+  const closeGiftTrayButton = event.target.closest("[data-close-gift-pfp-tray]");
+  if (closeGiftTrayButton || event.target.classList?.contains("gift-pfp-tray-backdrop")) {
+    closeGiftPfpTray();
+    return;
+  }
+  const giftPfpTrayButton = event.target.closest("[data-gift-pfp-tray]");
+  if (giftPfpTrayButton) {
+    event.preventDefault();
+    event.stopPropagation();
+    openGiftPfpTray(giftPfpTrayButton.dataset.giftPfpTray, giftPfpTrayButton);
+    return;
+  }
   const walletLogout = event.target.closest("[data-wallet-logout]");
   if (walletLogout) {
     event.preventDefault();
@@ -5957,9 +6514,14 @@ document.addEventListener("click", (event) => {
   const currentScreen = document.querySelector(".screen.is-active")?.dataset.screen;
   if (nextScreen === "detail") {
     detailReturnScreen = currentScreen || "assets";
+    closeGiftPfpTray();
     renderAssetDetail(target.dataset.asset);
   }
   if (nextScreen === "gift-brand") renderGiftBrand(target.dataset.asset);
+  if (nextScreen === "gift-model-group") {
+    renderGiftModelGroup(target.dataset.asset);
+    nextScreen = "gift-brand";
+  }
   if (nextScreen === "sticker-brand") renderStickerBrand(target.dataset.asset);
   if (nextScreen === "activity") loadFullActivity();
   if (currentScreen === "detail" && nextScreen === "assets") nextScreen = detailReturnScreen;
@@ -6068,9 +6630,20 @@ document.querySelector("#walletAddressForm")?.addEventListener("submit", async (
 
 document.querySelector("#giftSort")?.addEventListener("change", renderGiftGrid);
 document.querySelector("#giftFilter")?.addEventListener("change", renderGiftGrid);
+document.querySelector("#giftSearch")?.addEventListener("input", renderGiftGrid);
 document.querySelector("#stickerSort")?.addEventListener("change", renderStickerGrid);
 document.querySelector("#stickerFilter")?.addEventListener("change", renderStickerGrid);
 document.querySelector("#stickerSearch")?.addEventListener("input", renderStickerGrid);
+const scrollTopButton = document.querySelector("#scrollTopButton");
+function updateScrollTopButton() {
+  scrollTopButton?.classList.toggle("is-visible", window.scrollY > 420);
+}
+scrollTopButton?.addEventListener("click", () => {
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  window.scrollTo({ top: 0, behavior: reduceMotion ? "auto" : "smooth" });
+});
+window.addEventListener("scroll", updateScrollTopButton, { passive: true });
+updateScrollTopButton();
 document.querySelectorAll("[data-range]").forEach((button) => {
   button.addEventListener("click", () => {
     switchPortfolioRange(button.dataset.range);
@@ -6217,7 +6790,7 @@ renderCollectibleGrids();
 renderPortfolioGraph();
 renderDonut();
 renderAnalyticsChart();
-if (initialScreen && document.querySelector(`[data-screen="${initialScreen}"]`)) {
+if (initialScreen && document.querySelector(`[data-screen="${initialScreen}"]`) && walletConnected) {
   if (initialScreen === "detail") renderAssetDetail(initialAsset);
   showScreen(initialScreen);
 } else {

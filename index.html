@@ -8,14 +8,107 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="./styles.css?v=gift-chart-loader-115" />
+    <link rel="stylesheet" href="./styles.css?v=vintage-layer-test-123" />
   </head>
   <body>
     <div class="app-frame">
+      <section class="wallet-gate" id="walletGate" aria-labelledby="walletGateTitle">
+        <div class="wallet-gate-brand">
+          <span class="wallet-brand-mark" aria-hidden="true">
+            <svg class="wallet-signature-icon" viewBox="0 0 120 120">
+              <rect class="wallet-signature-holder" x="10" y="29" width="100" height="70" rx="14"></rect>
+              <g class="wallet-signature-card wallet-signature-token">
+                <rect x="18" y="18" width="84" height="48" rx="10"></rect>
+                <circle cx="88" cy="32" r="5"></circle>
+              </g>
+              <g class="wallet-signature-card wallet-signature-sticker">
+                <rect x="18" y="28" width="84" height="48" rx="10"></rect>
+                <circle cx="88" cy="42" r="5"></circle>
+              </g>
+              <g class="wallet-signature-card wallet-signature-gift">
+                <rect x="18" y="38" width="84" height="48" rx="10"></rect>
+                <circle cx="88" cy="52" r="5"></circle>
+              </g>
+              <path class="wallet-signature-front" d="M10 58H110V85C110 92.7 103.7 99 96 99H24C16.3 99 10 92.7 10 85V58Z"></path>
+            </svg>
+          </span>
+          <div><b>TonTrack</b><small>TON portfolio tracker</small></div>
+        </div>
+        <div class="wallet-gate-visual" aria-hidden="true">
+          <svg class="wallet-signature-icon" viewBox="0 0 120 120">
+            <rect class="wallet-signature-holder" x="10" y="29" width="100" height="70" rx="14"></rect>
+            <g class="wallet-signature-card wallet-signature-token">
+              <rect x="18" y="18" width="84" height="48" rx="10"></rect>
+              <path d="M20 28V56"></path>
+              <circle cx="88" cy="32" r="5"></circle>
+            </g>
+            <g class="wallet-signature-card wallet-signature-sticker">
+              <rect x="18" y="28" width="84" height="48" rx="10"></rect>
+              <path d="M20 38V66"></path>
+              <circle cx="88" cy="42" r="5"></circle>
+            </g>
+            <g class="wallet-signature-card wallet-signature-gift">
+              <rect x="18" y="38" width="84" height="48" rx="10"></rect>
+              <path d="M20 48V76"></path>
+              <circle cx="88" cy="52" r="5"></circle>
+            </g>
+            <path class="wallet-signature-front" d="M10 58H110V85C110 92.7 103.7 99 96 99H24C16.3 99 10 92.7 10 85V58Z"></path>
+          </svg>
+        </div>
+        <div class="wallet-gate-copy">
+          <small>Your portfolio starts here</small>
+          <h1 id="walletGateTitle">Everything you own.<br><em>One clear view.</em></h1>
+          <section class="wallet-gate-preview" aria-label="TonTrack app previews">
+            <div class="wallet-gate-preview-row" aria-hidden="true">
+              <article class="onboarding-preview onboarding-preview-home">
+                <div class="onboarding-preview-head"><i></i><span></span></div>
+                <small>Portfolio</small>
+                <b>$12.8K</b>
+                <div class="onboarding-donut"><span></span></div>
+                <div class="onboarding-legend"><i></i><i></i><i></i></div>
+              </article>
+              <article class="onboarding-preview onboarding-preview-tokens">
+                <div class="onboarding-preview-head"><i></i><span></span></div>
+                <small>Tokens</small>
+                <div><i class="token-one"></i><b>TON</b><span>+2.4%</span></div>
+                <div><i class="token-two"></i><b>USDT</b><span>+0.1%</span></div>
+                <div><i class="token-three"></i><b>NOT</b><span>-1.1%</span></div>
+              </article>
+              <article class="onboarding-preview onboarding-preview-gifts">
+                <div class="onboarding-preview-head"><i></i><span></span></div>
+                <small>Gifts</small>
+                <div class="onboarding-gift-grid"><i></i><i></i><i></i><i></i></div>
+              </article>
+            </div>
+          </section>
+          <button class="wallet-gate-button js-connect-wallet" type="button">
+            <i data-lucide="wallet"></i>
+            <span>Connect wallet</span>
+          </button>
+        </div>
+      </section>
+
       <main class="screen is-active" data-screen="home">
         <header class="app-header">
           <button class="identity" type="button" data-screen-target="settings">
-            <span class="identity-mark">VT</span>
+            <span class="identity-mark" aria-hidden="true">
+              <svg class="wallet-signature-icon" viewBox="0 0 120 120">
+                <rect class="wallet-signature-holder" x="10" y="29" width="100" height="70" rx="14"></rect>
+                <g class="wallet-signature-card wallet-signature-token">
+                  <rect x="18" y="18" width="84" height="48" rx="10"></rect>
+                  <circle cx="88" cy="32" r="5"></circle>
+                </g>
+                <g class="wallet-signature-card wallet-signature-sticker">
+                  <rect x="18" y="28" width="84" height="48" rx="10"></rect>
+                  <circle cx="88" cy="42" r="5"></circle>
+                </g>
+                <g class="wallet-signature-card wallet-signature-gift">
+                  <rect x="18" y="38" width="84" height="48" rx="10"></rect>
+                  <circle cx="88" cy="52" r="5"></circle>
+                </g>
+                <path class="wallet-signature-front" d="M10 58H110V85C110 92.7 103.7 99 96 99H24C16.3 99 10 92.7 10 85V58Z"></path>
+              </svg>
+            </span>
             <span>
               <b>TonTrack</b>
               <small>TON portfolio tracker</small>
@@ -152,10 +245,10 @@
               <option value="backdrop:Electric Indigo">Backdrop: Electric Indigo</option>
               <option value="symbol:Coin">Symbol: Coin</option>
               <option value="listed">Listed</option>
-              <option value="unlisted">Unlisted</option>
             </select>
           </label>
         </section>
+        <section class="search-card"><i data-lucide="search"></i><input id="giftSearch" type="search" placeholder="Search gifts" autocomplete="off" /><small id="giftCountLabel">0 gifts</small></section>
         <section class="collectible-grid bottom-pad" id="giftGrid"></section>
       </main>
 
@@ -198,7 +291,6 @@
               <option value="edition:Limited Drop">Limited Drop</option>
               <option value="edition:Open Edition">Open Edition</option>
               <option value="listed">Listed</option>
-              <option value="unlisted">Unlisted</option>
             </select>
           </label>
         </section>
@@ -303,6 +395,7 @@
           <button type="button" data-settings-refresh><i data-lucide="refresh-cw"></i><span>Refresh frequency</span><i data-lucide="chevron-right"></i></button>
           <button type="button" data-settings-theme><i data-lucide="sun-moon"></i><span>Theme: System</span><i data-lucide="chevron-right"></i></button>
           <button type="button"><i data-lucide="life-buoy"></i><span>Feedback and support</span><i data-lucide="chevron-right"></i></button>
+          <a class="settings-credit" href="https://t.me/GiftChanges" target="_blank" rel="noopener noreferrer"><i data-lucide="sparkles"></i><span>Thanks to @GiftChanges for the gift media API</span><i data-lucide="external-link"></i></a>
           <button type="button" data-wallet-logout><i data-lucide="log-out"></i><span>Disconnect wallet</span><i data-lucide="chevron-right"></i></button>
         </section>
       </main>
@@ -314,6 +407,7 @@
         <button type="button" data-screen-target="watchlist" aria-label="Watchlist"><i data-lucide="radar"></i><span>Watchlist</span></button>
         <button type="button" data-screen-target="settings" aria-label="Settings"><i data-lucide="settings-2"></i><span>Settings</span></button>
       </nav>
+      <button class="scroll-top-button" id="scrollTopButton" type="button" aria-label="Back to top"><i data-lucide="arrow-up"></i></button>
 
       <div class="wallet-sheet" id="walletSheet" aria-hidden="true">
         <button class="wallet-sheet-backdrop" type="button" aria-label="Close wallet sheet"></button>
@@ -403,6 +497,6 @@
 
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
     <script src="https://unpkg.com/@tonconnect/ui@2.4.4/dist/tonconnect-ui.min.js"></script>
-    <script src="./app.js?v=gift-chart-loader-115"></script>
+    <script src="./app.js?v=vintage-layer-test-123"></script>
   </body>
 </html>

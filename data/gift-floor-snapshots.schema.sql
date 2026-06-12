@@ -51,8 +51,26 @@ CREATE TABLE IF NOT EXISTS gift_model_floor_snapshots (
   rarity NUMERIC(12,4),
   market_updated_at TEXT,
   icon_url TEXT,
+  animation_url TEXT,
+  media_type TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 CREATE INDEX IF NOT EXISTS gift_model_floor_snapshots_collection_model_time_idx
   ON gift_model_floor_snapshots(collection_key, model_key, sampled_at DESC);
+
+CREATE TABLE IF NOT EXISTS gift_attribute_registry (
+  collection_key TEXT NOT NULL REFERENCES gift_floor_collections(collection_key) ON DELETE CASCADE,
+  trait_type TEXT NOT NULL,
+  value_key TEXT NOT NULL,
+  value_name TEXT NOT NULL,
+  rarity NUMERIC(12,4),
+  item_count INT,
+  floor_ton NUMERIC(24,9),
+  metrics JSONB DEFAULT '{}'::jsonb,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  PRIMARY KEY (collection_key, trait_type, value_key)
+);
+
+CREATE INDEX IF NOT EXISTS gift_attribute_registry_collection_type_idx
+  ON gift_attribute_registry(collection_key, trait_type);

@@ -44,6 +44,7 @@ const historyCacheDir = path.join(dataDir, "history-cache");
 const collectiblesRegistryFile = path.join(dataDir, "telegram-collectibles-registry.json");
 const stickerCollectionsRegistryFile = path.join(dataDir, "sticker-collections-registry.json");
 const giftFloorSnapshotsFile = path.join(dataDir, "gift-floor-snapshots.json");
+const giftLayerRegistryFile = path.join(dataDir, "gift-layer-registry.json");
 let giftSnapshotPgPool = null;
 let giftSnapshotPgInitPromise = null;
 let giftSnapshotPgUnavailableLogged = false;
@@ -68,6 +69,17 @@ function loadCollectiblesRegistry() {
 }
 
 const collectiblesRegistry = loadCollectiblesRegistry();
+function loadGiftLayerRegistry() {
+  try {
+    const parsed = JSON.parse(fs.readFileSync(giftLayerRegistryFile, "utf8"));
+    return parsed && typeof parsed === "object" ? parsed : { version: 1, collections: {} };
+  } catch {
+    return { version: 1, collections: {} };
+  }
+}
+
+const giftLayerRegistry = loadGiftLayerRegistry();
+let giftLayerRegistrySaveTimer = 0;
 const jettonHistoryTtl = 15 * 60 * 1000;
 const fastGraphHistoryOnly = false;
 const geckoIdCache = new Map();
@@ -91,6 +103,11 @@ let thermosGiftCollectionsExpiresAt = 0;
 let thermosGiftCollectionsPromise = null;
 const thermosGiftAttributesCache = new Map();
 const thermosGiftAttributesRequests = new Map();
+const xgiftModelMediaCache = new Map();
+const xgiftGiftAttributesCache = new Map();
+const giftModelRecoveryRequests = new Map();
+const giftModelRecoveryQueue = [];
+let giftModelRecoveryActive = 0;
 let stickerCategoryCache = null;
 let stickerCategoryExpiresAt = 0;
 let stickerCategoryPromise = null;
@@ -98,7 +115,7 @@ let stickerCollectionsRegistryPromise = null;
 let stickerCollectionsSnapshotCache = null;
 let stickerCollectionsSnapshotMtimeMs = 0;
 let liveCollectiblesRegistryCache = null;
-let giftSnapshotCollectorState = { status: "idle", startedAt: "", completedAt: "", total: 0, done: 0, ok: 0, errors: 0, error: "" };
+let giftSnapshotCollectorState = { status: "idle", startedAt: "", completedAt: "", total: 0, done: 0, ok: 0, errors: 0, modelSnapshots: 0, attributes: 0, error: "" };
 let giftSnapshotCollectorPromise = null;
 let tonStatCache = null;
 let tonStatExpiresAt = 0;
@@ -121,6 +138,186 @@ const giftSnapshotDelayMs = Number(process.env.GIFT_SNAPSHOT_DELAY_MS || 15000);
 const giftModelRetryDelayMs = Number(process.env.GIFT_MODEL_RETRY_DELAY_MS || 120000);
 const giftModelRetryCount = Number(process.env.GIFT_MODEL_RETRY_COUNT || 2);
 const giftSnapshotAutorun = process.env.GIFT_SNAPSHOT_AUTORUN !== "0";
+
+function scheduleGiftLayerRegistrySave() {
+  if (giftLayerRegistrySaveTimer) return;
+  giftLayerRegistrySaveTimer = setTimeout(() => {
+    giftLayerRegistrySaveTimer = 0;
+    try {
+      fs.mkdirSync(dataDir, { recursive: true });
+      fs.writeFileSync(giftLayerRegistryFile, JSON.stringify(giftLayerRegistry, null, 2));
+    } catch (error) {
+      console.warn(`[gift-layer-registry] save failed: ${error.message}`);
+    }
+  }, 250);
+}
+
+function layerRegistryKey(value = "") {
+  return String(value || "").trim().toLowerCase().replace(/[^a-z0-9]+/g, "-");
+}
+
+function clampColorChannel(value) {
+  return Math.max(0, Math.min(255, Math.round(Number(value) || 0)));
+}
+
+function hslToHex(h, s, l) {
+  const hue = ((((Number(h) || 0) % 360) + 360) % 360) / 360;
+  const sat = Math.max(0, Math.min(1, (Number(s) || 0) / 100));
+  const light = Math.max(0, Math.min(1, (Number(l) || 0) / 100));
+  if (sat === 0) {
+    const value = clampColorChannel(light * 255).toString(16).padStart(2, "0");
+    return `#${value}${value}${value}`;
+  }
+  const q = light < 0.5 ? light * (1 + sat) : light + sat - light * sat;
+  const p = 2 * light - q;
+  const hueToRgb = (t) => {
+    let value = t;
+    if (value < 0) value += 1;
+    if (value > 1) value -= 1;
+    if (value < 1 / 6) return p + (q - p) * 6 * value;
+    if (value < 1 / 2) return q;
+    if (value < 2 / 3) return p + (q - p) * (2 / 3 - value) * 6;
+    return p;
+  };
+  const r = clampColorChannel(hueToRgb(hue + 1 / 3) * 255).toString(16).padStart(2, "0");
+  const g = clampColorChannel(hueToRgb(hue) * 255).toString(16).padStart(2, "0");
+  const b = clampColorChannel(hueToRgb(hue - 1 / 3) * 255).toString(16).padStart(2, "0");
+  return `#${r}${g}${b}`;
+}
+
+function hashHue(value = "") {
+  const text = String(value || "");
+  let hash = 0;
+  for (let index = 0; index < text.length; index += 1) {
+    hash = ((hash << 5) - hash + text.charCodeAt(index)) | 0;
+  }
+  return Math.abs(hash) % 360;
+}
+
+function deriveGiftBackdropPalette(backdropName = "") {
+  const name = String(backdropName || "").trim().toLowerCase();
+  if (!name) {
+    return {
+      centerColor: "#6aa7ff",
+      edgeColor: "#304e92",
+      patternColor: "#cfe0ff",
+      textColor: "#ffffff",
+    };
+  }
+  const namedPalettes = [
+    { match: /(gold|amber|sun|solar|lemon|yellow)/, palette: { centerColor: "#f5cf59", edgeColor: "#9a6a15", patternColor: "#fff2c1", textColor: "#ffffff" } },
+    { match: /(purple|violet|indigo|dark|night|plum)/, palette: { centerColor: "#9b7cff", edgeColor: "#4f2a96", patternColor: "#ebddff", textColor: "#ffffff" } },
+    { match: /(teal|mint|aqua|ocean|cyan|ice)/, palette: { centerColor: "#63dcc9", edgeColor: "#1d6d78", patternColor: "#d8fffa", textColor: "#ffffff" } },
+    { match: /(red|rose|ruby|crimson|cherry|scarlet)/, palette: { centerColor: "#ff7d89", edgeColor: "#8d2440", patternColor: "#ffd7dc", textColor: "#ffffff" } },
+    { match: /(green|forest|lime|leaf|olive)/, palette: { centerColor: "#75da82", edgeColor: "#255d34", patternColor: "#e0ffe4", textColor: "#ffffff" } },
+    { match: /(blue|azure|sky|electric|navy)/, palette: { centerColor: "#6baeff", edgeColor: "#274893", patternColor: "#d7e8ff", textColor: "#ffffff" } },
+    { match: /(pink|blush|magenta)/, palette: { centerColor: "#ff8bd8", edgeColor: "#8b2d73", patternColor: "#ffe1f5", textColor: "#ffffff" } },
+  ];
+  const hit = namedPalettes.find((entry) => entry.match.test(name));
+  if (hit) return hit.palette;
+  const hue = hashHue(name);
+  return {
+    centerColor: hslToHex(hue, 82, 66),
+    edgeColor: hslToHex(hue, 58, 33),
+    patternColor: hslToHex(hue, 88, 90),
+    textColor: "#ffffff",
+  };
+}
+
+function rememberGiftLayeredMedia(payload = {}) {
+  const collectionName = String(payload.collectionName || payload.giftName || "").trim();
+  const modelName = String(payload.modelName || "").trim();
+  const backdropName = String(payload.backdropName || "").trim();
+  const patternName = String(payload.patternName || "").trim();
+  if (!collectionName && !modelName && !backdropName && !patternName) return payload;
+  const collectionKey = layerRegistryKey(collectionName || "gift");
+  const collectionEntry = giftLayerRegistry.collections[collectionKey] || {
+    collectionName,
+    giftName: collectionName,
+    models: {},
+    backdrops: {},
+    patterns: {},
+    updatedAt: "",
+  };
+  if (collectionName) {
+    collectionEntry.collectionName = collectionEntry.collectionName || collectionName;
+    collectionEntry.giftName = collectionEntry.giftName || collectionName;
+  }
+  if (modelName) {
+    collectionEntry.models[layerRegistryKey(modelName)] = {
+      name: modelName,
+      giftName: payload.giftName || collectionEntry.giftName || collectionName,
+      animationUrl: payload.modelAnimationUrl || "",
+      imageUrl: payload.modelImageUrl || "",
+      mediaType: payload.mediaType || "",
+    };
+  }
+  if (backdropName) {
+    collectionEntry.backdrops[layerRegistryKey(backdropName)] = {
+      name: backdropName,
+      hex: payload.backdropPalette || deriveGiftBackdropPalette(backdropName),
+    };
+  }
+  if (patternName) {
+    collectionEntry.patterns[layerRegistryKey(patternName)] = {
+      name: patternName,
+      giftName: payload.patternGiftName || payload.giftName || collectionEntry.giftName || collectionName,
+      imageUrl: payload.patternImageUrl || "",
+    };
+  }
+  collectionEntry.updatedAt = new Date().toISOString();
+  giftLayerRegistry.collections[collectionKey] = collectionEntry;
+  giftLayerRegistry.updatedAt = collectionEntry.updatedAt;
+  scheduleGiftLayerRegistrySave();
+  const storedModel = modelName ? collectionEntry.models[layerRegistryKey(modelName)] : null;
+  const storedBackdrop = backdropName ? collectionEntry.backdrops[layerRegistryKey(backdropName)] : null;
+  const storedPattern = patternName ? collectionEntry.patterns[layerRegistryKey(patternName)] : null;
+  return {
+    collectionName,
+    giftName: payload.giftName || collectionEntry.giftName || collectionName,
+    modelName,
+    backdropName,
+    patternName,
+    modelAnimationUrl: storedModel?.animationUrl || payload.modelAnimationUrl || "",
+    modelImageUrl: storedModel?.imageUrl || payload.modelImageUrl || "",
+    patternImageUrl: storedPattern?.imageUrl || payload.patternImageUrl || "",
+    patternGiftName: storedPattern?.giftName || payload.patternGiftName || payload.giftName || collectionEntry.giftName || collectionName,
+    backdropPalette: storedBackdrop?.hex || payload.backdropPalette || deriveGiftBackdropPalette(backdropName),
+    mediaType: storedModel?.mediaType || payload.mediaType || "",
+  };
+}
+
+function giftLayeredMediaPayload({ collectionName = "", attributes = [], image = "", animationUrl = "", mediaType = "" } = {}) {
+  const traits = giftTraitLookup(attributes || []);
+  const requestedCollection = String(collectionName || "").trim();
+  const modelName = String(traits.model || "").trim();
+  const backdropName = String(traits.backdrop || "").trim();
+  const patternName = String(traits.symbol || "").trim();
+  if (!requestedCollection || !modelName) return null;
+  const requestedKey = layerRegistryKey(requestedCollection);
+  const collectionEntry = Object.values(giftLayerRegistry.collections || {}).find((entry) => {
+    const names = [entry?.collectionName, entry?.giftName, ...(Array.isArray(entry?.aliases) ? entry.aliases : [])];
+    return names.some((name) => layerRegistryKey(name) === requestedKey);
+  });
+  const storedModel = collectionEntry?.models?.[layerRegistryKey(modelName)];
+  const storedBackdrop = collectionEntry?.backdrops?.[layerRegistryKey(backdropName)]
+    || giftLayerRegistry.backdrops?.[layerRegistryKey(backdropName)];
+  const storedPattern = collectionEntry?.patterns?.[layerRegistryKey(patternName)]
+    || giftLayerRegistry.patterns?.[layerRegistryKey(patternName)];
+  if (!storedBackdrop?.hex || !storedPattern?.imageUrl) return null;
+  return {
+    collectionName: collectionEntry?.collectionName || requestedCollection,
+    giftName: collectionEntry?.giftName || collectionEntry?.collectionName || requestedCollection,
+    modelName,
+    backdropName,
+    patternName,
+    modelAnimationUrl: storedModel?.animationUrl || animationUrl || "",
+    modelImageUrl: storedModel?.imageUrl || image || "",
+    patternImageUrl: storedPattern?.imageUrl || "",
+    backdropPalette: storedBackdrop?.hex || null,
+    mediaType: storedModel?.mediaType || mediaType || "",
+  };
+}
 
 const KNOWN_JETTON_IDS = {
   "0:3690254dc15b2297610cda60744a45f2b710aa4234b89adb630e99d79b01bd4f": "ston-fi",
@@ -152,10 +349,30 @@ function json(res, status, body) {
   res.writeHead(status, {
     "content-type": "application/json; charset=utf-8",
     "access-control-allow-origin": "*",
-    "access-control-allow-methods": "GET,OPTIONS",
+    "access-control-allow-methods": "GET,POST,OPTIONS",
     "access-control-allow-headers": "content-type,authorization",
   });
   res.end(JSON.stringify(body, null, 2));
+}
+
+function readJsonBody(req, maxBytes = 1024 * 1024) {
+  return new Promise((resolve, reject) => {
+    let raw = "";
+    req.setEncoding("utf8");
+    req.on("data", (chunk) => {
+      raw += chunk;
+      if (raw.length > maxBytes) reject(new Error("Request body too large"));
+    });
+    req.on("end", () => {
+      if (!raw) return resolve({});
+      try {
+        resolve(JSON.parse(raw));
+      } catch {
+        reject(new Error("Invalid JSON body"));
+      }
+    });
+    req.on("error", reject);
+  });
 }
 
 function safeStaticPath(urlPath) {
@@ -519,9 +736,16 @@ function giftSnapshotKey(name) {
   return String(name || "").toLowerCase().replace(/[^a-z0-9]+/g, "");
 }
 
+let giftFloorSnapshotsCache = null;
+let giftFloorSnapshotsCacheMtimeMs = 0;
+
 function loadGiftFloorSnapshots() {
   try {
-    return JSON.parse(fs.readFileSync(giftFloorSnapshotsFile, "utf8"));
+    const mtimeMs = fs.statSync(giftFloorSnapshotsFile).mtimeMs;
+    if (giftFloorSnapshotsCache && giftFloorSnapshotsCacheMtimeMs === mtimeMs) return giftFloorSnapshotsCache;
+    giftFloorSnapshotsCache = JSON.parse(fs.readFileSync(giftFloorSnapshotsFile, "utf8"));
+    giftFloorSnapshotsCacheMtimeMs = mtimeMs;
+    return giftFloorSnapshotsCache;
   } catch {
     return { version: 1, updatedAt: "", collections: {} };
   }
@@ -531,6 +755,8 @@ function saveGiftFloorSnapshots(store) {
   fs.mkdirSync(dataDir, { recursive: true });
   store.updatedAt = new Date().toISOString();
   fs.writeFileSync(giftFloorSnapshotsFile, JSON.stringify(store, null, 2));
+  giftFloorSnapshotsCache = store;
+  giftFloorSnapshotsCacheMtimeMs = fs.statSync(giftFloorSnapshotsFile).mtimeMs;
 }
 
 function giftSnapshotRecord(name, floor = {}) {
@@ -641,10 +867,29 @@ async function ensureGiftSnapshotTables() {
         rarity NUMERIC(12,4),
         market_updated_at TEXT,
         icon_url TEXT,
+        animation_url TEXT,
+        media_type TEXT,
         created_at TIMESTAMPTZ NOT NULL DEFAULT now()
       );
       CREATE INDEX IF NOT EXISTS gift_model_floor_snapshots_collection_model_time_idx
         ON gift_model_floor_snapshots(collection_key, model_key, sampled_at DESC);
+      CREATE TABLE IF NOT EXISTS gift_attribute_registry (
+        collection_key TEXT NOT NULL REFERENCES gift_floor_collections(collection_key) ON DELETE CASCADE,
+        trait_type TEXT NOT NULL,
+        value_key TEXT NOT NULL,
+        value_name TEXT NOT NULL,
+        rarity NUMERIC(12,4),
+        item_count INT,
+        floor_ton NUMERIC(24,9),
+        metrics JSONB DEFAULT '{}'::jsonb,
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+        PRIMARY KEY (collection_key, trait_type, value_key)
+      );
+      CREATE INDEX IF NOT EXISTS gift_attribute_registry_collection_type_idx
+        ON gift_attribute_registry(collection_key, trait_type);
+      ALTER TABLE gift_model_floor_snapshots ADD COLUMN IF NOT EXISTS icon_url TEXT;
+      ALTER TABLE gift_model_floor_snapshots ADD COLUMN IF NOT EXISTS animation_url TEXT;
+      ALTER TABLE gift_model_floor_snapshots ADD COLUMN IF NOT EXISTS media_type TEXT;
     `).then(() => pool);
   }
   return giftSnapshotPgInitPromise;
@@ -809,6 +1054,8 @@ function giftModelSnapshotRecords(name, payload = {}) {
         rarity: Number(model.rarity || 0),
         marketUpdatedAt: model.marketUpdatedAt || "",
         iconUrl: model.iconUrl || "",
+        animationUrl: model.animationUrl || "",
+        mediaType: model.mediaType || mediaKind(model.animationUrl || model.iconUrl || ""),
       };
     })
     .filter(Boolean);
@@ -852,6 +1099,8 @@ async function appendGiftModelFloorSnapshotsDb(records = []) {
       record.rarity,
       record.marketUpdatedAt,
       record.iconUrl,
+      record.animationUrl,
+      record.mediaType,
     ];
     const latestTime = latest.rows[0]?.sampled_at ? new Date(latest.rows[0].sampled_at).getTime() : 0;
     if (
@@ -866,7 +1115,7 @@ async function appendGiftModelFloorSnapshotsDb(records = []) {
         `UPDATE gift_model_floor_snapshots SET
           collection_key = $1, model_key = $2, model_name = $3, sampled_at = $4, floor_ton = $5, floor_usd = $6, ton_usd_rate = $7,
           source = $8, listed_count = $9, deals_30d = $10, avg_30d_ton = $11, avg_30d_usd = $12,
-          model_count = $13, rarity = $14, market_updated_at = $15, icon_url = $16
+          model_count = $13, rarity = $14, market_updated_at = $15, icon_url = $16, animation_url = $17, media_type = $18
          WHERE id = ${Number(latest.rows[0].id)}`,
         values
       );
@@ -874,8 +1123,8 @@ async function appendGiftModelFloorSnapshotsDb(records = []) {
       await pool.query(
         `INSERT INTO gift_model_floor_snapshots (
           collection_key, model_key, model_name, sampled_at, floor_ton, floor_usd, ton_usd_rate, source,
-          listed_count, deals_30d, avg_30d_ton, avg_30d_usd, model_count, rarity, market_updated_at, icon_url
-        ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16)`,
+          listed_count, deals_30d, avg_30d_ton, avg_30d_usd, model_count, rarity, market_updated_at, icon_url, animation_url, media_type
+        ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18)`,
         values
       );
     }
@@ -916,6 +1165,8 @@ function appendGiftModelFloorSnapshotsJson(records = []) {
     }
     model.name = record.modelName;
     model.iconUrl = record.iconUrl || model.iconUrl || "";
+    model.animationUrl = record.animationUrl || model.animationUrl || "";
+    model.mediaType = record.mediaType || model.mediaType || "";
     model.snapshots = model.snapshots.slice(-1500);
     collection.models[record.modelKey] = model;
     store.collections[record.collectionKey] = collection;
@@ -929,6 +1180,113 @@ async function appendGiftModelFloorSnapshots(name, payload = {}) {
   if (!records.length) return [];
   if (await appendGiftModelFloorSnapshotsDb(records)) return records;
   return appendGiftModelFloorSnapshotsJson(records);
+}
+
+function giftAttributeRarity(item = {}) {
+  const perMille = Number(item.rarity_per_mille ?? item.rarityPerMille);
+  if (Number.isFinite(perMille) && perMille > 0) return perMille / 10;
+  const percent = Number(item.rarity_percent ?? item.rarityPercent ?? item.rarity);
+  return Number.isFinite(percent) && percent > 0 ? percent : 0;
+}
+
+function giftAttributeRecords(collectionName = "", attributesPayload = {}) {
+  const bucket = thermosGiftAttributeBucket(attributesPayload, collectionName);
+  const groups = [
+    ["Model", bucket.data?.models],
+    ["Backdrop", bucket.data?.backdrops],
+    ["Symbol", bucket.data?.symbols || bucket.data?.patterns],
+  ];
+  return groups.flatMap(([traitType, items]) => (Array.isArray(items) ? items : []).map((item) => {
+    const valueName = String(item?.name || item?.value || item?.title || "").trim();
+    if (!valueName) return null;
+    return {
+      collectionKey: giftSnapshotKey(bucket.name || collectionName),
+      collectionName: bucket.name || collectionName,
+      traitType,
+      valueKey: giftSnapshotKey(valueName),
+      valueName,
+      rarity: giftAttributeRarity(item),
+      itemCount: Number(item?.stats?.count ?? item?.count ?? item?.total ?? 0),
+      floorTon: nanoTon(item?.stats?.floor ?? item?.floor ?? 0),
+      metrics: item,
+      updatedAt: new Date().toISOString(),
+    };
+  }).filter(Boolean));
+}
+
+async function appendGiftAttributesDb(records = []) {
+  if (!records.length) return false;
+  const pool = await ensureGiftSnapshotTables();
+  if (!pool) return false;
+  const collection = records[0];
+  await pool.query(
+    `INSERT INTO gift_floor_collections (collection_key, name, updated_at)
+     VALUES ($1, $2, now())
+     ON CONFLICT (collection_key) DO UPDATE SET name = EXCLUDED.name, updated_at = now()`,
+    [collection.collectionKey, collection.collectionName]
+  );
+  for (const record of records) {
+    await pool.query(
+      `INSERT INTO gift_attribute_registry (
+        collection_key, trait_type, value_key, value_name, rarity, item_count, floor_ton, metrics, updated_at
+      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8::jsonb,$9)
+      ON CONFLICT (collection_key, trait_type, value_key) DO UPDATE SET
+        value_name = EXCLUDED.value_name,
+        rarity = EXCLUDED.rarity,
+        item_count = EXCLUDED.item_count,
+        floor_ton = EXCLUDED.floor_ton,
+        metrics = EXCLUDED.metrics,
+        updated_at = EXCLUDED.updated_at`,
+      [
+        record.collectionKey,
+        record.traitType,
+        record.valueKey,
+        record.valueName,
+        record.rarity,
+        record.itemCount,
+        record.floorTon,
+        JSON.stringify(record.metrics || {}),
+        record.updatedAt,
+      ]
+    );
+  }
+  return true;
+}
+
+function appendGiftAttributesJson(records = []) {
+  if (!records.length) return [];
+  const store = loadGiftFloorSnapshots();
+  records.forEach((record) => {
+    const collection = store.collections[record.collectionKey] || {
+      key: record.collectionKey,
+      name: record.collectionName,
+      giftId: "",
+      snapshots: [],
+      recentSales: [],
+    };
+    collection.name = record.collectionName || collection.name;
+    collection.attributes = collection.attributes || {};
+    const traitKey = record.traitType.toLowerCase();
+    collection.attributes[traitKey] = collection.attributes[traitKey] || {};
+    collection.attributes[traitKey][record.valueKey] = {
+      name: record.valueName,
+      rarity: record.rarity,
+      itemCount: record.itemCount,
+      floorTon: record.floorTon,
+      metrics: record.metrics || {},
+      updatedAt: record.updatedAt,
+    };
+    store.collections[record.collectionKey] = collection;
+  });
+  saveGiftFloorSnapshots(store);
+  return records;
+}
+
+async function appendGiftAttributes(collectionName = "", attributesPayload = {}) {
+  const records = giftAttributeRecords(collectionName, attributesPayload);
+  if (!records.length) return [];
+  if (await appendGiftAttributesDb(records)) return records;
+  return appendGiftAttributesJson(records);
 }
 
 async function pruneGiftSnapshotStorage() {
@@ -960,6 +1318,11 @@ function latestGiftModelFloorsJson(collection = "") {
   return Object.keys(models).map((modelKey) => {
     const model = models[modelKey] || {};
     const snapshot = (model.snapshots || [])[model.snapshots.length - 1] || {};
+    const rawIcon = snapshot.iconUrl || model.iconUrl || "";
+    const rawAnimation = snapshot.animationUrl || model.animationUrl || "";
+    const legacyAnimation = !rawAnimation && /\.(?:lottie\.)?json(?:[?#].*)?$/i.test(String(rawIcon)) ? rawIcon : "";
+    const iconUrl = legacyAnimation ? "" : rawIcon;
+    const animationUrl = rawAnimation || legacyAnimation || "";
     return {
       model: model.name || snapshot.modelName || modelKey,
       modelKey,
@@ -973,7 +1336,9 @@ function latestGiftModelFloorsJson(collection = "") {
       modelCount: Number(snapshot.modelCount || 0),
       rarity: Number(snapshot.rarity || 0),
       marketUpdatedAt: snapshot.marketUpdatedAt || "",
-      iconUrl: snapshot.iconUrl || model.iconUrl || "",
+      iconUrl,
+      animationUrl,
+      mediaType: snapshot.mediaType || model.mediaType || mediaKind(animationUrl || iconUrl || ""),
       source: snapshot.source || "xgift",
     };
   }).filter((model) => model.floorTon > 0 || model.floorUsd > 0);
@@ -989,7 +1354,7 @@ async function latestGiftModelFloorsDb(collection = "") {
       model_key AS "modelKey", model_name AS model, floor_ton AS "floorTon", floor_usd AS "floorUsd",
       ton_usd_rate AS "tonUsdRate", source, listed_count AS "listedCount", deals_30d AS "deals30d",
       avg_30d_ton AS "avg30dTon", avg_30d_usd AS "avg30dUsd", model_count AS "modelCount",
-      rarity, market_updated_at AS "marketUpdatedAt", icon_url AS "iconUrl"
+      rarity, market_updated_at AS "marketUpdatedAt", icon_url AS "iconUrl", animation_url AS "animationUrl", media_type AS "mediaType"
      FROM gift_model_floor_snapshots
      WHERE collection_key = $1
      ORDER BY model_key, sampled_at DESC`,
@@ -997,6 +1362,9 @@ async function latestGiftModelFloorsDb(collection = "") {
   );
   return result.rows.map((row) => ({
     ...row,
+    iconUrl: (!row.animationUrl && /\.(?:lottie\.)?json(?:[?#].*)?$/i.test(String(row.iconUrl || ""))) ? "" : (row.iconUrl || ""),
+    animationUrl: row.animationUrl || (/\.(?:lottie\.)?json(?:[?#].*)?$/i.test(String(row.iconUrl || "")) ? row.iconUrl : ""),
+    mediaType: row.mediaType || mediaKind((row.animationUrl || row.iconUrl || "")),
     floorTon: Number(row.floorTon || 0),
     floorUsd: Number(row.floorUsd || 0),
     tonUsdRate: Number(row.tonUsdRate || 0),
@@ -1009,16 +1377,312 @@ async function latestGiftModelFloorsDb(collection = "") {
   }));
 }
 
+function requestedGiftModelPairs(pairs = []) {
+  return (Array.isArray(pairs) ? pairs : [])
+    .slice(0, 1000)
+    .map((pair) => ({
+      collection: String(pair?.collection || "").trim(),
+      model: String(pair?.model || "").trim(),
+      backdrop: String(pair?.backdrop || "").trim(),
+      symbol: String(pair?.symbol || "").trim(),
+    }))
+    .filter((pair) => pair.collection && pair.model)
+    .map((pair) => ({
+      ...pair,
+      collectionKey: giftSnapshotKey(pair.collection),
+      collectionKeys: giftCollectionAliasKeys(pair.collection),
+      modelKey: giftSnapshotKey(pair.model),
+      backdropKey: giftSnapshotKey(pair.backdrop),
+      symbolKey: giftSnapshotKey(pair.symbol),
+    }))
+    .filter((pair) => pair.collectionKey && pair.modelKey);
+}
+
+function singularGiftWord(word = "") {
+  if (word.length < 4 || word.endsWith("ss")) return word;
+  if (word.endsWith("ies")) return `${word.slice(0, -3)}y`;
+  if (word.endsWith("boxes")) return `${word.slice(0, -5)}box`;
+  if (/(?:ches|shes)$/.test(word)) return word.slice(0, -2);
+  if (word.endsWith("s")) return word.slice(0, -1);
+  return word;
+}
+
+function giftCollectionAliasKeys(name = "") {
+  const words = String(name || "").toLowerCase().match(/[a-z0-9]+/g) || [];
+  const keys = new Set([giftSnapshotKey(name)]);
+  words.forEach((word, index) => {
+    if (word.length >= 4 && word.endsWith("s") && !word.endsWith("ss")) {
+      const trailingSVariant = [...words];
+      trailingSVariant[index] = word.slice(0, -1);
+      keys.add(giftSnapshotKey(trailingSVariant.join(" ")));
+    }
+    const singular = singularGiftWord(word);
+    if (singular === word) return;
+    const variant = [...words];
+    variant[index] = singular;
+    keys.add(giftSnapshotKey(variant.join(" ")));
+  });
+  keys.add(giftSnapshotKey(words.map((word) => (
+    word.length >= 4 && word.endsWith("s") && !word.endsWith("ss") ? word.slice(0, -1) : word
+  )).join(" ")));
+  const allSingular = words.map(singularGiftWord);
+  keys.add(giftSnapshotKey(allSingular.join(" ")));
+  return [...keys].filter(Boolean);
+}
+
+function giftWordVariants(word = "") {
+  const variants = new Set([word]);
+  if (word.length < 4 || word.endsWith("ss")) return [...variants];
+  if (word.endsWith("ies")) variants.add(`${word.slice(0, -3)}y`);
+  if (word.endsWith("boxes")) variants.add(`${word.slice(0, -5)}box`);
+  if (/(?:ches|shes)$/.test(word)) variants.add(word.slice(0, -2));
+  if (word.endsWith("s")) variants.add(word.slice(0, -1));
+  return [...variants].filter(Boolean);
+}
+
+function giftCollectionSignatureKeys(name = "") {
+  const words = String(name || "").toLowerCase().match(/[a-z0-9]+/g) || [];
+  if (!words.length) return [];
+  let combinations = [""];
+  words.forEach((word) => {
+    combinations = combinations.flatMap((prefix) => giftWordVariants(word).map((variant) => `${prefix}${variant}`));
+  });
+  return [...new Set(combinations.map(giftSnapshotKey).filter(Boolean))];
+}
+
+async function resolveStoredGiftCollectionKeys(requested = [], pool = null) {
+  const rows = pool
+    ? (await pool.query("SELECT collection_key AS key, name FROM gift_floor_collections")).rows
+    : Object.entries(loadGiftFloorSnapshots().collections || {}).map(([key, item]) => ({ key, name: item?.name || key }));
+  const signatureIndex = new Map();
+  rows.forEach((row) => {
+    giftCollectionSignatureKeys(row.name || row.key).forEach((signature) => {
+      const matches = signatureIndex.get(signature) || new Set();
+      matches.add(row.key);
+      signatureIndex.set(signature, matches);
+    });
+  });
+  requested.forEach((pair) => {
+    const matches = new Set();
+    giftCollectionSignatureKeys(pair.collection).forEach((signature) => {
+      (signatureIndex.get(signature) || []).forEach((key) => matches.add(key));
+    });
+    if (matches.size === 1) pair.collectionKeys = [...new Set([...pair.collectionKeys, ...matches])];
+  });
+  return requested;
+}
+
+function normalizeStoredGiftModel(row = {}) {
+  const iconUrl = (!row.animationUrl && /\.(?:lottie\.)?json(?:[?#].*)?$/i.test(String(row.iconUrl || ""))) ? "" : (row.iconUrl || "");
+  const animationUrl = row.animationUrl || (/\.(?:lottie\.)?json(?:[?#].*)?$/i.test(String(row.iconUrl || "")) ? row.iconUrl : "");
+  return {
+    model: row.model || row.modelName || "",
+    modelKey: row.modelKey || giftSnapshotKey(row.model || row.modelName || ""),
+    floorTon: Number(row.floorTon || 0),
+    floorUsd: Number(row.floorUsd || 0),
+    tonUsdRate: Number(row.tonUsdRate || 0),
+    listedCount: Number(row.listedCount || 0),
+    deals30d: Number(row.deals30d || 0),
+    avg30dTon: Number(row.avg30dTon || 0),
+    avg30dUsd: Number(row.avg30dUsd || 0),
+    modelCount: Number(row.modelCount || 0),
+    rarity: Number(row.rarity || 0),
+    marketUpdatedAt: row.marketUpdatedAt || "",
+    iconUrl,
+    animationUrl,
+    mediaType: row.mediaType || mediaKind(animationUrl || iconUrl || ""),
+    source: row.source || "thermos-model",
+  };
+}
+
+function normalizeStoredGiftAttribute(row = {}) {
+  return {
+    type: row.traitType || row.trait_type || "",
+    value: row.valueName || row.value_name || "",
+    rarity: Number(row.rarity || 0),
+    itemCount: Number(row.itemCount || row.item_count || 0),
+    floorTon: Number(row.floorTon || row.floor_ton || 0),
+    metrics: row.metrics || {},
+    updatedAt: row.updatedAt || row.updated_at || "",
+  };
+}
+
+async function storedGiftAttributesForPairs(requested = [], pool = null) {
+  const byKey = new Map();
+  const collectionKeys = [...new Set(requested.flatMap((pair) => pair.collectionKeys))];
+  const valueKeys = [...new Set(requested.flatMap((pair) => [pair.modelKey, pair.backdropKey, pair.symbolKey]).filter(Boolean))];
+  if (pool && collectionKeys.length && valueKeys.length) {
+    const result = await pool.query(
+      `SELECT collection_key AS "collectionKey", trait_type AS "traitType", value_key AS "valueKey",
+        value_name AS "valueName", rarity, item_count AS "itemCount", floor_ton AS "floorTon",
+        metrics, updated_at AS "updatedAt"
+       FROM gift_attribute_registry
+       WHERE collection_key = ANY($1::text[]) AND value_key = ANY($2::text[])`,
+      [collectionKeys, valueKeys]
+    );
+    result.rows.forEach((row) => {
+      byKey.set(`${row.collectionKey}:${String(row.traitType).toLowerCase()}:${row.valueKey}`, normalizeStoredGiftAttribute(row));
+    });
+  } else {
+    const store = loadGiftFloorSnapshots();
+    requested.forEach((pair) => {
+      pair.collectionKeys.forEach((collectionKey) => {
+        const attributes = store.collections?.[collectionKey]?.attributes || {};
+        [["model", pair.modelKey], ["backdrop", pair.backdropKey], ["symbol", pair.symbolKey]].forEach(([type, valueKey]) => {
+          const attribute = valueKey ? attributes[type]?.[valueKey] : null;
+          if (attribute) byKey.set(`${collectionKey}:${type}:${valueKey}`, normalizeStoredGiftAttribute({
+            traitType: type,
+            valueName: attribute.name,
+            ...attribute,
+          }));
+        });
+      });
+    });
+  }
+  return byKey;
+}
+
+async function bulkStoredGiftModelFloors(pairs = []) {
+  let requested = requestedGiftModelPairs(pairs);
+  if (!requested.length) return [];
+  const pool = await ensureGiftSnapshotTables();
+  requested = await resolveStoredGiftCollectionKeys(requested, pool);
+  const byKey = new Map();
+  const attributesByKey = await storedGiftAttributesForPairs(requested, pool);
+  if (pool) {
+    const collectionKeys = [...new Set(requested.flatMap((pair) => pair.collectionKeys))];
+    const result = await pool.query(
+      `SELECT DISTINCT ON (collection_key, model_key)
+        collection_key AS "collectionKey", model_key AS "modelKey", model_name AS model,
+        floor_ton AS "floorTon", floor_usd AS "floorUsd", ton_usd_rate AS "tonUsdRate",
+        source, listed_count AS "listedCount", deals_30d AS "deals30d",
+        avg_30d_ton AS "avg30dTon", avg_30d_usd AS "avg30dUsd", model_count AS "modelCount",
+        rarity, market_updated_at AS "marketUpdatedAt", icon_url AS "iconUrl",
+        animation_url AS "animationUrl", media_type AS "mediaType"
+       FROM gift_model_floor_snapshots
+       WHERE collection_key = ANY($1::text[])
+       ORDER BY collection_key, model_key, sampled_at DESC`,
+      [collectionKeys]
+    );
+    result.rows.forEach((row) => byKey.set(`${row.collectionKey}:${row.modelKey}`, normalizeStoredGiftModel(row)));
+  } else {
+    const store = loadGiftFloorSnapshots();
+    requested.forEach((pair) => {
+      pair.collectionKeys.forEach((collectionKey) => {
+        const model = store.collections?.[collectionKey]?.models?.[pair.modelKey];
+        const snapshots = model?.snapshots || [];
+        const snapshot = snapshots[snapshots.length - 1] || {};
+        if (!model || !(Number(snapshot.floorTon || 0) > 0 || Number(snapshot.floorUsd || 0) > 0)) return;
+        byKey.set(`${collectionKey}:${pair.modelKey}`, normalizeStoredGiftModel({
+          ...snapshot,
+          model: model.name,
+          modelKey: pair.modelKey,
+          iconUrl: snapshot.iconUrl || model.iconUrl || "",
+          animationUrl: snapshot.animationUrl || model.animationUrl || "",
+          mediaType: snapshot.mediaType || model.mediaType || "",
+        }));
+      });
+    });
+  }
+  return requested.map((pair) => {
+    const model = pair.collectionKeys
+      .map((collectionKey) => byKey.get(`${collectionKey}:${pair.modelKey}`))
+      .find(Boolean);
+    if (!model) return null;
+    const traitMetrics = {};
+    [["Model", "model", pair.modelKey], ["Backdrop", "backdrop", pair.backdropKey], ["Symbol", "symbol", pair.symbolKey]]
+      .forEach(([label, type, valueKey]) => {
+        if (!valueKey) return;
+        const attribute = pair.collectionKeys
+          .map((collectionKey) => attributesByKey.get(`${collectionKey}:${type}:${valueKey}`))
+          .find(Boolean);
+        if (attribute) traitMetrics[label] = attribute;
+      });
+    if (!traitMetrics.Model && Number(model.rarity || 0) > 0) {
+      traitMetrics.Model = { type: "Model", value: model.model, rarity: Number(model.rarity), itemCount: Number(model.modelCount || 0) };
+    }
+    return {
+      collection: pair.collection,
+      collectionKey: pair.collectionKey,
+      backdrop: pair.backdrop,
+      symbol: pair.symbol,
+      ...model,
+      traitMetrics,
+      traitRarities: Object.fromEntries(Object.entries(traitMetrics).map(([label, value]) => [label, Number(value.rarity || 0)])),
+    };
+  }).filter(Boolean);
+}
+
+function drainGiftModelRecoveryQueue() {
+  while (giftModelRecoveryActive < 3 && giftModelRecoveryQueue.length) {
+    const job = giftModelRecoveryQueue.shift();
+    giftModelRecoveryActive += 1;
+    latestGiftModelFloors(job.collection)
+      .catch((error) => console.warn(`[gift-model-recovery] ${job.collection}: ${error.message}`))
+      .finally(() => {
+        giftModelRecoveryActive -= 1;
+        giftModelRecoveryRequests.delete(job.key);
+        job.resolve();
+        drainGiftModelRecoveryQueue();
+      });
+  }
+}
+
+function recoverGiftModelCollection(collection = "") {
+  const key = giftSnapshotKey(collection);
+  if (!key) return Promise.resolve();
+  if (giftModelRecoveryRequests.has(key)) return giftModelRecoveryRequests.get(key);
+  const request = new Promise((resolve) => {
+    giftModelRecoveryQueue.push({ key, collection, resolve });
+    drainGiftModelRecoveryQueue();
+  });
+  giftModelRecoveryRequests.set(key, request);
+  return request;
+}
+
 async function latestGiftModelFloors(collection = "") {
   const payload = await thermosGiftModelPayload(collection);
   if (!payload.models.length) return [];
-  appendGiftModelFloorSnapshots(collection, payload).catch(() => null);
-  return payload.models.map((model) => ({
+  let xgiftPayload = { ok: false, models: [] };
+  try {
+    xgiftPayload = await xgiftModelMediaPayload(payload.canonicalName || collection);
+  } catch {}
+  const xgiftModels = new Map(
+    (Array.isArray(xgiftPayload.models) ? xgiftPayload.models : []).map((model) => [
+      giftSnapshotKey(model.model || model.modelKey),
+      model,
+    ])
+  );
+  const mergedPayload = {
+    ...payload,
+    giftId: payload.giftId || xgiftPayload.giftId || "",
+    source: xgiftModels.size ? "xgift-model" : payload.source,
+    marketPlatform: xgiftModels.size ? "xGift" : payload.marketPlatform,
+    models: payload.models.map((model) => {
+      const xgiftModel = xgiftModels.get(giftSnapshotKey(model.model));
+      if (!xgiftModel) return model;
+      const xgiftIcon = String(xgiftModel.iconUrl || "").trim();
+      const xgiftAnimation = String(xgiftModel.animationUrl || "").trim()
+        || (/\.(?:lottie\.)?json(?:[?#].*)?$/i.test(xgiftIcon) ? xgiftIcon : "");
+      const xgiftStaticIcon = /\.(?:lottie\.)?json(?:[?#].*)?$/i.test(xgiftIcon) ? "" : xgiftIcon;
+      return {
+        ...model,
+        iconUrl: xgiftStaticIcon || model.iconUrl || "",
+        animationUrl: xgiftAnimation || model.animationUrl || "",
+        mediaType: xgiftModel.mediaType || mediaKind(xgiftAnimation || xgiftStaticIcon || model.animationUrl || model.iconUrl || ""),
+        source: "xgift-model",
+        marketPlatform: "xGift",
+        marketUpdatedAt: xgiftModel.marketUpdatedAt || model.marketUpdatedAt || "",
+      };
+    }),
+  };
+  appendGiftModelFloorSnapshots(collection, mergedPayload).catch(() => null);
+  return mergedPayload.models.map((model) => ({
     model: model.model,
     modelKey: giftSnapshotKey(model.model),
     floorTon: Number(model.floorTon || 0),
     floorUsd: Number(model.floorUsd || 0),
-    tonUsdRate: Number(model.tonUsdRate || payload.tonUsdRate || 0),
+    tonUsdRate: Number(model.tonUsdRate || mergedPayload.tonUsdRate || 0),
     listedCount: Number(model.listedCount || 0),
     deals30d: Number(model.deals30d || 0),
     avg30dTon: Number(model.avg30dTon || 0),
@@ -1027,7 +1691,9 @@ async function latestGiftModelFloors(collection = "") {
     rarity: Number(model.rarity || 0),
     marketUpdatedAt: model.marketUpdatedAt || "",
     iconUrl: model.iconUrl || "",
-    source: "thermos-model",
+    animationUrl: model.animationUrl || "",
+    mediaType: model.mediaType || mediaKind(model.animationUrl || model.iconUrl || ""),
+    source: model.source || mergedPayload.source || "thermos-model",
   }));
 }
 
@@ -1155,6 +1821,7 @@ async function giftSnapshotStoreStatus(collection = "") {
         COUNT(s.id)::int AS points,
         (SELECT COUNT(*)::int FROM gift_model_floor_snapshots) AS "modelPoints",
         (SELECT COUNT(DISTINCT collection_key || ':' || model_key)::int FROM gift_model_floor_snapshots) AS "models",
+        (SELECT COUNT(*)::int FROM gift_attribute_registry) AS attributes,
         MAX(s.sampled_at) AS "updatedAt"
        FROM gift_floor_collections c
        LEFT JOIN gift_floor_snapshots s ON s.collection_key = c.collection_key`
@@ -1167,6 +1834,7 @@ async function giftSnapshotStoreStatus(collection = "") {
       points: Number(row.points || 0),
       models: Number(row.models || 0),
       modelPoints: Number(row.modelPoints || 0),
+      attributes: Number(row.attributes || 0),
     };
   }
   const store = loadGiftFloorSnapshots();
@@ -1178,6 +1846,10 @@ async function giftSnapshotStoreStatus(collection = "") {
     const modelMap = store.collections[collectionKey]?.models || {};
     return sum + Object.keys(modelMap).reduce((count, modelKey) => count + (modelMap[modelKey]?.snapshots || []).length, 0);
   }, 0);
+  const attributes = collections.reduce((sum, collectionKey) => {
+    const registry = store.collections[collectionKey]?.attributes || {};
+    return sum + Object.values(registry).reduce((count, values) => count + Object.keys(values || {}).length, 0);
+  }, 0);
   return {
     storage: "json",
     updatedAt: store.updatedAt || "",
@@ -1185,6 +1857,7 @@ async function giftSnapshotStoreStatus(collection = "") {
     points,
     models,
     modelPoints,
+    attributes,
   };
 }
 
@@ -1282,6 +1955,85 @@ async function xgiftModelFloorsWithBackoff(name) {
   return lastPayload;
 }
 
+async function xgiftModelMediaPayload(collectionName = "", { force = false } = {}) {
+  const key = giftSnapshotKey(collectionName);
+  if (!key) return { ok: false, models: [] };
+  const cached = xgiftModelMediaCache.get(key);
+  if (!force && cached && cached.expiresAt > Date.now()) return cached.value;
+  const value = await xgiftModelFloorsWithBackoff(collectionName);
+  xgiftModelMediaCache.set(key, {
+    value,
+    expiresAt: Date.now() + 30 * 60 * 1000,
+  });
+  return value;
+}
+
+async function xgiftGiftAttributesPayload(collectionName = "", { force = false } = {}) {
+  const key = giftSnapshotKey(collectionName);
+  if (!key) return { ok: false, models: [], backdrops: [], symbols: [] };
+  const cached = xgiftGiftAttributesCache.get(key);
+  if (!force && cached && cached.expiresAt > Date.now()) return cached.value;
+  let value = { ok: false, models: [], backdrops: [], symbols: [] };
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    value = await xgiftBridge("gift-attributes", { name: collectionName, collection: collectionName }, 60000);
+    const count = ["models", "backdrops", "symbols"]
+      .reduce((sum, trait) => sum + (Array.isArray(value?.[trait]) ? value[trait].length : 0), 0);
+    if (value?.ok && count > 0) {
+      xgiftGiftAttributesCache.set(key, {
+        value,
+        expiresAt: Date.now() + 30 * 60 * 1000,
+      });
+      return value;
+    }
+    const text = String(value?.error || value?.__stderr || "");
+    if (!/429|rate/i.test(text) || attempt === 2) break;
+    await sleep(5000 * (attempt + 1));
+  }
+  return value;
+}
+
+function mergeGiftAttributePayload(collectionName = "", primaryPayload = {}, fallbackPayload = {}) {
+  const primary = thermosGiftAttributeBucket(primaryPayload, collectionName);
+  const canonicalName = primary.name || fallbackPayload.canonicalName || collectionName;
+  const merged = { ...(primary.data || {}) };
+  [
+    ["models", fallbackPayload.models],
+    ["backdrops", fallbackPayload.backdrops],
+    ["symbols", fallbackPayload.symbols],
+  ].forEach(([key, fallbackItems]) => {
+    const primaryItems = Array.isArray(primary.data?.[key]) ? primary.data[key] : [];
+    const seen = new Set(primaryItems.map((item) => giftSnapshotKey(item?.name || item?.value || item?.title)));
+    merged[key] = primaryItems.concat(
+      (Array.isArray(fallbackItems) ? fallbackItems : [])
+        .filter((item) => {
+          const valueKey = giftSnapshotKey(item?.name || item?.value || item?.title);
+          if (!valueKey || seen.has(valueKey)) return false;
+          seen.add(valueKey);
+          return true;
+        })
+    );
+  });
+  return { [canonicalName]: merged };
+}
+
+async function xgiftGiftAttributesForCollections(names = [], { force = false, concurrency = 1 } = {}) {
+  const result = new Map();
+  let index = 0;
+  const workers = Array.from({ length: Math.min(concurrency, names.length) }, async () => {
+    while (index < names.length) {
+      const name = names[index++];
+      try {
+        result.set(giftSnapshotKey(name), await xgiftGiftAttributesPayload(name, { force }));
+      } catch (error) {
+        console.warn(`[gift-attributes] xGift ${name}: ${error.message}`);
+      }
+      await sleep(250);
+    }
+  });
+  await Promise.all(workers);
+  return result;
+}
+
 async function collectGiftFloorSnapshotsNow({ force = false } = {}) {
   if (giftSnapshotCollectorPromise) return giftSnapshotCollectorPromise;
   giftSnapshotCollectorState = {
@@ -1293,6 +2045,7 @@ async function collectGiftFloorSnapshotsNow({ force = false } = {}) {
     ok: 0,
     errors: 0,
     modelSnapshots: 0,
+    attributes: 0,
     error: "",
   };
   giftSnapshotCollectorPromise = (async () => {
@@ -1323,13 +2076,21 @@ async function collectGiftFloorSnapshotsNow({ force = false } = {}) {
         }
         giftSnapshotCollectorState.done += 1;
       }
+      const xgiftAttributesByCollection = await xgiftGiftAttributesForCollections(names, { force, concurrency: 1 });
       const chunkSize = 25;
       for (let index = 0; index < names.length; index += chunkSize) {
         const chunk = names.slice(index, index + chunkSize);
         try {
           const attributes = await thermosGiftAttributes(chunk, true);
           for (const name of chunk) {
-            const payload = thermosGiftModelPayloadFromAttributes(name, attributes, tonRate);
+            const mergedAttributes = mergeGiftAttributePayload(
+              name,
+              attributes,
+              xgiftAttributesByCollection.get(giftSnapshotKey(name)) || {}
+            );
+            const attributeRecords = await appendGiftAttributes(name, mergedAttributes);
+            giftSnapshotCollectorState.attributes += attributeRecords.length;
+            const payload = thermosGiftModelPayloadFromAttributes(name, mergedAttributes, tonRate);
             const records = await appendGiftModelFloorSnapshots(name, payload);
             giftSnapshotCollectorState.modelSnapshots += records.length;
             if (!records.length) console.warn(`[gift-model-snapshot] ${name}: no Thermos model floors returned`);
@@ -2340,7 +3101,6 @@ function bestNftImage(item = {}) {
   return normalizeImageUrl(
     item?.metadata?.image ||
     item?.metadata?.image_url ||
-    item?.metadata?.animation_url ||
     item?.content?.uri ||
     largePreview?.url ||
     previews.at(-1)?.url ||
@@ -2349,12 +3109,39 @@ function bestNftImage(item = {}) {
   );
 }
 
+function normalizeMediaUrl(url = "") {
+  return normalizeImageUrl(url);
+}
+
+function bestNftAnimatedMedia(item = {}) {
+  const candidates = [
+    item?.metadata?.animation_url,
+    item?.metadata?.animation,
+    item?.metadata?.video,
+    item?.metadata?.video_url,
+    item?.metadata?.lottie,
+    item?.metadata?.animated_url,
+    item?.content?.animation_url,
+    item?.content?.video_url,
+    item?.raw?.animation_url,
+  ].map(normalizeMediaUrl).filter(Boolean);
+  return candidates.find((url) => /\.(webm|mp4|mov|gif|webp)(?:[?#].*)?$/i.test(url)) || candidates[0] || "";
+}
+
+function mediaKind(url = "") {
+  if (/\.(?:lottie\.)?json(?:[?#].*)?$/i.test(String(url))) return "lottie";
+  if (/\.(webm|mp4|mov)(?:[?#].*)?$/i.test(String(url))) return "video";
+  if (url) return "image";
+  return "";
+}
+
 function normalizeNfts(payload) {
   return (payload?.nft_items || []).map((item) => {
     const collection = item?.collection?.name || "Unknown collection";
     const name = item?.metadata?.name || collection || "Telegram Collectible";
     const type = nftCategory(item);
     const floorTon = 0;
+    const animatedMedia = bestNftAnimatedMedia(item);
     return {
       type,
       name,
@@ -2363,6 +3150,9 @@ function normalizeNfts(payload) {
       tokenAddress: item?.address || "",
       address: item?.address,
       image: bestNftImage(item),
+      animatedImage: animatedMedia,
+      animationUrl: animatedMedia,
+      mediaType: mediaKind(animatedMedia),
       owner: item?.owner?.address || null,
       verified: Boolean(item?.approved_by?.length || item?.verified),
       description: item?.metadata?.description || item?.collection?.description || "",
@@ -3836,6 +4626,9 @@ function normalizeGetgemsNft(node = {}, tonRate = 0) {
     collectionAddress: collection.address || collection.id || "",
     tokenAddress: node.address || node.id || "",
     image: node.image || node.metadata?.image || node.preview || "",
+    animatedImage: node.animation_url || node.animationUrl || node.metadata?.animation_url || node.metadata?.video_url || "",
+    animationUrl: node.animation_url || node.animationUrl || node.metadata?.animation_url || node.metadata?.video_url || "",
+    mediaType: mediaKind(node.animation_url || node.animationUrl || node.metadata?.animation_url || node.metadata?.video_url || ""),
     description: node.description || node.metadata?.description || "",
     floorTon: Number.isFinite(floorTon) ? floorTon : 0,
     floorUsd: Number.isFinite(floorTon) ? floorTon * tonRate : 0,
@@ -3860,6 +4653,13 @@ function normalizeThermosGift(item = {}, tonRate = 0) {
     item.backdrop && { trait_type: "Backdrop", value: item.backdrop.name, rarity: `${Number(item.backdrop.rarity_per_mille || 0) / 10}%` },
     item.symbol && { trait_type: "Symbol", value: item.symbol.name, rarity: `${Number(item.symbol.rarity_per_mille || 0) / 10}%` },
   ].filter(Boolean);
+  const layeredMedia = giftLayeredMediaPayload({
+    collectionName: item.collection || "Telegram Gift",
+    attributes: attrs,
+    image: item.image_url || "",
+    animationUrl: item.animation_url || item.video_url || item.animated_url || "",
+    mediaType: mediaKind(item.animation_url || item.video_url || item.animated_url || ""),
+  });
   return {
     type: "gift",
     name: item.collection || "Telegram Gift",
@@ -3867,6 +4667,9 @@ function normalizeThermosGift(item = {}, tonRate = 0) {
     collectionAddress: item.collection || "",
     tokenAddress: item.external_id || "",
     image: item.image_url || "",
+    animatedImage: item.animation_url || item.video_url || item.animated_url || "",
+    animationUrl: item.animation_url || item.video_url || item.animated_url || "",
+    mediaType: mediaKind(item.animation_url || item.video_url || item.animated_url || ""),
     description: "",
     floorTon,
     floorUsd: floorTon * tonRate,
@@ -3876,6 +4679,7 @@ function normalizeThermosGift(item = {}, tonRate = 0) {
     listed: true,
     marketplace: item.marketplace || "Thermos",
     slug: giftSlug(item.collection, item.number),
+    layeredMedia,
     raw: item,
   };
 }
@@ -3888,13 +4692,21 @@ function normalizeMrktGift(item = {}, tonRate = 0) {
     item.backdropName && { trait_type: "Backdrop", value: item.backdropName, rarity: `${Number(item.backdropRarityPerMille || 0) / 10}%` },
     item.symbolName && { trait_type: "Symbol", value: item.symbolName, rarity: `${Number(item.symbolRarityPerMille || 0) / 10}%` },
   ].filter(Boolean);
+  const image = item.modelStickerThumbnailKey ? `https://cdn.tgmrkt.io/${item.modelStickerThumbnailKey}` : "";
+  const layeredMedia = giftLayeredMediaPayload({
+    collectionName: name,
+    attributes: attrs,
+    image,
+    animationUrl: "",
+    mediaType: "",
+  });
   return {
     type: "gift",
     name,
     collection: name,
     collectionAddress: name,
     tokenAddress: item.id || item.giftIdString || "",
-    image: item.modelStickerThumbnailKey ? `https://cdn.tgmrkt.io/${item.modelStickerThumbnailKey}` : "",
+    image,
     description: "",
     floorTon,
     floorUsd: floorTon * tonRate,
@@ -3904,6 +4716,7 @@ function normalizeMrktGift(item = {}, tonRate = 0) {
     listed: Boolean(item.isOnSale || floorTon),
     marketplace: "MRKT",
     slug: giftSlug(name, item.number),
+    layeredMedia,
     raw: item,
   };
 }
@@ -3995,6 +4808,8 @@ function thermosGiftModelPayloadFromAttributes(collectionName = "", attributesPa
         rarity: Number(model?.rarity_per_mille || 0) / 10,
         marketUpdatedAt: new Date().toISOString(),
         iconUrl: model?.image_url || "",
+        animationUrl: model?.animation_url || model?.video_url || model?.animated_url || "",
+        mediaType: mediaKind(model?.animation_url || model?.video_url || model?.animated_url || model?.image_url || ""),
       };
     })
     .filter((model) => model?.model && (model.floorTon > 0 || model.floorUsd > 0));
@@ -4013,8 +4828,14 @@ async function thermosGiftModelPayload(collectionName = "", { force = false, ton
   const collections = await thermosGiftCollections();
   const collectionRow = bestThermosGiftCollection(collections, [collectionName]);
   const canonicalName = thermosCollectionName(collectionRow) || collectionName;
-  const payload = await thermosGiftAttributes([canonicalName], force);
-  return thermosGiftModelPayloadFromAttributes(canonicalName, payload, rate);
+  const thermosPayload = await thermosGiftAttributes([canonicalName], force);
+  let xgiftPayload = {};
+  try {
+    xgiftPayload = await xgiftGiftAttributesPayload(canonicalName, { force });
+  } catch {}
+  const mergedPayload = mergeGiftAttributePayload(canonicalName, thermosPayload, xgiftPayload);
+  await appendGiftAttributes(canonicalName, mergedPayload);
+  return thermosGiftModelPayloadFromAttributes(canonicalName, mergedPayload, rate);
 }
 
 function bestThermosGiftCollection(collections = [], aliases = []) {
@@ -4119,6 +4940,18 @@ function normalizeWalletNft(item = {}) {
   const collection = item?.collection?.name || "Unknown collection";
   const name = item?.metadata?.name || collection || "Telegram Collectible";
   const image = bestNftImage(item);
+  const attributes = Array.isArray(item?.metadata?.attributes) ? item.metadata.attributes : [];
+  const type = classifyNft(item);
+  const animatedMedia = bestNftAnimatedMedia(item);
+  const layeredMedia = type === "gift"
+    ? giftLayeredMediaPayload({
+      collectionName: collection,
+      attributes,
+      image,
+      animationUrl: animatedMedia,
+      mediaType: mediaKind(animatedMedia),
+    })
+    : null;
   const text = `${collection} ${name} ${item?.metadata?.description || ""}`;
   const source = /goodies-api-prod/i.test(image)
     ? "Goodies"
@@ -4128,13 +4961,16 @@ function normalizeWalletNft(item = {}) {
         ? "Fuse"
         : "";
   return {
-    type: classifyNft(item),
+    type,
     name,
     collection,
     collectionAddress: item?.collection?.address || "",
     tokenAddress: item?.address || "",
     address: item?.address,
     image,
+    animatedImage: animatedMedia,
+    animationUrl: animatedMedia,
+    mediaType: mediaKind(animatedMedia),
     source,
     owner: item?.owner?.address || null,
     verified: Boolean(item?.approved_by?.length || item?.verified),
@@ -4142,7 +4978,8 @@ function normalizeWalletNft(item = {}) {
     floorTon: 0,
     floorUsd: 0,
     lastSaleTon: 0,
-    attributes: Array.isArray(item?.metadata?.attributes) ? item.metadata.attributes : [],
+    attributes,
+    layeredMedia,
     mintIndex: item?.index || 0,
     listed: false,
     raw: item,
@@ -5468,6 +6305,38 @@ async function giftDetailData({ walletAddress, nftAddress, collectionAddress = "
 
 async function handleApi(req, res, url) {
   if (req.method === "OPTIONS") return json(res, 204, {});
+  if (url.pathname === "/api/gift-model-floors/bulk" && req.method === "POST") {
+    try {
+      const body = await readJsonBody(req);
+      const pairs = requestedGiftModelPairs(body.pairs);
+      const models = await bulkStoredGiftModelFloors(pairs);
+      const found = new Map(models.map((model) => [`${model.collectionKey}:${model.modelKey}`, model]));
+      const pending = pairs.filter((pair) => {
+        const model = found.get(`${pair.collectionKey}:${pair.modelKey}`);
+        if (!model) return true;
+        if (pair.backdropKey && !(Number(model.traitRarities?.Backdrop || 0) > 0)) return true;
+        if (pair.symbolKey && !(Number(model.traitRarities?.Symbol || 0) > 0)) return true;
+        return false;
+      });
+      [...new Set(pending.map((pair) => pair.collection))].forEach((collection) => {
+        recoverGiftModelCollection(collection);
+      });
+      return json(res, 200, {
+        source: "tontrack-snapshots",
+        models,
+        pending: pending.map(({ collection, model, backdrop, symbol, collectionKey, modelKey }) => ({
+          collection,
+          model,
+          backdrop,
+          symbol,
+          collectionKey,
+          modelKey,
+        })),
+      });
+    } catch (error) {
+      return json(res, 400, { error: error.message, models: [], pending: [] });
+    }
+  }
   if (req.method !== "GET") return json(res, 405, { error: "Method not allowed" });
   if (url.pathname === "/api/health") {
     return json(res, 200, { ok: true, service: "tontrack-api", time: new Date().toISOString() });
@@ -5653,6 +6522,28 @@ async function handleApi(req, res, url) {
         tgauth: url.searchParams.get("tgauth") || "",
         range: url.searchParams.get("range") || "7d",
       }));
+    } catch (error) {
+      return json(res, 502, { error: error.message });
+    }
+  }
+  if (url.pathname === "/api/asset-media") {
+    const target = String(url.searchParams.get("url") || "").trim();
+    if (!/^https?:\/\//i.test(target)) return json(res, 400, { error: "Missing or invalid media url" });
+    try {
+      const response = await fetch(target, {
+        headers: {
+          "user-agent": "TonTrack/1.0",
+          "accept": "*/*",
+        },
+      });
+      if (!response.ok) return json(res, 502, { error: `Media fetch failed (${response.status})` });
+      const contentType = response.headers.get("content-type") || (target.endsWith(".json") ? "application/json; charset=utf-8" : "application/octet-stream");
+      const buffer = Buffer.from(await response.arrayBuffer());
+      res.writeHead(200, {
+        "content-type": contentType,
+        "cache-control": "public, max-age=3600",
+      });
+      return res.end(buffer);
     } catch (error) {
       return json(res, 502, { error: error.message });
     }
