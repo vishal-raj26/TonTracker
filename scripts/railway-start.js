@@ -1,6 +1,8 @@
 const { spawn } = require("child_process");
 
 const isComboWorker = process.env.GIFT_COMBO_CONTINUOUS === "1";
+console.log(`[railway-start] ${isComboWorker ? "combo-worker" : "app-server"} selected`);
+
 const command = process.execPath;
 const args = isComboWorker
   ? ["scripts/snapshot-gift-combos.js", "--continuous"]
