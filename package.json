@@ -4,7 +4,7 @@
   "private": true,
   "type": "commonjs",
   "scripts": {
-    "start": "node server.js",
+    "start": "node scripts/railway-start.js",
     "dev": "node server.js",
     "worker:gift-snapshots": "node gift-snapshot-worker.js",
     "worker:gift-snapshots:once": "node gift-snapshot-once.js",
@@ -20,3 +20,4 @@
     "pg": "^8.13.1"
   }
 }
+
