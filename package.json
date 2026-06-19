@@ -9,6 +9,8 @@
     "worker:gift-snapshots": "node gift-snapshot-worker.js",
     "worker:gift-snapshots:once": "node gift-snapshot-once.js",
     "worker:gift-models:once": "node gift-model-snapshot-once.js",
+    "worker:gift-combos": "node scripts/snapshot-gift-combos.js --continuous",
+    "worker:gift-combos:once": "node scripts/snapshot-gift-combos.js",
     "worker:gift-snapshots:15m": "set GIFT_SNAPSHOT_INTERVAL_MS=900000&& node gift-snapshot-worker.js",
     "ingest:gift-layers": "node scripts/ingest-giftchanges-layers.js"
   },

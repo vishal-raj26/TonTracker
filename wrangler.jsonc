@@ -1,0 +1,15 @@
+{
+  "name": "tontrack-gift-registry",
+  "main": "cloudflare/gift-registry-worker.mjs",
+  "compatibility_date": "2026-06-13",
+  "triggers": {
+    "crons": ["17 2 * * *"]
+  },
+  "d1_databases": [
+    {
+      "binding": "GIFT_REGISTRY",
+      "database_name": "tontrack-gift-registry",
+      "database_id": "d123b8de-1fd5-4117-a656-6855bbccf49e"
+    }
+  ]
+}

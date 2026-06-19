@@ -19,6 +19,7 @@ ssh-tunnel.*
 
 # Generated caches and local snapshot data
 data/history-cache/
+data/gift-combo-work/
 data/*.json
 !data/*.schema.sql
 
@@ -27,8 +28,11 @@ data/*.json
 __pycache__/
 xgift-*.js
 gift-history-audit.json
-*`r`n
+
 preview-*.png
 wallet-history-*.json
 wallet-test.json
 tonapi-events-sample.json
+
+.npm-cache/
+data/*.lock
