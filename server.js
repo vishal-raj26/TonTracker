@@ -5014,33 +5014,52 @@ async function d1GiftComboFloor(collectionName = "", modelName = "", backdropNam
   }
 }
 
+async function d1GiftComboHistory(collectionName = "", modelName = "", backdropName = "") {
+  if (!collectionName || !modelName || !backdropName) return [];
+  try {
+    const params = new URLSearchParams({ collection: collectionName, model: modelName, backdrop: backdropName });
+    const endpoint = giftRegistryProxyUrl
+      ? `${giftRegistryProxyUrl}/api/gift-registry/history?${params}`
+      : `${d1GiftRegistryUrl}/history?${params}`;
+    const payload = await marketJson(endpoint, {}, giftRegistryProxyUrl ? 5000 : 2500);
+    return Array.isArray(payload) ? payload : [];
+  } catch {
+    return [];
+  }
+}
+
 async function d1GiftComboFloors(pairs = []) {
-  if ((!d1GiftRegistryUrl && !giftRegistryProxyUrl) || !pairs.length) return [];
+  if ((!d1GiftRegistryUrl && !giftRegistryProxyUrl) || !pairs.length) return { combinations: [], coverage: [] };
   const requested = [];
   pairs.forEach((pair) => {
     const aliases = [...new Set([pair.collection, pair.collectionKey, ...(pair.collectionKeys || [])].filter(Boolean))];
     aliases.forEach((collection) => requested.push({ collection, model: pair.model, backdrop: pair.backdrop }));
   });
   const chunks = Array.from({ length: Math.ceil(requested.length / 40) }, (_, index) => requested.slice(index * 40, index * 40 + 40));
-  const results = [];
+  const combinations = [];
+  const coverage = new Set();
   for (let index = 0; index < chunks.length; index += 4) {
     const responses = await Promise.all(chunks.slice(index, index + 4).map(async (chunk) => {
       try {
         const endpoint = giftRegistryProxyUrl
           ? `${giftRegistryProxyUrl}/api/gift-registry/combos`
           : `${d1GiftRegistryUrl}/combos`;
-        const payload = await marketJson(endpoint, {
+        return await marketJson(endpoint, {
           method: "POST",
           body: { pairs: chunk },
         }, giftRegistryProxyUrl ? 5000 : 2500);
-        return Array.isArray(payload?.combinations) ? payload.combinations : [];
       } catch {
-        return [];
+        return null;
       }
     }));
-    responses.forEach((response) => results.push(...response));
+    responses.forEach((response) => {
+      if (Array.isArray(response?.combinations)) combinations.push(...response.combinations);
+      (Array.isArray(response?.coverage) ? response.coverage : []).forEach((entry) => {
+        if (entry?.collectionKey) coverage.add(giftSnapshotKey(entry.collectionKey));
+      });
+    });
   }
-  return results;
+  return { combinations, coverage: [...coverage] };
 }
 
 async function thermosGiftComboFloor(collectionName = "", modelName = "", backdropName = "", tonRate = 0) {
@@ -5154,7 +5173,7 @@ async function thermosGiftFloorLookup(aliasObject = {}, aliases = [], tonRate = 
     source: comboFloor ? "thermos-combo" : (modelFloor ? "thermos-model" : "thermos-proxy"),
     tonUsdRate: tonRate,
     floorHistory,
-    floorHistorySource: floorHistory.length >= 2 ? "tontrack-model-snapshots" : "",
+    floorHistorySource: comboHistory.length >= 2 ? "tontrack-combo-registry" : (floorHistory.length >= 2 ? "tontrack-model-snapshots" : ""),
   };
 }
 
@@ -6573,6 +6592,20 @@ async function giftDetailData({ walletAddress, nftAddress, collectionAddress = "
 
 async function handleApi(req, res, url) {
   if (req.method === "OPTIONS") return json(res, 204, {});
+  if (url.pathname === "/api/gift-registry/history" && req.method === "GET") {
+    const registryUrl = d1GiftRegistryUrl || publicGiftRegistryUrl;
+    try {
+      const params = new URLSearchParams({
+        collection: url.searchParams.get("collection") || "",
+        model: url.searchParams.get("model") || "",
+        backdrop: url.searchParams.get("backdrop") || "",
+      });
+      const payload = await marketJson(`${registryUrl}/history?${params}`, {}, 5000);
+      return json(res, 200, Array.isArray(payload) ? payload : []);
+    } catch {
+      return json(res, 502, []);
+    }
+  }
   if (url.pathname === "/api/gift-registry/combos" && req.method === "POST") {
     const registryUrl = d1GiftRegistryUrl || publicGiftRegistryUrl;
     try {
@@ -6588,6 +6621,7 @@ async function handleApi(req, res, url) {
       }, 5000);
       return json(res, 200, {
         combinations: Array.isArray(payload?.combinations) ? payload.combinations : [],
+        coverage: Array.isArray(payload?.coverage) ? payload.coverage : [],
       });
     } catch {
       return json(res, 502, { error: "Gift registry lookup failed", combinations: [] });
@@ -6598,10 +6632,12 @@ async function handleApi(req, res, url) {
       const body = await readJsonBody(req);
       const pairs = requestedGiftModelPairs(body.pairs);
       const models = await bulkStoredGiftModelFloors(pairs);
-      const [comboFloors, rate] = await Promise.all([
+      const [comboLookup, rate] = await Promise.all([
         d1GiftComboFloors(pairs),
         tonUsdRate(),
       ]);
+      const comboFloors = comboLookup.combinations;
+      const coveredCollections = new Set(comboLookup.coverage);
       const returnedModels = new Set(models.map((model) => [
         model.collectionKey,
         model.modelKey,
@@ -6639,7 +6675,8 @@ async function handleApi(req, res, url) {
           .map((collection) => combosByKey.get([collection, model.model || model.modelKey, model.backdrop].map(giftSnapshotKey).join(":")))
           .find(Boolean);
         if (!combo) {
-          if (!(Number(model.floorTon || 0) > 0 || Number(model.floorUsd || 0) > 0)) {
+          const exactCheckComplete = modelCollectionAliases.some((collection) => coveredCollections.has(giftSnapshotKey(collection)));
+          if (!exactCheckComplete || !(Number(model.floorTon || 0) > 0 || Number(model.floorUsd || 0) > 0)) {
             model.floorTon = 0;
             model.floorUsd = 0;
             model.listedCount = 0;

@@ -64,10 +64,12 @@ async function readCombo(env, collection, model, backdrop) {
 
 async function readCombos(env, pairs = []) {
   const groups = new Map();
+  const collectionKeys = new Set();
   pairs.forEach((pair) => {
     const collectionKey = key(pair.collection);
     const targetKey = comboKey(pair.model, pair.backdrop);
     if (!collectionKey || targetKey === ":") return;
+    collectionKeys.add(collectionKey);
     const bucket = bucketFor(targetKey);
     const groupKey = `${collectionKey}:${bucket}`;
     const group = groups.get(groupKey) || { collectionKey, bucket, pairs: [] };
@@ -83,6 +85,17 @@ async function readCombos(env, pairs = []) {
        WHERE c.collection_key = ?1 AND b.bucket = ?2`
     ).bind(group.collectionKey, group.bucket)
   )));
+  const coverageRows = await env.GIFT_REGISTRY.batch([...collectionKeys].map((collectionKey) => (
+    env.GIFT_REGISTRY.prepare(
+      `SELECT collection_key, snapshot_at
+       FROM gift_combo_collections
+       WHERE collection_key = ?1 AND bucket_count = ?2`
+    ).bind(collectionKey, BUCKET_COUNT)
+  )));
+  const coverage = coverageRows
+    .map((result) => result.results?.[0])
+    .filter(Boolean)
+    .map((row) => ({ collectionKey: row.collection_key, snapshotAt: row.snapshot_at }));
   const results = [];
   rows.forEach((result, index) => {
     const row = result.results?.[0];
@@ -105,7 +118,25 @@ async function readCombos(env, pairs = []) {
       });
     });
   });
-  return results;
+  return { combinations: results, coverage };
+}
+
+async function readComboHistory(env, collection, model, backdrop) {
+  const collectionKey = key(collection);
+  const targetKey = comboKey(model, backdrop);
+  if (!collectionKey || targetKey === ":") return [];
+  const bucket = bucketFor(targetKey);
+  const result = await env.GIFT_REGISTRY.prepare(
+    `SELECT sampled_at, changes_json
+     FROM gift_combo_history_buckets
+     WHERE collection_key = ?1 AND bucket = ?2
+     ORDER BY sampled_at ASC`
+  ).bind(collectionKey, bucket).all();
+  return (result.results || []).map((row) => {
+    const entry = JSON.parse(row.changes_json || "{}")[targetKey];
+    if (!entry || !(Number(entry.f || 0) > 0)) return null;
+    return { timestamp: row.sampled_at, floorTon: Number(entry.f || 0), listedCount: Number(entry.l || 0) };
+  }).filter(Boolean);
 }
 
 async function ingestCollection(request, env) {
@@ -205,11 +236,18 @@ export default {
       );
       return result ? json(result) : json({ error: "Combination not found" }, 404);
     }
+    if (url.pathname === "/history" && request.method === "GET") {
+      return json(await readComboHistory(
+        env,
+        url.searchParams.get("collection"),
+        url.searchParams.get("model"),
+        url.searchParams.get("backdrop")
+      ));
+    }
     if (url.pathname === "/combos" && request.method === "POST") {
       const body = await request.json();
       const pairs = Array.isArray(body.pairs) ? body.pairs.slice(0, 40) : [];
-      const results = await readCombos(env, pairs);
-      return json({ combinations: results });
+      return json(await readCombos(env, pairs));
     }
     if (url.pathname === "/ingest/collection" && request.method === "POST") {
       return ingestCollection(request, env);
