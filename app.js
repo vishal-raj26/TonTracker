@@ -1236,8 +1236,9 @@ function applyGiftModelFloor(asset, model = {}) {
   asset.floorTon = floorTon;
   asset.marketVerified = true;
   asset.priceLoading = false;
-  asset.marketPlatform = "Model Floor";
-  asset.floorSource = "model";
+  const isBackdropFloor = model.source === "d1-backdrop-floor";
+  asset.marketPlatform = isBackdropFloor ? "Backdrop Floor" : "Model Floor";
+  asset.floorSource = isBackdropFloor ? "backdrop" : "model";
   if (model.iconUrl || model.animationUrl) {
     if (model.iconUrl) {
       asset.iconUrl = model.iconUrl || asset.iconUrl || "";

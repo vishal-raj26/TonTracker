@@ -6702,7 +6702,7 @@ async function handleApi(req, res, url) {
         model.floorUsd = model.floorTon * rate;
         model.tonUsdRate = rate;
         model.listedCount = Number(combo.listedCount || 0);
-        model.source = combo.source || "thermos-combo-d1";
+        model.source = "d1-backdrop-floor";
         model.marketPlatform = combo.marketplace || model.marketPlatform || "";
         model.marketUrl = combo.listingUrl || model.marketUrl || "";
         model.listingId = combo.listingId || "";
