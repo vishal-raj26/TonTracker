@@ -48,6 +48,7 @@ const giftLayerRegistryFile = path.join(dataDir, "gift-layer-registry.json");
 const d1GiftRegistryUrl = String(process.env.D1_REGISTRY_URL || "").replace(/\/+$/, "");
 const giftRegistryProxyUrl = String(process.env.GIFT_REGISTRY_PROXY_URL || "").replace(/\/+$/, "");
 const publicGiftRegistryUrl = "https://tontrack-gift-registry.vishu-vishal264.workers.dev";
+const giftComboCoverageMaxAgeMs = Math.max(60 * 60 * 1000, Number(process.env.GIFT_COMBO_COVERAGE_MAX_AGE_MS || 12 * 60 * 60 * 1000));
 let giftSnapshotPgPool = null;
 let giftSnapshotPgInitPromise = null;
 let giftSnapshotPgUnavailableLogged = false;
@@ -6637,7 +6638,10 @@ async function handleApi(req, res, url) {
         tonUsdRate(),
       ]);
       const comboFloors = comboLookup.combinations;
-      const coveredCollections = new Set(comboLookup.coverage);
+      const coveredCollections = new Map((comboLookup.coverage || []).map((entry) => [
+        giftSnapshotKey(entry?.collectionKey),
+        new Date(entry?.snapshotAt || 0).getTime(),
+      ]));
       const returnedModels = new Set(models.map((model) => [
         model.collectionKey,
         model.modelKey,
@@ -6675,7 +6679,10 @@ async function handleApi(req, res, url) {
           .map((collection) => combosByKey.get([collection, model.model || model.modelKey, model.backdrop].map(giftSnapshotKey).join(":")))
           .find(Boolean);
         if (!combo) {
-          const exactCheckComplete = modelCollectionAliases.some((collection) => coveredCollections.has(giftSnapshotKey(collection)));
+          const exactCheckComplete = modelCollectionAliases.some((collection) => {
+            const snapshotAt = coveredCollections.get(giftSnapshotKey(collection)) || 0;
+            return snapshotAt > 0 && Date.now() - snapshotAt <= giftComboCoverageMaxAgeMs;
+          });
           if (!exactCheckComplete || !(Number(model.floorTon || 0) > 0 || Number(model.floorUsd || 0) > 0)) {
             model.floorTon = 0;
             model.floorUsd = 0;

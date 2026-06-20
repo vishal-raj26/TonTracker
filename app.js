@@ -1279,7 +1279,7 @@ function applyGiftModelFloor(asset, model = {}) {
 }
 
 function resetGiftCollectionFloorPlaceholder(asset = {}) {
-  if (asset.floorSource === "model") return;
+  if (asset.floorSource === "model" && !giftTraitValue(asset, "Backdrop")) return;
   asset.floorUsd = 0;
   asset.floorTon = 0;
   asset.marketVerified = false;
@@ -5036,7 +5036,6 @@ async function updateCollectiblesFromGetgems(walletAddress, kind, options = {}) 
         if (hasPendingCollectiblePrices("gifts")) setCollectiblesBanner(kind, "Some model floors are still unavailable");
         else setCollectiblesBanner(kind, "");
       });
-      prefetchGiftDetails(assets);
     } else prefetchStickerDetails(assets);
     setSectionReady(kind, `${kind === "gifts" ? "Gifts" : "Stickers"} ready · ${assets.length} ${assets.length === 1 ? "collection" : "collections"} loaded`);
     return assets;
