@@ -5039,7 +5039,7 @@ async function d1GiftComboFloors(pairs = []) {
   const requestChunkSize = 15;
   const chunks = Array.from({ length: Math.ceil(requested.length / requestChunkSize) }, (_, index) => requested.slice(index * requestChunkSize, index * requestChunkSize + requestChunkSize));
   const combinations = [];
-  const coverage = new Set();
+  const coverage = new Map();
   for (let index = 0; index < chunks.length; index += 4) {
     const responses = await Promise.all(chunks.slice(index, index + 4).map(async (chunk) => {
       try {
@@ -5057,11 +5057,16 @@ async function d1GiftComboFloors(pairs = []) {
     responses.forEach((response) => {
       if (Array.isArray(response?.combinations)) combinations.push(...response.combinations);
       (Array.isArray(response?.coverage) ? response.coverage : []).forEach((entry) => {
-        if (entry?.collectionKey) coverage.add(giftSnapshotKey(entry.collectionKey));
+        if (entry?.collectionKey && entry?.snapshotAt) {
+          coverage.set(giftSnapshotKey(entry.collectionKey), entry.snapshotAt);
+        }
       });
     });
   }
-  return { combinations, coverage: [...coverage] };
+  return {
+    combinations,
+    coverage: [...coverage].map(([collectionKey, snapshotAt]) => ({ collectionKey, snapshotAt })),
+  };
 }
 
 async function thermosGiftComboFloor(collectionName = "", modelName = "", backdropName = "", tonRate = 0) {
