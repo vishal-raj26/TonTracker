@@ -45,6 +45,9 @@ const collectiblesRegistryFile = path.join(dataDir, "telegram-collectibles-regis
 const stickerCollectionsRegistryFile = path.join(dataDir, "sticker-collections-registry.json");
 const giftFloorSnapshotsFile = path.join(dataDir, "gift-floor-snapshots.json");
 const giftLayerRegistryFile = path.join(dataDir, "gift-layer-registry.json");
+const d1GiftRegistryUrl = String(process.env.D1_REGISTRY_URL || "").replace(/\/+$/, "");
+const giftRegistryProxyUrl = String(process.env.GIFT_REGISTRY_PROXY_URL || "").replace(/\/+$/, "");
+const publicGiftRegistryUrl = "https://tontrack-gift-registry.vishu-vishal264.workers.dev";
 let giftSnapshotPgPool = null;
 let giftSnapshotPgInitPromise = null;
 let giftSnapshotPgUnavailableLogged = false;
@@ -403,6 +406,30 @@ function parseTonAddress(input) {
     return Address.parse(String(input || "").trim()).toString({ urlSafe: true, bounceable: false });
   } catch {
     throw new Error("Invalid TON wallet address");
+  }
+}
+
+function isTonDnsName(input = "") {
+  return /^[a-z0-9][a-z0-9-_.]{1,126}\.ton$/i.test(String(input || "").trim());
+}
+
+async function resolveWalletAddress(input) {
+  const value = String(input || "").trim();
+  if (!isTonDnsName(value)) return parseTonAddress(value);
+  const key = `dns:${value.toLowerCase()}`;
+  if (dnsNameCache.has(key)) {
+    const cached = dnsNameCache.get(key);
+    if (cached) return cached;
+  }
+  try {
+    const payload = await tonApi(`/dns/${encodeURIComponent(value)}/resolve`, { immediate: true });
+    const address = payload?.wallet?.address || payload?.address || payload?.account?.address || payload?.item?.address || "";
+    const resolved = parseTonAddress(address);
+    dnsNameCache.set(key, resolved);
+    return resolved;
+  } catch {
+    dnsNameCache.set(key, "");
+    throw new Error(`Could not resolve TON DNS name ${value}`);
   }
 }
 
@@ -873,6 +900,24 @@ async function ensureGiftSnapshotTables() {
       );
       CREATE INDEX IF NOT EXISTS gift_model_floor_snapshots_collection_model_time_idx
         ON gift_model_floor_snapshots(collection_key, model_key, sampled_at DESC);
+      CREATE TABLE IF NOT EXISTS gift_combo_floor_snapshots (
+        id BIGSERIAL PRIMARY KEY,
+        collection_key TEXT NOT NULL REFERENCES gift_floor_collections(collection_key) ON DELETE CASCADE,
+        model_key TEXT NOT NULL,
+        model_name TEXT NOT NULL,
+        backdrop_key TEXT NOT NULL,
+        backdrop_name TEXT NOT NULL,
+        sampled_at TIMESTAMPTZ NOT NULL,
+        floor_ton NUMERIC(24,9),
+        floor_usd NUMERIC(24,6),
+        ton_usd_rate NUMERIC(18,8),
+        source TEXT,
+        listed_count INT,
+        market_updated_at TEXT,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+      );
+      CREATE INDEX IF NOT EXISTS gift_combo_floor_snapshots_lookup_idx
+        ON gift_combo_floor_snapshots(collection_key, model_key, backdrop_key, sampled_at DESC);
       CREATE TABLE IF NOT EXISTS gift_attribute_registry (
         collection_key TEXT NOT NULL REFERENCES gift_floor_collections(collection_key) ON DELETE CASCADE,
         trait_type TEXT NOT NULL,
@@ -918,6 +963,114 @@ function modelSnapshotUnchanged(row = {}, record = {}) {
     && snapshotNumbersMatch(row.deals_30d, record.deals30d, 0)
     && snapshotNumbersMatch(row.avg_30d_ton, record.avg30dTon)
     && snapshotNumbersMatch(row.model_count, record.modelCount, 0);
+}
+
+function giftComboKey(modelName = "", backdropName = "") {
+  return `${giftSnapshotKey(modelName)}:${giftSnapshotKey(backdropName)}`;
+}
+
+async function appendGiftComboFloorSnapshot(record = {}) {
+  if (!record.collectionKey || !record.modelKey || !record.backdropKey || !(record.floorTon > 0)) return null;
+  const pool = await ensureGiftSnapshotTables();
+  if (pool) {
+    await pool.query(
+      `INSERT INTO gift_floor_collections (collection_key, name, updated_at)
+       VALUES ($1, $2, now())
+       ON CONFLICT (collection_key) DO UPDATE SET name = EXCLUDED.name, updated_at = now()`,
+      [record.collectionKey, record.collectionName]
+    );
+    const latest = await pool.query(
+      `SELECT id, sampled_at, floor_ton, listed_count
+       FROM gift_combo_floor_snapshots
+       WHERE collection_key = $1 AND model_key = $2 AND backdrop_key = $3
+       ORDER BY sampled_at DESC LIMIT 1`,
+      [record.collectionKey, record.modelKey, record.backdropKey]
+    );
+    const latestTime = latest.rows[0]?.sampled_at ? new Date(latest.rows[0].sampled_at).getTime() : 0;
+    if (
+      latest.rows[0]?.id
+      && Date.now() - latestTime < giftSnapshotUnchangedIntervalMs
+      && snapshotNumbersMatch(latest.rows[0].floor_ton, record.floorTon)
+      && snapshotNumbersMatch(latest.rows[0].listed_count, record.listedCount, 0)
+    ) return record;
+    const values = [
+      record.collectionKey, record.modelKey, record.modelName, record.backdropKey, record.backdropName,
+      record.timestamp, record.floorTon, record.floorUsd, record.tonUsdRate, record.source,
+      record.listedCount, record.marketUpdatedAt,
+    ];
+    if (latest.rows[0]?.id && Date.now() - latestTime < 20 * 60 * 1000) {
+      await pool.query(
+        `UPDATE gift_combo_floor_snapshots SET
+          collection_key=$1, model_key=$2, model_name=$3, backdrop_key=$4, backdrop_name=$5,
+          sampled_at=$6, floor_ton=$7, floor_usd=$8, ton_usd_rate=$9, source=$10,
+          listed_count=$11, market_updated_at=$12
+         WHERE id=${Number(latest.rows[0].id)}`,
+        values
+      );
+    } else {
+      await pool.query(
+        `INSERT INTO gift_combo_floor_snapshots (
+          collection_key, model_key, model_name, backdrop_key, backdrop_name, sampled_at,
+          floor_ton, floor_usd, ton_usd_rate, source, listed_count, market_updated_at
+        ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)`,
+        values
+      );
+    }
+    return record;
+  }
+  const store = loadGiftFloorSnapshots();
+  const collection = store.collections[record.collectionKey] || {
+    key: record.collectionKey,
+    name: record.collectionName,
+    snapshots: [],
+    recentSales: [],
+  };
+  collection.combinations = collection.combinations || {};
+  const key = giftComboKey(record.modelName, record.backdropName);
+  const combo = collection.combinations[key] || {
+    model: record.modelName,
+    backdrop: record.backdropName,
+    snapshots: [],
+  };
+  const snapshot = {
+    timestamp: record.timestamp,
+    floorTon: record.floorTon,
+    floorUsd: record.floorUsd,
+    tonUsdRate: record.tonUsdRate,
+    source: record.source,
+    listedCount: record.listedCount,
+    marketUpdatedAt: record.marketUpdatedAt,
+  };
+  const last = combo.snapshots[combo.snapshots.length - 1];
+  if (last && Date.now() - new Date(last.timestamp).getTime() < 20 * 60 * 1000) combo.snapshots[combo.snapshots.length - 1] = snapshot;
+  else combo.snapshots.push(snapshot);
+  combo.snapshots = combo.snapshots.slice(-1500);
+  collection.combinations[key] = combo;
+  store.collections[record.collectionKey] = collection;
+  saveGiftFloorSnapshots(store);
+  return record;
+}
+
+async function latestGiftComboFloor(collectionName = "", modelName = "", backdropName = "") {
+  const collectionKey = giftSnapshotKey(collectionName);
+  const modelKey = giftSnapshotKey(modelName);
+  const backdropKey = giftSnapshotKey(backdropName);
+  if (!collectionKey || !modelKey || !backdropKey) return null;
+  const pool = await ensureGiftSnapshotTables();
+  if (pool) {
+    const result = await pool.query(
+      `SELECT sampled_at AS timestamp, floor_ton AS "floorTon", floor_usd AS "floorUsd",
+        ton_usd_rate AS "tonUsdRate", source, listed_count AS "listedCount",
+        market_updated_at AS "marketUpdatedAt"
+       FROM gift_combo_floor_snapshots
+       WHERE collection_key=$1 AND model_key=$2 AND backdrop_key=$3
+       ORDER BY sampled_at DESC LIMIT 1`,
+      [collectionKey, modelKey, backdropKey]
+    );
+    return result.rows[0] || null;
+  }
+  const combo = loadGiftFloorSnapshots().collections?.[collectionKey]?.combinations?.[giftComboKey(modelName, backdropName)];
+  return combo?.snapshots?.[combo.snapshots.length - 1] || null;
 }
 
 async function appendGiftFloorSnapshotDb(record) {
@@ -2650,7 +2803,7 @@ function inferStickerBrandName(collection = "", name = "") {
   const raw = String(collection || name || "Sticker Pack").replace(/\s+#\d+.*$/i, "").replace(/\s{2,}/g, " ").trim();
   const haystack = `${name || ""} ${collection || ""}`.replace(/\s+#\d+.*$/i, "").replace(/\s{2,}/g, " ").trim();
   const prefix = raw.split(":")[0].trim();
-  if (prefix && prefix !== raw && /^[a-z0-9 .&'’-]{2,32}$/i.test(prefix)) return prefix;
+  if (prefix && prefix !== raw && /^[a-z0-9 .&'’–-]{2,32}$/i.test(prefix)) return prefix;
   const pairs = [
     ["Snoop Dogg x BAYC", "BAYC"],
     ["Bored Ape", "BAYC"],
@@ -2758,7 +2911,7 @@ function inferStickerBrandName(collection = "", name = "") {
   if (/\bgoodies\b/i.test(haystack)) return "Goodies";
   if (/\b(fuse|ton of memes|good vibes club|gold vibes club|the meme ogs|tapps)\b/i.test(haystack)) return "Fuse";
   const prefix = raw.split(":")[0].trim();
-  if (prefix && prefix !== raw && /^[a-z0-9 .&'â€™-]{2,32}$/i.test(prefix)) return prefix;
+  if (prefix && prefix !== raw && /^[a-z0-9 .&'’-]{2,32}$/i.test(prefix)) return prefix;
   return raw.split(":")[0].replace(/\b(set|pack)\s*\d+$/i, "").trim() || raw;
 }
 
@@ -3009,6 +3162,14 @@ function isGenericJettonMetadata(jetton = {}) {
 
 function isTrustedJettonVerification(jetton = {}) {
   return String(jetton.verification || "").toLowerCase() === "whitelist";
+}
+
+function isPlausibleJettonPrice(jetton = {}, candidatePrice = 0) {
+  const providerPrice = Number(jetton.providerPriceUsd || 0);
+  const candidate = Number(candidatePrice || 0);
+  if (!(providerPrice > 0 && candidate > 0)) return true;
+  const ratio = candidate / providerPrice;
+  return ratio >= 0.2 && ratio <= 5;
 }
 
 function setJettonBlocked(jetton, reason, warning) {
@@ -3498,7 +3659,7 @@ async function enrichJettonRates(jettons, includeZeroBalances = false, options =
     jettons.forEach((jetton) => {
       const rate = rates?.[jetton.address] || ratesByKey.get(jettonAddressKey(jetton.address)) || null;
       const price = Number(rate?.prices?.USD || 0);
-      if (price > 0) {
+      if (price > 0 && isPlausibleJettonPrice(jetton, price)) {
         jetton.priceUsd = price;
         jetton.valueUsd = jetton.balance * price;
       } else if (Number(jetton.priceUsd || 0) > 0) {
@@ -3517,7 +3678,7 @@ async function enrichJettonRates(jettons, includeZeroBalances = false, options =
     priced.forEach((jetton) => {
       const pair = bestDexPair(pairs, jetton.address);
       const price = Number(pair?.priceUsd || 0);
-      if (!(price > 0)) return;
+      if (!(price > 0) || !isPlausibleJettonPrice(jetton, price)) return;
       const liquidityUsd = Number(pair?.liquidity?.usd || 0);
       const volume24hUsd = Number(pair?.volume?.h24 || 0);
       const txCount24h = dexTxCount24h(pair);
@@ -3545,7 +3706,7 @@ async function enrichJettonRates(jettons, includeZeroBalances = false, options =
       unresolved.forEach((jetton) => {
         const pair = bestDexPair(pairs, jetton.address);
         const price = Number(pair?.priceUsd || 0);
-        if (!(price > 0)) return;
+        if (!(price > 0) || !isPlausibleJettonPrice(jetton, price)) return;
         const liquidityUsd = Number(pair?.liquidity?.usd || 0);
         const volume24hUsd = Number(pair?.volume?.h24 || 0);
         const txCount24h = dexTxCount24h(pair);
@@ -4838,6 +4999,105 @@ async function thermosGiftModelPayload(collectionName = "", { force = false, ton
   return thermosGiftModelPayloadFromAttributes(canonicalName, mergedPayload, rate);
 }
 
+async function d1GiftComboFloor(collectionName = "", modelName = "", backdropName = "") {
+  if (!d1GiftRegistryUrl || !collectionName || !modelName || !backdropName) return null;
+  try {
+    const params = new URLSearchParams({
+      collection: collectionName,
+      model: modelName,
+      backdrop: backdropName,
+    });
+    const payload = await marketJson(`${d1GiftRegistryUrl}/combo?${params}`, {}, 5000);
+    return Number(payload?.floorTon || 0) > 0 ? payload : null;
+  } catch {
+    return null;
+  }
+}
+
+async function d1GiftComboFloors(pairs = []) {
+  if ((!d1GiftRegistryUrl && !giftRegistryProxyUrl) || !pairs.length) return [];
+  const requested = [];
+  pairs.forEach((pair) => {
+    const aliases = [...new Set([pair.collection, pair.collectionKey, ...(pair.collectionKeys || [])].filter(Boolean))];
+    aliases.forEach((collection) => requested.push({ collection, model: pair.model, backdrop: pair.backdrop }));
+  });
+  const chunks = Array.from({ length: Math.ceil(requested.length / 40) }, (_, index) => requested.slice(index * 40, index * 40 + 40));
+  const results = [];
+  for (let index = 0; index < chunks.length; index += 4) {
+    const responses = await Promise.all(chunks.slice(index, index + 4).map(async (chunk) => {
+      try {
+        const endpoint = giftRegistryProxyUrl
+          ? `${giftRegistryProxyUrl}/api/gift-registry/combos`
+          : `${d1GiftRegistryUrl}/combos`;
+        const payload = await marketJson(endpoint, {
+          method: "POST",
+          body: { pairs: chunk },
+        }, giftRegistryProxyUrl ? 5000 : 2500);
+        return Array.isArray(payload?.combinations) ? payload.combinations : [];
+      } catch {
+        return [];
+      }
+    }));
+    responses.forEach((response) => results.push(...response));
+  }
+  return results;
+}
+
+async function thermosGiftComboFloor(collectionName = "", modelName = "", backdropName = "", tonRate = 0) {
+  if (!collectionName || !modelName || !backdropName) return null;
+  const d1Floor = await d1GiftComboFloor(collectionName, modelName, backdropName);
+  if (d1Floor) {
+    return {
+      ...d1Floor,
+      floorUsd: Number(d1Floor.floorTon || 0) * tonRate,
+      tonUsdRate: tonRate,
+    };
+  }
+  const stored = await latestGiftComboFloor(collectionName, modelName, backdropName);
+  const storedAt = new Date(stored?.timestamp || 0).getTime();
+  if (stored && Number(stored.floorTon || 0) > 0 && Date.now() - storedAt < 3 * 60 * 60 * 1000) {
+    return { ...stored, source: stored.source || "thermos-combo" };
+  }
+  try {
+    const payload = await marketJson("https://proxy.thermos.gifts/api/v1/gifts", {
+      method: "POST",
+      body: {
+        ordering: "PRICE_ASC",
+        page: 1,
+        per_page: 1,
+        query: "",
+        collections: [collectionName],
+        models: [modelName],
+        backdrops: [backdropName],
+        symbols: [],
+        markets: [],
+      },
+    }, 10000);
+    const item = Array.isArray(payload?.items) ? payload.items[0] : null;
+    const floorTon = nanoTon(item?.price);
+    if (!(floorTon > 0)) return stored && Number(stored.floorTon || 0) > 0 ? stored : null;
+    const record = {
+      collectionKey: giftSnapshotKey(collectionName),
+      collectionName,
+      modelKey: giftSnapshotKey(modelName),
+      modelName,
+      backdropKey: giftSnapshotKey(backdropName),
+      backdropName,
+      timestamp: new Date().toISOString(),
+      floorTon,
+      floorUsd: floorTon * tonRate,
+      tonUsdRate: tonRate,
+      source: "thermos-combo",
+      listedCount: Number(payload?.count || 0),
+      marketUpdatedAt: new Date().toISOString(),
+    };
+    await appendGiftComboFloorSnapshot(record);
+    return record;
+  } catch {
+    return stored && Number(stored.floorTon || 0) > 0 ? stored : null;
+  }
+}
+
 function bestThermosGiftCollection(collections = [], aliases = []) {
   const aliasKeys = aliases.map(giftSnapshotKey).filter(Boolean);
   const singularKeys = aliasKeys.map((key) => key.endsWith("s") ? key.slice(0, -1) : key);
@@ -4861,14 +5121,17 @@ async function thermosGiftFloorLookup(aliasObject = {}, aliases = [], tonRate = 
   const base = collectionRow ? normalizeThermosCollection(collectionRow, tonRate) : {};
   const traits = giftTraitLookup(aliasObject.attributes || []);
   const modelName = traits.model || "";
+  const backdropName = traits.backdrop || "";
   let modelFloor = null;
+  let comboFloor = null;
   if (collectionName && modelName) {
     const modelPayload = await thermosGiftModelPayload(collectionName, { tonRate });
     modelFloor = modelPayload.models.find((model) => giftSnapshotKey(model.model) === giftSnapshotKey(modelName)) || null;
     if (modelPayload.models.length) appendGiftModelFloorSnapshots(collectionName, modelPayload).catch(() => null);
+    if (backdropName) comboFloor = await thermosGiftComboFloor(collectionName, modelName, backdropName, tonRate);
   }
-  const floorTon = Number(modelFloor?.floorTon || base.floorTon || 0);
-  const floorUsd = floorTon > 0 ? floorTon * tonRate : Number(modelFloor?.floorUsd || base.floorUsd || 0);
+  const floorTon = Number(comboFloor?.floorTon || modelFloor?.floorTon || base.floorTon || 0);
+  const floorUsd = floorTon > 0 ? floorTon * tonRate : Number(comboFloor?.floorUsd || modelFloor?.floorUsd || base.floorUsd || 0);
   const floorHistory = modelFloor
     ? await giftModelSnapshotHistory(collectionName, modelFloor.model, aliasObject.period || "7d")
     : await giftSnapshotHistory(collectionName, aliasObject.period || "7d");
@@ -4881,13 +5144,14 @@ async function thermosGiftFloorLookup(aliasObject = {}, aliases = [], tonRate = 
     sales24h: Number(base.sales24h || 0),
     totalSupply: Number(base.totalSupply || 0),
     holders: Number(base.holders || 0),
-    listedCount: Number(modelFloor?.listedCount || base.listedCount || 0),
+    listedCount: Number(comboFloor?.listedCount || modelFloor?.listedCount || base.listedCount || 0),
     athFloorUsd: Number(base.athFloorUsd || 0),
     recentSales: Array.isArray(base.recentSales) ? base.recentSales : [],
     canonicalName: collectionName,
     modelName: modelFloor?.model || modelName,
+    backdropName,
     marketPlatform: "Thermos",
-    source: modelFloor ? "thermos-model" : "thermos-proxy",
+    source: comboFloor ? "thermos-combo" : (modelFloor ? "thermos-model" : "thermos-proxy"),
     tonUsdRate: tonRate,
     floorHistory,
     floorHistorySource: floorHistory.length >= 2 ? "tontrack-model-snapshots" : "",
@@ -5146,7 +5410,11 @@ async function collectibleFloor(collection) {
     ? [collection.address, collection.name, collection.item, collection.title].filter(Boolean)
     : [collection].filter(Boolean);
   const periodKey = isGiftLookup ? `|period:${String(aliasObject.period || "7d").toLowerCase()}` : "";
-  const key = `${aliases.map((value) => String(value).toLowerCase()).join("|")}${periodKey}`;
+  const requestedTraits = giftTraitLookup(aliasObject.attributes || []);
+  const traitKey = [requestedTraits.model, requestedTraits.backdrop, requestedTraits.symbol]
+    .map(giftSnapshotKey)
+    .join(":");
+  const key = `${aliases.map((value) => String(value).toLowerCase()).join("|")}${periodKey}|${traitKey}`;
   let tonRate = await tonUsdRate();
   const cached = cachedMapValue(collectibleFloorCache, key);
   if (cached) {
@@ -5177,7 +5445,7 @@ async function collectibleFloor(collection) {
   const includes = (...values) => collectibleAliasIncludes(aliases, ...values);
   const chainAddress = aliases.find((value) => /^(?:0:|EQ|UQ)[A-Za-z0-9_:-]+$/.test(String(value || ""))) || "";
   const collectionAddress = chainAddress || aliases[0] || "";
-  const seeTraits = giftTraitLookup(aliasObject.attributes || []);
+  const seeTraits = requestedTraits;
   const giftCandidates = [];
   const addGiftCandidate = (payload = {}, source = "") => {
     const candidate = withSource(payload, source);
@@ -6305,20 +6573,104 @@ async function giftDetailData({ walletAddress, nftAddress, collectionAddress = "
 
 async function handleApi(req, res, url) {
   if (req.method === "OPTIONS") return json(res, 204, {});
+  if (url.pathname === "/api/gift-registry/combos" && req.method === "POST") {
+    const registryUrl = d1GiftRegistryUrl || publicGiftRegistryUrl;
+    try {
+      const body = await readJsonBody(req);
+      const pairs = requestedGiftModelPairs(body.pairs).slice(0, 40).map((pair) => ({
+        collection: pair.collection,
+        model: pair.model,
+        backdrop: pair.backdrop,
+      }));
+      const payload = await marketJson(`${registryUrl}/combos`, {
+        method: "POST",
+        body: { pairs },
+      }, 5000);
+      return json(res, 200, {
+        combinations: Array.isArray(payload?.combinations) ? payload.combinations : [],
+      });
+    } catch {
+      return json(res, 502, { error: "Gift registry lookup failed", combinations: [] });
+    }
+  }
   if (url.pathname === "/api/gift-model-floors/bulk" && req.method === "POST") {
     try {
       const body = await readJsonBody(req);
       const pairs = requestedGiftModelPairs(body.pairs);
       const models = await bulkStoredGiftModelFloors(pairs);
-      const found = new Map(models.map((model) => [`${model.collectionKey}:${model.modelKey}`, model]));
-      const pending = pairs.filter((pair) => {
-        const model = found.get(`${pair.collectionKey}:${pair.modelKey}`);
-        if (!model) return true;
-        if (pair.backdropKey && !(Number(model.traitRarities?.Backdrop || 0) > 0)) return true;
-        if (pair.symbolKey && !(Number(model.traitRarities?.Symbol || 0) > 0)) return true;
-        return false;
+      const [comboFloors, rate] = await Promise.all([
+        d1GiftComboFloors(pairs),
+        tonUsdRate(),
+      ]);
+      const returnedModels = new Set(models.map((model) => [
+        model.collectionKey,
+        model.modelKey,
+        giftSnapshotKey(model.backdrop),
+        giftSnapshotKey(model.symbol),
+      ].join(":")));
+      pairs.forEach((pair) => {
+        const key = [pair.collectionKey, pair.modelKey, pair.backdropKey, pair.symbolKey].join(":");
+        if (returnedModels.has(key)) return;
+        models.push({
+          collection: pair.collection,
+          collectionKey: pair.collectionKey,
+          model: pair.model,
+          modelKey: pair.modelKey,
+          backdrop: pair.backdrop,
+          symbol: pair.symbol,
+          floorTon: 0,
+          floorUsd: 0,
+          source: "combo-floor-pending",
+          traitMetrics: {},
+          traitRarities: {},
+        });
       });
-      [...new Set(pending.map((pair) => pair.collection))].forEach((collection) => {
+      const combosByKey = new Map(comboFloors.map((combo) => [
+        [combo.collection, combo.model, combo.backdrop].map(giftSnapshotKey).join(":"),
+        combo,
+      ]));
+      const requestedBackdropKeys = new Set(pairs
+        .filter((pair) => pair.backdropKey)
+        .map((pair) => [pair.collectionKey, pair.modelKey, pair.backdropKey].join(":")));
+      models.forEach((model) => {
+        const modelKey = [model.collectionKey, model.modelKey, giftSnapshotKey(model.backdrop)].join(":");
+        const modelCollectionAliases = [...new Set([model.collection, model.collectionKey, ...giftCollectionAliasKeys(model.collection)].filter(Boolean))];
+        const combo = modelCollectionAliases
+          .map((collection) => combosByKey.get([collection, model.model || model.modelKey, model.backdrop].map(giftSnapshotKey).join(":")))
+          .find(Boolean);
+        if (!combo) {
+          if (!(Number(model.floorTon || 0) > 0 || Number(model.floorUsd || 0) > 0)) {
+            model.floorTon = 0;
+            model.floorUsd = 0;
+            model.listedCount = 0;
+            model.source = "combo-floor-pending";
+            model.marketPlatform = "";
+            model.marketUrl = "";
+            model.listingId = "";
+            model.marketUpdatedAt = "";
+          }
+          return;
+        }
+        model.floorTon = Number(combo.floorTon || 0);
+        model.floorUsd = model.floorTon * rate;
+        model.tonUsdRate = rate;
+        model.listedCount = Number(combo.listedCount || 0);
+        model.source = combo.source || "thermos-combo-d1";
+        model.marketPlatform = combo.marketplace || model.marketPlatform || "";
+        model.marketUrl = combo.listingUrl || model.marketUrl || "";
+        model.listingId = combo.listingId || "";
+        model.marketUpdatedAt = combo.snapshotAt || model.marketUpdatedAt || "";
+      });
+      const found = new Map(models.map((model) => [
+        [model.collectionKey, model.modelKey, giftSnapshotKey(model.backdrop)].join(":"),
+        model,
+      ]));
+      const pending = pairs.filter((pair) => {
+        const model = found.get([pair.collectionKey, pair.modelKey, pair.backdropKey].join(":"));
+        if (!model) return true;
+        return pair.backdropKey && model.source === "combo-floor-pending";
+      });
+      [...new Set(pending.filter((pair) => !pair.backdropKey).map((pair) => pair.collection))].forEach((collection) => {
         recoverGiftModelCollection(collection);
       });
       return json(res, 200, {
@@ -6345,7 +6697,7 @@ async function handleApi(req, res, url) {
     const rawAddress = url.searchParams.get("address");
     if (!rawAddress) return json(res, 400, { error: "Missing address query parameter" });
     try {
-      const address = parseTonAddress(rawAddress);
+      const address = await resolveWalletAddress(rawAddress);
       return json(res, 200, await walletImport(address));
     } catch (error) {
       return json(res, error.message.includes("Invalid TON") ? 400 : 502, { error: error.message });
