@@ -6691,6 +6691,14 @@ async function handleApi(req, res, url) {
           const exactCheckComplete = modelCollectionAliases.some((collection) => (
             coveredCollections.has(giftSnapshotKey(collection))
           ));
+          if (exactCheckComplete && !(Number(model.floorTon || 0) > 0 || Number(model.floorUsd || 0) > 0)) {
+            const verifiedModelFloorTon = Number(model.traitMetrics?.Model?.floorTon || 0);
+            if (verifiedModelFloorTon > 0) {
+              model.floorTon = verifiedModelFloorTon;
+              model.floorUsd = verifiedModelFloorTon * rate;
+              model.source = "thermos-model-fallback";
+            }
+          }
           if (!exactCheckComplete || !(Number(model.floorTon || 0) > 0 || Number(model.floorUsd || 0) > 0)) {
             model.floorTon = 0;
             model.floorUsd = 0;
