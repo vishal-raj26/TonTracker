@@ -5036,7 +5036,8 @@ async function d1GiftComboFloors(pairs = []) {
     const aliases = [...new Set([pair.collection, pair.collectionKey, ...(pair.collectionKeys || [])].filter(Boolean))];
     aliases.forEach((collection) => requested.push({ collection, model: pair.model, backdrop: pair.backdrop }));
   });
-  const chunks = Array.from({ length: Math.ceil(requested.length / 40) }, (_, index) => requested.slice(index * 40, index * 40 + 40));
+  const requestChunkSize = 15;
+  const chunks = Array.from({ length: Math.ceil(requested.length / requestChunkSize) }, (_, index) => requested.slice(index * requestChunkSize, index * requestChunkSize + requestChunkSize));
   const combinations = [];
   const coverage = new Set();
   for (let index = 0; index < chunks.length; index += 4) {
@@ -5152,9 +5153,12 @@ async function thermosGiftFloorLookup(aliasObject = {}, aliases = [], tonRate = 
   }
   const floorTon = Number(comboFloor?.floorTon || modelFloor?.floorTon || base.floorTon || 0);
   const floorUsd = floorTon > 0 ? floorTon * tonRate : Number(comboFloor?.floorUsd || modelFloor?.floorUsd || base.floorUsd || 0);
-  const floorHistory = modelFloor
-    ? await giftModelSnapshotHistory(collectionName, modelFloor.model, aliasObject.period || "7d")
-    : await giftSnapshotHistory(collectionName, aliasObject.period || "7d");
+  const comboHistory = backdropName ? await d1GiftComboHistory(collectionName, modelName, backdropName) : [];
+  const floorHistory = comboHistory.length
+    ? comboHistory
+    : (modelFloor
+      ? await giftModelSnapshotHistory(collectionName, modelFloor.model, aliasObject.period || "7d")
+      : await giftSnapshotHistory(collectionName, aliasObject.period || "7d"));
   return {
     floorTon,
     floorUsd,
