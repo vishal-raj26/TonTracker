@@ -5043,13 +5043,13 @@ async function d1GiftComboFloors(pairs = []) {
   for (let index = 0; index < chunks.length; index += 4) {
     const responses = await Promise.all(chunks.slice(index, index + 4).map(async (chunk) => {
       try {
-        const endpoint = giftRegistryProxyUrl
-          ? `${giftRegistryProxyUrl}/api/gift-registry/combos`
-          : `${d1GiftRegistryUrl}/combos`;
+        const endpoint = d1GiftRegistryUrl
+          ? `${d1GiftRegistryUrl}/combos`
+          : `${giftRegistryProxyUrl}/api/gift-registry/combos`;
         return await marketJson(endpoint, {
           method: "POST",
           body: { pairs: chunk },
-        }, giftRegistryProxyUrl ? 5000 : 2500);
+        }, 5000);
       } catch {
         return null;
       }
@@ -6688,27 +6688,14 @@ async function handleApi(req, res, url) {
           .map((collection) => combosByKey.get([collection, model.model || model.modelKey, model.backdrop].map(giftSnapshotKey).join(":")))
           .find(Boolean);
         if (!combo) {
-          const exactCheckComplete = modelCollectionAliases.some((collection) => (
-            coveredCollections.has(giftSnapshotKey(collection))
-          ));
-          if (exactCheckComplete && !(Number(model.floorTon || 0) > 0 || Number(model.floorUsd || 0) > 0)) {
-            const verifiedModelFloorTon = Number(model.traitMetrics?.Model?.floorTon || 0);
-            if (verifiedModelFloorTon > 0) {
-              model.floorTon = verifiedModelFloorTon;
-              model.floorUsd = verifiedModelFloorTon * rate;
-              model.source = "thermos-model-fallback";
-            }
-          }
-          if (!exactCheckComplete || !(Number(model.floorTon || 0) > 0 || Number(model.floorUsd || 0) > 0)) {
-            model.floorTon = 0;
-            model.floorUsd = 0;
-            model.listedCount = 0;
-            model.source = "combo-floor-pending";
-            model.marketPlatform = "";
-            model.marketUrl = "";
-            model.listingId = "";
-            model.marketUpdatedAt = "";
-          }
+          model.floorTon = 0;
+          model.floorUsd = 0;
+          model.listedCount = 0;
+          model.source = "combo-floor-pending";
+          model.marketPlatform = "";
+          model.marketUrl = "";
+          model.listingId = "";
+          model.marketUpdatedAt = "";
           return;
         }
         model.floorTon = Number(combo.floorTon || 0);
