@@ -6688,10 +6688,9 @@ async function handleApi(req, res, url) {
           .map((collection) => combosByKey.get([collection, model.model || model.modelKey, model.backdrop].map(giftSnapshotKey).join(":")))
           .find(Boolean);
         if (!combo) {
-          const exactCheckComplete = modelCollectionAliases.some((collection) => {
-            const snapshotAt = coveredCollections.get(giftSnapshotKey(collection)) || 0;
-            return snapshotAt > 0 && Date.now() - snapshotAt <= giftComboCoverageMaxAgeMs;
-          });
+          const exactCheckComplete = modelCollectionAliases.some((collection) => (
+            coveredCollections.has(giftSnapshotKey(collection))
+          ));
           if (!exactCheckComplete || !(Number(model.floorTon || 0) > 0 || Number(model.floorUsd || 0) > 0)) {
             model.floorTon = 0;
             model.floorUsd = 0;
