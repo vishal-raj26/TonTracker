@@ -35,6 +35,7 @@ const requestDelayMs = Math.max(0, Number(process.env.GIFT_COMBO_REQUEST_DELAY_M
 const continuousMode = process.argv.includes("--continuous") || process.env.GIFT_COMBO_CONTINUOUS === "1";
 const cycleDelayMs = Math.max(0, Number(process.env.GIFT_COMBO_CYCLE_DELAY_MS || 5 * 60 * 1000));
 const bucketCount = 32;
+const scannerVersion = Number(process.env.GIFT_COMBO_SCANNER_VERSION || 2);
 
 if (!registryUrl || !ingestSecret) {
   console.error("D1_REGISTRY_URL and D1_INGEST_SECRET are required");
@@ -50,7 +51,7 @@ function comboKey(model = "", backdrop = "") {
 }
 
 function checkpointKey(collection = "") {
-  return `${key(collection)}:${marketSignature.toLowerCase()}`;
+  return `${key(collection)}:${marketSignature.toLowerCase()}:v${scannerVersion}`;
 }
 
 function bucketFor(value = "") {
@@ -320,7 +321,7 @@ async function scanCollection(collection) {
   return {
     collection,
     snapshotAt: new Date().toISOString(),
-    source: "thermos",
+    source: `thermos-v${scannerVersion}`,
     listingCount,
     combinationCount: combinations.size,
     marketMode: marketSignature,
@@ -359,6 +360,7 @@ async function runCycle({ resetCompleted = false } = {}) {
     cycleStartedAt: checkpoint.startedAt || new Date().toISOString(),
     totalCollections: names.length,
     marketMode: marketSignature,
+    scannerVersion,
     pageConcurrency,
     requestDelayMs,
   });
