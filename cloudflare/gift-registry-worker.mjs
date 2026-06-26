@@ -76,32 +76,48 @@ async function readCombos(env, pairs = []) {
     group.pairs.push({ ...pair, targetKey });
     groups.set(groupKey, group);
   });
-  const grouped = [...groups.values()].slice(0, 40);
-  const rows = await env.GIFT_REGISTRY.batch(grouped.map((group) => (
-    env.GIFT_REGISTRY.prepare(
-      `SELECT c.collection_name, c.snapshot_at AS collection_snapshot_at, c.source, b.snapshot_at AS bucket_snapshot_at, b.combinations_json
-       FROM gift_combo_collections c
-       JOIN gift_combo_buckets b ON b.collection_key = c.collection_key
-       WHERE c.collection_key = ?1 AND b.bucket = ?2`
-    ).bind(group.collectionKey, group.bucket)
-  )));
-  const coverageRows = await env.GIFT_REGISTRY.batch([...collectionKeys].map((collectionKey) => (
-    env.GIFT_REGISTRY.prepare(
-      `SELECT collection_key, snapshot_at
-       FROM gift_combo_collections
-       WHERE collection_key = ?1 AND bucket_count = ?2`
-    ).bind(collectionKey, BUCKET_COUNT)
-  )));
+  const grouped = [...groups.values()];
+  const rowGroups = [];
+  for (let index = 0; index < grouped.length; index += 50) {
+    const chunk = grouped.slice(index, index + 50);
+    const chunkRows = await env.GIFT_REGISTRY.batch(chunk.map((group) => (
+      env.GIFT_REGISTRY.prepare(
+        `SELECT c.collection_name, c.snapshot_at AS collection_snapshot_at, c.source, b.snapshot_at AS bucket_snapshot_at, b.combinations_json
+         FROM gift_combo_collections c
+         JOIN gift_combo_buckets b ON b.collection_key = c.collection_key
+         WHERE c.collection_key = ?1 AND b.bucket = ?2`
+      ).bind(group.collectionKey, group.bucket)
+    )));
+    chunkRows.forEach((result, resultIndex) => rowGroups.push({ result, group: chunk[resultIndex] }));
+  }
+  const coverageRows = [];
+  const collectionKeyList = [...collectionKeys];
+  for (let index = 0; index < collectionKeyList.length; index += 50) {
+    const chunk = collectionKeyList.slice(index, index + 50);
+    coverageRows.push(...await env.GIFT_REGISTRY.batch(chunk.map((collectionKey) => (
+      env.GIFT_REGISTRY.prepare(
+        `SELECT collection_key, snapshot_at
+         FROM gift_combo_collections
+         WHERE collection_key = ?1 AND bucket_count = ?2`
+      ).bind(collectionKey, BUCKET_COUNT)
+    ))));
+  }
   const coverage = coverageRows
     .map((result) => result.results?.[0])
     .filter(Boolean)
     .map((row) => ({ collectionKey: row.collection_key, snapshotAt: row.snapshot_at }));
-  const results = [];
-  rows.forEach((result, index) => {
+  const rowMap = new Map();
+  rowGroups.forEach(({ result, group }) => {
     const row = result.results?.[0];
     if (!row) return;
+    rowMap.set(`${group.collectionKey}:${group.bucket}`, row);
+  });
+  const results = [];
+  grouped.forEach((group) => {
+    const row = rowMap.get(`${group.collectionKey}:${group.bucket}`);
+    if (!row) return;
     const entries = JSON.parse(row.combinations_json || "{}");
-    grouped[index].pairs.forEach((pair) => {
+    group.pairs.forEach((pair) => {
       const entry = entries[pair.targetKey];
       if (!entry) return;
       results.push({
@@ -288,7 +304,7 @@ export default {
     }
     if (url.pathname === "/combos" && request.method === "POST") {
       const body = await request.json();
-      const pairs = Array.isArray(body.pairs) ? body.pairs.slice(0, 40) : [];
+      const pairs = Array.isArray(body.pairs) ? body.pairs.slice(0, 500) : [];
       return json(await readCombos(env, pairs));
     }
     if (url.pathname === "/ingest/collection" && request.method === "POST") {

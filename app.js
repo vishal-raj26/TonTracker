@@ -1220,6 +1220,10 @@ function collectibleKey(value) {
   return String(value || "").toLowerCase().replace(/[^a-z0-9]+/g, "");
 }
 
+function giftFloorRequestKey(collection = "", model = "", backdrop = "") {
+  return [collection, model, backdrop].map(collectibleKey).join(":");
+}
+
 function giftModelTrait(asset = {}) {
   return (asset.traits || []).find((trait) => /model/i.test(String(trait.label || "")))?.value || "";
 }
@@ -1320,7 +1324,7 @@ async function hydrateGiftModelFloors(groups = []) {
       const backdrop = giftTraitValue(child, "Backdrop");
       const symbol = giftTraitValue(child, "Symbol");
       if (collection && model) {
-        const key = [collection, model, backdrop, symbol].map(collectibleKey).join(":");
+        const key = giftFloorRequestKey(collection, model, backdrop);
         pairMap.set(key, { collection, model, backdrop, symbol });
       }
     });
@@ -1329,17 +1333,16 @@ async function hydrateGiftModelFloors(groups = []) {
   let pending = [...pairMap.values()];
   const applyPayload = (payload = {}) => {
     const models = new Map((payload.models || []).map((model) => [
-      [model.collection, model.model || model.modelKey, model.backdrop, model.symbol].map(collectibleKey).join(":"),
+      model.requestKey || giftFloorRequestKey(model.collection, model.model || model.modelKey, model.backdrop),
       model,
     ]));
     giftGroups.forEach((group) => {
       (group.children || []).forEach((child) => {
-        const model = models.get([
+        const model = models.get(giftFloorRequestKey(
           group.collection || group.name,
           giftModelTrait(child),
           giftTraitValue(child, "Backdrop"),
-          giftTraitValue(child, "Symbol"),
-        ].map(collectibleKey).join(":"));
+        ));
         if (model) applyGiftModelFloor(child, model);
         assetDetails[child.id] = child;
       });
@@ -1353,7 +1356,7 @@ async function hydrateGiftModelFloors(groups = []) {
     syncAssetsSummary();
     updateCategoryAndTopAsset();
   };
-  for (let attempt = 0; pending.length && attempt < 7; attempt += 1) {
+  for (let attempt = 0; pending.length && attempt < 2; attempt += 1) {
     if (attempt) await delay(Math.min(8000, 1000 * (2 ** (attempt - 1))));
     const payload = await requestJson("/api/gift-model-floors/bulk", {
       method: "POST",
@@ -1362,6 +1365,31 @@ async function hydrateGiftModelFloors(groups = []) {
     }, "Gift model floors failed");
     applyPayload(payload);
     pending = Array.isArray(payload.pending) ? payload.pending : [];
+  }
+  if (pending.length) {
+    const pendingKeys = new Set(pending.map((pair) => giftFloorRequestKey(pair.collection, pair.model, pair.backdrop)));
+    giftGroups.forEach((group) => {
+      (group.children || []).forEach((child) => {
+        const key = giftFloorRequestKey(
+          group.collection || group.name,
+          giftModelTrait(child),
+          giftTraitValue(child, "Backdrop"),
+        );
+        if (pendingKeys.has(key)) {
+          child.priceLoading = false;
+          child.marketVerified = false;
+          child.marketPlatform = "";
+          child.floorSource = "";
+        }
+        assetDetails[child.id] = child;
+      });
+      recomputeGiftGroup(group);
+      assetDetails[group.id] = group;
+    });
+    renderCollectibleGrids();
+    updateAllocationUi();
+    syncAssetsSummary();
+    updateCategoryAndTopAsset();
   }
 }
 

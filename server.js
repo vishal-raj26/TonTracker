@@ -6633,7 +6633,7 @@ async function handleApi(req, res, url) {
     const registryUrl = d1GiftRegistryUrl || publicGiftRegistryUrl;
     try {
       const body = await readJsonBody(req);
-      const pairs = requestedGiftModelPairs(body.pairs).slice(0, 40).map((pair) => ({
+      const pairs = requestedGiftModelPairs(body.pairs).slice(0, 500).map((pair) => ({
         collection: pair.collection,
         model: pair.model,
         backdrop: pair.backdrop,
