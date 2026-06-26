@@ -26,10 +26,23 @@ Set these on the API service and cron service:
 ```env
 DATABASE_URL=${{Postgres.DATABASE_URL}}
 TONAPI_KEY=your_tonapi_key
-PORT=5177
 ```
 
 Railway injects `PORT` automatically for the API, so setting it manually is optional.
+
+Set this on the API service:
+
+```env
+GIFT_SNAPSHOT_AUTORUN=0
+```
+
+Set this only on a dedicated snapshot/worker service:
+
+```env
+GIFT_SNAPSHOT_AUTORUN=1
+```
+
+The public API must not run gift snapshot or xGift attribute collection on startup. Fixed gift attributes and floor snapshots belong in the background worker/registry path so missing Python or scraper failures cannot crash the user-facing app.
 
 ## Snapshot Storage
 
@@ -66,4 +79,3 @@ npm run worker:gift-snapshots
 - Users do not trigger gift history building.
 - The cron job stores one fresh floor snapshot per gift collection every hour.
 - Gift detail pages read already-stored graph history instantly.
-

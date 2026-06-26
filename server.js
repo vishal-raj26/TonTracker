@@ -48,6 +48,7 @@ const giftLayerRegistryFile = path.join(dataDir, "gift-layer-registry.json");
 const d1GiftRegistryUrl = String(process.env.D1_REGISTRY_URL || "").replace(/\/+$/, "");
 const giftRegistryProxyUrl = String(process.env.GIFT_REGISTRY_PROXY_URL || "").replace(/\/+$/, "");
 const publicGiftRegistryUrl = "https://tontrack-gift-registry.vishu-vishal264.workers.dev";
+const giftRegistryReadUrl = d1GiftRegistryUrl || publicGiftRegistryUrl;
 const giftComboCoverageMaxAgeMs = Math.max(60 * 60 * 1000, Number(process.env.GIFT_COMBO_COVERAGE_MAX_AGE_MS || 12 * 60 * 60 * 1000));
 let giftSnapshotPgPool = null;
 let giftSnapshotPgInitPromise = null;
@@ -141,7 +142,12 @@ const giftSnapshotRetentionDays = Number(process.env.GIFT_SNAPSHOT_RETENTION_DAY
 const giftSnapshotDelayMs = Number(process.env.GIFT_SNAPSHOT_DELAY_MS || 15000);
 const giftModelRetryDelayMs = Number(process.env.GIFT_MODEL_RETRY_DELAY_MS || 120000);
 const giftModelRetryCount = Number(process.env.GIFT_MODEL_RETRY_COUNT || 2);
-const giftSnapshotAutorun = process.env.GIFT_SNAPSHOT_AUTORUN !== "0";
+const isRailwayRuntime = Boolean(process.env.RAILWAY_ENVIRONMENT || process.env.RAILWAY_SERVICE_ID || process.env.RAILWAY_PROJECT_ID);
+const giftSnapshotAutorunRequested = process.env.GIFT_SNAPSHOT_AUTORUN === undefined
+  ? !isRailwayRuntime
+  : process.env.GIFT_SNAPSHOT_AUTORUN === "1";
+const giftSnapshotAutorun = giftSnapshotAutorunRequested
+  && (!isRailwayRuntime || process.env.TONTRACK_MODE === "gift-snapshot-worker");
 
 function scheduleGiftLayerRegistrySave() {
   if (giftLayerRegistrySaveTimer) return;
@@ -3835,7 +3841,14 @@ async function tonUsdRate() {
       return value;
     } catch (geckoError) {
       try {
-        const rates = await getRates(["TON"], { immediate: true });
+        let timeoutId;
+        const rates = await Promise.race([
+          getRates(["TON"], { immediate: true }),
+          new Promise((_, reject) => {
+            timeoutId = setTimeout(() => reject(new Error("TonAPI TON rate timed out")), 1500);
+          }),
+        ]);
+        clearTimeout(timeoutId);
         const value = Number(rates?.TON?.prices?.USD || 0);
         if (!(value > 0)) throw new Error("TonAPI TON rate missing");
         tonUsdRateCache = { value, expiresAt: Date.now() + 45 * 1000, promise: null };
@@ -5001,14 +5014,14 @@ async function thermosGiftModelPayload(collectionName = "", { force = false, ton
 }
 
 async function d1GiftComboFloor(collectionName = "", modelName = "", backdropName = "") {
-  if (!d1GiftRegistryUrl || !collectionName || !modelName || !backdropName) return null;
+  if (!giftRegistryReadUrl || !collectionName || !modelName || !backdropName) return null;
   try {
     const params = new URLSearchParams({
       collection: collectionName,
       model: modelName,
       backdrop: backdropName,
     });
-    const payload = await marketJson(`${d1GiftRegistryUrl}/combo?${params}`, {}, 5000);
+    const payload = await marketJson(`${giftRegistryReadUrl}/combo?${params}`, {}, 5000);
     return Number(payload?.floorTon || 0) > 0 ? payload : null;
   } catch {
     return null;
@@ -5021,7 +5034,7 @@ async function d1GiftComboHistory(collectionName = "", modelName = "", backdropN
     const params = new URLSearchParams({ collection: collectionName, model: modelName, backdrop: backdropName });
     const endpoint = giftRegistryProxyUrl
       ? `${giftRegistryProxyUrl}/api/gift-registry/history?${params}`
-      : `${d1GiftRegistryUrl}/history?${params}`;
+      : `${giftRegistryReadUrl}/history?${params}`;
     const payload = await marketJson(endpoint, {}, giftRegistryProxyUrl ? 5000 : 2500);
     return Array.isArray(payload) ? payload : [];
   } catch {
@@ -5030,7 +5043,7 @@ async function d1GiftComboHistory(collectionName = "", modelName = "", backdropN
 }
 
 async function d1GiftComboFloors(pairs = []) {
-  if ((!d1GiftRegistryUrl && !giftRegistryProxyUrl) || !pairs.length) return { combinations: [], coverage: [] };
+  if ((!giftRegistryReadUrl && !giftRegistryProxyUrl) || !pairs.length) return { combinations: [], coverage: [] };
   const requested = [];
   pairs.forEach((pair) => {
     const aliases = [...new Set([pair.collection, pair.collectionKey, ...(pair.collectionKeys || [])].filter(Boolean))];
@@ -5043,9 +5056,9 @@ async function d1GiftComboFloors(pairs = []) {
   for (let index = 0; index < chunks.length; index += 4) {
     const responses = await Promise.all(chunks.slice(index, index + 4).map(async (chunk) => {
       try {
-        const endpoint = d1GiftRegistryUrl
-          ? `${d1GiftRegistryUrl}/combos`
-          : `${giftRegistryProxyUrl}/api/gift-registry/combos`;
+        const endpoint = giftRegistryProxyUrl
+          ? `${giftRegistryProxyUrl}/api/gift-registry/combos`
+          : `${giftRegistryReadUrl}/combos`;
         return await marketJson(endpoint, {
           method: "POST",
           body: { pairs: chunk },
@@ -6647,46 +6660,31 @@ async function handleApi(req, res, url) {
         tonUsdRate(),
       ]);
       const comboFloors = comboLookup.combinations;
-      const coveredCollections = new Map((comboLookup.coverage || []).map((entry) => [
-        giftSnapshotKey(entry?.collectionKey),
-        new Date(entry?.snapshotAt || 0).getTime(),
+      const combosByKey = new Map(comboFloors.map((combo) => [
+        [combo.collection, combo.model, combo.backdrop].map(giftSnapshotKey).join(":"),
+        combo,
       ]));
-      const returnedModels = new Set(models.map((model) => [
-        model.collectionKey,
-        model.modelKey,
-        giftSnapshotKey(model.backdrop),
-        giftSnapshotKey(model.symbol),
-      ].join(":")));
-      pairs.forEach((pair) => {
-        const key = [pair.collectionKey, pair.modelKey, pair.backdropKey, pair.symbolKey].join(":");
-        if (returnedModels.has(key)) return;
-        models.push({
+      const responseModels = pairs.map((pair) => {
+        const stored = models.find((model) => (
+          model.modelKey === pair.modelKey
+          && [pair.collectionKey, ...(pair.collectionKeys || [])].includes(model.collectionKey)
+        )) || {};
+        const collectionAliases = [...new Set([pair.collection, pair.collectionKey, ...(pair.collectionKeys || [])].filter(Boolean))];
+        const combo = collectionAliases
+          .map((collection) => combosByKey.get([collection, pair.model, pair.backdrop].map(giftSnapshotKey).join(":")))
+          .find(Boolean);
+        const model = {
+          ...stored,
+          requestKey: [pair.collectionKey, pair.modelKey, pair.backdropKey].join(":"),
           collection: pair.collection,
           collectionKey: pair.collectionKey,
           model: pair.model,
           modelKey: pair.modelKey,
           backdrop: pair.backdrop,
           symbol: pair.symbol,
-          floorTon: 0,
-          floorUsd: 0,
-          source: "combo-floor-pending",
-          traitMetrics: {},
-          traitRarities: {},
-        });
-      });
-      const combosByKey = new Map(comboFloors.map((combo) => [
-        [combo.collection, combo.model, combo.backdrop].map(giftSnapshotKey).join(":"),
-        combo,
-      ]));
-      const requestedBackdropKeys = new Set(pairs
-        .filter((pair) => pair.backdropKey)
-        .map((pair) => [pair.collectionKey, pair.modelKey, pair.backdropKey].join(":")));
-      models.forEach((model) => {
-        const modelKey = [model.collectionKey, model.modelKey, giftSnapshotKey(model.backdrop)].join(":");
-        const modelCollectionAliases = [...new Set([model.collection, model.collectionKey, ...giftCollectionAliasKeys(model.collection)].filter(Boolean))];
-        const combo = modelCollectionAliases
-          .map((collection) => combosByKey.get([collection, model.model || model.modelKey, model.backdrop].map(giftSnapshotKey).join(":")))
-          .find(Boolean);
+          traitMetrics: stored.traitMetrics || {},
+          traitRarities: stored.traitRarities || {},
+        };
         if (!combo) {
           model.floorTon = 0;
           model.floorUsd = 0;
@@ -6696,7 +6694,7 @@ async function handleApi(req, res, url) {
           model.marketUrl = "";
           model.listingId = "";
           model.marketUpdatedAt = "";
-          return;
+          return model;
         }
         model.floorTon = Number(combo.floorTon || 0);
         model.floorUsd = model.floorTon * rate;
@@ -6707,8 +6705,9 @@ async function handleApi(req, res, url) {
         model.marketUrl = combo.listingUrl || model.marketUrl || "";
         model.listingId = combo.listingId || "";
         model.marketUpdatedAt = combo.snapshotAt || model.marketUpdatedAt || "";
+        return model;
       });
-      const found = new Map(models.map((model) => [
+      const found = new Map(responseModels.map((model) => [
         [model.collectionKey, model.modelKey, giftSnapshotKey(model.backdrop)].join(":"),
         model,
       ]));
@@ -6722,7 +6721,7 @@ async function handleApi(req, res, url) {
       });
       return json(res, 200, {
         source: "tontrack-snapshots",
-        models,
+        models: responseModels,
         pending: pending.map(({ collection, model, backdrop, symbol, collectionKey, modelKey }) => ({
           collection,
           model,
