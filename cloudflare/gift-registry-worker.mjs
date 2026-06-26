@@ -212,6 +212,39 @@ async function ingestCollection(request, env) {
   });
 }
 
+async function ingestStatus(request, env) {
+  if (!authorized(request, env)) return json({ error: "Unauthorized" }, 401);
+  const body = await request.json();
+  const workerKey = key(body.worker || "combo-worker") || "comboworker";
+  const now = new Date().toISOString();
+  await env.GIFT_REGISTRY.prepare(
+    `INSERT INTO gift_combo_worker_status (
+      worker_key, phase, collection_name, current_page, total_pages, completed_collections,
+      total_collections, message, updated_at
+    ) VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9)
+    ON CONFLICT(worker_key) DO UPDATE SET
+      phase=excluded.phase,
+      collection_name=excluded.collection_name,
+      current_page=excluded.current_page,
+      total_pages=excluded.total_pages,
+      completed_collections=excluded.completed_collections,
+      total_collections=excluded.total_collections,
+      message=excluded.message,
+      updated_at=excluded.updated_at`
+  ).bind(
+    workerKey,
+    String(body.phase || ""),
+    String(body.collection || ""),
+    Number(body.currentPage || 0),
+    Number(body.totalPages || 0),
+    Number(body.completedCollections || 0),
+    Number(body.totalCollections || 0),
+    String(body.message || ""),
+    now
+  ).run();
+  return json({ ok: true, updatedAt: now });
+}
+
 export default {
   async fetch(request, env) {
     if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: json({}).headers });
@@ -226,6 +259,15 @@ export default {
          FROM gift_combo_collections`
       ).first();
       return json(stats || {});
+    }
+    if (url.pathname === "/worker-status") {
+      const rows = await env.GIFT_REGISTRY.prepare(
+        `SELECT worker_key, phase, collection_name, current_page, total_pages,
+          completed_collections, total_collections, message, updated_at
+         FROM gift_combo_worker_status
+         ORDER BY updated_at DESC`
+      ).all();
+      return json(rows.results || []);
     }
     if (url.pathname === "/combo" && request.method === "GET") {
       const result = await readCombo(
@@ -251,6 +293,9 @@ export default {
     }
     if (url.pathname === "/ingest/collection" && request.method === "POST") {
       return ingestCollection(request, env);
+    }
+    if (url.pathname === "/ingest/status" && request.method === "POST") {
+      return ingestStatus(request, env);
     }
     return json({ error: "Not found" }, 404);
   },

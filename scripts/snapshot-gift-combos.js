@@ -235,7 +235,24 @@ function mergeItems(combinations, items = [], market = "") {
   });
 }
 
-async function scanMarket(collection, market, combinations, work, saveWork) {
+async function uploadStatus(status = {}) {
+  try {
+    await fetchJson(`${registryUrl}/ingest/status`, {
+      method: "POST",
+      headers: { authorization: `Bearer ${ingestSecret}` },
+      body: JSON.stringify({
+        worker: "combo-worker",
+        marketMode: marketSignature,
+        scannerVersion,
+        ...status,
+      }),
+    }, 3);
+  } catch (error) {
+    console.warn(`[worker-status] ${String(error.message || error).slice(0, 120)}`);
+  }
+}
+
+async function scanMarket(collection, market, combinations, work, saveWork, reportProgress = null) {
   const marketKey = market || "AGGREGATE";
   const marketWork = work.markets[marketKey] || { pages: 0, listingCount: 0, completedPages: 0 };
   let pages = Number(marketWork.pages || 0);
@@ -259,6 +276,7 @@ async function scanMarket(collection, market, combinations, work, saveWork) {
     donePages.add(1);
     updateMarketWork();
     saveWork();
+    if (reportProgress) await reportProgress({ market: marketKey, currentPage: donePages.size, totalPages: pages });
   }
   let nextPage = 1;
   const reservePage = () => {
@@ -280,6 +298,7 @@ async function scanMarket(collection, market, combinations, work, saveWork) {
       if (donePages.size % 10 === 0 || donePages.size === pages) saveWork();
       if (donePages.size % 100 === 0 || donePages.size === pages) {
         process.stdout.write(`\r${collection} ${marketKey}: ${donePages.size}/${pages} pages, ${combinations.size} combinations`);
+        if (reportProgress) await reportProgress({ market: marketKey, currentPage: donePages.size, totalPages: pages });
       }
     }
   });
@@ -290,7 +309,7 @@ async function scanMarket(collection, market, combinations, work, saveWork) {
   return { market: marketKey, listingCount, pages };
 }
 
-async function scanCollection(collection) {
+async function scanCollection(collection, cycleStatus = {}) {
   fs.mkdirSync(workDir, { recursive: true });
   const workFile = path.join(workDir, `${key(collection)}-${key(marketSignature)}.json`);
   let work = null;
@@ -310,7 +329,17 @@ async function scanCollection(collection) {
   const marketStats = [];
   const marketScopes = thermosMarkets.length ? thermosMarkets : [""];
   for (const market of marketScopes) {
-    marketStats.push(await scanMarket(collection, market, combinations, work, saveWork));
+    marketStats.push(await scanMarket(collection, market, combinations, work, saveWork, async (progress) => {
+      await uploadStatus({
+        phase: "scanning_pages",
+        collection,
+        currentPage: progress.currentPage,
+        totalPages: progress.totalPages,
+        completedCollections: cycleStatus.completedCollections || 0,
+        totalCollections: cycleStatus.totalCollections || 0,
+        message: `${progress.market}: ${progress.currentPage}/${progress.totalPages} pages, ${combinations.size} combinations`,
+      });
+    }));
   }
   saveWork();
   const listingCount = marketStats.reduce((sum, item) => sum + Number(item.listingCount || 0), 0);
@@ -364,6 +393,14 @@ async function runCycle({ resetCompleted = false } = {}) {
     pageConcurrency,
     requestDelayMs,
   });
+  await uploadStatus({
+    phase: "cycle_started",
+    currentPage: 0,
+    totalPages: 0,
+    completedCollections: Object.keys(checkpoint.completed || {}).length,
+    totalCollections: names.length,
+    message: `Thermos ${marketSignature} scanner v${scannerVersion} started`,
+  });
   console.log(`Scanning ${names.length} collections via Thermos ${marketSignature.toLowerCase()} with ${pageConcurrency} page workers`);
   for (let index = 0; index < names.length; index += 1) {
     const collection = names[index];
@@ -378,8 +415,20 @@ async function runCycle({ resetCompleted = false } = {}) {
       totalCollections: names.length,
       currentCollection: collection,
     });
+    await uploadStatus({
+      phase: "collection_started",
+      collection,
+      currentPage: 0,
+      totalPages: 0,
+      completedCollections: Object.keys(checkpoint.completed || {}).length,
+      totalCollections: names.length,
+      message: `[${index + 1}/${names.length}] ${collection}`,
+    });
     console.log(`[${index + 1}/${names.length}] ${collection}`);
-    const snapshot = await scanCollection(collection);
+    const snapshot = await scanCollection(collection, {
+      completedCollections: Object.keys(checkpoint.completed || {}).length,
+      totalCollections: names.length,
+    });
     await uploadCollection(snapshot);
     checkpoint.completed[doneKey] = {
       name: collection,
@@ -397,6 +446,15 @@ async function runCycle({ resetCompleted = false } = {}) {
       lastCombinationCount: snapshot.combinationCount,
       completedCollections: Object.keys(checkpoint.completed).length,
     });
+    await uploadStatus({
+      phase: "collection_complete",
+      collection,
+      currentPage: 0,
+      totalPages: 0,
+      completedCollections: Object.keys(checkpoint.completed || {}).length,
+      totalCollections: names.length,
+      message: `Saved ${snapshot.combinationCount} combinations from ${snapshot.listingCount} listings`,
+    });
     fs.rmSync(snapshot.workFile, { force: true });
     console.log(`Saved ${snapshot.combinationCount} combinations from ${snapshot.listingCount} listings`);
   }
@@ -404,6 +462,14 @@ async function runCycle({ resetCompleted = false } = {}) {
     phase: "cycle_complete",
     cycleCompletedAt: new Date().toISOString(),
     completedCollections: Object.keys(checkpoint.completed).length,
+  });
+  await uploadStatus({
+    phase: "cycle_complete",
+    currentPage: 0,
+    totalPages: 0,
+    completedCollections: Object.keys(checkpoint.completed || {}).length,
+    totalCollections: names.length,
+    message: "Cycle complete",
   });
   const stats = await fetchJson(`${registryUrl}/stats`);
   console.log(JSON.stringify({ complete: true, ...stats }, null, 2));
