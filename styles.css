@@ -1693,6 +1693,19 @@ small {
   white-space: nowrap;
 }
 
+.price-coverage-pill {
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.price-coverage-pill.is-complete {
+  color: var(--accent-teal);
+  border-color: rgba(20, 184, 166, 0.35);
+  background: rgba(20, 184, 166, 0.08);
+}
+
 .activity-filter-row {
   display: flex;
   gap: 8px;

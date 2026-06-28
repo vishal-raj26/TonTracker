@@ -46,6 +46,7 @@ const stickerCollectionsRegistryFile = path.join(dataDir, "sticker-collections-r
 const giftFloorSnapshotsFile = path.join(dataDir, "gift-floor-snapshots.json");
 const giftLayerRegistryFile = path.join(dataDir, "gift-layer-registry.json");
 const d1GiftRegistryUrl = String(process.env.D1_REGISTRY_URL || "").replace(/\/+$/, "");
+const d1GiftIngestSecret = String(process.env.D1_INGEST_SECRET || process.env.INGEST_SECRET || "");
 const giftRegistryProxyUrl = String(process.env.GIFT_REGISTRY_PROXY_URL || "").replace(/\/+$/, "");
 const publicGiftRegistryUrl = "https://tontrack-gift-registry.vishu-vishal264.workers.dev";
 const giftRegistryReadUrl = d1GiftRegistryUrl || publicGiftRegistryUrl;
@@ -59,6 +60,7 @@ const jettonHistoryCache = new Map();
 const walletHistoryCache = new Map();
 const walletJettonsCache = new Map();
 const walletHistoryJobs = new Map();
+const giftComboHealJobs = new Set();
 const txActionCache = new Map();
 const dnsNameCache = new Map();
 const historyCacheVersion = "short-ranges-v3";
@@ -144,7 +146,7 @@ const giftModelRetryDelayMs = Number(process.env.GIFT_MODEL_RETRY_DELAY_MS || 12
 const giftModelRetryCount = Number(process.env.GIFT_MODEL_RETRY_COUNT || 2);
 const isRailwayRuntime = Boolean(process.env.RAILWAY_ENVIRONMENT || process.env.RAILWAY_SERVICE_ID || process.env.RAILWAY_PROJECT_ID);
 const giftSnapshotAutorunRequested = process.env.GIFT_SNAPSHOT_AUTORUN === undefined
-  ? !isRailwayRuntime
+  ? false
   : process.env.GIFT_SNAPSHOT_AUTORUN === "1";
 const giftSnapshotAutorun = giftSnapshotAutorunRequested
   && (!isRailwayRuntime || process.env.TONTRACK_MODE === "gift-snapshot-worker");
@@ -5062,7 +5064,7 @@ async function d1GiftComboFloors(pairs = []) {
         return await marketJson(endpoint, {
           method: "POST",
           body: { pairs: chunk },
-        }, 5000);
+        }, 15000);
       } catch {
         return null;
       }
@@ -5080,6 +5082,163 @@ async function d1GiftComboFloors(pairs = []) {
     combinations,
     coverage: [...coverage].map(([collectionKey, snapshotAt]) => ({ collectionKey, snapshotAt })),
   };
+}
+
+async function ingestD1GiftCombo(record = {}) {
+  const registryUrl = d1GiftRegistryUrl || publicGiftRegistryUrl;
+  if (!registryUrl || !d1GiftIngestSecret || !(Number(record.floorTon || 0) > 0)) return false;
+  try {
+    await marketJson(`${registryUrl}/ingest/combo`, {
+      method: "POST",
+      headers: { authorization: `Bearer ${d1GiftIngestSecret}` },
+      body: {
+        collection: record.collectionName || record.collection,
+        model: record.modelName || record.model,
+        backdrop: record.backdropName || record.backdrop,
+        floorTon: record.floorTon,
+        listedCount: record.listedCount,
+        marketplace: record.marketplace || record.marketPlatform || "",
+        listingUrl: record.listingUrl || record.marketUrl || "",
+        listingId: record.listingId || "",
+        snapshotAt: record.timestamp || record.snapshotAt || new Date().toISOString(),
+        source: record.source || "thermos-exact",
+      },
+    }, 5000);
+    return true;
+  } catch (error) {
+    console.warn(`[gift-combo-d1] ingest failed for ${record.collectionName || record.collection} / ${record.modelName || record.model} / ${record.backdropName || record.backdrop}: ${String(error.message || error).slice(0, 160)}`);
+    return false;
+  }
+}
+
+async function thermosExactGiftComboFloor(collectionName = "", modelName = "", backdropName = "", tonRate = 0) {
+  if (!collectionName || !modelName || !backdropName) return null;
+  try {
+    const collections = await thermosGiftCollections();
+    const collectionRow = bestThermosGiftCollection(collections, [collectionName]);
+    const canonicalName = thermosCollectionName(collectionRow) || collectionName;
+    const payload = await marketJson("https://proxy.thermos.gifts/api/v1/gifts", {
+      method: "POST",
+      body: {
+        ordering: "PRICE_ASC",
+        page: 1,
+        per_page: 1,
+        query: "",
+        price_range: null,
+        number: null,
+        collections: [canonicalName],
+        models: [modelName],
+        backdrops: [backdropName],
+        symbols: [],
+        markets: [],
+      },
+    }, 8000);
+    const item = Array.isArray(payload?.items) ? payload.items[0] : null;
+    const floorTon = nanoTon(item?.price);
+    if (!(floorTon > 0)) return null;
+    const marketplace = String(item?.marketplace || item?.market || "");
+    const listingId = String(item?.id || item?.listing_id || item?.listingId || "");
+    const listingUrl = String(item?.url || item?.link || item?.listingUrl || "");
+    const record = {
+      collection: canonicalName,
+      collectionName: canonicalName,
+      collectionKey: giftSnapshotKey(canonicalName),
+      model: item?.model?.name || modelName,
+      modelName: item?.model?.name || modelName,
+      modelKey: giftSnapshotKey(item?.model?.name || modelName),
+      backdrop: item?.backdrop?.name || backdropName,
+      backdropName: item?.backdrop?.name || backdropName,
+      backdropKey: giftSnapshotKey(item?.backdrop?.name || backdropName),
+      timestamp: new Date().toISOString(),
+      floorTon,
+      floorUsd: floorTon * tonRate,
+      tonUsdRate: tonRate,
+      source: "thermos-exact",
+      listedCount: Number(payload?.count || 0),
+      marketplace,
+      marketPlatform: marketplace,
+      listingId,
+      listingUrl,
+      marketUrl: listingUrl,
+      marketUpdatedAt: new Date().toISOString(),
+    };
+    await Promise.all([
+      appendGiftComboFloorSnapshot(record),
+      ingestD1GiftCombo(record),
+    ]);
+    return record;
+  } catch (error) {
+    console.warn(`[gift-combo-exact] ${collectionName} / ${modelName} / ${backdropName}: ${String(error.message || error).slice(0, 160)}`);
+    return null;
+  }
+}
+
+async function mapLimit(items = [], limit = 4, mapper) {
+  const results = new Array(items.length);
+  let next = 0;
+  const workers = Array.from({ length: Math.min(limit, items.length) }, async () => {
+    while (next < items.length) {
+      const index = next;
+      next += 1;
+      results[index] = await mapper(items[index], index);
+    }
+  });
+  await Promise.all(workers);
+  return results;
+}
+
+function missingGiftComboFloorPairs(pairs = [], combosByKey = new Map()) {
+  const seen = new Set();
+  const missing = [];
+  pairs.forEach((pair) => {
+    if (!pair.backdropKey) return;
+    const aliases = [...new Set([pair.collection, pair.collectionKey, ...(pair.collectionKeys || [])].filter(Boolean))];
+    const hasCombo = aliases.some((collection) => combosByKey.has([collection, pair.model, pair.backdrop].map(giftSnapshotKey).join(":")));
+    if (hasCombo) return;
+    const requestKey = [pair.collectionKey, pair.modelKey, pair.backdropKey].join(":");
+    if (seen.has(requestKey)) return;
+    seen.add(requestKey);
+    missing.push(pair);
+  });
+  return missing;
+}
+
+function scheduleGiftComboFloorHeal(pairs = [], combosByKey = new Map(), tonRate = 0) {
+  const scheduleLimit = Math.max(0, Number(process.env.GIFT_COMBO_EXACT_HEAL_SCHEDULE_LIMIT || 250));
+  const missing = missingGiftComboFloorPairs(pairs, combosByKey)
+    .slice(0, scheduleLimit)
+    .filter((pair) => {
+      const requestKey = [pair.collectionKey, pair.modelKey, pair.backdropKey].join(":");
+      if (giftComboHealJobs.has(requestKey)) return false;
+      giftComboHealJobs.add(requestKey);
+      return true;
+    });
+  if (!missing.length) return 0;
+  Promise.resolve()
+    .then(async () => {
+      await mapLimit(missing, 2, async (pair) => {
+        try {
+          await thermosExactGiftComboFloor(pair.collection, pair.model, pair.backdrop, tonRate);
+        } finally {
+          giftComboHealJobs.delete([pair.collectionKey, pair.modelKey, pair.backdropKey].join(":"));
+        }
+      });
+    })
+    .catch(() => {
+      missing.forEach((pair) => giftComboHealJobs.delete([pair.collectionKey, pair.modelKey, pair.backdropKey].join(":")));
+    });
+  return missing.length;
+}
+
+async function healMissingGiftComboFloors(pairs = [], combosByKey = new Map(), tonRate = 0) {
+  const missing = missingGiftComboFloorPairs(pairs, combosByKey);
+  const limit = Math.max(0, Number(process.env.GIFT_COMBO_EXACT_HEAL_LIMIT || 250));
+  if (!limit || !missing.length) return [];
+  const selected = missing.slice(0, limit);
+  const healed = await mapLimit(selected, 6, (pair) => (
+    thermosExactGiftComboFloor(pair.collection, pair.model, pair.backdrop, tonRate)
+  ));
+  return healed.filter((combo) => combo && Number(combo.floorTon || 0) > 0);
 }
 
 async function thermosGiftComboFloor(collectionName = "", modelName = "", backdropName = "", tonRate = 0) {
@@ -6672,6 +6831,7 @@ async function handleApi(req, res, url) {
         [combo.collection, combo.model, combo.backdrop].map(giftSnapshotKey).join(":"),
         combo,
       ]));
+      const healingScheduled = scheduleGiftComboFloorHeal(pairs, combosByKey, rate);
       const responseModels = pairs.map((pair) => {
         const stored = models.find((model) => (
           model.modelKey === pair.modelKey
@@ -6729,6 +6889,7 @@ async function handleApi(req, res, url) {
       });
       return json(res, 200, {
         source: "tontrack-snapshots",
+        healingScheduled,
         models: responseModels,
         pending: pending.map(({ collection, model, backdrop, symbol, collectionKey, modelKey }) => ({
           collection,
@@ -7049,7 +7210,9 @@ const server = http.createServer((req, res) => {
 
 function startServer() {
   server.listen(port, "0.0.0.0", () => {
-    console.log(`TonTrack backend running at http://127.0.0.1:${port}`);
+    if (isRailwayRuntime || process.stdout.isTTY) {
+      console.log(`TonTrack backend running at http://127.0.0.1:${port}`);
+    }
     setTimeout(() => {
       refreshCollectiblesRegistry(true).catch((error) => console.warn("Collectibles registry preload failed", error.message));
       refreshStickerCollectionsRegistryFile(true).catch((error) => console.warn("Sticker registry preload failed", error.message));

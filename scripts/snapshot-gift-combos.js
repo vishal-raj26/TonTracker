@@ -23,11 +23,11 @@ const ingestSecret = String(process.env.D1_INGEST_SECRET || "");
 const pageSize = 20;
 const marketArgIndex = process.argv.indexOf("--market");
 const configuredMarkets = marketArgIndex >= 0
-  ? [String(process.argv[marketArgIndex + 1] || "").trim().toUpperCase()].filter(Boolean)
-  : String(process.env.GIFT_COMBO_MARKETS || "")
+  ? [String(process.argv[marketArgIndex + 1] || "").trim().toUpperCase()].filter((market) => market && market !== "AGGREGATE")
+  : String(process.env.GIFT_COMBO_MARKETS || "PORTALS,MRKT,TONNEL,GETGEMS,THERMOS")
     .split(",")
     .map((market) => market.trim().toUpperCase())
-    .filter(Boolean);
+    .filter((market) => market && market !== "AGGREGATE");
 const thermosMarkets = configuredMarkets;
 const marketSignature = thermosMarkets.length ? thermosMarkets.join("+") : "AGGREGATE";
 const pageConcurrency = Math.max(1, Math.min(12, Number(process.env.GIFT_COMBO_PAGE_CONCURRENCY || 1)));
@@ -35,7 +35,7 @@ const requestDelayMs = Math.max(0, Number(process.env.GIFT_COMBO_REQUEST_DELAY_M
 const continuousMode = process.argv.includes("--continuous") || process.env.GIFT_COMBO_CONTINUOUS === "1";
 const cycleDelayMs = Math.max(0, Number(process.env.GIFT_COMBO_CYCLE_DELAY_MS || 5 * 60 * 1000));
 const bucketCount = 32;
-const scannerVersion = Number(process.env.GIFT_COMBO_SCANNER_VERSION || 2);
+const scannerVersion = Number(process.env.GIFT_COMBO_SCANNER_VERSION || 3);
 
 if (!registryUrl || !ingestSecret) {
   console.error("D1_REGISTRY_URL and D1_INGEST_SECRET are required");
@@ -316,13 +316,14 @@ async function scanCollection(collection, cycleStatus = {}) {
   try {
     work = JSON.parse(fs.readFileSync(workFile, "utf8"));
   } catch {}
-  if (!work?.markets) work = null;
+  if (!work?.markets || work.marketMode !== marketSignature || Number(work.scannerVersion || 0) !== scannerVersion) work = null;
   work = work || { collection, markets: {}, combinations: [] };
   const combinations = new Map(Array.isArray(work?.combinations) ? work.combinations : []);
   const saveWork = () => fs.writeFileSync(workFile, JSON.stringify({
     collection,
     markets: work.markets,
     marketMode: marketSignature,
+    scannerVersion,
     thermosMarkets,
     combinations: [...combinations.entries()],
   }));

@@ -671,6 +671,14 @@ function renderGiftGrid() {
     const count = items.reduce((sum, asset) => sum + Number(asset.count || 1), 0);
     countLabel.textContent = `${count} gift${count === 1 ? "" : "s"}`;
   }
+  const coverageLabel = document.querySelector("#giftPriceCoverage");
+  if (coverageLabel) {
+    const holdings = giftAssets.flatMap((asset) => asset.children?.length ? asset.children : [asset]);
+    const fetched = holdings.filter((asset) => asset.floorSource === "backdrop" && Number(asset.floorUsd || 0) > 0).length;
+    const missing = Math.max(0, holdings.length - fetched);
+    coverageLabel.textContent = `${fetched} fetched · ${missing} missing`;
+    coverageLabel.classList.toggle("is-complete", Boolean(holdings.length) && missing === 0);
+  }
   grid.innerHTML = items.length ? items.map(renderGiftCard).join("") : `<article class="collectible-card"><div class="value-stack"><strong>No gifts found</strong><small>Try a different search.</small></div></article>`;
   window.lucide?.createIcons();
   initCollectibleAnimations(grid);
@@ -785,6 +793,11 @@ function renderGiftCard(asset) {
 function renderGiftBrand(assetId) {
   const brand = giftAssets.find((asset) => asset.id === assetId) || giftAssets[0];
   if (!brand) return;
+  const screen = document.querySelector('[data-screen="gift-brand"]');
+  if (screen) {
+    screen.dataset.asset = brand.id;
+    delete screen.dataset.modelGroupAsset;
+  }
   const children = brand.children?.length ? brand.children : [brand];
   children.forEach((child) => { assetDetails[child.id] = child; });
   const groupedChildren = groupGiftBrandChildren(children);
@@ -867,6 +880,13 @@ function groupGiftBrandChildren(children = []) {
     item.initUsd = Number(item.initUsd || 0) + Number(asset.initUsd || asset.costBasis || 0);
     item.priceLoading = item.priceLoading || Boolean(asset.priceLoading && !(Number(asset.floorUsd || 0) > 0));
     item.modelFloor = item.modelFloor || asset.modelFloor || null;
+    if (asset.floorSource === "model") {
+      item.floorSource = "model";
+      item.marketPlatform = "Model Floor";
+    } else if (asset.floorSource === "backdrop" && item.floorSource !== "model") {
+      item.floorSource = "backdrop";
+      item.marketPlatform = "Backdrop Floor";
+    }
     const tag = giftBrandMintLabel(asset);
     if (tag) item.tagList.push(tag);
     const media = giftMediaDescriptor(asset);
@@ -914,6 +934,8 @@ function renderGiftBrandItem(asset) {
 function renderGiftModelGroup(assetId) {
   const group = assetDetails[assetId];
   if (!group) return;
+  const screen = document.querySelector('[data-screen="gift-brand"]');
+  if (screen) screen.dataset.modelGroupAsset = group.id;
   const children = (group.children?.length ? group.children : [group])
     .slice()
     .sort((a, b) => Number(b.floorUsd || 0) - Number(a.floorUsd || 0));
@@ -928,6 +950,18 @@ function renderGiftModelGroup(assetId) {
   if (grid) grid.innerHTML = children.map(renderGiftIndividualItem).join("");
   window.lucide?.createIcons();
   applyCurrencyDisplay();
+}
+
+function refreshActiveGiftViews() {
+  const activeGiftScreen = document.querySelector('[data-screen="gift-brand"].is-active');
+  const modelGroupAsset = activeGiftScreen?.dataset.modelGroupAsset;
+  if (modelGroupAsset && assetDetails[modelGroupAsset]) {
+    renderGiftModelGroup(modelGroupAsset);
+  } else if (activeGiftScreen?.dataset.asset) {
+    renderGiftBrand(activeGiftScreen.dataset.asset);
+  }
+  const activeDetail = assetDetails[currentDetailAssetId()];
+  if (activeDetail?.type === "gift") renderGiftDetailPage(activeDetail, { loading: false });
 }
 
 function renderGiftIndividualItem(asset) {
@@ -1304,7 +1338,8 @@ function recomputeGiftGroup(group) {
   group.initUsd = children.reduce((sum, child) => sum + Number(child.initUsd || child.costBasis || 0), 0);
   group.initTon = children.reduce((sum, child) => sum + Number(child.initTon || 0), 0);
   group.priceLoading = children.some((child) => child.priceLoading && !(Number(child.floorUsd || 0) > 0));
-  group.marketPlatform = children.some((child) => child.floorSource === "model") ? "Model Floor" : group.marketPlatform;
+  if (children.some((child) => child.floorSource === "model")) group.marketPlatform = "Model Floor";
+  else if (children.some((child) => child.floorSource === "backdrop")) group.marketPlatform = "Backdrop Floor";
   group.marketVerified = group.floorUsd > 0 || group.floorTon > 0;
   group.quickSellUsd = group.floorUsd * 0.95;
   group.quickSellTon = group.floorTon * 0.95;
@@ -1349,14 +1384,13 @@ async function hydrateGiftModelFloors(groups = []) {
       recomputeGiftGroup(group);
       assetDetails[group.id] = group;
     });
-    const activeDetail = assetDetails[currentDetailAssetId()];
-    if (activeDetail?.type === "gift") renderGiftDetailPage(activeDetail, { loading: false });
     renderCollectibleGrids();
+    refreshActiveGiftViews();
     updateAllocationUi();
     syncAssetsSummary();
     updateCategoryAndTopAsset();
   };
-  for (let attempt = 0; pending.length && attempt < 2; attempt += 1) {
+  for (let attempt = 0; pending.length && attempt < 5; attempt += 1) {
     if (attempt) await delay(Math.min(8000, 1000 * (2 ** (attempt - 1))));
     const payload = await requestJson("/api/gift-model-floors/bulk", {
       method: "POST",
@@ -1387,6 +1421,7 @@ async function hydrateGiftModelFloors(groups = []) {
       assetDetails[group.id] = group;
     });
     renderCollectibleGrids();
+    refreshActiveGiftViews();
     updateAllocationUi();
     syncAssetsSummary();
     updateCategoryAndTopAsset();

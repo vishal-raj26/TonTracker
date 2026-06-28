@@ -17,6 +17,7 @@ const childEnv = { ...process.env };
 
 if (isComboWorker) {
   childEnv.TONTRACK_MODE = "gift-combo-worker";
+  childEnv.GIFT_COMBO_MARKETS = childEnv.GIFT_COMBO_MARKETS || "PORTALS,MRKT,TONNEL,GETGEMS,THERMOS";
 } else {
   childEnv.TONTRACK_MODE = "app-server";
   childEnv.GIFT_SNAPSHOT_AUTORUN = "0";
