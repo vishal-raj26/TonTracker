@@ -5315,25 +5315,105 @@ function bestThermosGiftCollection(collections = [], aliases = []) {
 }
 
 async function thermosGiftFloorLookup(aliasObject = {}, aliases = [], tonRate = 0) {
+  const traits = giftTraitLookup(aliasObject.attributes || []);
+  const requestedCollectionName = [aliasObject.name, aliasObject.item, aliasObject.title, ...aliases]
+    .find((value) => value && !/^(?:0:|EQ|UQ)[A-Za-z0-9_:-]+$/.test(String(value))) || "";
+  const requestedModelName = traits.model || "";
+  const requestedBackdropName = traits.backdrop || "";
+  if (requestedCollectionName && requestedModelName && requestedBackdropName) {
+    const [d1Floor, comboHistory] = await Promise.all([
+      d1GiftComboFloor(requestedCollectionName, requestedModelName, requestedBackdropName),
+      d1GiftComboHistory(requestedCollectionName, requestedModelName, requestedBackdropName),
+    ]);
+    if (d1Floor) {
+      return {
+        floorTon: Number(d1Floor.floorTon || 0),
+        floorUsd: Number(d1Floor.floorTon || 0) * tonRate,
+        volume24hTon: 0,
+        volume24hUsd: 0,
+        change24hPct: 0,
+        sales24h: 0,
+        totalSupply: 0,
+        holders: 0,
+        listedCount: Number(d1Floor.listedCount || 0),
+        athFloorUsd: 0,
+        recentSales: [],
+        canonicalName: d1Floor.collection || requestedCollectionName,
+        modelName: d1Floor.model || requestedModelName,
+        backdropName: d1Floor.backdrop || requestedBackdropName,
+        marketPlatform: d1Floor.marketplace || "D1 Backdrop Floor",
+        marketUrl: d1Floor.listingUrl || "",
+        source: d1Floor.source || "thermos-combo",
+        tonUsdRate: tonRate,
+        floorHistory: comboHistory,
+        floorHistorySource: comboHistory.length >= 2 ? "tontrack-combo-registry" : "",
+      };
+    }
+    const coverage = await d1GiftComboFloors([{
+      collection: requestedCollectionName,
+      model: requestedModelName,
+      backdrop: requestedBackdropName,
+    }]);
+    if (coverage.coverage?.length) {
+      return {
+        floorTon: 0,
+        floorUsd: 0,
+        volume24hTon: 0,
+        volume24hUsd: 0,
+        change24hPct: 0,
+        recentSales: [],
+        canonicalName: requestedCollectionName,
+        modelName: requestedModelName,
+        backdropName: requestedBackdropName,
+        marketPlatform: "",
+        source: "d1-combo-missing",
+        tonUsdRate: tonRate,
+        floorHistory: comboHistory,
+        floorHistorySource: comboHistory.length >= 2 ? "tontrack-combo-registry" : "",
+      };
+    }
+  }
   const collections = await thermosGiftCollections();
   const collectionRow = bestThermosGiftCollection(collections, aliases);
   const collectionName = thermosCollectionName(collectionRow)
     || aliases.find((value) => value && !/^(?:0:|EQ|UQ)[A-Za-z0-9_:-]+$/.test(String(value))) || "";
   const base = collectionRow ? normalizeThermosCollection(collectionRow, tonRate) : {};
-  const traits = giftTraitLookup(aliasObject.attributes || []);
   const modelName = traits.model || "";
   const backdropName = traits.backdrop || "";
   let modelFloor = null;
   let comboFloor = null;
+  let comboHistory = [];
   if (collectionName && modelName) {
     const modelPayload = await thermosGiftModelPayload(collectionName, { tonRate });
     modelFloor = modelPayload.models.find((model) => giftSnapshotKey(model.model) === giftSnapshotKey(modelName)) || null;
     if (modelPayload.models.length) appendGiftModelFloorSnapshots(collectionName, modelPayload).catch(() => null);
-    if (backdropName) comboFloor = await thermosGiftComboFloor(collectionName, modelName, backdropName, tonRate);
+    if (backdropName) {
+      [comboFloor, comboHistory] = await Promise.all([
+        thermosGiftComboFloor(collectionName, modelName, backdropName, tonRate),
+        d1GiftComboHistory(collectionName, modelName, backdropName),
+      ]);
+    }
+  }
+  if (modelName && backdropName && !comboFloor) {
+    return {
+      floorTon: 0,
+      floorUsd: 0,
+      volume24hTon: 0,
+      volume24hUsd: 0,
+      change24hPct: 0,
+      recentSales: [],
+      canonicalName: collectionName,
+      modelName,
+      backdropName,
+      marketPlatform: "",
+      source: "thermos-combo-missing",
+      tonUsdRate: tonRate,
+      floorHistory: comboHistory,
+      floorHistorySource: comboHistory.length >= 2 ? "tontrack-combo-registry" : "",
+    };
   }
   const floorTon = Number(comboFloor?.floorTon || modelFloor?.floorTon || base.floorTon || 0);
   const floorUsd = floorTon > 0 ? floorTon * tonRate : Number(comboFloor?.floorUsd || modelFloor?.floorUsd || base.floorUsd || 0);
-  const comboHistory = backdropName ? await d1GiftComboHistory(collectionName, modelName, backdropName) : [];
   const floorHistory = comboHistory.length
     ? comboHistory
     : (modelFloor
@@ -6834,7 +6914,11 @@ async function handleApi(req, res, url) {
         [combo.collection, combo.model, combo.backdrop].map(giftSnapshotKey).join(":"),
         combo,
       ]));
-      const healingScheduled = scheduleGiftComboFloorHeal(pairs, combosByKey, rate);
+      const coveredCollectionKeys = new Set((comboLookup.coverage || []).map((entry) => giftSnapshotKey(entry.collectionKey)));
+      const isPairCovered = (pair) => [pair.collection, pair.collectionKey, ...(pair.collectionKeys || [])]
+        .map(giftSnapshotKey)
+        .some((collectionKey) => coveredCollectionKeys.has(collectionKey));
+      const healingScheduled = scheduleGiftComboFloorHeal(pairs.filter((pair) => !isPairCovered(pair)), combosByKey, rate);
       const responseModels = pairs.map((pair) => {
         const stored = models.find((model) => (
           model.modelKey === pair.modelKey
@@ -6860,7 +6944,7 @@ async function handleApi(req, res, url) {
           model.floorTon = 0;
           model.floorUsd = 0;
           model.listedCount = 0;
-          model.source = "combo-floor-pending";
+          model.source = isPairCovered(pair) ? "d1-combo-missing" : "combo-floor-pending";
           model.marketPlatform = "";
           model.marketUrl = "";
           model.listingId = "";

@@ -1317,12 +1317,70 @@ function applyGiftModelFloor(asset, model = {}) {
   return true;
 }
 
+function syncGiftFloorAcrossAssets(detail = {}) {
+  if (detail?.type !== "gift" || detail.floorSource !== "backdrop") return;
+  const collectionKey = collectibleKey(detail.collection || detail.name);
+  const modelKey = collectibleKey(giftModelTrait(detail));
+  const backdropKey = collectibleKey(giftTraitValue(detail, "Backdrop"));
+  if (!collectionKey || !modelKey || !backdropKey || !(Number(detail.floorUsd || 0) > 0 || Number(detail.floorTon || 0) > 0)) return;
+  const floorPayload = {
+    collection: detail.collection || detail.name,
+    model: giftModelTrait(detail),
+    backdrop: giftTraitValue(detail, "Backdrop"),
+    floorUsd: Number(detail.floorUsd || 0),
+    floorTon: Number(detail.floorTon || 0),
+    listedCount: Number(detail.intel?.listedCount || detail.modelFloor?.listedCount || 0),
+    marketUpdatedAt: detail.modelFloor?.updatedAt || "",
+    marketPlatform: detail.marketPlatform || "Backdrop Floor",
+    marketUrl: detail.marketUrl || "",
+    source: "d1-backdrop-floor",
+  };
+  giftAssets.forEach((group) => {
+    let touched = false;
+    (group.children || []).forEach((child) => {
+      const sameCombo = collectibleKey(child.collection || child.name) === collectionKey
+        && collectibleKey(giftModelTrait(child)) === modelKey
+        && collectibleKey(giftTraitValue(child, "Backdrop")) === backdropKey;
+      if (!sameCombo) return;
+      if (applyGiftModelFloor(child, floorPayload)) {
+        assetDetails[child.id] = child;
+        touched = true;
+      }
+    });
+    if (touched) {
+      recomputeGiftGroup(group);
+      assetDetails[group.id] = group;
+    }
+  });
+  renderCollectibleGrids();
+  const activeGiftScreen = document.querySelector('[data-screen="gift-brand"].is-active');
+  const modelGroupAsset = activeGiftScreen?.dataset.modelGroupAsset;
+  if (modelGroupAsset && assetDetails[modelGroupAsset]) renderGiftModelGroup(modelGroupAsset);
+  else if (activeGiftScreen?.dataset.asset) renderGiftBrand(activeGiftScreen.dataset.asset);
+  updateAllocationUi();
+  syncAssetsSummary();
+  updateCategoryAndTopAsset();
+}
+
 function resetGiftCollectionFloorPlaceholder(asset = {}) {
   if (asset.floorSource === "model" && !giftTraitValue(asset, "Backdrop")) return;
   asset.floorUsd = 0;
   asset.floorTon = 0;
   asset.marketVerified = false;
   asset.priceLoading = true;
+  asset.marketPlatform = "";
+  asset.floorSource = "";
+  asset.quickSellTon = 0;
+  asset.quickSellUsd = 0;
+  asset.pnlUsd = 0;
+  asset.pnlPct = 0;
+}
+
+function markGiftFloorUnavailable(asset = {}) {
+  asset.floorUsd = 0;
+  asset.floorTon = 0;
+  asset.marketVerified = false;
+  asset.priceLoading = false;
   asset.marketPlatform = "";
   asset.floorSource = "";
   asset.quickSellTon = 0;
@@ -1378,7 +1436,9 @@ async function hydrateGiftModelFloors(groups = []) {
           giftModelTrait(child),
           giftTraitValue(child, "Backdrop"),
         ));
-        if (model) applyGiftModelFloor(child, model);
+        if (model && !applyGiftModelFloor(child, model) && model.source === "d1-combo-missing") {
+          markGiftFloorUnavailable(child);
+        }
         assetDetails[child.id] = child;
       });
       recomputeGiftGroup(group);
@@ -1410,10 +1470,7 @@ async function hydrateGiftModelFloors(groups = []) {
           giftTraitValue(child, "Backdrop"),
         );
         if (pendingKeys.has(key)) {
-          child.priceLoading = false;
-          child.marketVerified = false;
-          child.marketPlatform = "";
-          child.floorSource = "";
+          markGiftFloorUnavailable(child);
         }
         assetDetails[child.id] = child;
       });
@@ -2216,6 +2273,7 @@ function applyGiftVerifiedFloor(detail, payload = {}) {
   detail.marketUrl = verifiedFloor ? (floor.marketUrl || "") : "";
   detail.graphImageUrl = "";
   detail.marketVerified = verifiedFloor && detail.floorUsd > 0;
+  detail.floorSource = detail.marketVerified ? "backdrop" : "";
   detail.quickSellTon = detail.floorTon ? detail.floorTon * 0.95 : 0;
   detail.quickSellUsd = detail.floorUsd ? detail.floorUsd * 0.95 : 0;
   detail.pnlUsd = detail.costBasis ? detail.floorUsd - detail.costBasis : 0;
@@ -2285,6 +2343,7 @@ async function loadGiftDetail(detail, { forceRefresh = false } = {}) {
     const payload = forceRefresh ? await fetchGiftDetailPayload(detail) : (getGiftDetailCachedPayload(detail) || await fetchGiftDetailPayload(detail));
     if (requestId !== activeGiftDetailRequest) return;
     applyGiftDetailPayload(detail, payload);
+    syncGiftFloorAcrossAssets(detail);
     detail.floorHistoryLoading = false;
     renderGiftDetailPage(detail, { loading: false });
     window.lucide?.createIcons();
