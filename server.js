@@ -1539,7 +1539,7 @@ async function latestGiftModelFloorsDb(collection = "") {
 
 function requestedGiftModelPairs(pairs = []) {
   return (Array.isArray(pairs) ? pairs : [])
-    .slice(0, 1000)
+    .slice(0, 5000)
     .map((pair) => ({
       collection: String(pair?.collection || "").trim(),
       model: String(pair?.model || "").trim(),
@@ -5049,7 +5049,7 @@ async function d1GiftComboFloors(pairs = []) {
     const aliases = [...new Set([pair.collection, pair.collectionKey, ...(pair.collectionKeys || [])].filter(Boolean))];
     aliases.forEach((collection) => requested.push({ collection, model: pair.model, backdrop: pair.backdrop }));
   });
-  const requestChunkSize = 15;
+  const requestChunkSize = 500;
   const chunks = Array.from({ length: Math.ceil(requested.length / requestChunkSize) }, (_, index) => requested.slice(index * requestChunkSize, index * requestChunkSize + requestChunkSize));
   const combinations = [];
   const coverage = new Map();
@@ -6633,18 +6633,26 @@ async function handleApi(req, res, url) {
     const registryUrl = d1GiftRegistryUrl || publicGiftRegistryUrl;
     try {
       const body = await readJsonBody(req);
-      const pairs = requestedGiftModelPairs(body.pairs).slice(0, 500).map((pair) => ({
+      const pairs = requestedGiftModelPairs(body.pairs).slice(0, 5000).map((pair) => ({
         collection: pair.collection,
         model: pair.model,
         backdrop: pair.backdrop,
       }));
-      const payload = await marketJson(`${registryUrl}/combos`, {
-        method: "POST",
-        body: { pairs },
-      }, 5000);
+      const combinations = [];
+      const coverage = new Map();
+      for (let index = 0; index < pairs.length; index += 500) {
+        const payload = await marketJson(`${registryUrl}/combos`, {
+          method: "POST",
+          body: { pairs: pairs.slice(index, index + 500) },
+        }, 5000);
+        if (Array.isArray(payload?.combinations)) combinations.push(...payload.combinations);
+        (Array.isArray(payload?.coverage) ? payload.coverage : []).forEach((entry) => {
+          if (entry?.collectionKey && entry?.snapshotAt) coverage.set(giftSnapshotKey(entry.collectionKey), entry.snapshotAt);
+        });
+      }
       return json(res, 200, {
-        combinations: Array.isArray(payload?.combinations) ? payload.combinations : [],
-        coverage: Array.isArray(payload?.coverage) ? payload.coverage : [],
+        combinations,
+        coverage: [...coverage].map(([collectionKey, snapshotAt]) => ({ collectionKey, snapshotAt })),
       });
     } catch {
       return json(res, 502, { error: "Gift registry lookup failed", combinations: [] });

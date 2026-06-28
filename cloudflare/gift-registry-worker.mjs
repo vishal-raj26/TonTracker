@@ -304,7 +304,7 @@ export default {
     }
     if (url.pathname === "/combos" && request.method === "POST") {
       const body = await request.json();
-      const pairs = Array.isArray(body.pairs) ? body.pairs.slice(0, 500) : [];
+      const pairs = Array.isArray(body.pairs) ? body.pairs.slice(0, 5000) : [];
       return json(await readCombos(env, pairs));
     }
     if (url.pathname === "/ingest/collection" && request.method === "POST") {
