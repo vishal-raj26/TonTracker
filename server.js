@@ -150,6 +150,9 @@ const giftSnapshotAutorunRequested = process.env.GIFT_SNAPSHOT_AUTORUN === undef
   : process.env.GIFT_SNAPSHOT_AUTORUN === "1";
 const giftSnapshotAutorun = giftSnapshotAutorunRequested
   && (!isRailwayRuntime || process.env.TONTRACK_MODE === "gift-snapshot-worker");
+const registryPreloadRequested = process.env.REGISTRY_PRELOAD === undefined
+  ? isRailwayRuntime
+  : process.env.REGISTRY_PRELOAD === "1";
 
 function scheduleGiftLayerRegistrySave() {
   if (giftLayerRegistrySaveTimer) return;
@@ -5046,12 +5049,12 @@ async function d1GiftComboHistory(collectionName = "", modelName = "", backdropN
 
 async function d1GiftComboFloors(pairs = []) {
   if ((!giftRegistryReadUrl && !giftRegistryProxyUrl) || !pairs.length) return { combinations: [], coverage: [] };
-  const requested = [];
-  pairs.forEach((pair) => {
-    const aliases = [...new Set([pair.collection, pair.collectionKey, ...(pair.collectionKeys || [])].filter(Boolean))];
-    aliases.forEach((collection) => requested.push({ collection, model: pair.model, backdrop: pair.backdrop }));
-  });
-  const requestChunkSize = 500;
+  const requested = pairs.map((pair) => ({
+    collection: pair.collection,
+    model: pair.model,
+    backdrop: pair.backdrop,
+  }));
+  const requestChunkSize = 40;
   const chunks = Array.from({ length: Math.ceil(requested.length / requestChunkSize) }, (_, index) => requested.slice(index * requestChunkSize, index * requestChunkSize + requestChunkSize));
   const combinations = [];
   const coverage = new Map();
@@ -7213,17 +7216,23 @@ function startServer() {
     if (isRailwayRuntime || process.stdout.isTTY) {
       console.log(`TonTrack backend running at http://127.0.0.1:${port}`);
     }
-    setTimeout(() => {
-      refreshCollectiblesRegistry(true).catch((error) => console.warn("Collectibles registry preload failed", error.message));
-      refreshStickerCollectionsRegistryFile(true).catch((error) => console.warn("Sticker registry preload failed", error.message));
-      if (giftSnapshotAutorun) collectGiftFloorSnapshotsNow().catch((error) => console.warn("Gift floor snapshot preload failed", error.message));
-    }, 15000);
+    if (registryPreloadRequested || giftSnapshotAutorun) {
+      setTimeout(() => {
+        if (registryPreloadRequested) {
+          refreshCollectiblesRegistry(true).catch((error) => console.warn("Collectibles registry preload failed", error.message));
+          refreshStickerCollectionsRegistryFile(true).catch((error) => console.warn("Sticker registry preload failed", error.message));
+        }
+        if (giftSnapshotAutorun) collectGiftFloorSnapshotsNow().catch((error) => console.warn("Gift floor snapshot preload failed", error.message));
+      }, 15000);
+    }
   });
 
-  setInterval(() => {
-    refreshCollectiblesRegistry(true).catch((error) => console.warn("Collectibles registry refresh failed", error.message));
-    refreshStickerCollectionsRegistryFile(true).catch((error) => console.warn("Sticker registry refresh failed", error.message));
-  }, 30 * 60 * 1000);
+  if (registryPreloadRequested) {
+    setInterval(() => {
+      refreshCollectiblesRegistry(true).catch((error) => console.warn("Collectibles registry refresh failed", error.message));
+      refreshStickerCollectionsRegistryFile(true).catch((error) => console.warn("Sticker registry refresh failed", error.message));
+    }, 30 * 60 * 1000);
+  }
 
   if (giftSnapshotAutorun) {
     setInterval(() => {
