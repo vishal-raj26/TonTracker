@@ -1275,12 +1275,35 @@ function giftFloorResponseKeys(model = {}) {
   ].filter(Boolean))];
 }
 
+const giftComboFloorState = new Map();
+
 function giftModelTrait(asset = {}) {
   return (asset.traits || []).find((trait) => /model/i.test(String(trait.label || "")))?.value || "";
 }
 
 function giftTraitValue(asset = {}, label = "") {
   return (asset.traits || []).find((trait) => String(trait.label || "").toLowerCase() === label.toLowerCase())?.value || "";
+}
+
+function giftComboStateKey(asset = {}, group = {}) {
+  return giftFloorRequestKey(
+    asset.collection || group.collection || group.name,
+    giftModelTrait(asset),
+    giftTraitValue(asset, "Backdrop"),
+  );
+}
+
+function setGiftComboState(asset = {}, group = {}, state = {}) {
+  const key = giftComboStateKey(asset, group);
+  if (key && !key.endsWith("::")) giftComboFloorState.set(key, state);
+}
+
+function giftComboState(asset = {}) {
+  return giftComboFloorState.get(giftComboStateKey(asset)) || null;
+}
+
+function clearGiftComboState(asset = {}, group = {}) {
+  giftComboFloorState.delete(giftComboStateKey(asset, group));
 }
 
 function applyGiftModelFloor(asset, model = {}) {
@@ -1294,6 +1317,8 @@ function applyGiftModelFloor(asset, model = {}) {
   const isBackdropFloor = model.source === "d1-backdrop-floor";
   asset.marketPlatform = isBackdropFloor ? "Backdrop Floor" : "Model Floor";
   asset.floorSource = isBackdropFloor ? "backdrop" : "model";
+  if (isBackdropFloor) setGiftComboState(asset, {}, { status: "found", source: model.source });
+  else clearGiftComboState(asset);
   if (model.iconUrl || model.animationUrl) {
     if (model.iconUrl) {
       asset.iconUrl = model.iconUrl || asset.iconUrl || "";
@@ -1404,6 +1429,8 @@ function markGiftFloorUnavailable(asset = {}) {
   asset.quickSellUsd = 0;
   asset.pnlUsd = 0;
   asset.pnlPct = 0;
+  setGiftComboState(asset, {}, { status: "missing", source: "d1-combo-missing" });
+  if (typeof giftDetailCache !== "undefined") giftDetailCache.delete(giftDetailCacheKey(asset));
 }
 
 function recomputeGiftGroup(group) {
@@ -2257,7 +2284,8 @@ function isVerifiedGiftFloor(floor = {}) {
 
 function applyGiftVerifiedFloor(detail, payload = {}) {
   const floor = payload?.floor || {};
-  const verifiedFloor = isVerifiedGiftFloor(floor);
+  const blockedByBulkState = giftComboState(detail)?.status === "missing";
+  const verifiedFloor = !blockedByBulkState && isVerifiedGiftFloor(floor);
   const floorHistoryPoints = verifiedFloor && Array.isArray(payload?.floorHistory)
     ? payload.floorHistory
       .map((point, index) => {
