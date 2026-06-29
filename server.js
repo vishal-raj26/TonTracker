@@ -61,6 +61,7 @@ const walletHistoryCache = new Map();
 const walletJettonsCache = new Map();
 const walletHistoryJobs = new Map();
 const giftComboHealJobs = new Set();
+const giftComboExactMissCache = new Map();
 const txActionCache = new Map();
 const dnsNameCache = new Map();
 const historyCacheVersion = "short-ranges-v3";
@@ -5020,17 +5021,21 @@ async function thermosGiftModelPayload(collectionName = "", { force = false, ton
 
 async function d1GiftComboFloor(collectionName = "", modelName = "", backdropName = "") {
   if (!giftRegistryReadUrl || !collectionName || !modelName || !backdropName) return null;
-  try {
-    const params = new URLSearchParams({
-      collection: collectionName,
-      model: modelName,
-      backdrop: backdropName,
-    });
-    const payload = await marketJson(`${giftRegistryReadUrl}/combo?${params}`, {}, 5000);
-    return Number(payload?.floorTon || 0) > 0 ? payload : null;
-  } catch {
-    return null;
+  const collectionAliases = [...new Set([collectionName, ...giftCollectionAliasKeys(collectionName)].filter(Boolean))];
+  for (const collection of collectionAliases) {
+    try {
+      const params = new URLSearchParams({
+        collection,
+        model: modelName,
+        backdrop: backdropName,
+      });
+      const payload = await marketJson(`${giftRegistryReadUrl}/combo?${params}`, {}, 5000);
+      if (Number(payload?.floorTon || 0) > 0) return payload;
+    } catch {
+      // Try the next collection alias before giving up.
+    }
   }
+  return null;
 }
 
 async function d1GiftComboHistory(collectionName = "", modelName = "", backdropName = "") {
@@ -5049,11 +5054,26 @@ async function d1GiftComboHistory(collectionName = "", modelName = "", backdropN
 
 async function d1GiftComboFloors(pairs = []) {
   if ((!giftRegistryReadUrl && !giftRegistryProxyUrl) || !pairs.length) return { combinations: [], coverage: [] };
-  const requested = pairs.map((pair) => ({
-    collection: pair.collection,
-    model: pair.model,
-    backdrop: pair.backdrop,
-  }));
+  const seen = new Set();
+  const requested = [];
+  pairs.forEach((pair) => {
+    const collectionAliases = [...new Set([
+      pair.collection,
+      pair.collectionKey,
+      ...(pair.collectionKeys || []),
+      ...giftCollectionAliasKeys(pair.collection),
+    ].filter(Boolean))];
+    collectionAliases.forEach((collection) => {
+      const key = [collection, pair.model, pair.backdrop].map(giftSnapshotKey).join(":");
+      if (seen.has(key)) return;
+      seen.add(key);
+      requested.push({
+        collection,
+        model: pair.model,
+        backdrop: pair.backdrop,
+      });
+    });
+  });
   const requestChunkSize = 40;
   const chunks = Array.from({ length: Math.ceil(requested.length / requestChunkSize) }, (_, index) => requested.slice(index * requestChunkSize, index * requestChunkSize + requestChunkSize));
   const combinations = [];
@@ -5206,12 +5226,30 @@ function missingGiftComboFloorPairs(pairs = [], combosByKey = new Map()) {
   return missing;
 }
 
+function giftComboPairKey(pair = {}) {
+  return [pair.collectionKey || giftSnapshotKey(pair.collection), pair.modelKey || giftSnapshotKey(pair.model), pair.backdropKey || giftSnapshotKey(pair.backdrop)].join(":");
+}
+
+function rememberGiftComboExactMiss(pair = {}) {
+  const key = giftComboPairKey(pair);
+  if (key && !key.endsWith("::")) giftComboExactMissCache.set(key, Date.now() + 15 * 60 * 1000);
+}
+
+function hasRecentGiftComboExactMiss(pair = {}) {
+  const key = giftComboPairKey(pair);
+  const expiresAt = key ? Number(giftComboExactMissCache.get(key) || 0) : 0;
+  if (expiresAt > Date.now()) return true;
+  if (key) giftComboExactMissCache.delete(key);
+  return false;
+}
+
 function scheduleGiftComboFloorHeal(pairs = [], combosByKey = new Map(), tonRate = 0) {
   const scheduleLimit = Math.max(0, Number(process.env.GIFT_COMBO_EXACT_HEAL_SCHEDULE_LIMIT || 250));
   const missing = missingGiftComboFloorPairs(pairs, combosByKey)
     .slice(0, scheduleLimit)
     .filter((pair) => {
-      const requestKey = [pair.collectionKey, pair.modelKey, pair.backdropKey].join(":");
+      if (hasRecentGiftComboExactMiss(pair)) return false;
+      const requestKey = giftComboPairKey(pair);
       if (giftComboHealJobs.has(requestKey)) return false;
       giftComboHealJobs.add(requestKey);
       return true;
@@ -5219,11 +5257,12 @@ function scheduleGiftComboFloorHeal(pairs = [], combosByKey = new Map(), tonRate
   if (!missing.length) return 0;
   Promise.resolve()
     .then(async () => {
-      await mapLimit(missing, 2, async (pair) => {
+      await mapLimit(missing, 1, async (pair) => {
         try {
-          await thermosExactGiftComboFloor(pair.collection, pair.model, pair.backdrop, tonRate);
+          const combo = await thermosExactGiftComboFloor(pair.collection, pair.model, pair.backdrop, tonRate);
+          if (!combo) rememberGiftComboExactMiss(pair);
         } finally {
-          giftComboHealJobs.delete([pair.collectionKey, pair.modelKey, pair.backdropKey].join(":"));
+          giftComboHealJobs.delete(giftComboPairKey(pair));
         }
       });
     })
@@ -5234,13 +5273,15 @@ function scheduleGiftComboFloorHeal(pairs = [], combosByKey = new Map(), tonRate
 }
 
 async function healMissingGiftComboFloors(pairs = [], combosByKey = new Map(), tonRate = 0) {
-  const missing = missingGiftComboFloorPairs(pairs, combosByKey);
+  const missing = missingGiftComboFloorPairs(pairs, combosByKey).filter((pair) => !hasRecentGiftComboExactMiss(pair));
   const limit = Math.max(0, Number(process.env.GIFT_COMBO_EXACT_HEAL_LIMIT || 250));
   if (!limit || !missing.length) return [];
   const selected = missing.slice(0, limit);
-  const healed = await mapLimit(selected, 6, (pair) => (
-    thermosExactGiftComboFloor(pair.collection, pair.model, pair.backdrop, tonRate)
-  ));
+  const healed = await mapLimit(selected, 1, async (pair) => {
+    const combo = await thermosExactGiftComboFloor(pair.collection, pair.model, pair.backdrop, tonRate);
+    if (!combo) rememberGiftComboExactMiss(pair);
+    return combo;
+  });
   return healed.filter((combo) => combo && Number(combo.floorTon || 0) > 0);
 }
 
@@ -5617,14 +5658,8 @@ async function getCollectibles(address) {
   const classified = await walletNftsByType(address);
   const owned = [...classified.gifts, ...classified.stickers];
   if (owned.length) {
-    const thermosCollections = await thermosGiftCollections();
-    const thermosGiftMap = new Map(
-      thermosCollections.map((item) => [normalizeCollectibleAlias(item?.name || ""), normalizeThermosCollection(item, tonRate)])
-    );
     const withFloors = owned.map((item) => {
-      const floor = item.type === "gift"
-        ? (thermosGiftMap.get(normalizeCollectibleAlias(item.collection || item.name || "")) || {})
-        : {};
+      const floor = {};
       const floorTon = Number(item.floorTon || floor.floorTon || 0);
       return {
         ...item,
@@ -6918,13 +6953,18 @@ async function handleApi(req, res, url) {
       const isPairCovered = (pair) => [pair.collection, pair.collectionKey, ...(pair.collectionKeys || [])]
         .map(giftSnapshotKey)
         .some((collectionKey) => coveredCollectionKeys.has(collectionKey));
-      const healingScheduled = scheduleGiftComboFloorHeal(pairs.filter((pair) => !isPairCovered(pair)), combosByKey, rate);
+      const healingScheduled = scheduleGiftComboFloorHeal(pairs, combosByKey, rate);
       const responseModels = pairs.map((pair) => {
         const stored = models.find((model) => (
           model.modelKey === pair.modelKey
           && [pair.collectionKey, ...(pair.collectionKeys || [])].includes(model.collectionKey)
         )) || {};
-        const collectionAliases = [...new Set([pair.collection, pair.collectionKey, ...(pair.collectionKeys || [])].filter(Boolean))];
+        const collectionAliases = [...new Set([
+          pair.collection,
+          pair.collectionKey,
+          ...(pair.collectionKeys || []),
+          ...giftCollectionAliasKeys(pair.collection),
+        ].filter(Boolean))];
         const combo = collectionAliases
           .map((collection) => combosByKey.get([collection, pair.model, pair.backdrop].map(giftSnapshotKey).join(":")))
           .find(Boolean);
@@ -6944,7 +6984,9 @@ async function handleApi(req, res, url) {
           model.floorTon = 0;
           model.floorUsd = 0;
           model.listedCount = 0;
-          model.source = isPairCovered(pair) ? "d1-combo-missing" : "combo-floor-pending";
+          model.source = hasRecentGiftComboExactMiss(pair)
+            ? "d1-combo-missing"
+            : "combo-floor-pending";
           model.marketPlatform = "";
           model.marketUrl = "";
           model.listingId = "";

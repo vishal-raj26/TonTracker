@@ -328,19 +328,38 @@ async function scanCollection(collection, cycleStatus = {}) {
     combinations: [...combinations.entries()],
   }));
   const marketStats = [];
+  const failedMarkets = [];
   const marketScopes = thermosMarkets.length ? thermosMarkets : [""];
   for (const market of marketScopes) {
-    marketStats.push(await scanMarket(collection, market, combinations, work, saveWork, async (progress) => {
+    try {
+      marketStats.push(await scanMarket(collection, market, combinations, work, saveWork, async (progress) => {
+        await uploadStatus({
+          phase: "scanning_pages",
+          collection,
+          currentPage: progress.currentPage,
+          totalPages: progress.totalPages,
+          completedCollections: cycleStatus.completedCollections || 0,
+          totalCollections: cycleStatus.totalCollections || 0,
+          message: `${progress.market}: ${progress.currentPage}/${progress.totalPages} pages, ${combinations.size} combinations`,
+        });
+      }));
+    } catch (error) {
+      const marketKey = market || "AGGREGATE";
+      const message = String(error.message || error).slice(0, 200);
+      failedMarkets.push({ market: marketKey, error: message });
+      marketStats.push({ market: marketKey, listingCount: 0, pages: 0, failed: true, error: message });
+      saveWork();
+      console.warn(`[combo-worker] ${collection} ${marketKey} failed; keeping ${combinations.size} combinations: ${message}`);
       await uploadStatus({
-        phase: "scanning_pages",
+        phase: "market_failed",
         collection,
-        currentPage: progress.currentPage,
-        totalPages: progress.totalPages,
+        currentPage: 0,
+        totalPages: 0,
         completedCollections: cycleStatus.completedCollections || 0,
         totalCollections: cycleStatus.totalCollections || 0,
-        message: `${progress.market}: ${progress.currentPage}/${progress.totalPages} pages, ${combinations.size} combinations`,
+        message: `${marketKey} failed; continuing with ${combinations.size} combinations`,
       });
-    }));
+    }
   }
   saveWork();
   const listingCount = marketStats.reduce((sum, item) => sum + Number(item.listingCount || 0), 0);
@@ -357,6 +376,8 @@ async function scanCollection(collection, cycleStatus = {}) {
     marketMode: marketSignature,
     markets: thermosMarkets,
     marketStats,
+    partial: failedMarkets.length > 0,
+    failedMarkets,
     buckets,
     workFile,
   };
@@ -431,6 +452,29 @@ async function runCycle({ resetCompleted = false } = {}) {
       totalCollections: names.length,
     });
     await uploadCollection(snapshot);
+    if (snapshot.partial) {
+      updateCycleStatus(checkpoint, {
+        phase: "collection_partial",
+        currentCollection: collection,
+        lastPartialCollection: collection,
+        lastPartialCollectionAt: snapshot.snapshotAt,
+        lastListingCount: snapshot.listingCount,
+        lastCombinationCount: snapshot.combinationCount,
+        failedMarkets: snapshot.failedMarkets,
+        completedCollections: Object.keys(checkpoint.completed).length,
+      });
+      await uploadStatus({
+        phase: "collection_partial",
+        collection,
+        currentPage: 0,
+        totalPages: 0,
+        completedCollections: Object.keys(checkpoint.completed || {}).length,
+        totalCollections: names.length,
+        message: `Saved partial ${snapshot.combinationCount} combinations; failed markets: ${snapshot.failedMarkets.map((item) => item.market).join(", ")}`,
+      });
+      console.warn(`Saved partial ${snapshot.combinationCount} combinations; failed markets: ${snapshot.failedMarkets.map((item) => item.market).join(", ")}`);
+      continue;
+    }
     checkpoint.completed[doneKey] = {
       name: collection,
       snapshotAt: snapshot.snapshotAt,
