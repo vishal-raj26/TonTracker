@@ -164,14 +164,15 @@ async function waitForThermosSlot() {
 }
 
 async function fetchJson(url, options = {}, attempts = 20) {
+  const { onRetry, timeoutMs, ...fetchOptions } = options;
   let lastError;
   for (let attempt = 0; attempt < attempts; attempt += 1) {
     try {
       if (isThermosUrl(url)) await waitForThermosSlot();
       const response = await fetch(url, {
-        ...options,
-        headers: { "content-type": "application/json", ...(options.headers || {}) },
-        signal: AbortSignal.timeout(30000),
+        ...fetchOptions,
+        headers: { "content-type": "application/json", ...(fetchOptions.headers || {}) },
+        signal: AbortSignal.timeout(Number(timeoutMs || 30000)),
       });
       if (!response.ok) {
         const text = await response.text();
@@ -188,6 +189,11 @@ async function fetchJson(url, options = {}, attempts = 20) {
       if (error.retryable === false || attempt === attempts - 1) break;
       const waitMs = lastError.retryAfterMs || Math.min(60000, 1500 * (attempt + 1) ** 2);
       console.warn(`Request retry ${attempt + 1}/${attempts} in ${Math.round(waitMs / 1000)}s: ${lastError.message.slice(0, 80)}`);
+      if (typeof onRetry === "function") {
+        try {
+          await onRetry({ attempt: attempt + 1, attempts, waitMs, error: lastError });
+        } catch {}
+      }
       await new Promise((resolve) => setTimeout(resolve, waitMs));
     }
   }
@@ -210,10 +216,11 @@ function giftSearchBody(collection, page, market) {
   };
 }
 
-async function fetchPage(collection, market, page) {
+async function fetchPage(collection, market, page, onRetry = null) {
   const result = await fetchJson(`${thermosBase}/gifts`, {
     method: "POST",
     body: JSON.stringify(giftSearchBody(collection, page, market)),
+    onRetry,
   }, listingFetchAttempts);
   return result;
 }
@@ -280,8 +287,19 @@ async function scanMarket(collection, market, combinations, work, saveWork, repo
       donePages: [...donePages].sort((left, right) => left - right),
     };
   };
+  const retryProgress = async (page, retry) => {
+    if (!reportProgress) return;
+    const waitSeconds = Math.round(Number(retry.waitMs || 0) / 1000);
+    await reportProgress({
+      phase: "request_retry",
+      market: marketKey,
+      currentPage: donePages.size,
+      totalPages: pages || 0,
+      message: `${marketKey} page ${page} retry ${retry.attempt}/${retry.attempts} in ${waitSeconds}s: ${String(retry.error?.message || retry.error).slice(0, 80)}`,
+    });
+  };
   if (!pages) {
-    const first = await fetchPage(collection, market, 1);
+    const first = await fetchPage(collection, market, 1, (retry) => retryProgress(1, retry));
     mergeItems(combinations, first.items, market);
     pages = Number(first.pages || 1);
     listingCount = Number(first.count || 0);
@@ -303,12 +321,12 @@ async function scanMarket(collection, market, combinations, work, saveWork, repo
     while (true) {
       const page = reservePage();
       if (!page) return;
-      const payload = await fetchPage(collection, market, page);
+      const payload = await fetchPage(collection, market, page, (retry) => retryProgress(page, retry));
       mergeItems(combinations, payload.items, market);
       donePages.add(page);
       updateMarketWork();
       if (donePages.size % 10 === 0 || donePages.size === pages) saveWork();
-      if (donePages.size % 100 === 0 || donePages.size === pages) {
+      if (donePages.size % 10 === 0 || donePages.size === pages) {
         process.stdout.write(`\r${collection} ${marketKey}: ${donePages.size}/${pages} pages, ${combinations.size} combinations`);
         if (reportProgress) await reportProgress({ market: marketKey, currentPage: donePages.size, totalPages: pages });
       }
@@ -347,13 +365,13 @@ async function scanCollection(collection, cycleStatus = {}) {
     try {
       marketStats.push(await scanMarket(collection, market, combinations, work, saveWork, async (progress) => {
         await uploadStatus({
-          phase: progress.complete ? "market_complete" : "scanning_pages",
+          phase: progress.phase || (progress.complete ? "market_complete" : "scanning_pages"),
           collection,
           currentPage: progress.currentPage,
           totalPages: progress.totalPages,
           completedCollections: cycleStatus.completedCollections || 0,
           totalCollections: cycleStatus.totalCollections || 0,
-          message: `${progress.market}: ${progress.currentPage}/${progress.totalPages} pages, ${combinations.size} combinations`,
+          message: progress.message || `${progress.market}: ${progress.currentPage}/${progress.totalPages} pages, ${combinations.size} combinations`,
         });
       }));
     } catch (error) {
