@@ -32,6 +32,7 @@ const thermosMarkets = configuredMarkets;
 const marketSignature = thermosMarkets.length ? thermosMarkets.join("+") : "AGGREGATE";
 const pageConcurrency = Math.max(1, Math.min(12, Number(process.env.GIFT_COMBO_PAGE_CONCURRENCY || 1)));
 const requestDelayMs = Math.max(0, Number(process.env.GIFT_COMBO_REQUEST_DELAY_MS || 1050));
+const listingFetchAttempts = Math.max(2, Math.min(20, Number(process.env.GIFT_COMBO_LISTING_FETCH_ATTEMPTS || 5)));
 const continuousMode = process.argv.includes("--continuous") || process.env.GIFT_COMBO_CONTINUOUS === "1";
 const cycleDelayMs = Math.max(0, Number(process.env.GIFT_COMBO_CYCLE_DELAY_MS || 5 * 60 * 1000));
 const bucketCount = 32;
@@ -206,7 +207,7 @@ async function fetchPage(collection, market, page) {
   const result = await fetchJson(`${thermosBase}/gifts`, {
     method: "POST",
     body: JSON.stringify(giftSearchBody(collection, page, market)),
-  });
+  }, listingFetchAttempts);
   return result;
 }
 
