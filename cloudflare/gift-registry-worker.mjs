@@ -178,6 +178,54 @@ async function readCombos(env, pairs = []) {
   return { combinations: results, coverage };
 }
 
+async function readCollectionCombos(env, collections = []) {
+  const requested = [...new Set((Array.isArray(collections) ? collections : [])
+    .flatMap((collection) => collectionAliasKeys(collection))
+    .filter(Boolean))]
+    .slice(0, 100);
+  if (!requested.length) return { collections: [] };
+  const rows = [];
+  for (let index = 0; index < requested.length; index += 10) {
+    const chunk = requested.slice(index, index + 10);
+    const results = await env.GIFT_REGISTRY.batch(chunk.map((collectionKey) => (
+      env.GIFT_REGISTRY.prepare(
+        `SELECT c.collection_key, c.collection_name, c.snapshot_at AS collection_snapshot_at,
+          c.source, b.bucket, b.snapshot_at AS bucket_snapshot_at, b.combinations_json
+         FROM gift_combo_collections c
+         JOIN gift_combo_buckets b ON b.collection_key = c.collection_key
+         WHERE c.collection_key = ?1 AND c.bucket_count = ?2
+         ORDER BY b.bucket ASC`
+      ).bind(collectionKey, BUCKET_COUNT)
+    )));
+    results.forEach((result) => rows.push(...(result.results || [])));
+  }
+  const byCollection = new Map();
+  rows.forEach((row) => {
+    const collection = byCollection.get(row.collection_key) || {
+      collectionKey: row.collection_key,
+      collection: row.collection_name,
+      snapshotAt: row.collection_snapshot_at,
+      source: row.source || "gift-combo-d1",
+      combinations: {},
+    };
+    const entries = JSON.parse(row.combinations_json || "{}");
+    Object.entries(entries).forEach(([targetKey, entry]) => {
+      collection.combinations[targetKey] = {
+        model: entry.m,
+        backdrop: entry.b,
+        floorTon: Number(entry.f || 0),
+        listedCount: Number(entry.l || 0),
+        marketplace: entry.p || "",
+        listingUrl: entry.u || "",
+        listingId: entry.i || "",
+        snapshotAt: row.bucket_snapshot_at || row.collection_snapshot_at,
+      };
+    });
+    byCollection.set(row.collection_key, collection);
+  });
+  return { collections: [...byCollection.values()] };
+}
+
 async function readComboHistory(env, collection, model, backdrop) {
   const collectionKey = key(collection);
   const targetKey = comboKey(model, backdrop);
@@ -514,6 +562,11 @@ export default {
       const body = await request.json();
       const pairs = Array.isArray(body.pairs) ? body.pairs.slice(0, 5000) : [];
       return json(await readCombos(env, pairs));
+    }
+    if (url.pathname === "/collection-combos" && request.method === "POST") {
+      const body = await request.json();
+      const collections = Array.isArray(body.collections) ? body.collections.slice(0, 100) : [];
+      return json(await readCollectionCombos(env, collections));
     }
     if (url.pathname === "/ingest/collection" && request.method === "POST") {
       return ingestCollection(request, env);
