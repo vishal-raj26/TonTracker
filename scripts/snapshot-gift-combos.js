@@ -307,6 +307,7 @@ async function scanMarket(collection, market, combinations, work, saveWork, repo
   await Promise.all(workers);
   updateMarketWork();
   saveWork();
+  if (reportProgress) await reportProgress({ market: marketKey, currentPage: pages, totalPages: pages, complete: true });
   if (pages > 1) process.stdout.write("\n");
   return { market: marketKey, listingCount, pages };
 }
@@ -336,7 +337,7 @@ async function scanCollection(collection, cycleStatus = {}) {
     try {
       marketStats.push(await scanMarket(collection, market, combinations, work, saveWork, async (progress) => {
         await uploadStatus({
-          phase: "scanning_pages",
+          phase: progress.complete ? "market_complete" : "scanning_pages",
           collection,
           currentPage: progress.currentPage,
           totalPages: progress.totalPages,
