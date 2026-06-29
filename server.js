@@ -6950,10 +6950,10 @@ async function handleApi(req, res, url) {
         combo,
       ]));
       const coveredCollectionKeys = new Set((comboLookup.coverage || []).map((entry) => giftSnapshotKey(entry.collectionKey)));
-      const isPairCovered = (pair) => [pair.collection, pair.collectionKey, ...(pair.collectionKeys || [])]
+      const isPairCovered = (pair) => [pair.collection, pair.collectionKey, ...(pair.collectionKeys || []), ...giftCollectionAliasKeys(pair.collection)]
         .map(giftSnapshotKey)
         .some((collectionKey) => coveredCollectionKeys.has(collectionKey));
-      const healingScheduled = scheduleGiftComboFloorHeal(pairs, combosByKey, rate);
+      const healingScheduled = scheduleGiftComboFloorHeal(pairs.filter((pair) => !isPairCovered(pair)), combosByKey, rate);
       const responseModels = pairs.map((pair) => {
         const stored = models.find((model) => (
           model.modelKey === pair.modelKey
@@ -6984,7 +6984,7 @@ async function handleApi(req, res, url) {
           model.floorTon = 0;
           model.floorUsd = 0;
           model.listedCount = 0;
-          model.source = hasRecentGiftComboExactMiss(pair)
+          model.source = isPairCovered(pair) || hasRecentGiftComboExactMiss(pair)
             ? "d1-combo-missing"
             : "combo-floor-pending";
           model.marketPlatform = "";

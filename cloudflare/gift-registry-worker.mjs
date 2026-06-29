@@ -476,6 +476,14 @@ export default {
       ).first();
       return json(stats || {});
     }
+    if (url.pathname === "/collections") {
+      const rows = await env.GIFT_REGISTRY.prepare(
+        `SELECT collection_key, collection_name, snapshot_at, listing_count, combination_count, source
+         FROM gift_combo_collections
+         ORDER BY collection_name ASC`
+      ).all();
+      return json({ collections: rows.results || [] });
+    }
     if (url.pathname === "/worker-status") {
       const rows = await env.GIFT_REGISTRY.prepare(
         `SELECT worker_key, phase, collection_name, current_page, total_pages,

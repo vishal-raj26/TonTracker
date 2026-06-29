@@ -35,6 +35,7 @@ const requestDelayMs = Math.max(0, Number(process.env.GIFT_COMBO_REQUEST_DELAY_M
 const listingFetchAttempts = Math.max(2, Math.min(20, Number(process.env.GIFT_COMBO_LISTING_FETCH_ATTEMPTS || 5)));
 const continuousMode = process.argv.includes("--continuous") || process.env.GIFT_COMBO_CONTINUOUS === "1";
 const cycleDelayMs = Math.max(0, Number(process.env.GIFT_COMBO_CYCLE_DELAY_MS || 5 * 60 * 1000));
+const skipFreshMs = Math.max(0, Number(process.env.GIFT_COMBO_SKIP_FRESH_MS || 12 * 60 * 60 * 1000));
 const bucketCount = 32;
 const scannerVersion = Number(process.env.GIFT_COMBO_SCANNER_VERSION || 3);
 
@@ -416,6 +417,29 @@ async function uploadCollection(snapshot) {
   };
 }
 
+async function registryFreshCollections() {
+  if (!skipFreshMs) return new Map();
+  try {
+    const payload = await fetchJson(`${registryUrl}/collections`, {}, 3);
+    const fresh = new Map();
+    const now = Date.now();
+    (Array.isArray(payload?.collections) ? payload.collections : []).forEach((row) => {
+      const collectionKey = key(row.collection_key || row.collectionKey || row.collection_name || row.collectionName);
+      const snapshotAt = new Date(row.snapshot_at || row.snapshotAt || 0).getTime();
+      if (!collectionKey || !snapshotAt || now - snapshotAt > skipFreshMs) return;
+      fresh.set(collectionKey, {
+        snapshotAt: row.snapshot_at || row.snapshotAt,
+        combinationCount: Number(row.combination_count || row.combinationCount || 0),
+        listingCount: Number(row.listing_count || row.listingCount || 0),
+      });
+    });
+    return fresh;
+  } catch (error) {
+    console.warn(`Could not load registry freshness; scanning all collections: ${String(error.message || error).slice(0, 120)}`);
+    return new Map();
+  }
+}
+
 async function runCycle({ resetCompleted = false } = {}) {
   const checkpoint = loadCheckpoint();
   if (resetCompleted) {
@@ -431,6 +455,9 @@ async function runCycle({ resetCompleted = false } = {}) {
   const names = [...new Set(rows.map((item) => String(item?.name || item?.collection || item?.title || "").trim()).filter(Boolean))]
     .filter((name) => !onlyCollection || key(name) === key(onlyCollection));
   if (!names.length) throw new Error("No Thermos collections found");
+  const freshCollections = (!process.argv.includes("--reset") && !onlyCollection)
+    ? await registryFreshCollections()
+    : new Map();
   updateCycleStatus(checkpoint, {
     phase: "running",
     cycleStartedAt: checkpoint.startedAt || new Date().toISOString(),
@@ -454,6 +481,20 @@ async function runCycle({ resetCompleted = false } = {}) {
     const doneKey = checkpointKey(collection);
     if (checkpoint.completed[doneKey] && !process.argv.includes("--reset")) {
       console.log(`[${index + 1}/${names.length}] ${collection}: already complete`);
+      continue;
+    }
+    const fresh = freshCollections.get(key(collection));
+    if (fresh) {
+      checkpoint.completed[doneKey] = {
+        name: collection,
+        snapshotAt: fresh.snapshotAt,
+        listingCount: fresh.listingCount,
+        combinationCount: fresh.combinationCount,
+        marketMode: marketSignature,
+        markets: thermosMarkets,
+        skippedFresh: true,
+      };
+      console.log(`[${index + 1}/${names.length}] ${collection}: already fresh in D1 (${fresh.combinationCount} combinations)`);
       continue;
     }
     updateCycleStatus(checkpoint, {
