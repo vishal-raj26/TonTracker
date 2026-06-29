@@ -269,6 +269,78 @@ async function ingestCollection(request, env) {
   });
 }
 
+async function ingestCollectionBucket(request, env) {
+  if (!authorized(request, env)) return json({ error: "Unauthorized" }, 401);
+  const body = await request.json();
+  const collectionName = String(body.collection || "").trim();
+  const collectionKey = key(collectionName);
+  const snapshotAt = String(body.snapshotAt || new Date().toISOString());
+  const source = String(body.source || "thermos").trim() || "thermos";
+  const bucketIndex = Number(body.bucketIndex);
+  const bucket = body.bucket && typeof body.bucket === "object" && !Array.isArray(body.bucket) ? body.bucket : null;
+  if (!collectionKey || !Number.isInteger(bucketIndex) || bucketIndex < 0 || bucketIndex >= BUCKET_COUNT || !bucket) {
+    return json({ error: `Expected collection, bucketIndex 0-${BUCKET_COUNT - 1}, and bucket object` }, 400);
+  }
+
+  const combinationsJson = JSON.stringify(bucket);
+  const previous = await env.GIFT_REGISTRY.prepare(
+    `SELECT combinations_json FROM gift_combo_buckets
+     WHERE collection_key = ?1 AND bucket = ?2`
+  ).bind(collectionKey, bucketIndex).first();
+  const changed = (previous?.combinations_json || "") !== combinationsJson;
+  const statements = [
+    env.GIFT_REGISTRY.prepare(
+      `INSERT INTO gift_combo_collections (
+        collection_key, collection_name, snapshot_at, listing_count, combination_count, bucket_count, source
+      ) VALUES (?1,?2,?3,?4,?5,?6,?7)
+      ON CONFLICT(collection_key) DO UPDATE SET
+        collection_name=excluded.collection_name,
+        snapshot_at=excluded.snapshot_at,
+        listing_count=excluded.listing_count,
+        combination_count=excluded.combination_count,
+        bucket_count=excluded.bucket_count,
+        source=excluded.source`
+    ).bind(
+      collectionKey,
+      collectionName,
+      snapshotAt,
+      Number(body.listingCount || 0),
+      Number(body.combinationCount || 0),
+      BUCKET_COUNT,
+      source
+    ),
+  ];
+
+  if (changed) {
+    statements.push(
+      env.GIFT_REGISTRY.prepare(
+        `INSERT INTO gift_combo_buckets (collection_key, bucket, snapshot_at, combinations_json)
+         VALUES (?1,?2,?3,?4)
+         ON CONFLICT(collection_key,bucket) DO UPDATE SET
+           snapshot_at=excluded.snapshot_at,
+           combinations_json=excluded.combinations_json`
+      ).bind(collectionKey, bucketIndex, snapshotAt, combinationsJson)
+    );
+    statements.push(
+      env.GIFT_REGISTRY.prepare(
+        `INSERT INTO gift_combo_history_buckets (
+          collection_key, sampled_at, bucket, changes_json
+        ) VALUES (?1,?2,?3,?4)`
+      ).bind(collectionKey, snapshotAt, bucketIndex, combinationsJson)
+    );
+  }
+
+  await env.GIFT_REGISTRY.batch(statements);
+  return json({
+    ok: true,
+    collection: collectionName,
+    bucketIndex,
+    changed,
+    entries: Object.keys(bucket).length,
+    snapshotAt,
+  });
+}
+
 async function ingestCombo(request, env) {
   if (!authorized(request, env)) return json({ error: "Unauthorized" }, 401);
   const body = await request.json();
@@ -433,6 +505,9 @@ export default {
     }
     if (url.pathname === "/ingest/collection" && request.method === "POST") {
       return ingestCollection(request, env);
+    }
+    if (url.pathname === "/ingest/collection-bucket" && request.method === "POST") {
+      return ingestCollectionBucket(request, env);
     }
     if (url.pathname === "/ingest/combo" && request.method === "POST") {
       return ingestCombo(request, env);

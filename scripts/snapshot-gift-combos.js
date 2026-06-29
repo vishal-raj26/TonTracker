@@ -385,11 +385,35 @@ async function scanCollection(collection, cycleStatus = {}) {
 }
 
 async function uploadCollection(snapshot) {
-  return fetchJson(`${registryUrl}/ingest/collection`, {
-    method: "POST",
-    headers: { authorization: `Bearer ${ingestSecret}` },
-    body: JSON.stringify(snapshot),
-  });
+  let changedBuckets = 0;
+  let uploadedEntries = 0;
+  for (let bucketIndex = 0; bucketIndex < snapshot.buckets.length; bucketIndex += 1) {
+    const bucket = snapshot.buckets[bucketIndex] || {};
+    uploadedEntries += Object.keys(bucket).length;
+    const result = await fetchJson(`${registryUrl}/ingest/collection-bucket`, {
+      method: "POST",
+      headers: { authorization: `Bearer ${ingestSecret}` },
+      body: JSON.stringify({
+        collection: snapshot.collection,
+        snapshotAt: snapshot.snapshotAt,
+        source: snapshot.source,
+        listingCount: snapshot.listingCount,
+        combinationCount: snapshot.combinationCount,
+        bucketIndex,
+        bucket,
+      }),
+    }, 5);
+    if (result.changed) changedBuckets += 1;
+  }
+  return {
+    ok: true,
+    collection: snapshot.collection,
+    listingCount: snapshot.listingCount,
+    combinationCount: snapshot.combinationCount,
+    uploadedEntries,
+    changedBuckets,
+    snapshotAt: snapshot.snapshotAt,
+  };
 }
 
 async function runCycle({ resetCompleted = false } = {}) {
@@ -452,7 +476,8 @@ async function runCycle({ resetCompleted = false } = {}) {
       completedCollections: Object.keys(checkpoint.completed || {}).length,
       totalCollections: names.length,
     });
-    await uploadCollection(snapshot);
+    const uploadResult = await uploadCollection(snapshot);
+    console.log(`${collection} uploaded ${uploadResult.uploadedEntries} combinations across ${snapshot.buckets.length} buckets (${uploadResult.changedBuckets} changed)`);
     if (snapshot.partial) {
       updateCycleStatus(checkpoint, {
         phase: "collection_partial",
