@@ -288,49 +288,53 @@ async function ingestCollectionBucket(request, env) {
      WHERE collection_key = ?1 AND bucket = ?2`
   ).bind(collectionKey, bucketIndex).first();
   const changed = (previous?.combinations_json || "") !== combinationsJson;
-  const statements = [
-    env.GIFT_REGISTRY.prepare(
-      `INSERT INTO gift_combo_collections (
-        collection_key, collection_name, snapshot_at, listing_count, combination_count, bucket_count, source
-      ) VALUES (?1,?2,?3,?4,?5,?6,?7)
-      ON CONFLICT(collection_key) DO UPDATE SET
-        collection_name=excluded.collection_name,
-        snapshot_at=excluded.snapshot_at,
-        listing_count=excluded.listing_count,
-        combination_count=excluded.combination_count,
-        bucket_count=excluded.bucket_count,
-        source=excluded.source`
-    ).bind(
-      collectionKey,
-      collectionName,
-      snapshotAt,
-      Number(body.listingCount || 0),
-      Number(body.combinationCount || 0),
-      BUCKET_COUNT,
-      source
-    ),
-  ];
+  await env.GIFT_REGISTRY.prepare(
+    `INSERT INTO gift_combo_collections (
+      collection_key, collection_name, snapshot_at, listing_count, combination_count, bucket_count, source
+    ) VALUES (?1,?2,?3,?4,?5,?6,?7)
+    ON CONFLICT(collection_key) DO UPDATE SET
+      collection_name=excluded.collection_name,
+      snapshot_at=excluded.snapshot_at,
+      listing_count=excluded.listing_count,
+      combination_count=excluded.combination_count,
+      bucket_count=excluded.bucket_count,
+      source=excluded.source`
+  ).bind(
+    collectionKey,
+    collectionName,
+    snapshotAt,
+    Number(body.listingCount || 0),
+    Number(body.combinationCount || 0),
+    BUCKET_COUNT,
+    source
+  ).run();
 
   if (changed) {
-    statements.push(
-      env.GIFT_REGISTRY.prepare(
-        `INSERT INTO gift_combo_buckets (collection_key, bucket, snapshot_at, combinations_json)
-         VALUES (?1,?2,?3,?4)
-         ON CONFLICT(collection_key,bucket) DO UPDATE SET
-           snapshot_at=excluded.snapshot_at,
-           combinations_json=excluded.combinations_json`
-      ).bind(collectionKey, bucketIndex, snapshotAt, combinationsJson)
-    );
-    statements.push(
-      env.GIFT_REGISTRY.prepare(
+    await env.GIFT_REGISTRY.prepare(
+      `INSERT INTO gift_combo_buckets (collection_key, bucket, snapshot_at, combinations_json)
+       VALUES (?1,?2,?3,?4)
+       ON CONFLICT(collection_key,bucket) DO UPDATE SET
+         snapshot_at=excluded.snapshot_at,
+         combinations_json=excluded.combinations_json`
+    ).bind(collectionKey, bucketIndex, snapshotAt, combinationsJson).run();
+
+    const previousEntries = JSON.parse(previous?.combinations_json || "{}");
+    const changes = {};
+    for (const [targetKey, entry] of Object.entries(bucket)) {
+      if (JSON.stringify(previousEntries[targetKey] || null) !== JSON.stringify(entry)) {
+        changes[targetKey] = entry;
+      }
+    }
+    if (Object.keys(changes).length) {
+      await env.GIFT_REGISTRY.prepare(
         `INSERT INTO gift_combo_history_buckets (
           collection_key, sampled_at, bucket, changes_json
-        ) VALUES (?1,?2,?3,?4)`
-      ).bind(collectionKey, snapshotAt, bucketIndex, combinationsJson)
-    );
+        ) VALUES (?1,?2,?3,?4)
+        ON CONFLICT(collection_key, sampled_at, bucket) DO UPDATE SET
+          changes_json=excluded.changes_json`
+      ).bind(collectionKey, snapshotAt, bucketIndex, JSON.stringify(changes)).run();
+    }
   }
-
-  await env.GIFT_REGISTRY.batch(statements);
   return json({
     ok: true,
     collection: collectionName,
