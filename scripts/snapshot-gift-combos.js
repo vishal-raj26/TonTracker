@@ -495,6 +495,23 @@ async function runCycle({ resetCompleted = false } = {}) {
         markets: thermosMarkets,
         skippedFresh: true,
       };
+      saveCheckpoint(checkpoint);
+      updateCycleStatus(checkpoint, {
+        phase: "collection_skipped_fresh",
+        currentCollectionIndex: index + 1,
+        totalCollections: names.length,
+        currentCollection: collection,
+        completedCollections: Object.keys(checkpoint.completed).length,
+      });
+      await uploadStatus({
+        phase: "collection_skipped_fresh",
+        collection,
+        currentPage: 0,
+        totalPages: 0,
+        completedCollections: Object.keys(checkpoint.completed || {}).length,
+        totalCollections: names.length,
+        message: `[${index + 1}/${names.length}] ${collection} already fresh in D1`,
+      });
       console.log(`[${index + 1}/${names.length}] ${collection}: already fresh in D1 (${fresh.combinationCount} combinations)`);
       continue;
     }
