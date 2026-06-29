@@ -37,7 +37,7 @@ const continuousMode = process.argv.includes("--continuous") || process.env.GIFT
 const cycleDelayMs = Math.max(0, Number(process.env.GIFT_COMBO_CYCLE_DELAY_MS || 5 * 60 * 1000));
 const skipFreshMs = Math.max(0, Number(process.env.GIFT_COMBO_SKIP_FRESH_MS || 12 * 60 * 60 * 1000));
 const bucketCount = 32;
-const scannerVersion = Number(process.env.GIFT_COMBO_SCANNER_VERSION || 3);
+const scannerVersion = Number(process.env.GIFT_COMBO_SCANNER_VERSION || 4);
 
 if (!registryUrl || !ingestSecret) {
   console.error("D1_REGISTRY_URL and D1_INGEST_SECRET are required");
@@ -431,6 +431,7 @@ async function registryFreshCollections() {
         snapshotAt: row.snapshot_at || row.snapshotAt,
         combinationCount: Number(row.combination_count || row.combinationCount || 0),
         listingCount: Number(row.listing_count || row.listingCount || 0),
+        source: String(row.source || ""),
       });
     });
     return fresh;
@@ -484,7 +485,7 @@ async function runCycle({ resetCompleted = false } = {}) {
       continue;
     }
     const fresh = freshCollections.get(key(collection));
-    if (fresh) {
+    if (fresh && fresh.source === `thermos-v${scannerVersion}`) {
       checkpoint.completed[doneKey] = {
         name: collection,
         snapshotAt: fresh.snapshotAt,
@@ -517,8 +518,6 @@ async function runCycle({ resetCompleted = false } = {}) {
       completedCollections: Object.keys(checkpoint.completed || {}).length,
       totalCollections: names.length,
     });
-    const uploadResult = await uploadCollection(snapshot);
-    console.log(`${collection} uploaded ${uploadResult.uploadedEntries} combinations across ${snapshot.buckets.length} buckets (${uploadResult.changedBuckets} changed)`);
     if (snapshot.partial) {
       updateCycleStatus(checkpoint, {
         phase: "collection_partial",
@@ -537,11 +536,13 @@ async function runCycle({ resetCompleted = false } = {}) {
         totalPages: 0,
         completedCollections: Object.keys(checkpoint.completed || {}).length,
         totalCollections: names.length,
-        message: `Saved partial ${snapshot.combinationCount} combinations; failed markets: ${snapshot.failedMarkets.map((item) => item.market).join(", ")}`,
+        message: `Skipped partial ${snapshot.combinationCount} combinations; failed markets: ${snapshot.failedMarkets.map((item) => item.market).join(", ")}`,
       });
-      console.warn(`Saved partial ${snapshot.combinationCount} combinations; failed markets: ${snapshot.failedMarkets.map((item) => item.market).join(", ")}`);
+      console.warn(`Skipped partial ${snapshot.combinationCount} combinations; failed markets: ${snapshot.failedMarkets.map((item) => item.market).join(", ")}`);
       continue;
     }
+    const uploadResult = await uploadCollection(snapshot);
+    console.log(`${collection} uploaded ${uploadResult.uploadedEntries} combinations across ${snapshot.buckets.length} buckets (${uploadResult.changedBuckets} changed)`);
     checkpoint.completed[doneKey] = {
       name: collection,
       snapshotAt: snapshot.snapshotAt,

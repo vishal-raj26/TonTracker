@@ -5074,7 +5074,7 @@ async function d1GiftComboFloors(pairs = []) {
       });
     });
   });
-  const requestChunkSize = 40;
+  const requestChunkSize = 500;
   const chunks = Array.from({ length: Math.ceil(requested.length / requestChunkSize) }, (_, index) => requested.slice(index * requestChunkSize, index * requestChunkSize + requestChunkSize));
   const combinations = [];
   const coverage = new Map();
@@ -6939,7 +6939,6 @@ async function handleApi(req, res, url) {
     try {
       const body = await readJsonBody(req);
       const pairs = requestedGiftModelPairs(body.pairs);
-      const models = await bulkStoredGiftModelFloors(pairs);
       const [comboLookup, rate] = await Promise.all([
         d1GiftComboFloors(pairs),
         tonUsdRate(),
@@ -6955,10 +6954,7 @@ async function handleApi(req, res, url) {
         .some((collectionKey) => coveredCollectionKeys.has(collectionKey));
       const healingScheduled = scheduleGiftComboFloorHeal(pairs.filter((pair) => !isPairCovered(pair)), combosByKey, rate);
       const responseModels = pairs.map((pair) => {
-        const stored = models.find((model) => (
-          model.modelKey === pair.modelKey
-          && [pair.collectionKey, ...(pair.collectionKeys || [])].includes(model.collectionKey)
-        )) || {};
+        const stored = {};
         const collectionAliases = [...new Set([
           pair.collection,
           pair.collectionKey,
