@@ -22,14 +22,20 @@ const registryUrl = String(process.env.D1_REGISTRY_URL || "").replace(/\/+$/, ""
 const ingestSecret = String(process.env.D1_INGEST_SECRET || "");
 const pageSize = 20;
 const marketArgIndex = process.argv.indexOf("--market");
+function normalizeMarketScope(market = "") {
+  const value = String(market || "").trim().toUpperCase();
+  return value === "AGGREGATE" ? "" : value;
+}
 const configuredMarkets = marketArgIndex >= 0
-  ? [String(process.argv[marketArgIndex + 1] || "").trim().toUpperCase()].filter((market) => market && market !== "AGGREGATE")
+  ? [normalizeMarketScope(process.argv[marketArgIndex + 1])].filter((market) => market || marketArgIndex >= 0)
   : String(process.env.GIFT_COMBO_MARKETS || "PORTALS,MRKT,TONNEL,GETGEMS,THERMOS")
     .split(",")
-    .map((market) => market.trim().toUpperCase())
-    .filter((market) => market && market !== "AGGREGATE");
-const thermosMarkets = configuredMarkets;
-const marketSignature = thermosMarkets.length ? thermosMarkets.join("+") : "AGGREGATE";
+    .map(normalizeMarketScope)
+    .filter(Boolean);
+const thermosMarkets = marketArgIndex >= 0
+  ? configuredMarkets
+  : [...new Set(["", ...configuredMarkets])];
+const marketSignature = thermosMarkets.map((market) => market || "AGGREGATE").join("+");
 const pageConcurrency = Math.max(1, Math.min(12, Number(process.env.GIFT_COMBO_PAGE_CONCURRENCY || 1)));
 const requestDelayMs = Math.max(0, Number(process.env.GIFT_COMBO_REQUEST_DELAY_MS || 1050));
 const listingFetchAttempts = Math.max(2, Math.min(20, Number(process.env.GIFT_COMBO_LISTING_FETCH_ATTEMPTS || 5)));
@@ -37,7 +43,7 @@ const continuousMode = process.argv.includes("--continuous") || process.env.GIFT
 const cycleDelayMs = Math.max(0, Number(process.env.GIFT_COMBO_CYCLE_DELAY_MS || 5 * 60 * 1000));
 const skipFreshMs = Math.max(0, Number(process.env.GIFT_COMBO_SKIP_FRESH_MS || 12 * 60 * 60 * 1000));
 const bucketCount = 32;
-const scannerVersion = Number(process.env.GIFT_COMBO_SCANNER_VERSION || 4);
+const scannerVersion = Math.max(5, Number(process.env.GIFT_COMBO_SCANNER_VERSION || 5));
 
 if (!registryUrl || !ingestSecret) {
   console.error("D1_REGISTRY_URL and D1_INGEST_SECRET are required");
@@ -222,11 +228,15 @@ function mergeItems(combinations, items = [], market = "") {
     const listingId = String(item?.external_id || item?.externalId || item?.listingId || item?.id || "").trim();
     const targetKey = comboKey(model, backdrop);
     if (!model || !backdrop || !(floorTon > 0) || targetKey === ":") return;
+    const listingKey = listingId || listingUrl || `${marketplace}:${targetKey}:${floorTon}`;
     const existing = combinations.get(targetKey);
     if (!existing) {
-      combinations.set(targetKey, { m: model, b: backdrop, f: floorTon, l: 1, p: marketplace, u: listingUrl, i: listingId });
+      combinations.set(targetKey, { m: model, b: backdrop, f: floorTon, l: 1, p: marketplace, u: listingUrl, i: listingId, s: [listingKey] });
       return;
     }
+    if (!Array.isArray(existing.s)) existing.s = [];
+    if (existing.s.includes(listingKey)) return;
+    existing.s.push(listingKey);
     if (floorTon < existing.f) {
       existing.f = floorTon;
       existing.p = marketplace;
@@ -368,7 +378,8 @@ async function scanCollection(collection, cycleStatus = {}) {
   const listingCount = marketStats.reduce((sum, item) => sum + Number(item.listingCount || 0), 0);
   const buckets = Array.from({ length: bucketCount }, () => ({}));
   combinations.forEach((value, targetKey) => {
-    buckets[bucketFor(targetKey)][targetKey] = value;
+    const { s, ...storedValue } = value;
+    buckets[bucketFor(targetKey)][targetKey] = storedValue;
   });
   return {
     collection,
