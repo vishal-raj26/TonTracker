@@ -524,7 +524,7 @@ export default {
   async scheduled(_event, env) {
     await env.GIFT_REGISTRY.prepare(
       `DELETE FROM gift_combo_history_buckets
-       WHERE sampled_at < datetime('now', '-30 days')`
+       WHERE sampled_at < datetime('now', '-7 days')`
     ).run();
   },
 };
