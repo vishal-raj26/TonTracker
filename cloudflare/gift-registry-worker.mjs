@@ -408,7 +408,7 @@ async function ingestCombo(request, env) {
   const bucket = bucketFor(targetKey);
   const snapshotAt = String(body.snapshotAt || new Date().toISOString());
   const current = await env.GIFT_REGISTRY.prepare(
-    `SELECT c.collection_name, c.listing_count, c.combination_count, c.source,
+    `SELECT c.collection_name, c.snapshot_at, c.listing_count, c.combination_count, c.source,
       b.combinations_json
      FROM gift_combo_collections c
      LEFT JOIN gift_combo_buckets b ON b.collection_key = c.collection_key AND b.bucket = ?2
@@ -430,6 +430,7 @@ async function ingestCombo(request, env) {
     Object.keys(entries).length
   );
   const source = String(current?.source || body.source || "thermos-v2");
+  const collectionSnapshotAt = String(current?.snapshot_at || snapshotAt);
   await env.GIFT_REGISTRY.batch([
     env.GIFT_REGISTRY.prepare(
       `INSERT INTO gift_combo_collections (
@@ -445,7 +446,7 @@ async function ingestCombo(request, env) {
     ).bind(
       collectionKey,
       current?.collection_name || collectionName,
-      snapshotAt,
+      collectionSnapshotAt,
       Number(current?.listing_count || body.listingCount || body.listedCount || 0),
       nextCombinationCount,
       BUCKET_COUNT,

@@ -62,6 +62,7 @@ const walletJettonsCache = new Map();
 const walletHistoryJobs = new Map();
 const giftComboHealJobs = new Set();
 const giftComboExactMissCache = new Map();
+const giftComboStaleRefreshCache = new Map();
 const giftComboCollectionCache = new Map();
 const giftComboBulkResponseCache = new Map();
 const txActionCache = new Map();
@@ -5219,7 +5220,7 @@ async function ingestD1GiftCombo(record = {}) {
         snapshotAt: record.timestamp || record.snapshotAt || new Date().toISOString(),
         source: record.source || "thermos-exact",
       },
-    }, 5000);
+    }, 15000);
     return true;
   } catch (error) {
     console.warn(`[gift-combo-d1] ingest failed for ${record.collectionName || record.collection} / ${record.modelName || record.model} / ${record.backdropName || record.backdrop}: ${String(error.message || error).slice(0, 160)}`);
@@ -5334,6 +5335,82 @@ function hasRecentGiftComboExactMiss(pair = {}) {
   if (expiresAt > Date.now()) return true;
   if (key) giftComboExactMissCache.delete(key);
   return false;
+}
+
+function giftComboSnapshotAgeMs(combo = {}) {
+  const time = new Date(combo.snapshotAt || combo.marketUpdatedAt || combo.timestamp || 0).getTime();
+  return time > 0 ? Date.now() - time : Number.POSITIVE_INFINITY;
+}
+
+function findGiftComboForPair(pair = {}, combosByKey = new Map()) {
+  const collectionAliases = [...new Set([
+    pair.collection,
+    pair.collectionKey,
+    ...(pair.collectionKeys || []),
+    ...giftCollectionAliasKeys(pair.collection),
+  ].filter(Boolean))];
+  return collectionAliases
+    .map((collection) => combosByKey.get([collection, pair.model, pair.backdrop].map(giftSnapshotKey).join(":")))
+    .find(Boolean) || null;
+}
+
+function hasRecentGiftComboStaleRefresh(pair = {}) {
+  const key = giftComboPairKey(pair);
+  const expiresAt = key ? Number(giftComboStaleRefreshCache.get(key) || 0) : 0;
+  if (expiresAt > Date.now()) return true;
+  if (key) giftComboStaleRefreshCache.delete(key);
+  return false;
+}
+
+function rememberGiftComboStaleRefresh(pair = {}) {
+  const key = giftComboPairKey(pair);
+  const cooldownMs = Math.max(60 * 1000, Number(process.env.GIFT_COMBO_STALE_HEAL_COOLDOWN_MS || 15 * 60 * 1000));
+  if (key && !key.endsWith("::")) giftComboStaleRefreshCache.set(key, Date.now() + cooldownMs);
+  if (giftComboStaleRefreshCache.size > 2000) {
+    const now = Date.now();
+    for (const [cacheKey, expiresAt] of giftComboStaleRefreshCache.entries()) {
+      if (expiresAt <= now || giftComboStaleRefreshCache.size > 2000) giftComboStaleRefreshCache.delete(cacheKey);
+    }
+  }
+}
+
+function scheduleStaleGiftComboFloorHeal(pairs = [], combosByKey = new Map(), tonRate = 0) {
+  const maxAgeMs = Math.max(5 * 60 * 1000, Number(process.env.GIFT_COMBO_STALE_HEAL_MAX_AGE_MS || 60 * 60 * 1000));
+  const scheduleLimit = Math.max(0, Number(process.env.GIFT_COMBO_STALE_HEAL_SCHEDULE_LIMIT || 250));
+  if (!scheduleLimit || !pairs.length) return 0;
+  const scheduled = [];
+  const seen = new Set();
+  for (const pair of pairs) {
+    if (!pair.backdropKey) continue;
+    const combo = findGiftComboForPair(pair, combosByKey);
+    if (!combo || !(Number(combo.floorTon || 0) > 0)) continue;
+    if (giftComboSnapshotAgeMs(combo) < maxAgeMs) continue;
+    const requestKey = giftComboPairKey(pair);
+    if (!requestKey || seen.has(requestKey) || giftComboHealJobs.has(requestKey) || hasRecentGiftComboStaleRefresh(pair)) continue;
+    seen.add(requestKey);
+    giftComboHealJobs.add(requestKey);
+    scheduled.push(pair);
+    if (scheduled.length >= scheduleLimit) break;
+  }
+  if (!scheduled.length) return 0;
+  Promise.resolve()
+    .then(async () => {
+      await mapLimit(scheduled, 1, async (pair) => {
+        try {
+          await thermosExactGiftComboFloor(pair.collection, pair.model, pair.backdrop, tonRate);
+        } finally {
+          rememberGiftComboStaleRefresh(pair);
+          giftComboHealJobs.delete(giftComboPairKey(pair));
+        }
+      });
+    })
+    .catch(() => {
+      scheduled.forEach((pair) => {
+        rememberGiftComboStaleRefresh(pair);
+        giftComboHealJobs.delete(giftComboPairKey(pair));
+      });
+    });
+  return scheduled.length;
 }
 
 function scheduleGiftComboFloorHeal(pairs = [], combosByKey = new Map(), tonRate = 0) {
@@ -7072,18 +7149,12 @@ async function handleApi(req, res, url) {
       const isPairCovered = (pair) => [pair.collection, pair.collectionKey, ...(pair.collectionKeys || []), ...giftCollectionAliasKeys(pair.collection)]
         .map(giftSnapshotKey)
         .some((collectionKey) => coveredCollectionKeys.has(collectionKey));
-      const healingScheduled = scheduleGiftComboFloorHeal(pairs.filter((pair) => !isPairCovered(pair)), combosByKey, rate);
+      const missingHealingScheduled = scheduleGiftComboFloorHeal(pairs.filter((pair) => !isPairCovered(pair)), combosByKey, rate);
+      const staleHealingScheduled = scheduleStaleGiftComboFloorHeal(pairs, combosByKey, rate);
+      const healingScheduled = missingHealingScheduled + staleHealingScheduled;
       const responseModels = pairs.map((pair) => {
         const stored = {};
-        const collectionAliases = [...new Set([
-          pair.collection,
-          pair.collectionKey,
-          ...(pair.collectionKeys || []),
-          ...giftCollectionAliasKeys(pair.collection),
-        ].filter(Boolean))];
-        const combo = collectionAliases
-          .map((collection) => combosByKey.get([collection, pair.model, pair.backdrop].map(giftSnapshotKey).join(":")))
-          .find(Boolean);
+        const combo = findGiftComboForPair(pair, combosByKey);
         const model = {
           ...stored,
           requestKey: [pair.collectionKey, pair.modelKey, pair.backdropKey].join(":"),
@@ -7145,11 +7216,13 @@ async function handleApi(req, res, url) {
           modelKey,
         })),
       };
-      giftComboBulkResponseCache.set(bulkCacheKey, { value: responsePayload, expiresAt: Date.now() + 30 * 1000 });
-      if (giftComboBulkResponseCache.size > 100) {
-        const now = Date.now();
-        for (const [key, value] of giftComboBulkResponseCache.entries()) {
-          if (value.expiresAt <= now || giftComboBulkResponseCache.size > 100) giftComboBulkResponseCache.delete(key);
+      if (!healingScheduled) {
+        giftComboBulkResponseCache.set(bulkCacheKey, { value: responsePayload, expiresAt: Date.now() + 30 * 1000 });
+        if (giftComboBulkResponseCache.size > 100) {
+          const now = Date.now();
+          for (const [key, value] of giftComboBulkResponseCache.entries()) {
+            if (value.expiresAt <= now || giftComboBulkResponseCache.size > 100) giftComboBulkResponseCache.delete(key);
+          }
         }
       }
       return json(res, 200, responsePayload);
