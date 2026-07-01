@@ -17,18 +17,36 @@ const childEnv = { ...process.env };
 
 if (isComboWorker) {
   childEnv.TONTRACK_MODE = "gift-combo-worker";
-  childEnv.GIFT_COMBO_MARKETS = childEnv.GIFT_COMBO_MARKETS || "PORTALS,MRKT,TONNEL,GETGEMS,THERMOS";
+  childEnv.GIFT_COMBO_MARKETS = childEnv.GIFT_COMBO_MARKETS || "AGGREGATE";
+  childEnv.GIFT_COMBO_SCAN_BACKDROPS = childEnv.GIFT_COMBO_SCAN_BACKDROPS || "1";
 } else {
   childEnv.TONTRACK_MODE = "app-server";
   childEnv.GIFT_SNAPSHOT_AUTORUN = "0";
 }
 
-const child = spawn(command, args, { stdio: "inherit", env: childEnv });
+let shuttingDown = false;
+let child = null;
 
-child.on("exit", (code, signal) => {
-  if (signal) {
-    process.kill(process.pid, signal);
-    return;
-  }
-  process.exit(code ?? 0);
+function startChild() {
+  child = spawn(command, args, { stdio: "inherit", env: childEnv });
+
+  child.on("exit", (code, signal) => {
+    if (shuttingDown) process.exit(code ?? 0);
+    if (!isComboWorker) process.exit(code ?? 0);
+    console.error(`[railway-start] combo-worker exited (${signal || code}); restarting in 10s`);
+    setTimeout(startChild, 10000);
+  });
+}
+
+["SIGINT", "SIGTERM"].forEach((signal) => {
+  process.on(signal, () => {
+    shuttingDown = true;
+    if (child && !child.killed) {
+      child.kill(signal);
+      return;
+    }
+    process.exit(0);
+  });
 });
+
+startChild();

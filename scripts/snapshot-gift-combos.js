@@ -28,7 +28,7 @@ function normalizeMarketScope(market = "") {
 }
 const configuredMarkets = marketArgIndex >= 0
   ? [normalizeMarketScope(process.argv[marketArgIndex + 1])].filter((market) => market || marketArgIndex >= 0)
-  : String(process.env.GIFT_COMBO_MARKETS || "PORTALS,MRKT,TONNEL,GETGEMS,THERMOS")
+  : String(process.env.GIFT_COMBO_MARKETS || "AGGREGATE")
     .split(",")
     .map(normalizeMarketScope)
     .filter(Boolean);
@@ -40,10 +40,19 @@ const pageConcurrency = Math.max(1, Math.min(12, Number(process.env.GIFT_COMBO_P
 const requestDelayMs = Math.max(0, Number(process.env.GIFT_COMBO_REQUEST_DELAY_MS || 1050));
 const listingFetchAttempts = Math.max(2, Math.min(20, Number(process.env.GIFT_COMBO_LISTING_FETCH_ATTEMPTS || 5)));
 const continuousMode = process.argv.includes("--continuous") || process.env.GIFT_COMBO_CONTINUOUS === "1";
+const dryRun = process.argv.includes("--dry-run") || process.env.GIFT_COMBO_DRY_RUN === "1";
 const cycleDelayMs = Math.max(0, Number(process.env.GIFT_COMBO_CYCLE_DELAY_MS || 5 * 60 * 1000));
 const skipFreshMs = Math.max(0, Number(process.env.GIFT_COMBO_SKIP_FRESH_MS || 12 * 60 * 60 * 1000));
+const scanCollectionPages = process.env.GIFT_COMBO_SCAN_COLLECTION !== "0";
+const scanBackdropSlices = process.env.GIFT_COMBO_SCAN_BACKDROPS !== "0";
+const maxBackdropSlices = Math.max(0, Number(process.env.GIFT_COMBO_MAX_BACKDROP_SLICES || 0));
+const backdropArgIndex = process.argv.indexOf("--backdrop");
+const onlyBackdrop = backdropArgIndex >= 0
+  ? String(process.argv[backdropArgIndex + 1] || "").trim()
+  : String(process.env.GIFT_COMBO_BACKDROP || "").trim();
+const limitedScan = Boolean(onlyBackdrop) || maxBackdropSlices > 0;
 const bucketCount = 32;
-const scannerVersion = Math.max(5, Number(process.env.GIFT_COMBO_SCANNER_VERSION || 5));
+const scannerVersion = Math.max(6, Number(process.env.GIFT_COMBO_SCANNER_VERSION || 6));
 
 if (!registryUrl || !ingestSecret) {
   console.error("D1_REGISTRY_URL and D1_INGEST_SECRET are required");
@@ -200,7 +209,7 @@ async function fetchJson(url, options = {}, attempts = 20) {
   throw lastError;
 }
 
-function giftSearchBody(collection, page, market) {
+function giftSearchBody(collection, page, market, filters = {}) {
   return {
     ordering: "PRICE_ASC",
     page,
@@ -209,20 +218,39 @@ function giftSearchBody(collection, page, market) {
     price_range: null,
     number: null,
     collections: [collection],
-    models: [],
-    backdrops: [],
+    models: Array.isArray(filters.models) ? filters.models : [],
+    backdrops: Array.isArray(filters.backdrops) ? filters.backdrops : [],
     symbols: [],
     markets: market ? [market] : [],
   };
 }
 
-async function fetchPage(collection, market, page, onRetry = null) {
+async function fetchPage(collection, market, page, onRetry = null, filters = {}) {
   const result = await fetchJson(`${thermosBase}/gifts`, {
     method: "POST",
-    body: JSON.stringify(giftSearchBody(collection, page, market)),
+    body: JSON.stringify(giftSearchBody(collection, page, market, filters)),
     onRetry,
   }, listingFetchAttempts);
   return result;
+}
+
+function attributeBucket(payload = {}, collection = "") {
+  if (payload?.[collection]) return payload[collection];
+  const collectionKey = key(collection);
+  const values = Object.entries(payload || {});
+  const match = values.find(([name]) => key(name) === collectionKey)
+    || values.find(([name]) => key(name).includes(collectionKey) || collectionKey.includes(key(name)));
+  return match ? match[1] : payload;
+}
+
+async function collectionBackdrops(collection) {
+  const payload = await fetchJson(`${thermosBase}/attributes`, {
+    method: "POST",
+    body: JSON.stringify({ collections: [collection] }),
+  }, listingFetchAttempts);
+  const bucket = attributeBucket(payload, collection);
+  const rows = Array.isArray(bucket?.backdrops) ? bucket.backdrops : [];
+  return [...new Set(rows.map((item) => String(item?.name || item?.value || "").trim()).filter(Boolean))];
 }
 
 function mergeItems(combinations, items = [], market = "") {
@@ -340,6 +368,78 @@ async function scanMarket(collection, market, combinations, work, saveWork, repo
   return { market: marketKey, listingCount, pages };
 }
 
+async function scanBackdropSlice(collection, backdrop, combinations, work, saveWork, reportProgress = null) {
+  const sliceKey = `BACKDROP:${key(backdrop)}`;
+  work.slices = work.slices || {};
+  const sliceWork = work.slices[sliceKey] || { backdrop, pages: 0, listingCount: 0, completedPages: 0 };
+  let pages = Number(sliceWork.pages || 0);
+  let listingCount = Number(sliceWork.listingCount || 0);
+  const donePages = new Set(Array.isArray(sliceWork.donePages)
+    ? sliceWork.donePages.map(Number).filter((page) => page > 0)
+    : Array.from({ length: Number(sliceWork.completedPages || 0) }, (_, index) => index + 1));
+  const updateSliceWork = () => {
+    work.slices[sliceKey] = {
+      backdrop,
+      pages,
+      listingCount,
+      completedPages: donePages.size,
+      donePages: [...donePages].sort((left, right) => left - right),
+    };
+  };
+  const filters = { backdrops: [backdrop] };
+  const retryProgress = async (page, retry) => {
+    if (!reportProgress) return;
+    const waitSeconds = Math.round(Number(retry.waitMs || 0) / 1000);
+    await reportProgress({
+      phase: "slice_request_retry",
+      slice: sliceKey,
+      currentPage: donePages.size,
+      totalPages: pages || 0,
+      message: `${backdrop} page ${page} retry ${retry.attempt}/${retry.attempts} in ${waitSeconds}s: ${String(retry.error?.message || retry.error).slice(0, 80)}`,
+    });
+  };
+  if (!pages) {
+    const first = await fetchPage(collection, "", 1, (retry) => retryProgress(1, retry), filters);
+    mergeItems(combinations, first.items, "");
+    pages = Number(first.pages || 0);
+    listingCount = Number(first.count || 0);
+    if (pages > 0) donePages.add(1);
+    updateSliceWork();
+    saveWork();
+    if (reportProgress) await reportProgress({ slice: sliceKey, currentPage: donePages.size, totalPages: pages });
+  }
+  let nextPage = 1;
+  const reservePage = () => {
+    while (nextPage <= pages) {
+      const page = nextPage;
+      nextPage += 1;
+      if (!donePages.has(page)) return page;
+    }
+    return 0;
+  };
+  const workers = Array.from({ length: Math.min(pageConcurrency, Math.max(0, pages - donePages.size)) }, async () => {
+    while (true) {
+      const page = reservePage();
+      if (!page) return;
+      const payload = await fetchPage(collection, "", page, (retry) => retryProgress(page, retry), filters);
+      mergeItems(combinations, payload.items, "");
+      donePages.add(page);
+      updateSliceWork();
+      if (donePages.size % 10 === 0 || donePages.size === pages) saveWork();
+      if (donePages.size % 10 === 0 || donePages.size === pages) {
+        process.stdout.write(`\r${collection} backdrop ${backdrop}: ${donePages.size}/${pages} pages, ${combinations.size} combinations`);
+        if (reportProgress) await reportProgress({ slice: sliceKey, currentPage: donePages.size, totalPages: pages });
+      }
+    }
+  });
+  await Promise.all(workers);
+  updateSliceWork();
+  saveWork();
+  if (reportProgress) await reportProgress({ slice: sliceKey, currentPage: pages, totalPages: pages, complete: true });
+  if (pages > 1) process.stdout.write("\n");
+  return { slice: sliceKey, backdrop, listingCount, pages };
+}
+
 async function scanCollection(collection, cycleStatus = {}) {
   fs.mkdirSync(workDir, { recursive: true });
   const workFile = path.join(workDir, `${key(collection)}-${key(marketSignature)}.json`);
@@ -348,52 +448,90 @@ async function scanCollection(collection, cycleStatus = {}) {
     work = JSON.parse(fs.readFileSync(workFile, "utf8"));
   } catch {}
   if (!work?.markets || work.marketMode !== marketSignature || Number(work.scannerVersion || 0) !== scannerVersion) work = null;
-  work = work || { collection, markets: {}, combinations: [] };
+  work = work || { collection, markets: {}, slices: {}, combinations: [] };
+  work.slices = work.slices || {};
   const combinations = new Map(Array.isArray(work?.combinations) ? work.combinations : []);
   const saveWork = () => fs.writeFileSync(workFile, JSON.stringify({
     collection,
     markets: work.markets,
+    slices: work.slices,
     marketMode: marketSignature,
     scannerVersion,
     thermosMarkets,
+    scanBackdropSlices,
     combinations: [...combinations.entries()],
   }));
   const marketStats = [];
   const failedMarkets = [];
   const marketScopes = thermosMarkets.length ? thermosMarkets : [""];
-  for (const market of marketScopes) {
-    try {
-      marketStats.push(await scanMarket(collection, market, combinations, work, saveWork, async (progress) => {
+  if (scanCollectionPages) {
+    for (const market of marketScopes) {
+      try {
+        marketStats.push(await scanMarket(collection, market, combinations, work, saveWork, async (progress) => {
+          await uploadStatus({
+            phase: progress.phase || (progress.complete ? "market_complete" : "scanning_pages"),
+            collection,
+            currentPage: progress.currentPage,
+            totalPages: progress.totalPages,
+            completedCollections: cycleStatus.completedCollections || 0,
+            totalCollections: cycleStatus.totalCollections || 0,
+            message: progress.message || `${progress.market}: ${progress.currentPage}/${progress.totalPages} pages, ${combinations.size} combinations`,
+          });
+        }));
+      } catch (error) {
+        const marketKey = market || "AGGREGATE";
+        const message = String(error.message || error).slice(0, 200);
+        failedMarkets.push({ market: marketKey, error: message });
+        marketStats.push({ market: marketKey, listingCount: 0, pages: 0, failed: true, error: message });
+        saveWork();
+        console.warn(`[combo-worker] ${collection} ${marketKey} failed; keeping ${combinations.size} combinations: ${message}`);
         await uploadStatus({
-          phase: progress.phase || (progress.complete ? "market_complete" : "scanning_pages"),
+          phase: "market_failed",
           collection,
-          currentPage: progress.currentPage,
-          totalPages: progress.totalPages,
+          currentPage: 0,
+          totalPages: 0,
           completedCollections: cycleStatus.completedCollections || 0,
           totalCollections: cycleStatus.totalCollections || 0,
-          message: progress.message || `${progress.market}: ${progress.currentPage}/${progress.totalPages} pages, ${combinations.size} combinations`,
+          message: `${marketKey} failed; continuing with ${combinations.size} combinations`,
         });
-      }));
+      }
+    }
+  }
+  const sliceStats = [];
+  if (scanBackdropSlices) {
+    try {
+      let backdrops = await collectionBackdrops(collection);
+      if (onlyBackdrop) backdrops = backdrops.filter((backdrop) => key(backdrop) === key(onlyBackdrop));
+      if (maxBackdropSlices > 0) backdrops = backdrops.slice(0, maxBackdropSlices);
+      for (const backdrop of backdrops) {
+        try {
+          sliceStats.push(await scanBackdropSlice(collection, backdrop, combinations, work, saveWork, async (progress) => {
+            await uploadStatus({
+              phase: progress.phase || (progress.complete ? "backdrop_slice_complete" : "scanning_backdrop_slice"),
+              collection,
+              currentPage: progress.currentPage,
+              totalPages: progress.totalPages,
+              completedCollections: cycleStatus.completedCollections || 0,
+              totalCollections: cycleStatus.totalCollections || 0,
+              message: progress.message || `backdrop ${backdrop}: ${progress.currentPage}/${progress.totalPages} pages, ${combinations.size} combinations`,
+            });
+          }));
+        } catch (error) {
+          const message = String(error.message || error).slice(0, 200);
+          failedMarkets.push({ market: `BACKDROP:${backdrop}`, error: message });
+          sliceStats.push({ slice: `BACKDROP:${key(backdrop)}`, backdrop, listingCount: 0, pages: 0, failed: true, error: message });
+          saveWork();
+          console.warn(`[combo-worker] ${collection} backdrop ${backdrop} failed; keeping ${combinations.size} combinations: ${message}`);
+        }
+      }
     } catch (error) {
-      const marketKey = market || "AGGREGATE";
       const message = String(error.message || error).slice(0, 200);
-      failedMarkets.push({ market: marketKey, error: message });
-      marketStats.push({ market: marketKey, listingCount: 0, pages: 0, failed: true, error: message });
-      saveWork();
-      console.warn(`[combo-worker] ${collection} ${marketKey} failed; keeping ${combinations.size} combinations: ${message}`);
-      await uploadStatus({
-        phase: "market_failed",
-        collection,
-        currentPage: 0,
-        totalPages: 0,
-        completedCollections: cycleStatus.completedCollections || 0,
-        totalCollections: cycleStatus.totalCollections || 0,
-        message: `${marketKey} failed; continuing with ${combinations.size} combinations`,
-      });
+      failedMarkets.push({ market: "BACKDROP_SLICES", error: message });
+      console.warn(`[combo-worker] ${collection} backdrop slices failed; keeping ${combinations.size} combinations: ${message}`);
     }
   }
   saveWork();
-  const listingCount = marketStats.reduce((sum, item) => sum + Number(item.listingCount || 0), 0);
+  const listingCount = [...marketStats, ...sliceStats].reduce((sum, item) => sum + Number(item.listingCount || 0), 0);
   const buckets = Array.from({ length: bucketCount }, () => ({}));
   combinations.forEach((value, targetKey) => {
     const { s, ...storedValue } = value;
@@ -408,6 +546,7 @@ async function scanCollection(collection, cycleStatus = {}) {
     marketMode: marketSignature,
     markets: thermosMarkets,
     marketStats,
+    sliceStats,
     partial: failedMarkets.length > 0,
     failedMarkets,
     buckets,
@@ -416,6 +555,22 @@ async function scanCollection(collection, cycleStatus = {}) {
 }
 
 async function uploadCollection(snapshot) {
+  if (dryRun) {
+    const uploadedEntries = snapshot.buckets.reduce((sum, bucket) => sum + Object.keys(bucket || {}).length, 0);
+    return {
+      ok: true,
+      dryRun: true,
+      collection: snapshot.collection,
+      listingCount: snapshot.listingCount,
+      combinationCount: snapshot.combinationCount,
+      uploadedEntries,
+      changedBuckets: 0,
+      snapshotAt: snapshot.snapshotAt,
+    };
+  }
+  if (limitedScan) {
+    throw new Error("Refusing to upload a limited backdrop scan; use --dry-run or run the full collection scan");
+  }
   let changedBuckets = 0;
   let uploadedEntries = 0;
   for (let bucketIndex = 0; bucketIndex < snapshot.buckets.length; bucketIndex += 1) {
@@ -561,10 +716,34 @@ async function runCycle({ resetCompleted = false } = {}) {
       message: `[${index + 1}/${names.length}] ${collection}`,
     });
     console.log(`[${index + 1}/${names.length}] ${collection}`);
-    const snapshot = await scanCollection(collection, {
-      completedCollections: Object.keys(checkpoint.completed || {}).length,
-      totalCollections: names.length,
-    });
+    let snapshot = null;
+    try {
+      snapshot = await scanCollection(collection, {
+        completedCollections: Object.keys(checkpoint.completed || {}).length,
+        totalCollections: names.length,
+      });
+    } catch (error) {
+      const message = String(error.stack || error.message || error).slice(0, 500);
+      updateCycleStatus(checkpoint, {
+        phase: "collection_failed",
+        currentCollection: collection,
+        lastFailedCollection: collection,
+        lastFailedCollectionAt: new Date().toISOString(),
+        lastError: message,
+        completedCollections: Object.keys(checkpoint.completed).length,
+      });
+      await uploadStatus({
+        phase: "collection_failed",
+        collection,
+        currentPage: 0,
+        totalPages: 0,
+        completedCollections: Object.keys(checkpoint.completed || {}).length,
+        totalCollections: names.length,
+        message: `Collection failed; will retry next cycle: ${message.slice(0, 180)}`,
+      });
+      console.warn(`[combo-worker] ${collection} failed; will retry next cycle: ${message}`);
+      continue;
+    }
     if (snapshot.partial) {
       updateCycleStatus(checkpoint, {
         phase: "collection_partial",
@@ -588,16 +767,42 @@ async function runCycle({ resetCompleted = false } = {}) {
       console.warn(`Skipped partial ${snapshot.combinationCount} combinations; failed markets: ${snapshot.failedMarkets.map((item) => item.market).join(", ")}`);
       continue;
     }
-    const uploadResult = await uploadCollection(snapshot);
+    let uploadResult = null;
+    try {
+      uploadResult = await uploadCollection(snapshot);
+    } catch (error) {
+      const message = String(error.stack || error.message || error).slice(0, 500);
+      updateCycleStatus(checkpoint, {
+        phase: "collection_upload_failed",
+        currentCollection: collection,
+        lastFailedCollection: collection,
+        lastFailedCollectionAt: new Date().toISOString(),
+        lastError: message,
+        completedCollections: Object.keys(checkpoint.completed).length,
+      });
+      await uploadStatus({
+        phase: "collection_upload_failed",
+        collection,
+        currentPage: 0,
+        totalPages: 0,
+        completedCollections: Object.keys(checkpoint.completed || {}).length,
+        totalCollections: names.length,
+        message: `Upload failed; will retry next cycle: ${message.slice(0, 180)}`,
+      });
+      console.warn(`[combo-worker] ${collection} upload failed; will retry next cycle: ${message}`);
+      continue;
+    }
     console.log(`${collection} uploaded ${uploadResult.uploadedEntries} combinations across ${snapshot.buckets.length} buckets (${uploadResult.changedBuckets} changed)`);
-    checkpoint.completed[doneKey] = {
-      name: collection,
-      snapshotAt: snapshot.snapshotAt,
-      listingCount: snapshot.listingCount,
-      combinationCount: snapshot.combinationCount,
-      marketMode: snapshot.marketMode,
-      markets: thermosMarkets,
-    };
+    if (!dryRun) {
+      checkpoint.completed[doneKey] = {
+        name: collection,
+        snapshotAt: snapshot.snapshotAt,
+        listingCount: snapshot.listingCount,
+        combinationCount: snapshot.combinationCount,
+        marketMode: snapshot.marketMode,
+        markets: thermosMarkets,
+      };
+    }
     updateCycleStatus(checkpoint, {
       phase: "collection_complete",
       lastCompletedCollection: collection,
@@ -615,7 +820,7 @@ async function runCycle({ resetCompleted = false } = {}) {
       totalCollections: names.length,
       message: `Saved ${snapshot.combinationCount} combinations from ${snapshot.listingCount} listings`,
     });
-    fs.rmSync(snapshot.workFile, { force: true });
+    if (!dryRun) fs.rmSync(snapshot.workFile, { force: true });
     console.log(`Saved ${snapshot.combinationCount} combinations from ${snapshot.listingCount} listings`);
   }
   updateCycleStatus(checkpoint, {

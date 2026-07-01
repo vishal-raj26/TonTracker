@@ -408,6 +408,15 @@ function requestOrigin(req) {
   return `${proto}://${host}`;
 }
 
+function isLocalHttpRequest(req) {
+  const host = String(req.headers.host || "");
+  const remote = String(req.socket?.remoteAddress || "");
+  return /^(localhost|127\.0\.0\.1|\[::1\])(?::\d+)?$/i.test(host)
+    || remote === "127.0.0.1"
+    || remote === "::1"
+    || remote === "::ffff:127.0.0.1";
+}
+
 function tonConnectManifest(req, res) {
   const origin = requestOrigin(req);
   return json(res, 200, {
@@ -4740,9 +4749,8 @@ async function walletImport(address) {
     walletJettonsCache.set(String(normalizedAccount.address || address).toLowerCase(), jettons);
     clearWalletHistoryCache(normalizedAccount.address || address);
   }
-  const cachedCollectibles = cachedMapValue(collectiblesCache, `${canonicalAddressKey(normalizedAccount.address || address)}:wallet-v3`);
-  const nfts = cachedCollectibles ? [...(cachedCollectibles.gifts || []), ...(cachedCollectibles.stickers || [])] : [];
-  getCollectiblesShared(normalizedAccount.address || address).catch((error) => console.warn("Collectibles background import failed", error.message));
+  const collectibles = await getCollectiblesShared(normalizedAccount.address || address);
+  const nfts = [...(collectibles.gifts || []), ...(collectibles.stickers || [])];
   const events = [];
   walletActivity(address, 40).catch((error) => console.warn("Activity background import failed", error.message));
   const currentTonUsd = await tonUsdRate();
@@ -4773,7 +4781,7 @@ async function walletImport(address) {
     activity: events,
     warnings: [
       jettonsResult.status === "rejected" ? `Jettons unavailable: ${jettonsResult.reason.message}` : null,
-      nfts.length ? null : "Collectibles are loading in the background",
+      nfts.length ? null : "No wallet collectibles found",
       "Activity is loading in the background",
     ].filter(Boolean),
   };
@@ -5058,11 +5066,6 @@ async function d1GiftComboHistory(collectionName = "", modelName = "", backdropN
 async function d1GiftComboFloors(pairs = []) {
   if ((!giftRegistryReadUrl && !giftRegistryProxyUrl) || !pairs.length) return { combinations: [], coverage: [] };
   const collectionLookup = await d1GiftCollectionComboFloors(pairs);
-  const collectionCoverage = new Set((collectionLookup.coverage || []).map((entry) => giftSnapshotKey(entry.collectionKey)));
-  const allCollectionsCovered = pairs.every((pair) => [pair.collection, pair.collectionKey, ...(pair.collectionKeys || []), ...giftCollectionAliasKeys(pair.collection)]
-    .map(giftSnapshotKey)
-    .some((collectionKey) => collectionCoverage.has(collectionKey)));
-  if (allCollectionsCovered) return collectionLookup;
   const seen = new Set();
   const requested = [];
   pairs.forEach((pair) => {
@@ -5083,12 +5086,16 @@ async function d1GiftComboFloors(pairs = []) {
       });
     });
   });
-  const requestChunkSize = 500;
+  const requestChunkSize = 100;
   const chunks = Array.from({ length: Math.ceil(requested.length / requestChunkSize) }, (_, index) => requested.slice(index * requestChunkSize, index * requestChunkSize + requestChunkSize));
   const combinations = [];
   const coverage = new Map();
-  for (let index = 0; index < chunks.length; index += 4) {
-    const responses = await Promise.all(chunks.slice(index, index + 4).map(async (chunk) => {
+  const concurrentD1Reads = 6;
+  for (let index = 0; index < chunks.length; index += concurrentD1Reads) {
+    const batchStarted = Date.now();
+    const batchNumber = Math.floor(index / concurrentD1Reads) + 1;
+    const batchChunks = chunks.slice(index, index + concurrentD1Reads);
+    const responses = await Promise.all(batchChunks.map(async (chunk) => {
       try {
         const endpoint = giftRegistryProxyUrl
           ? `${giftRegistryProxyUrl}/api/gift-registry/combos`
@@ -5101,6 +5108,7 @@ async function d1GiftComboFloors(pairs = []) {
         return null;
       }
     }));
+    console.log(`[gift-d1-lookup] directBatch=${batchNumber}/${Math.ceil(chunks.length / concurrentD1Reads)} chunks=${batchChunks.length} requested=${batchChunks.reduce((sum, chunk) => sum + chunk.length, 0)} ms=${Date.now() - batchStarted}`);
     responses.forEach((response) => {
       if (Array.isArray(response?.combinations)) combinations.push(...response.combinations);
       (Array.isArray(response?.coverage) ? response.coverage : []).forEach((entry) => {
@@ -5116,8 +5124,104 @@ async function d1GiftComboFloors(pairs = []) {
   };
 }
 
+function giftFloorPairFromItem(item = {}) {
+  const traits = giftTraitLookup(item.attributes || []);
+  const collection = String(item.collection || item.name || "").trim();
+  const model = String(traits.model || "").trim();
+  const backdrop = String(traits.backdrop || "").trim();
+  const symbol = String(traits.symbol || "").trim();
+  if (!collection || !model || !backdrop) return null;
+  return {
+    collection,
+    model,
+    backdrop,
+    symbol,
+    collectionKey: giftSnapshotKey(collection),
+    collectionKeys: giftCollectionAliasKeys(collection),
+    modelKey: giftSnapshotKey(model),
+    backdropKey: giftSnapshotKey(backdrop),
+    symbolKey: giftSnapshotKey(symbol),
+  };
+}
+
+function d1ComboForGiftPair(pair = {}, combosByKey = new Map()) {
+  return findGiftComboForPair(pair, combosByKey);
+}
+
+async function priceWalletGiftsFromD1(gifts = [], tonRate = 0, context = "wallet-import") {
+  const started = Date.now();
+  const pairsByKey = new Map();
+  gifts.forEach((gift) => {
+    const pair = giftFloorPairFromItem(gift);
+    if (!pair) return;
+    pairsByKey.set(giftComboPairKey(pair), pair);
+  });
+  const pairs = [...pairsByKey.values()];
+  console.log(`[gift-import-pricing] ${context}: gifts=${gifts.length} uniqueCombos=${pairs.length}`);
+  if (!pairs.length) {
+    console.log(`[gift-import-pricing] ${context}: d1Batches=0 resolved=0 missing=${gifts.length} totalMs=${Date.now() - started}`);
+    return gifts.map((gift) => ({ ...gift, floorStatus: "unavailable", priceLoading: false }));
+  }
+  const lookupStarted = Date.now();
+  const lookup = await d1GiftComboFloors(pairs);
+  const lookupMs = Date.now() - lookupStarted;
+  const combosByKey = new Map((lookup.combinations || []).map((combo) => [
+    [combo.collection, combo.model, combo.backdrop].map(giftSnapshotKey).join(":"),
+    combo,
+  ]));
+  let resolved = 0;
+  let missing = 0;
+  const priced = gifts.map((gift) => {
+    const pair = giftFloorPairFromItem(gift);
+    const combo = pair ? d1ComboForGiftPair(pair, combosByKey) : null;
+    if (!combo || !(Number(combo.floorTon || 0) > 0)) {
+      missing += 1;
+      return {
+        ...gift,
+        floorStatus: "unavailable",
+        floorTon: 0,
+        floorUsd: 0,
+        marketPlatform: "",
+        marketUrl: "",
+        marketUpdatedAt: "",
+        source: "d1-combo-missing",
+        priceLoading: false,
+      };
+    }
+    const floorTon = Number(combo.floorTon || 0);
+    resolved += 1;
+    return {
+      ...gift,
+      floorStatus: "priced",
+      floorTon,
+      floorUsd: floorTon * tonRate,
+      marketplace: combo.marketplace || "",
+      marketPlatform: combo.marketplace || "Backdrop Floor",
+      marketUrl: combo.listingUrl || "",
+      listingId: combo.listingId || "",
+      snapshotAt: combo.snapshotAt || "",
+      marketUpdatedAt: combo.snapshotAt || "",
+      listedCount: Number(combo.listedCount || 0),
+      source: "d1-backdrop-floor",
+      priceLoading: false,
+    };
+  });
+  const healingScheduled = scheduleGiftComboFloorHeal(pairs, combosByKey, tonRate);
+  if (healingScheduled) {
+    console.log(`[gift-import-pricing] ${context}: exactHealScheduled=${healingScheduled}`);
+  }
+  const batchCount = Math.ceil(Math.max(1, pairs.length) / 100);
+  console.log(`[gift-import-pricing] ${context}: d1Batches=${batchCount} d1Ms=${lookupMs} resolved=${resolved} missing=${missing} totalMs=${Date.now() - started}`);
+  return priced;
+}
+
 async function d1GiftCollectionComboFloors(pairs = []) {
-  const collections = [...new Set(pairs.map((pair) => pair.collection).filter(Boolean))];
+  const collections = [...new Set(pairs.flatMap((pair) => [
+    pair.collection,
+    pair.collectionKey,
+    ...(pair.collectionKeys || []),
+    ...giftCollectionAliasKeys(pair.collection),
+  ]).filter(Boolean))];
   if (!collections.length) return { combinations: [], coverage: [] };
   const cacheTtlMs = 5 * 60 * 1000;
   const now = Date.now();
@@ -5139,21 +5243,39 @@ async function d1GiftCollectionComboFloors(pairs = []) {
     fetchCollections.push(collection);
   });
   try {
-    const payload = fetchCollections.length
-      ? await marketJson(giftRegistryProxyUrl
-        ? `${giftRegistryProxyUrl}/api/gift-registry/collection-combos`
-        : `${giftRegistryReadUrl}/collection-combos`, {
-          method: "POST",
-          body: { collections: fetchCollections },
-        }, 15000)
-      : { collections: [] };
+    const collectionChunks = Array.from({ length: Math.ceil(fetchCollections.length / 50) }, (_, index) => fetchCollections.slice(index * 50, index * 50 + 50));
+    const payloadCollections = [];
+    const concurrentCollectionReads = 6;
+    for (let index = 0; index < collectionChunks.length; index += concurrentCollectionReads) {
+      const batchStarted = Date.now();
+      const batchNumber = Math.floor(index / concurrentCollectionReads) + 1;
+      const batchChunks = collectionChunks.slice(index, index + concurrentCollectionReads);
+      const responses = await Promise.all(batchChunks.map(async (collectionsChunk) => {
+        try {
+          return await marketJson(giftRegistryProxyUrl
+            ? `${giftRegistryProxyUrl}/api/gift-registry/collection-combos`
+            : `${giftRegistryReadUrl}/collection-combos`, {
+              method: "POST",
+              body: { collections: collectionsChunk },
+            }, 15000);
+        } catch {
+          return null;
+        }
+      }));
+      responses.forEach((payload) => {
+        if (Array.isArray(payload?.collections)) payloadCollections.push(...payload.collections);
+      });
+      if (batchChunks.length) {
+        console.log(`[gift-d1-lookup] collectionBatch=${batchNumber}/${Math.ceil(collectionChunks.length / concurrentCollectionReads)} chunks=${batchChunks.length} collections=${batchChunks.reduce((sum, chunk) => sum + chunk.length, 0)} ms=${Date.now() - batchStarted}`);
+      }
+    }
     const collectionMaps = new Map();
     const coverage = new Map();
     cachedCollections.forEach((collection, collectionKey) => {
       collectionMaps.set(collectionKey, collection);
       coverage.set(collectionKey, collection.snapshotAt || "");
     });
-    (Array.isArray(payload?.collections) ? payload.collections : []).forEach((collection) => {
+    payloadCollections.forEach((collection) => {
       const collectionKey = giftSnapshotKey(collection.collectionKey || collection.collection || "");
       if (!collectionKey) return;
       giftComboCollectionCache.set(collectionKey, { value: collection, expiresAt: now + cacheTtlMs });
@@ -5821,11 +5943,13 @@ async function walletNftsByType(address) {
 }
 
 async function getCollectibles(address) {
-  const key = `${canonicalAddressKey(address)}:wallet-v4`;
+  const key = `${canonicalAddressKey(address)}:wallet-v5`;
   const cached = cachedMapValue(collectiblesCache, key);
   if (cached) return cached;
   const tonRate = await tonUsdRate();
   const classified = await walletNftsByType(address);
+  console.log(`[gift-import-pricing] collectibles:${canonicalAddressKey(address)}: tonapiGifts=${classified.gifts?.length || 0} stickers=${classified.stickers?.length || 0}`);
+  classified.gifts = await priceWalletGiftsFromD1(classified.gifts || [], tonRate, `collectibles:${canonicalAddressKey(address)}`);
   const owned = [...classified.gifts, ...classified.stickers];
   if (owned.length) {
     const withFloors = owned.map((item) => {
@@ -5842,14 +5966,21 @@ async function getCollectibles(address) {
         marketUrl: floor.marketUrl || item.marketUrl || "",
         source: floor.source || item.source || "",
         recentSales: Array.isArray(floor.recentSales) ? floor.recentSales : [],
-        listedCount: Number(floor.listedCount || 0),
-        holders: Number(floor.holders || 0),
-        totalSupply: Number(floor.totalSupply || 0),
+        listedCount: Number(floor.listedCount || item.listedCount || 0),
+        holders: Number(floor.holders || item.holders || 0),
+        totalSupply: Number(floor.totalSupply || item.totalSupply || 0),
       };
     });
     return setCachedMapValue(collectiblesCache, key, {
       gifts: withFloors.filter((item) => item.type === "gift"),
       stickers: withFloors.filter((item) => item.type === "sticker"),
+      priceSummary: {
+        gifts: {
+          total: classified.gifts.length,
+          priced: classified.gifts.filter((item) => item.floorStatus === "priced").length,
+          unavailable: classified.gifts.filter((item) => item.floorStatus !== "priced").length,
+        },
+      },
       source: "tonapi-wallet",
     }, 5 * 60 * 1000);
   }
@@ -5871,9 +6002,18 @@ async function getCollectibles(address) {
     const root = payload?.data?.nfts;
     const nodes = root?.edges?.map((edge) => edge.node) || root?.items || [];
     const items = nodes.map((node) => normalizeGetgemsNft(node, tonRate)).filter((item) => item.type);
+    const gifts = await priceWalletGiftsFromD1(items.filter((item) => item.type === "gift"), tonRate, `collectibles-getgems:${canonicalAddressKey(address)}`);
+    console.log(`[gift-import-pricing] collectibles-getgems:${canonicalAddressKey(address)}: fallbackGifts=${gifts.length} stickers=${items.filter((item) => item.type === "sticker").length}`);
     return setCachedMapValue(collectiblesCache, key, {
-      gifts: items.filter((item) => item.type === "gift"),
+      gifts,
       stickers: items.filter((item) => item.type === "sticker"),
+      priceSummary: {
+        gifts: {
+          total: gifts.length,
+          priced: gifts.filter((item) => item.floorStatus === "priced").length,
+          unavailable: gifts.filter((item) => item.floorStatus !== "priced").length,
+        },
+      },
       source: "getgems",
     }, 5 * 60 * 1000);
   } catch (error) {
@@ -5882,7 +6022,7 @@ async function getCollectibles(address) {
 }
 
 function getCollectiblesShared(address) {
-  const key = `${canonicalAddressKey(address)}:wallet-v4`;
+  const key = `${canonicalAddressKey(address)}:wallet-v5`;
   const cached = cachedMapValue(collectiblesCache, key);
   if (cached) return Promise.resolve(cached);
   if (collectiblesRequests.has(key)) return collectiblesRequests.get(key);
@@ -7087,14 +7227,17 @@ async function handleApi(req, res, url) {
       }));
       const combinations = [];
       const coverage = new Map();
-      for (let index = 0; index < pairs.length; index += 500) {
-        const payload = await marketJson(`${registryUrl}/combos`, {
+      const pairChunks = Array.from({ length: Math.ceil(pairs.length / 100) }, (_, index) => pairs.slice(index * 100, index * 100 + 100));
+      for (let index = 0; index < pairChunks.length; index += 6) {
+        const responses = await Promise.all(pairChunks.slice(index, index + 6).map((chunk) => marketJson(`${registryUrl}/combos`, {
           method: "POST",
-          body: { pairs: pairs.slice(index, index + 500) },
-        }, 5000);
-        if (Array.isArray(payload?.combinations)) combinations.push(...payload.combinations);
-        (Array.isArray(payload?.coverage) ? payload.coverage : []).forEach((entry) => {
-          if (entry?.collectionKey && entry?.snapshotAt) coverage.set(giftSnapshotKey(entry.collectionKey), entry.snapshotAt);
+          body: { pairs: chunk },
+        }, 5000).catch(() => null)));
+        responses.forEach((payload) => {
+          if (Array.isArray(payload?.combinations)) combinations.push(...payload.combinations);
+          (Array.isArray(payload?.coverage) ? payload.coverage : []).forEach((entry) => {
+            if (entry?.collectionKey && entry?.snapshotAt) coverage.set(giftSnapshotKey(entry.collectionKey), entry.snapshotAt);
+          });
         });
       }
       return json(res, 200, {
@@ -7111,14 +7254,20 @@ async function handleApi(req, res, url) {
       const body = await readJsonBody(req);
       const collections = [...new Set((Array.isArray(body.collections) ? body.collections : [])
         .map((collection) => String(collection || "").trim())
-        .filter(Boolean))]
-        .slice(0, 100);
-      const payload = await marketJson(`${registryUrl}/collection-combos`, {
-        method: "POST",
-        body: { collections },
-      }, 15000);
+        .filter(Boolean))];
+      const collectionChunks = Array.from({ length: Math.ceil(collections.length / 50) }, (_, index) => collections.slice(index * 50, index * 50 + 50));
+      const responseCollections = [];
+      for (let index = 0; index < collectionChunks.length; index += 6) {
+        const responses = await Promise.all(collectionChunks.slice(index, index + 6).map((chunk) => marketJson(`${registryUrl}/collection-combos`, {
+          method: "POST",
+          body: { collections: chunk },
+        }, 15000).catch(() => null)));
+        responses.forEach((payload) => {
+          if (Array.isArray(payload?.collections)) responseCollections.push(...payload.collections);
+        });
+      }
       return json(res, 200, {
-        collections: Array.isArray(payload?.collections) ? payload.collections : [],
+        collections: responseCollections,
       });
     } catch {
       return json(res, 502, { error: "Gift registry collection lookup failed", collections: [] });
@@ -7145,11 +7294,7 @@ async function handleApi(req, res, url) {
         [combo.collection, combo.model, combo.backdrop].map(giftSnapshotKey).join(":"),
         combo,
       ]));
-      const coveredCollectionKeys = new Set((comboLookup.coverage || []).map((entry) => giftSnapshotKey(entry.collectionKey)));
-      const isPairCovered = (pair) => [pair.collection, pair.collectionKey, ...(pair.collectionKeys || []), ...giftCollectionAliasKeys(pair.collection)]
-        .map(giftSnapshotKey)
-        .some((collectionKey) => coveredCollectionKeys.has(collectionKey));
-      const missingHealingScheduled = scheduleGiftComboFloorHeal(pairs.filter((pair) => !isPairCovered(pair)), combosByKey, rate);
+      const missingHealingScheduled = scheduleGiftComboFloorHeal(pairs, combosByKey, rate);
       const staleHealingScheduled = scheduleStaleGiftComboFloorHeal(pairs, combosByKey, rate);
       const healingScheduled = missingHealingScheduled + staleHealingScheduled;
       const responseModels = pairs.map((pair) => {
@@ -7171,7 +7316,7 @@ async function handleApi(req, res, url) {
           model.floorTon = 0;
           model.floorUsd = 0;
           model.listedCount = 0;
-          model.source = isPairCovered(pair) || hasRecentGiftComboExactMiss(pair)
+          model.source = hasRecentGiftComboExactMiss(pair)
             ? "d1-combo-missing"
             : "combo-floor-pending";
           model.marketPlatform = "";
@@ -7278,6 +7423,56 @@ async function handleApi(req, res, url) {
       return json(res, 200, await getCollectiblesShared(parseTonAddress(rawAddress)));
     } catch (error) {
       return json(res, 502, { gifts: [], stickers: [], error: error.message });
+    }
+  }
+  if (url.pathname === "/api/dev/gift-pricing-import-check") {
+    if (!isLocalHttpRequest(req)) return json(res, 404, { error: "Not found" });
+    const rawAddress = url.searchParams.get("address");
+    if (!rawAddress) return json(res, 400, { error: "Missing address query parameter" });
+    try {
+      const started = Date.now();
+      const address = parseTonAddress(rawAddress);
+      const target = Math.max(1000, Math.min(5000, Number(url.searchParams.get("target") || 1000)));
+      const tonRate = await tonUsdRate();
+      const classified = await walletNftsByType(address);
+      const sourceGifts = classified.gifts || [];
+      if (!sourceGifts.length) {
+        return json(res, 200, {
+          ok: false,
+          reason: "No source gifts found for this wallet",
+          sourceGifts: 0,
+          simulatedGifts: 0,
+          totalMs: Date.now() - started,
+        });
+      }
+      const simulatedGifts = Array.from({ length: target }, (_, index) => {
+        const gift = sourceGifts[index % sourceGifts.length];
+        return {
+          ...gift,
+          tokenAddress: `${gift.tokenAddress || gift.id || "gift"}-sim-${index}`,
+          name: `${gift.name || "Gift"} Sim ${index + 1}`,
+        };
+      });
+      const priced = await priceWalletGiftsFromD1(simulatedGifts, tonRate, `dev-import-check:${canonicalAddressKey(address)}:${target}`);
+      const uniqueComboKeys = new Set(priced.map((gift) => {
+        const pair = giftFloorPairFromItem(gift);
+        return pair ? giftComboPairKey(pair) : "";
+      }).filter(Boolean));
+      const pricedCount = priced.filter((gift) => gift.floorStatus === "priced").length;
+      const unavailableCount = priced.filter((gift) => gift.floorStatus === "unavailable").length;
+      return json(res, 200, {
+        ok: true,
+        sourceGifts: sourceGifts.length,
+        simulatedGifts: priced.length,
+        uniqueCombos: uniqueComboKeys.size,
+        priced: pricedCount,
+        unavailable: unavailableCount,
+        missingStatus: priced.filter((gift) => !gift.floorStatus).length,
+        loading: priced.filter((gift) => gift.priceLoading).length,
+        totalMs: Date.now() - started,
+      });
+    } catch (error) {
+      return json(res, 502, { ok: false, error: error.message });
     }
   }
   if (url.pathname === "/api/nfts") {

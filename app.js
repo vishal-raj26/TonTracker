@@ -751,6 +751,11 @@ function sortAssets(items, sort) {
 }
 
 function floorSourceLine(asset = {}) {
+  if (Number(asset.unpricedCount || 0) > 0) {
+    const base = Number(asset.floorTon || 0) > 0 ? `${Number(asset.floorTon).toFixed(2)} TON` : "";
+    const unpriced = `${Number(asset.unpricedCount || 0)} of ${Number(asset.count || 1)} unpriced`;
+    return ["Floor", base, unpriced].filter(Boolean).map((part) => escapeHtml(String(part))).join(" · ");
+  }
   const parts = ["Floor"];
   if (asset.floorSource === "model") parts.push("Model");
   if (Number(asset.floorTon || 0) > 0) parts.push(`${Number(asset.floorTon).toFixed(2)} TON`);
@@ -773,7 +778,7 @@ function renderGiftCard(asset) {
   const hasPrice = Number(asset.floorUsd) > 0;
   const floorNote = hasPrice
     ? floorSourceLine(asset)
-    : "No market price available";
+    : (Number(asset.unpricedCount || 0) > 0 ? `${Number(asset.unpricedCount || 0)} of ${Number(asset.count || 1)} unpriced` : "No market price available");
   return `
     <article class="collectible-card is-gift-card" data-screen-target="gift-brand" data-asset="${asset.id}">
       <div class="collectible-top">
@@ -808,7 +813,10 @@ function renderGiftBrand(assetId) {
     const totalValue = children.reduce((sum, item) => sum + Number(item.floorUsd || 0), 0);
     const init = children.reduce((sum, item) => sum + Number(item.initUsd || 0), 0);
     const pnl = init ? totalValue - init : 0;
-    summary.innerHTML = `<small>${escapeHtml(brand.creator || brand.collection || "Gift collection")}</small><div><h2>${money(totalValue)}</h2><span>${count} gift${count === 1 ? "" : "s"}</span></div><strong class="${pnl < 0 ? "negative" : "positive"}">${init ? `${signedMoney(pnl)} · ${signedPct((pnl / init) * 100)}` : "Open a gift to see details"}</strong>`;
+    const unpriced = Number(brand.unpricedCount || 0);
+    const valueLabel = totalValue > 0 ? money(totalValue) : "Price unavailable";
+    const countLabel = `${count} gift${count === 1 ? "" : "s"}${unpriced ? ` · ${unpriced} unpriced` : ""}`;
+    summary.innerHTML = `<small>${escapeHtml(brand.creator || brand.collection || "Gift collection")}</small><div><h2>${valueLabel}</h2><span>${escapeHtml(countLabel)}</span></div><strong class="${pnl < 0 ? "negative" : "positive"}">${init && totalValue > 0 ? `${signedMoney(pnl)} · ${signedPct((pnl / init) * 100)}` : "Tap a gift to open details"}</strong>`;
   }
   const grid = document.querySelector("#giftBrandGrid");
   groupedChildren.forEach((item) => { assetDetails[item.id] = item; });
@@ -1276,6 +1284,7 @@ function giftFloorResponseKeys(model = {}) {
 }
 
 const giftComboFloorState = new Map();
+const giftFloorPendingRetryCounts = new Map();
 
 function giftModelTrait(asset = {}) {
   return (asset.traits || []).find((trait) => /model/i.test(String(trait.label || "")))?.value || "";
@@ -1433,6 +1442,19 @@ function markGiftFloorUnavailable(asset = {}) {
   if (typeof giftDetailCache !== "undefined") giftDetailCache.delete(giftDetailCacheKey(asset));
 }
 
+function markGiftFloorPending(asset = {}) {
+  asset.floorUsd = 0;
+  asset.floorTon = 0;
+  asset.marketVerified = false;
+  asset.priceLoading = true;
+  asset.marketPlatform = "";
+  asset.floorSource = "";
+  asset.quickSellTon = 0;
+  asset.quickSellUsd = 0;
+  asset.pnlUsd = 0;
+  asset.pnlPct = 0;
+}
+
 function recomputeGiftGroup(group) {
   const children = group.children || [];
   group.floorUsd = children.reduce((sum, child) => sum + Number(child.floorUsd || 0), 0);
@@ -1440,6 +1462,8 @@ function recomputeGiftGroup(group) {
   group.initUsd = children.reduce((sum, child) => sum + Number(child.initUsd || child.costBasis || 0), 0);
   group.initTon = children.reduce((sum, child) => sum + Number(child.initTon || 0), 0);
   group.priceLoading = children.some((child) => child.priceLoading && !(Number(child.floorUsd || 0) > 0));
+  group.unpricedCount = children.filter((child) => child.floorStatus !== "priced" && !(Number(child.floorUsd || 0) > 0)).length;
+  group.floorStatus = group.unpricedCount >= children.length ? "unavailable" : "priced";
   if (children.some((child) => child.floorSource === "model")) group.marketPlatform = "Model Floor";
   else if (children.some((child) => child.floorSource === "backdrop")) group.marketPlatform = "Backdrop Floor";
   group.marketVerified = group.floorUsd > 0 || group.floorTon > 0;
@@ -1467,7 +1491,7 @@ async function hydrateGiftModelFloors(groups = []) {
     });
     recomputeGiftGroup(group);
   });
-  let pending = [...pairMap.values()];
+  const pending = [...pairMap.values()];
   const applyPayload = (payload = {}) => {
     const models = new Map();
     (payload.models || []).forEach((model) => {
@@ -1478,6 +1502,9 @@ async function hydrateGiftModelFloors(groups = []) {
         const model = models.get(giftAssetFloorKey(child, group));
         if (model && !applyGiftModelFloor(child, model) && model.source === "d1-combo-missing") {
           markGiftFloorUnavailable(child);
+        }
+        if (model && model.source !== "combo-floor-pending") {
+          giftFloorPendingRetryCounts.delete(giftAssetFloorKey(child, group));
         }
         assetDetails[child.id] = child;
       });
@@ -1490,24 +1517,19 @@ async function hydrateGiftModelFloors(groups = []) {
     syncAssetsSummary();
     updateCategoryAndTopAsset();
   };
-  for (let attempt = 0; pending.length && attempt < 5; attempt += 1) {
-    if (attempt) await delay(Math.min(8000, 1000 * (2 ** (attempt - 1))));
+  if (pending.length) {
     const payload = await requestJson("/api/gift-model-floors/bulk", {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ pairs: pending }),
     }, "Gift model floors failed");
     applyPayload(payload);
-    pending = Array.isArray(payload.pending) ? payload.pending : [];
-  }
-  if (pending.length) {
-    const pendingKeys = new Set(pending.map((pair) => giftFloorRequestKey(pair.collection, pair.model, pair.backdrop)));
+    const unresolved = Array.isArray(payload.pending) ? payload.pending : [];
+    const pendingKeys = new Set(unresolved.map((pair) => giftFloorRequestKey(pair.collection, pair.model, pair.backdrop)));
     giftGroups.forEach((group) => {
       (group.children || []).forEach((child) => {
         const key = giftAssetFloorKey(child, group);
-        if (pendingKeys.has(key)) {
-          markGiftFloorUnavailable(child);
-        }
+        if (pendingKeys.has(key)) markGiftFloorUnavailable(child);
         assetDetails[child.id] = child;
       });
       recomputeGiftGroup(group);
@@ -1628,11 +1650,8 @@ function renderAssetDetail(assetId) {
   if (detail.type === "gift") {
     const cachedGift = getGiftDetailCachedPayload(detail);
     if (cachedGift) {
-      applyGiftDetailPayload(detail, cachedGift);
+      applyGiftDetailPayload(detail, cachedGift, { applyFloor: false });
       renderGiftDetailPage(detail, { loading: !detail.floorHistoryAvailable });
-      setTimeout(() => {
-        if (currentDetailAssetId() === detail.id) loadGiftDetail(detail, { forceRefresh: true });
-      }, 0);
     } else {
       renderGiftDetailPage(detail, { loading: true });
       setTimeout(() => {
@@ -1781,7 +1800,6 @@ function renderCollectibleDetail(detail, tone) {
     const cachedGift = getGiftDetailCachedPayload(detail);
     if (cachedGift) {
       applyGiftDetailPayload(detail, cachedGift);
-      loadGiftDetail(detail, { forceRefresh: true });
       renderSales(detail);
       renderMarketIntel(detail);
       drawDetailPriceChart(detail);
@@ -2279,7 +2297,8 @@ function getGiftDetailCachedPayload(detail) {
 
 function isVerifiedGiftFloor(floor = {}) {
   const source = `${floor.source || ""} ${floor.marketPlatform || ""}`.toLowerCase();
-  return source.includes("thermos") && (Number(floor.floorUsd || 0) > 0 || Number(floor.floorTon || 0) > 0);
+  return /(?:thermos|d1|combo|backdrop)/i.test(source)
+    && (Number(floor.floorUsd || 0) > 0 || Number(floor.floorTon || 0) > 0);
 }
 
 function applyGiftVerifiedFloor(detail, payload = {}) {
@@ -2321,14 +2340,14 @@ function applyGiftVerifiedFloor(detail, payload = {}) {
   detail.chart = detail.floorHistoryAvailable ? floorHistoryPoints.map((point) => point.priceUsd) : [];
 }
 
-function applyGiftDetailPayload(detail, payload = {}) {
+function applyGiftDetailPayload(detail, payload = {}, options = {}) {
   const floor = payload?.floor || {};
   const sales = payload?.sales || [];
   detail.origin = payload?.origin || detail.origin || {};
   detail.rarity = payload?.rarity || detail.rarity || {};
   detail.links = payload?.links || detail.links || {};
   detail.salesScope = payload?.salesScope || "collection";
-  applyGiftVerifiedFloor(detail, payload);
+  if (options.applyFloor !== false) applyGiftVerifiedFloor(detail, payload);
   detail.giftSalesRaw = Array.isArray(sales) ? sales.slice() : [];
   detail.sales = sales.map((sale) => ({
     priceLabel: `${Number(sale.priceTon || 0).toFixed(2)} TON · ${money(sale.priceUsd || 0)}`,
@@ -2379,8 +2398,7 @@ async function loadGiftDetail(detail, { forceRefresh = false } = {}) {
   try {
     const payload = forceRefresh ? await fetchGiftDetailPayload(detail) : (getGiftDetailCachedPayload(detail) || await fetchGiftDetailPayload(detail));
     if (requestId !== activeGiftDetailRequest) return;
-    applyGiftDetailPayload(detail, payload);
-    syncGiftFloorAcrossAssets(detail);
+    applyGiftDetailPayload(detail, payload, { applyFloor: forceRefresh });
     detail.floorHistoryLoading = false;
     renderGiftDetailPage(detail, { loading: false });
     window.lucide?.createIcons();
@@ -3024,7 +3042,6 @@ function prefetchStickerDetails(assets = stickerAssets) {
 
 function prefetchAllVisibleDetails() {
   prefetchVisibleTokenDetails(latestVisibleTokens);
-  prefetchGiftDetails(giftAssets);
   prefetchStickerDetails(stickerAssets);
 }
 
@@ -5098,13 +5115,6 @@ function renderImportedCollectiblesSnapshot(items = []) {
   renderCollectibleGrids();
   updateAllocationUi();
   syncAssetsSummary();
-  if (gifts.length) {
-    setCollectiblesBanner("gifts", "Loading gift floors...");
-    hydrateGiftModelFloors(gifts).finally(() => {
-      if (hasPendingCollectiblePrices("gifts")) setCollectiblesBanner("gifts", "Some exact floors are unavailable");
-      else setCollectiblesBanner("gifts", "");
-    });
-  }
   return true;
 }
 
@@ -5198,11 +5208,7 @@ async function updateCollectiblesFromGetgems(walletAddress, kind, options = {}) 
     renderCollectibleGrids();
     if (kind === "gifts") {
       preloadGiftStaticImages(assets);
-      setCollectiblesBanner(kind, "Loading model floors...");
-      hydrateGiftModelFloors(assets).finally(() => {
-        if (hasPendingCollectiblePrices("gifts")) setCollectiblesBanner(kind, "Some model floors are still unavailable");
-        else setCollectiblesBanner(kind, "");
-      });
+      updateCollectibleSummaryBanner(kind);
     } else prefetchStickerDetails(assets);
     setSectionReady(kind, `${kind === "gifts" ? "Gifts" : "Stickers"} ready · ${assets.length} ${assets.length === 1 ? "collection" : "collections"} loaded`);
     return assets;
@@ -5269,7 +5275,7 @@ function groupGiftAssets(assets = []) {
   assets.forEach((asset) => {
     const name = String(asset.collection || asset.name || "Telegram Gifts").trim();
     const source = String(asset.marketPlatform || "").trim();
-    const key = `${name.toLowerCase()}::${source.toLowerCase()}`;
+    const key = name.toLowerCase();
     if (!groups.has(key)) groups.set(key, {
       ...asset,
       children: [],
@@ -5279,11 +5285,13 @@ function groupGiftAssets(assets = []) {
       initTon: 0,
       dailyUsd: 0,
       count: 0,
+      unpricedCount: 0,
       tags: [],
     });
     const group = groups.get(key);
     group.children.push(asset);
     group.count += Number(asset.count || 1);
+    if (asset.floorStatus !== "priced" && !(Number(asset.floorUsd || 0) > 0)) group.unpricedCount += Number(asset.count || 1);
     group.floorUsd += Number(asset.floorUsd || 0);
     group.floorTon += Number(asset.floorTon || 0);
     group.initUsd += Number(asset.initUsd || 0);
@@ -5310,6 +5318,7 @@ function groupGiftAssets(assets = []) {
       pnlUsd,
       pnlPct: costBasis ? (pnlUsd / costBasis) * 100 : 0,
       dailyPct: Number(group.dailyPct || 0),
+      floorStatus: group.unpricedCount >= group.count ? "unavailable" : "priced",
       tag: group.tags[0] || group.tag,
     };
   });
@@ -5418,7 +5427,10 @@ function liveCollectibleAsset(item, kind, index, options = {}) {
     return text.includes("%") ? text : (Number.isFinite(numeric) ? `${numeric}%` : "");
   };
   const costBasis = Number(item.initUsd || 0) || (Number(item.lastSaleTon || 0) ? Number(item.lastSaleTon) * usdTonRate : 0);
-  const marketVerified = options.suppressMarket ? false : ((Number(item.floorUsd || 0) > 0 || Number(item.floorTon || 0) > 0) && Boolean(item.marketPlatform || item.source || item.marketUrl));
+  const hasBackendPrice = item.floorStatus === "priced" && (Number(item.floorUsd || 0) > 0 || Number(item.floorTon || 0) > 0);
+  const marketVerified = options.suppressMarket
+    ? hasBackendPrice
+    : ((Number(item.floorUsd || 0) > 0 || Number(item.floorTon || 0) > 0) && Boolean(item.marketPlatform || item.source || item.marketUrl));
   const floorUsd = marketVerified ? Number(item.floorUsd || 0) : 0;
   const floorTon = marketVerified ? Number(item.floorTon || 0) : 0;
   return {
@@ -5444,8 +5456,10 @@ function liveCollectibleAsset(item, kind, index, options = {}) {
     mint: { current: Number(item.mintIndex || index + 1), total: Math.max(Number(item.mintIndex || index + 1), 1) },
     floorUsd,
     floorTon,
+    floorStatus: item.floorStatus || (marketVerified ? "priced" : "unavailable"),
+    snapshotAt: item.snapshotAt || item.marketUpdatedAt || "",
     marketVerified,
-    priceLoading: !marketVerified,
+    priceLoading: item.floorStatus ? false : !marketVerified,
     dailyUsd: 0,
     dailyPct: marketVerified ? Number(item.change24hPct || 0) : 0,
     pnlUsd: costBasis ? floorUsd - costBasis : 0,
@@ -5462,8 +5476,9 @@ function liveCollectibleAsset(item, kind, index, options = {}) {
     quickSellUsd: marketVerified ? floorUsd * 0.95 : 0,
     initUsd: Number(item.initUsd || 0),
     initTon: Number(item.initTon || 0),
-    marketPlatform: marketVerified ? (item.marketPlatform || "") : "",
+    marketPlatform: marketVerified ? (item.marketPlatform || item.marketplace || "") : "",
     marketUrl: marketVerified ? (item.marketUrl || "") : "",
+    floorSource: marketVerified && item.source === "d1-backdrop-floor" ? "backdrop" : "",
     collectionId: item.collectionId || "",
     characterId: item.characterId || "",
     characterName: item.characterName || "",

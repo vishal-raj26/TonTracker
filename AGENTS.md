@@ -6,6 +6,7 @@
 - If the request is ambiguous, ask one concise question before implementation.
 - Keep progress updates and final responses short.
 - Do not repeat explanations the user already accepted.
+- When the user has granted full access, reuse that authorization and do not repeatedly ask for approval unless the platform explicitly requires it.
 
 ## Scope
 
