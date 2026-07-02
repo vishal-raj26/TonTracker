@@ -45,8 +45,10 @@ const continuousMode = process.argv.includes("--continuous") || process.env.GIFT
 const dryRun = process.argv.includes("--dry-run") || process.env.GIFT_COMBO_DRY_RUN === "1";
 const cycleDelayMs = Math.max(0, Number(process.env.GIFT_COMBO_CYCLE_DELAY_MS || 5 * 60 * 1000));
 const skipFreshMs = Math.max(0, Number(process.env.GIFT_COMBO_SKIP_FRESH_MS || 12 * 60 * 60 * 1000));
-const scanCollectionPages = process.env.GIFT_COMBO_SCAN_COLLECTION !== "0";
 const scanBackdropSlices = process.env.GIFT_COMBO_SCAN_BACKDROPS !== "0";
+const scanCollectionPages = process.env.GIFT_COMBO_SCAN_COLLECTION
+  ? process.env.GIFT_COMBO_SCAN_COLLECTION !== "0"
+  : !scanBackdropSlices;
 const maxBackdropSlices = Math.max(0, Number(process.env.GIFT_COMBO_MAX_BACKDROP_SLICES || 0));
 const backdropArgIndex = process.argv.indexOf("--backdrop");
 const onlyBackdrop = backdropArgIndex >= 0
