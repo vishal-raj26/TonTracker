@@ -39,6 +39,8 @@ const marketSignature = thermosMarkets.map((market) => market || "AGGREGATE").jo
 const pageConcurrency = Math.max(1, Math.min(12, Number(process.env.GIFT_COMBO_PAGE_CONCURRENCY || 1)));
 const requestDelayMs = Math.max(0, Number(process.env.GIFT_COMBO_REQUEST_DELAY_MS || 1050));
 const listingFetchAttempts = Math.max(2, Math.min(20, Number(process.env.GIFT_COMBO_LISTING_FETCH_ATTEMPTS || 5)));
+const listingFetchTimeoutMs = Math.max(30000, Number(process.env.GIFT_COMBO_FETCH_TIMEOUT_MS || 45000));
+const backdropFetchTimeoutMs = Math.max(listingFetchTimeoutMs, Number(process.env.GIFT_COMBO_BACKDROP_FETCH_TIMEOUT_MS || 90000));
 const continuousMode = process.argv.includes("--continuous") || process.env.GIFT_COMBO_CONTINUOUS === "1";
 const dryRun = process.argv.includes("--dry-run") || process.env.GIFT_COMBO_DRY_RUN === "1";
 const cycleDelayMs = Math.max(0, Number(process.env.GIFT_COMBO_CYCLE_DELAY_MS || 5 * 60 * 1000));
@@ -225,11 +227,12 @@ function giftSearchBody(collection, page, market, filters = {}) {
   };
 }
 
-async function fetchPage(collection, market, page, onRetry = null, filters = {}) {
+async function fetchPage(collection, market, page, onRetry = null, filters = {}, timeoutMs = listingFetchTimeoutMs) {
   const result = await fetchJson(`${thermosBase}/gifts`, {
     method: "POST",
     body: JSON.stringify(giftSearchBody(collection, page, market, filters)),
     onRetry,
+    timeoutMs,
   }, listingFetchAttempts);
   return result;
 }
@@ -399,7 +402,7 @@ async function scanBackdropSlice(collection, backdrop, combinations, work, saveW
     });
   };
   if (!pages) {
-    const first = await fetchPage(collection, "", 1, (retry) => retryProgress(1, retry), filters);
+    const first = await fetchPage(collection, "", 1, (retry) => retryProgress(1, retry), filters, backdropFetchTimeoutMs);
     mergeItems(combinations, first.items, "");
     pages = Number(first.pages || 0);
     listingCount = Number(first.count || 0);
@@ -421,7 +424,7 @@ async function scanBackdropSlice(collection, backdrop, combinations, work, saveW
     while (true) {
       const page = reservePage();
       if (!page) return;
-      const payload = await fetchPage(collection, "", page, (retry) => retryProgress(page, retry), filters);
+      const payload = await fetchPage(collection, "", page, (retry) => retryProgress(page, retry), filters, backdropFetchTimeoutMs);
       mergeItems(combinations, payload.items, "");
       donePages.add(page);
       updateSliceWork();
