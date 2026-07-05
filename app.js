@@ -17,6 +17,7 @@ const STICKER_SOURCE_IMAGES = {
 };
 const TON_LOGO_URL = "https://raw.githubusercontent.com/tonkeeper/opentonapi/master/pkg/references/media/ton_symbol.png";
 let detailReturnScreen = "assets";
+const navigationStack = [];
 let homePortfolioValue = 0;
 let homePortfolioDelta = 0;
 let homePortfolioChange = "+0.00%";
@@ -51,6 +52,7 @@ const tokenDetailMetricsCache = new Map();
 const tokenDetailPrefetchRequests = new Map();
 const giftDetailCache = new Map();
 const giftDetailRequests = new Map();
+const giftDetailPayloadVersion = "exact-combo-history-v2";
 const stickerDetailCache = new Map();
 const stickerDetailRequests = new Map();
 let activeTokenDetailRequest = 0;
@@ -595,6 +597,79 @@ function showScreen(name) {
   if (name === "activity") loadFullActivity();
 }
 
+function navigationRouteKey(route = {}) {
+  return [route.screen || "", route.mode || "", route.asset || ""].join(":");
+}
+
+function currentNavigationRoute() {
+  const screen = document.querySelector(".screen.is-active")?.dataset.screen || "home";
+  const route = { screen, scrollY: window.scrollY || document.documentElement.scrollTop || 0 };
+  if (screen === "detail") {
+    route.asset = currentDetailAssetId();
+  } else if (screen === "gift-brand") {
+    const giftScreen = document.querySelector('[data-screen="gift-brand"]');
+    route.asset = giftScreen?.dataset.modelGroupAsset || giftScreen?.dataset.asset || "";
+    route.mode = giftScreen?.dataset.modelGroupAsset ? "gift-model-group" : "gift-brand";
+  } else if (screen === "sticker-brand") {
+    route.asset = document.querySelector('[data-screen="sticker-brand"]')?.dataset.asset || "";
+  }
+  return route;
+}
+
+function routeFromTarget(target) {
+  const screen = target.dataset.screenTarget || "home";
+  const route = { screen, asset: target.dataset.asset || "" };
+  if (screen === "gift-model-group") {
+    route.screen = "gift-brand";
+    route.mode = "gift-model-group";
+  } else if (screen === "gift-brand") {
+    route.mode = "gift-brand";
+  }
+  return route;
+}
+
+function isHeaderBackTarget(target) {
+  const header = target.closest(".page-header");
+  return Boolean(header && header.firstElementChild === target && target.classList.contains("icon-button"));
+}
+
+function restoreRouteScroll(route) {
+  const top = Math.max(0, Number(route?.scrollY || 0));
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => window.scrollTo({ top, behavior: "auto" }));
+  });
+}
+
+function applyNavigationRoute(route, { restoreScroll = false } = {}) {
+  if (!route?.screen) return;
+  if (route.screen === "detail") {
+    if (route.asset) renderAssetDetail(route.asset);
+  } else if (route.screen === "gift-brand") {
+    if (route.mode === "gift-model-group") renderGiftModelGroup(route.asset);
+    else renderGiftBrand(route.asset);
+  } else if (route.screen === "sticker-brand") {
+    renderStickerBrand(route.asset);
+  } else if (route.screen === "activity") {
+    loadFullActivity();
+  }
+  showScreen(route.screen);
+  if (restoreScroll) restoreRouteScroll(route);
+  else window.scrollTo({ top: 0, behavior: "auto" });
+}
+
+function navigateToRoute(route, { back = false } = {}) {
+  const currentRoute = currentNavigationRoute();
+  if (back && navigationStack.length) {
+    const previousRoute = navigationStack.pop();
+    applyNavigationRoute(previousRoute, { restoreScroll: true });
+    return;
+  }
+  if (!back && navigationRouteKey(currentRoute) !== navigationRouteKey(route)) {
+    navigationStack.push(currentRoute);
+  }
+  applyNavigationRoute(route, { restoreScroll: false });
+}
+
 function setText(selector, value) {
   const element = document.querySelector(selector);
   if (element) element.textContent = value;
@@ -675,9 +750,9 @@ function renderGiftGrid() {
   if (coverageLabel) {
     const holdings = giftAssets.flatMap((asset) => asset.children?.length ? asset.children : [asset]);
     const fetched = holdings.filter((asset) => asset.floorSource === "backdrop" && Number(asset.floorUsd || 0) > 0).length;
-    const missing = Math.max(0, holdings.length - fetched);
-    coverageLabel.textContent = `${fetched} fetched · ${missing} missing`;
-    coverageLabel.classList.toggle("is-complete", Boolean(holdings.length) && missing === 0);
+    const estimated = holdings.filter(isEstimatedAsset).length;
+    coverageLabel.textContent = `${fetched} fetched · ${estimated} estimated`;
+    coverageLabel.classList.toggle("is-complete", Boolean(holdings.length) && fetched + estimated >= holdings.length);
   }
   grid.innerHTML = items.length ? items.map(renderGiftCard).join("") : `<article class="collectible-card"><div class="value-stack"><strong>No gifts found</strong><small>Try a different search.</small></div></article>`;
   window.lucide?.createIcons();
@@ -751,19 +826,40 @@ function sortAssets(items, sort) {
 }
 
 function floorSourceLine(asset = {}) {
-  if (Number(asset.unpricedCount || 0) > 0) {
+  if (Number(asset.estimatedCount || 0) > 0) {
     const base = Number(asset.floorTon || 0) > 0 ? `${Number(asset.floorTon).toFixed(2)} TON` : "";
-    const unpriced = `${Number(asset.unpricedCount || 0)} of ${Number(asset.count || 1)} unpriced`;
-    return ["Floor", base, unpriced].filter(Boolean).map((part) => escapeHtml(String(part))).join(" · ");
+    const estimated = `${Number(asset.estimatedCount || 0)} estimated`;
+    return ["Floor", base, estimated].filter(Boolean).map((part) => escapeHtml(String(part))).join(" · ");
   }
-  const parts = ["Floor"];
+  const isEstimate = asset.floorStatus === "estimated" || asset.floorSource === "estimate" || asset.source === "estimated-combo-value";
+  const isLastSale = asset.floorSource === "last-sale" || asset.source === "last-sale-exact" || /last sale/i.test(String(asset.marketPlatform || ""));
+  const parts = [isLastSale ? "Last sale" : (isEstimate ? "Estimated value" : "Floor")];
   if (asset.floorSource === "model") parts.push("Model");
+  if (asset.floorSource === "estimate" && asset.estimateConfidence) parts.push(`${asset.estimateConfidence} confidence`);
   if (Number(asset.floorTon || 0) > 0) parts.push(`${Number(asset.floorTon).toFixed(2)} TON`);
   const platform = marketSourceLabel(asset.marketPlatform);
   if (platform && platform !== "xGift Model" && platform !== "Model Floor") parts.push(platform);
   if (Number(asset.initTon || 0) > 0) parts.push(`Init ${Number(asset.initTon).toFixed(2)} TON`);
   else if (Number(asset.initUsd || 0) > 0) parts.push(`Init ${money(asset.initUsd)}`);
   return parts.map((part) => escapeHtml(String(part))).join(" · ");
+}
+
+function isEstimatedAsset(asset = {}) {
+  return asset.floorStatus === "estimated" || asset.floorSource === "estimate" || asset.source === "estimated-combo-value" || Number(asset.estimatedCount || 0) > 0;
+}
+
+function estimatedPillHtml(asset = {}) {
+  return isEstimatedAsset(asset) ? `<span class="status-badge is-estimated">Estimated</span>` : "";
+}
+
+function estimateSignalLine(asset = {}) {
+  const signals = asset.estimateSignals || {};
+  if (!(asset.floorSource === "estimate" || asset.floorStatus === "estimated" || asset.source === "estimated-combo-value")) return "";
+  const parts = [];
+  if (Number(signals.modelSamples || 0) > 0) parts.push(`${Number(signals.modelSamples)} model comps`);
+  if (Number(signals.backdropSamples || 0) > 0) parts.push(`${Number(signals.backdropSamples)} backdrop comps`);
+  if (Number(signals.backdropRarityPct || 0) > 0) parts.push(`${Number(signals.backdropRarityPct).toFixed(1)}% backdrop`);
+  return parts.slice(0, 3).join(" · ");
 }
 
 function renderGiftCard(asset) {
@@ -778,13 +874,13 @@ function renderGiftCard(asset) {
   const hasPrice = Number(asset.floorUsd) > 0;
   const floorNote = hasPrice
     ? floorSourceLine(asset)
-    : (Number(asset.unpricedCount || 0) > 0 ? `${Number(asset.unpricedCount || 0)} of ${Number(asset.count || 1)} unpriced` : "No market price available");
+    : (Number(asset.estimatedCount || 0) > 0 ? `${Number(asset.estimatedCount || 0)} estimated` : "No market price available");
   return `
     <article class="collectible-card is-gift-card" data-screen-target="gift-brand" data-asset="${asset.id}">
       <div class="collectible-top">
         ${collectibleArtHtml(asset, "gift")}
         <div><h3>${escapeHtml(title)}</h3>${subtitle ? `<small>${escapeHtml(subtitle)}</small>` : ""}</div>
-        <span class="tag-number">${Number(asset.count || 1)} gift${Number(asset.count || 1) === 1 ? "" : "s"}</span>
+        <span class="tag-number">${Number(asset.count || 1)} gift${Number(asset.count || 1) === 1 ? "" : "s"}</span>${estimatedPillHtml(asset)}
       </div>
       ${provenance || listed ? `<div class="card-meta-line ${provenance ? "" : "is-status-only"}">${provenance ? `<span>${escapeHtml(provenance)}</span>` : ""}${listed ? `<b class="status-badge is-listed">${escapeHtml(asset.status)}</b>` : ""}</div>` : ""}
       <div class="value-stack"><strong>${hasPrice ? money(asset.floorUsd) : "Price unavailable"}</strong><small>${floorNote}</small></div>
@@ -813,9 +909,9 @@ function renderGiftBrand(assetId) {
     const totalValue = children.reduce((sum, item) => sum + Number(item.floorUsd || 0), 0);
     const init = children.reduce((sum, item) => sum + Number(item.initUsd || 0), 0);
     const pnl = init ? totalValue - init : 0;
-    const unpriced = Number(brand.unpricedCount || 0);
+    const estimated = Number(brand.estimatedCount || 0);
     const valueLabel = totalValue > 0 ? money(totalValue) : "Price unavailable";
-    const countLabel = `${count} gift${count === 1 ? "" : "s"}${unpriced ? ` · ${unpriced} unpriced` : ""}`;
+    const countLabel = `${count} gift${count === 1 ? "" : "s"}${estimated ? ` · ${estimated} estimated` : ""}`;
     summary.innerHTML = `<small>${escapeHtml(brand.creator || brand.collection || "Gift collection")}</small><div><h2>${valueLabel}</h2><span>${escapeHtml(countLabel)}</span></div><strong class="${pnl < 0 ? "negative" : "positive"}">${init && totalValue > 0 ? `${signedMoney(pnl)} · ${signedPct((pnl / init) * 100)}` : "Tap a gift to open details"}</strong>`;
   }
   const grid = document.querySelector("#giftBrandGrid");
@@ -880,6 +976,7 @@ function groupGiftBrandChildren(children = []) {
       priceLoading: false,
       tagList: [],
       previewImages: [],
+      estimatedCount: 0,
     };
     item.children.push(asset);
     item.count += Number(asset.count || 1);
@@ -887,6 +984,11 @@ function groupGiftBrandChildren(children = []) {
     item.floorTon += Number(asset.floorTon || 0);
     item.initUsd = Number(item.initUsd || 0) + Number(asset.initUsd || asset.costBasis || 0);
     item.priceLoading = item.priceLoading || Boolean(asset.priceLoading && !(Number(asset.floorUsd || 0) > 0));
+    if (asset.floorStatus === "estimated" || asset.floorSource === "estimate" || asset.source === "estimated-combo-value") {
+      item.estimatedCount += Number(asset.count || 1);
+      item.floorStatus = item.floorStatus || "estimated";
+      item.floorSource = item.floorSource || "estimate";
+    }
     item.modelFloor = item.modelFloor || asset.modelFloor || null;
     if (asset.floorSource === "model") {
       item.floorSource = "model";
@@ -933,7 +1035,7 @@ function renderGiftBrandItem(asset) {
         <span class="gift-model-badges">
           <b>${count} gift${count === 1 ? "" : "s"}</b>
           ${modelCount > 0 ? `<small>${modelCount.toLocaleString()} model</small>` : ""}
-        </span>
+        </span>${estimatedPillHtml(asset)}
       </div>
       <div class="value-stack"><strong>${hasPrice ? money(asset.floorUsd) : "Price unavailable"}</strong><small>${floorNote}</small></div>
     </article>`;
@@ -985,7 +1087,7 @@ function renderGiftIndividualItem(asset) {
           <h3>${escapeHtml(title)}</h3>
           <small>${escapeHtml(modelLabel)}</small>
         </div>
-        ${number ? `<span class="tag-number">${escapeHtml(number)}</span>` : ""}
+        ${number ? `<span class="tag-number">${escapeHtml(number)}</span>` : ""}${estimatedPillHtml(asset)}
       </div>
       <div class="value-stack"><strong>${hasPrice ? money(asset.floorUsd) : "Price unavailable"}</strong><small>${hasPrice ? floorSourceLine(asset) : "Open details"}</small></div>
     </article>`;
@@ -1324,8 +1426,13 @@ function applyGiftModelFloor(asset, model = {}) {
   asset.marketVerified = true;
   asset.priceLoading = false;
   const isBackdropFloor = model.source === "d1-backdrop-floor";
-  asset.marketPlatform = isBackdropFloor ? "Backdrop Floor" : "Model Floor";
-  asset.floorSource = isBackdropFloor ? "backdrop" : "model";
+  const isEstimatedFloor = model.source === "estimated-combo-value";
+  asset.marketPlatform = isEstimatedFloor ? "Estimated Value" : (isBackdropFloor ? "Backdrop Floor" : "Model Floor");
+  asset.floorSource = isEstimatedFloor ? "estimate" : (isBackdropFloor ? "backdrop" : "model");
+  asset.floorStatus = isEstimatedFloor ? "estimated" : "priced";
+  asset.source = model.source || asset.source;
+  asset.estimateConfidence = model.estimateConfidence || asset.estimateConfidence || "";
+  asset.estimateSignals = model.estimateSignals || asset.estimateSignals || null;
   if (isBackdropFloor) setGiftComboState(asset, {}, { status: "found", source: model.source });
   else clearGiftComboState(asset);
   if (model.iconUrl || model.animationUrl) {
@@ -1463,6 +1570,7 @@ function recomputeGiftGroup(group) {
   group.initTon = children.reduce((sum, child) => sum + Number(child.initTon || 0), 0);
   group.priceLoading = children.some((child) => child.priceLoading && !(Number(child.floorUsd || 0) > 0));
   group.unpricedCount = children.filter((child) => child.floorStatus !== "priced" && !(Number(child.floorUsd || 0) > 0)).length;
+  group.estimatedCount = children.filter((child) => child.floorStatus === "estimated" || child.floorSource === "estimate" || child.source === "estimated-combo-value").length;
   group.floorStatus = group.unpricedCount >= children.length ? "unavailable" : "priced";
   if (children.some((child) => child.floorSource === "model")) group.marketPlatform = "Model Floor";
   else if (children.some((child) => child.floorSource === "backdrop")) group.marketPlatform = "Backdrop Floor";
@@ -1599,6 +1707,8 @@ function collectibleArtHtml(asset, fallback = "gift") {
 function renderStickerBrand(assetId) {
   const brand = stickerAssets.find((asset) => asset.id === assetId) || stickerAssets[0];
   if (!brand) return;
+  const screen = document.querySelector('[data-screen="sticker-brand"]');
+  if (screen) screen.dataset.asset = brand.id;
   const children = brand.children?.length ? brand.children : [brand];
   children.forEach((child) => { assetDetails[child.id] = child; });
   setText("#stickerBrandTitle", brand.name || "Sticker Brand");
@@ -1956,6 +2066,7 @@ function renderGiftDetailPage(detail, { loading = false } = {}) {
   const chartSourceLabel = detail.floorHistoryAvailable
     ? detail.floorHistorySource === "sales-derived" ? "Sales-derived floor"
       : detail.floorHistorySource === "see.tg-graphics" ? "see.tg floor history"
+      : detail.floorHistorySource === "tontrack-combo-registry" ? "Exact floor history"
       : detail.floorHistorySource === "tontrack-snapshots" ? "TonTrack snapshots"
       : "Live floor history"
     : chartIsLoading ? "Loading floor history..." : "Floor history unavailable";
@@ -1990,7 +2101,7 @@ function renderGiftDetailPage(detail, { loading = false } = {}) {
   mount.innerHTML = `
     <section class="gift-detail-layout">
       <article class="gift-detail-hero-card">
-        ${isListed ? `<span class="status-badge is-listed" style="position:absolute;top:14px;right:14px;">Listed</span>` : ""}
+        ${isListed ? `<span class="status-badge is-listed" style="position:absolute;top:14px;right:14px;">Listed</span>` : estimatedPillHtml(detail) ? `<span class="status-badge is-estimated" style="position:absolute;top:14px;right:14px;">Estimated</span>` : ""}
         <div class="gift-detail-glow" style="background:radial-gradient(circle, ${glow} 0%, rgba(0,0,0,0) 68%);"></div>
         <div class="gift-detail-hero-inner">
           ${giftLayeredArtHtml(detail, "gift-detail-hero-art") || `<span class="gift-detail-hero-art">${giftDetailAnimationHtml(detail) || `<span class="detail-skeleton-line"></span>`}</span>`}
@@ -2260,7 +2371,7 @@ async function loadStickerDetail(detail, { forceRefresh = false } = {}) {
 }
 
 function giftDetailCacheKey(detail = {}) {
-  return `${String(detail.tokenAddress || detail.id || detail.name || "")}:${giftDetailRange}`;
+  return `${giftDetailPayloadVersion}:${String(detail.tokenAddress || detail.id || detail.name || "")}:${giftDetailRange}`;
 }
 
 async function fetchGiftDetailPayload(detail) {
@@ -2277,6 +2388,8 @@ async function fetchGiftDetailPayload(detail) {
     item: detail.name || detail.collection || "",
     attributes: JSON.stringify(detail.traits || []),
     range: giftDetailRange,
+    v: giftDetailPayloadVersion,
+    t: String(Date.now()),
   });
   const tgauth = telegramInitData();
   if (tgauth) detailParams.set("tgauth", tgauth);
@@ -2301,43 +2414,70 @@ function isVerifiedGiftFloor(floor = {}) {
     && (Number(floor.floorUsd || 0) > 0 || Number(floor.floorTon || 0) > 0);
 }
 
+function isEstimatedGiftFloor(floor = {}) {
+  const source = `${floor.source || ""} ${floor.marketPlatform || ""}`.toLowerCase();
+  return /estimated|last-sale|last sale/.test(source)
+    && (Number(floor.floorUsd || 0) > 0 || Number(floor.floorTon || 0) > 0);
+}
+
+function giftFloorHistoryPointsFromPayload(detail, payload = {}) {
+  const floor = payload?.floor || {};
+  const rate = Number(floor.tonUsdRate || (
+    Number(floor.floorTon || 0) > 0 ? Number(floor.floorUsd || 0) / Number(floor.floorTon || 1) : 0
+  ) || (
+    Number(detail.floorTon || 0) > 0 ? Number(detail.floorUsd || 0) / Number(detail.floorTon || 1) : 0
+  ) || 0);
+  const history = Array.isArray(payload?.floorHistory) ? payload.floorHistory : [];
+  return history
+    .map((point, index) => {
+      const timestamp = new Date(point.timestamp || point.date || 0).getTime();
+      const priceTon = Number(point.priceTon || point.ton || point.floorTon || 0);
+      const priceUsd = Number(point.priceUsd || point.usd || point.floorUsd || (priceTon > 0 && rate > 0 ? priceTon * rate : 0));
+      if (!(priceUsd > 0 || priceTon > 0)) return null;
+      return {
+        timestamp: Number.isFinite(timestamp) ? timestamp : Date.now() - ((history.length - 1 - index) * 86400000),
+        priceUsd: priceUsd || (priceTon * rate),
+        priceTon,
+      };
+    })
+    .filter((point) => Number(point.priceUsd || 0) > 0)
+    .sort((a, b) => a.timestamp - b.timestamp);
+}
+
+function applyGiftFloorHistory(detail, payload = {}) {
+  const floorHistoryPoints = giftFloorHistoryPointsFromPayload(detail, payload);
+  const hasMarketPrice = Number(detail.floorUsd || payload?.floor?.floorUsd || 0) > 0
+    || Number(detail.floorTon || payload?.floor?.floorTon || 0) > 0;
+  detail.floorHistoryAvailable = hasMarketPrice && floorHistoryPoints.length >= 2;
+  detail.floorHistorySource = detail.floorHistoryAvailable ? (payload.floorHistorySource || payload?.floor?.floorHistorySource || "live") : "";
+  detail.floorHistoryPoints = detail.floorHistoryAvailable ? floorHistoryPoints : [];
+  detail.chart = detail.floorHistoryAvailable ? floorHistoryPoints.map((point) => point.priceUsd) : [];
+}
+
 function applyGiftVerifiedFloor(detail, payload = {}) {
   const floor = payload?.floor || {};
   const blockedByBulkState = giftComboState(detail)?.status === "missing";
   const verifiedFloor = !blockedByBulkState && isVerifiedGiftFloor(floor);
-  const floorHistoryPoints = verifiedFloor && Array.isArray(payload?.floorHistory)
-    ? payload.floorHistory
-      .map((point, index) => {
-        const timestamp = new Date(point.timestamp || point.date || 0).getTime();
-        const priceUsd = Number(point.priceUsd || point.usd || 0);
-        const priceTon = Number(point.priceTon || point.ton || 0);
-        if (!(priceUsd > 0)) return null;
-        return {
-          timestamp: Number.isFinite(timestamp) ? timestamp : Date.now() - ((payload.floorHistory.length - 1 - index) * 86400000),
-          priceUsd,
-          priceTon,
-        };
-      })
-      .filter(Boolean)
-      .sort((a, b) => a.timestamp - b.timestamp)
-    : [];
-  detail.floorTon = verifiedFloor ? Number(floor.floorTon || 0) : 0;
-  detail.floorUsd = verifiedFloor ? Number(floor.floorUsd || 0) : 0;
+  const estimatedFloor = !verifiedFloor && isEstimatedGiftFloor(floor);
+  const hasDisplayPrice = verifiedFloor || estimatedFloor;
+  detail.floorTon = hasDisplayPrice ? Number(floor.floorTon || 0) : 0;
+  detail.floorUsd = hasDisplayPrice ? Number(floor.floorUsd || 0) : 0;
   detail.dailyPct = verifiedFloor ? Number(floor.change24hPct || 0) : 0;
   detail.dailyUsd = detail.floorUsd && detail.dailyPct ? detail.floorUsd * (detail.dailyPct / 100) : 0;
-  detail.marketPlatform = verifiedFloor ? (marketSourceLabel(floor.marketPlatform || floor.source) || "Verified Market") : "";
+  detail.marketPlatform = hasDisplayPrice ? (marketSourceLabel(floor.marketPlatform || floor.source) || (estimatedFloor ? "Estimated Value" : "Verified Market")) : "";
   detail.marketUrl = verifiedFloor ? (floor.marketUrl || "") : "";
   detail.graphImageUrl = "";
   detail.marketVerified = verifiedFloor && detail.floorUsd > 0;
-  detail.floorSource = detail.marketVerified ? "backdrop" : "";
+  const isLastSale = floor.source === "last-sale-exact" || /last sale/i.test(String(floor.marketPlatform || ""));
+  detail.floorSource = isLastSale ? "last-sale" : (estimatedFloor ? "estimate" : (detail.marketVerified ? "backdrop" : ""));
+  detail.floorStatus = isLastSale ? "last-sale" : (estimatedFloor ? "estimated" : (verifiedFloor ? "priced" : "unavailable"));
+  detail.estimateConfidence = estimatedFloor && !isLastSale ? (floor.estimateConfidence || "") : "";
+  detail.estimateSignals = estimatedFloor && !isLastSale ? (floor.estimateSignals || null) : null;
   detail.quickSellTon = detail.floorTon ? detail.floorTon * 0.95 : 0;
   detail.quickSellUsd = detail.floorUsd ? detail.floorUsd * 0.95 : 0;
   detail.pnlUsd = detail.costBasis ? detail.floorUsd - detail.costBasis : 0;
   detail.pnlPct = detail.costBasis ? ((detail.floorUsd - detail.costBasis) / detail.costBasis) * 100 : 0;
-  detail.floorHistoryAvailable = detail.marketVerified && floorHistoryPoints.length >= 2;
-  detail.floorHistorySource = detail.floorHistoryAvailable ? (payload.floorHistorySource || floor.floorHistorySource || "live") : "";
-  detail.floorHistoryPoints = detail.floorHistoryAvailable ? floorHistoryPoints : [];
-  detail.chart = detail.floorHistoryAvailable ? floorHistoryPoints.map((point) => point.priceUsd) : [];
+  applyGiftFloorHistory(detail, payload);
 }
 
 function applyGiftDetailPayload(detail, payload = {}, options = {}) {
@@ -2348,6 +2488,7 @@ function applyGiftDetailPayload(detail, payload = {}, options = {}) {
   detail.links = payload?.links || detail.links || {};
   detail.salesScope = payload?.salesScope || "collection";
   if (options.applyFloor !== false) applyGiftVerifiedFloor(detail, payload);
+  else applyGiftFloorHistory(detail, payload);
   detail.giftSalesRaw = Array.isArray(sales) ? sales.slice() : [];
   detail.sales = sales.map((sale) => ({
     priceLabel: `${Number(sale.priceTon || 0).toFixed(2)} TON · ${money(sale.priceUsd || 0)}`,
@@ -5286,12 +5427,14 @@ function groupGiftAssets(assets = []) {
       dailyUsd: 0,
       count: 0,
       unpricedCount: 0,
+      estimatedCount: 0,
       tags: [],
     });
     const group = groups.get(key);
     group.children.push(asset);
     group.count += Number(asset.count || 1);
     if (asset.floorStatus !== "priced" && !(Number(asset.floorUsd || 0) > 0)) group.unpricedCount += Number(asset.count || 1);
+    if (asset.floorStatus === "estimated" || asset.floorSource === "estimate" || asset.source === "estimated-combo-value") group.estimatedCount += Number(asset.count || 1);
     group.floorUsd += Number(asset.floorUsd || 0);
     group.floorTon += Number(asset.floorTon || 0);
     group.initUsd += Number(asset.initUsd || 0);
@@ -5427,10 +5570,11 @@ function liveCollectibleAsset(item, kind, index, options = {}) {
     return text.includes("%") ? text : (Number.isFinite(numeric) ? `${numeric}%` : "");
   };
   const costBasis = Number(item.initUsd || 0) || (Number(item.lastSaleTon || 0) ? Number(item.lastSaleTon) * usdTonRate : 0);
-  const hasBackendPrice = item.floorStatus === "priced" && (Number(item.floorUsd || 0) > 0 || Number(item.floorTon || 0) > 0);
+  const hasBackendPrice = ["priced", "estimated", "last-sale"].includes(item.floorStatus) && (Number(item.floorUsd || 0) > 0 || Number(item.floorTon || 0) > 0);
+  const hasEstimatedPrice = item.floorStatus === "estimated" && hasBackendPrice;
   const marketVerified = options.suppressMarket
     ? hasBackendPrice
-    : ((Number(item.floorUsd || 0) > 0 || Number(item.floorTon || 0) > 0) && Boolean(item.marketPlatform || item.source || item.marketUrl));
+    : (hasEstimatedPrice || ((Number(item.floorUsd || 0) > 0 || Number(item.floorTon || 0) > 0) && Boolean(item.marketPlatform || item.source || item.marketUrl)));
   const floorUsd = marketVerified ? Number(item.floorUsd || 0) : 0;
   const floorTon = marketVerified ? Number(item.floorTon || 0) : 0;
   return {
@@ -5478,7 +5622,9 @@ function liveCollectibleAsset(item, kind, index, options = {}) {
     initTon: Number(item.initTon || 0),
     marketPlatform: marketVerified ? (item.marketPlatform || item.marketplace || "") : "",
     marketUrl: marketVerified ? (item.marketUrl || "") : "",
-    floorSource: marketVerified && item.source === "d1-backdrop-floor" ? "backdrop" : "",
+    floorSource: item.source === "last-sale-exact" ? "last-sale" : (item.source === "estimated-combo-value" ? "estimate" : (marketVerified && item.source === "d1-backdrop-floor" ? "backdrop" : "")),
+    estimateConfidence: item.estimateConfidence || "",
+    estimateSignals: item.estimateSignals || null,
     collectionId: item.collectionId || "",
     characterId: item.characterId || "",
     characterName: item.characterName || "",
@@ -6691,22 +6837,13 @@ document.addEventListener("click", (event) => {
   }
   if (!target) return;
   closeWalletActionSheet();
-  let nextScreen = target.dataset.screenTarget;
+  const nextRoute = routeFromTarget(target);
   const currentScreen = document.querySelector(".screen.is-active")?.dataset.screen;
-  if (nextScreen === "detail") {
+  if (nextRoute.screen === "detail") {
     detailReturnScreen = currentScreen || "assets";
     closeGiftPfpTray();
-    renderAssetDetail(target.dataset.asset);
   }
-  if (nextScreen === "gift-brand") renderGiftBrand(target.dataset.asset);
-  if (nextScreen === "gift-model-group") {
-    renderGiftModelGroup(target.dataset.asset);
-    nextScreen = "gift-brand";
-  }
-  if (nextScreen === "sticker-brand") renderStickerBrand(target.dataset.asset);
-  if (nextScreen === "activity") loadFullActivity();
-  if (currentScreen === "detail" && nextScreen === "assets") nextScreen = detailReturnScreen;
-  showScreen(nextScreen);
+  navigateToRoute(nextRoute, { back: isHeaderBackTarget(target) });
 });
 
 walletButtons.forEach((button) => {

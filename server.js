@@ -51,6 +51,12 @@ const giftRegistryProxyUrl = String(process.env.GIFT_REGISTRY_PROXY_URL || "").r
 const publicGiftRegistryUrl = "https://tontrack-gift-registry.vishu-vishal264.workers.dev";
 const giftRegistryReadUrl = d1GiftRegistryUrl || publicGiftRegistryUrl;
 const giftComboCoverageMaxAgeMs = Math.max(60 * 60 * 1000, Number(process.env.GIFT_COMBO_COVERAGE_MAX_AGE_MS || 12 * 60 * 60 * 1000));
+const tonnelAuthData = String(process.env.TONNEL_AUTH_DATA || process.env.TONNEL_AUTH || "");
+const portalsAuthData = String(process.env.PORTALS_AUTH_DATA || process.env.PORTALS_TMA_AUTH || "");
+const portalsApiBase = String(process.env.PORTALS_API_BASE || "https://portals-market.com/api").replace(/\/+$/, "");
+const thermosBackendApiBase = String(process.env.THERMOS_BACKEND_API_BASE || "https://backend.thermos.gifts").replace(/\/+$/, "");
+const thermosApiToken = String(process.env.THERMOS_API_TOKEN || "");
+const thermosJwtEnv = String(process.env.THERMOS_JWT || "");
 let giftSnapshotPgPool = null;
 let giftSnapshotPgInitPromise = null;
 let giftSnapshotPgUnavailableLogged = false;
@@ -65,6 +71,9 @@ const giftComboExactMissCache = new Map();
 const giftComboStaleRefreshCache = new Map();
 const giftComboCollectionCache = new Map();
 const giftComboBulkResponseCache = new Map();
+const giftComboFloorCache = new Map();
+const giftComboHistoryCache = new Map();
+const giftComboHistoryWarmJobs = new Set();
 const txActionCache = new Map();
 const dnsNameCache = new Map();
 const historyCacheVersion = "short-ranges-v3";
@@ -99,6 +108,7 @@ const collectiblesCache = new Map();
 const collectiblesRequests = new Map();
 const collectibleFloorCache = new Map();
 const collectibleSalesCache = new Map();
+const collectibleSalesWarningKeys = new Set();
 const nftHistoryCache = new Map();
 let stickerdomStatsCache = null;
 let stickerdomStatsExpiresAt = 0;
@@ -112,6 +122,7 @@ let stickersToolsStatsPromise = null;
 let thermosGiftCollectionsCache = null;
 let thermosGiftCollectionsExpiresAt = 0;
 let thermosGiftCollectionsPromise = null;
+let thermosBackendJwtCache = { token: thermosJwtEnv, expiresAt: thermosJwtEnv ? Date.now() + 20 * 60 * 60 * 1000 : 0, promise: null };
 const thermosGiftAttributesCache = new Map();
 const thermosGiftAttributesRequests = new Map();
 const xgiftModelMediaCache = new Map();
@@ -2311,6 +2322,57 @@ async function marketJson(url, options = {}, timeoutMs = 7000) {
   } finally {
     clearTimeout(timeout);
   }
+}
+
+async function thermosBackendJwt() {
+  if (thermosBackendJwtCache.token && thermosBackendJwtCache.expiresAt > Date.now() + 60 * 1000) {
+    return thermosBackendJwtCache.token;
+  }
+  if (!thermosApiToken) return "";
+  if (thermosBackendJwtCache.promise) return thermosBackendJwtCache.promise;
+  thermosBackendJwtCache.promise = marketJson(`${thermosBackendApiBase}/api/v1/auth/api-token?api_token=${encodeURIComponent(thermosApiToken)}`, {
+    method: "POST",
+    headers: {
+      origin: "https://thermos.gifts",
+      referer: "https://thermos.gifts/",
+    },
+  }, 7000)
+    .then((payload) => {
+      const token = String(payload?.token || payload?.jwt || payload?.access_token || payload?.accessToken || "");
+      if (!token) throw new Error("Thermos auth did not return a JWT");
+      thermosBackendJwtCache = { token, expiresAt: Date.now() + 20 * 60 * 60 * 1000, promise: null };
+      return token;
+    })
+    .catch((error) => {
+      thermosBackendJwtCache.promise = null;
+      throw error;
+    });
+  return thermosBackendJwtCache.promise;
+}
+
+async function thermosBackendJson(pathname = "", options = {}, timeoutMs = 7000) {
+  const jwt = await thermosBackendJwt();
+  if (!jwt) throw new Error("Thermos backend auth is not configured");
+  const path = pathname.startsWith("/") ? pathname : `/${pathname}`;
+  return marketJson(`${thermosBackendApiBase}${path}`, {
+    ...options,
+    headers: {
+      authorization: jwt.startsWith("Bearer ") ? jwt : `Bearer ${jwt}`,
+      origin: "https://thermos.gifts",
+      referer: "https://thermos.gifts/",
+      ...(options.headers || {}),
+    },
+  }, timeoutMs);
+}
+
+function settleWithin(promise, timeoutMs, fallback = null) {
+  let timeout = 0;
+  return Promise.race([
+    Promise.resolve(promise).catch(() => fallback),
+    new Promise((resolve) => {
+      timeout = setTimeout(() => resolve(fallback), timeoutMs);
+    }),
+  ]).finally(() => clearTimeout(timeout));
 }
 
 function registryItems(payload) {
@@ -5032,35 +5094,82 @@ async function thermosGiftModelPayload(collectionName = "", { force = false, ton
 
 async function d1GiftComboFloor(collectionName = "", modelName = "", backdropName = "") {
   if (!giftRegistryReadUrl || !collectionName || !modelName || !backdropName) return null;
-  const collectionAliases = [...new Set([collectionName, ...giftCollectionAliasKeys(collectionName)].filter(Boolean))];
-  for (const collection of collectionAliases) {
-    try {
-      const params = new URLSearchParams({
-        collection,
-        model: modelName,
-        backdrop: backdropName,
-      });
-      const payload = await marketJson(`${giftRegistryReadUrl}/combo?${params}`, {}, 5000);
-      if (Number(payload?.floorTon || 0) > 0) return payload;
-    } catch {
-      // Try the next collection alias before giving up.
-    }
+  const cacheKey = [
+    ...giftCollectionAliasKeys(collectionName),
+    giftSnapshotKey(modelName),
+    giftSnapshotKey(backdropName),
+  ].filter(Boolean).join(":");
+  const cached = giftComboFloorCache.get(cacheKey);
+  if (cached?.expiresAt > Date.now()) return cached.value;
+  try {
+    const params = new URLSearchParams({
+      collection: collectionName,
+      model: modelName,
+      backdrop: backdropName,
+    });
+    const payload = await marketJson(`${giftRegistryReadUrl}/combo?${params}`, {}, 1500);
+    const floor = Number(payload?.floorTon || 0) > 0 ? payload : null;
+    giftComboFloorCache.set(cacheKey, { value: floor, expiresAt: Date.now() + (floor ? 5 * 60 * 1000 : 45 * 1000) });
+    return floor;
+  } catch {
+    giftComboFloorCache.set(cacheKey, { value: null, expiresAt: Date.now() + 30 * 1000 });
+    return null;
   }
-  return null;
 }
 
 async function d1GiftComboHistory(collectionName = "", modelName = "", backdropName = "") {
   if (!collectionName || !modelName || !backdropName) return [];
+  if (!giftRegistryReadUrl && !giftRegistryProxyUrl) return [];
+  const cacheKey = [
+    ...giftCollectionAliasKeys(collectionName),
+    giftSnapshotKey(modelName),
+    giftSnapshotKey(backdropName),
+  ].filter(Boolean).join(":");
+  const cached = giftComboHistoryCache.get(cacheKey);
+  if (cached?.expiresAt > Date.now()) return cached.value;
   try {
     const params = new URLSearchParams({ collection: collectionName, model: modelName, backdrop: backdropName });
     const endpoint = giftRegistryProxyUrl
       ? `${giftRegistryProxyUrl}/api/gift-registry/history?${params}`
       : `${giftRegistryReadUrl}/history?${params}`;
-    const payload = await marketJson(endpoint, {}, giftRegistryProxyUrl ? 5000 : 2500);
-    return Array.isArray(payload) ? payload : [];
+    const payload = await marketJson(endpoint, {}, giftRegistryProxyUrl ? 2500 : 1500);
+    const history = Array.isArray(payload) ? payload : [];
+    giftComboHistoryCache.set(cacheKey, { value: history, expiresAt: Date.now() + (history.length ? 5 * 60 * 1000 : 45 * 1000) });
+    return history;
   } catch {
+    giftComboHistoryCache.set(cacheKey, { value: [], expiresAt: Date.now() + 30 * 1000 });
     return [];
   }
+}
+
+function warmGiftComboHistoryCache(models = []) {
+  const unique = [];
+  const seen = new Set();
+  (Array.isArray(models) ? models : []).forEach((model) => {
+    if (!(Number(model?.floorTon || 0) > 0) || !model.collection || !model.model || !model.backdrop) return;
+    const cacheKey = [
+      ...giftCollectionAliasKeys(model.collection),
+      giftSnapshotKey(model.model),
+      giftSnapshotKey(model.backdrop),
+    ].filter(Boolean).join(":");
+    if (!cacheKey || seen.has(cacheKey)) return;
+    seen.add(cacheKey);
+    const cached = giftComboHistoryCache.get(cacheKey);
+    if (cached?.expiresAt > Date.now() || giftComboHistoryWarmJobs.has(cacheKey)) return;
+    unique.push({ cacheKey, collection: model.collection, model: model.model, backdrop: model.backdrop });
+  });
+  const selected = unique.slice(0, 120);
+  if (!selected.length) return;
+  setImmediate(() => {
+    mapLimit(selected, 4, async (item) => {
+      giftComboHistoryWarmJobs.add(item.cacheKey);
+      try {
+        await d1GiftComboHistory(item.collection, item.model, item.backdrop);
+      } finally {
+        giftComboHistoryWarmJobs.delete(item.cacheKey);
+      }
+    }).catch((error) => console.warn(`[gift-combo-history] warm failed: ${String(error.message || error).slice(0, 160)}`));
+  });
 }
 
 async function d1GiftComboFloors(pairs = []) {
@@ -5121,11 +5230,14 @@ async function d1GiftComboFloors(pairs = []) {
   return {
     combinations,
     coverage: [...coverage].map(([collectionKey, snapshotAt]) => ({ collectionKey, snapshotAt })),
+    collections: collectionLookup.collections || [],
   };
 }
 
 function giftFloorPairFromItem(item = {}) {
-  const traits = giftTraitLookup(item.attributes || []);
+  const attributes = item.attributes || [];
+  const traits = giftTraitLookup(attributes);
+  const attr = (label) => (attributes || []).find((trait) => String(trait?.label || trait?.trait_type || "").toLowerCase() === label);
   const collection = String(item.collection || item.name || "").trim();
   const model = String(traits.model || "").trim();
   const backdrop = String(traits.backdrop || "").trim();
@@ -5141,11 +5253,362 @@ function giftFloorPairFromItem(item = {}) {
     modelKey: giftSnapshotKey(model),
     backdropKey: giftSnapshotKey(backdrop),
     symbolKey: giftSnapshotKey(symbol),
+    modelRarityPct: attrPercent(attr("model")),
+    backdropRarityPct: attrPercent(attr("backdrop")),
+    symbolRarityPct: attrPercent(attr("symbol")),
   };
 }
 
 function d1ComboForGiftPair(pair = {}, combosByKey = new Map()) {
   return findGiftComboForPair(pair, combosByKey);
+}
+
+function percentileNumber(values = [], percentile = 0.5) {
+  const numbers = values.map(Number).filter((value) => Number.isFinite(value) && value > 0).sort((a, b) => a - b);
+  if (!numbers.length) return 0;
+  const index = Math.min(numbers.length - 1, Math.max(0, Math.floor((numbers.length - 1) * percentile)));
+  return numbers[index];
+}
+
+function collectionComboEntriesForPair(pair = {}, collections = []) {
+  const aliases = [...new Set([
+    pair.collection,
+    pair.collectionKey,
+    ...(pair.collectionKeys || []),
+    ...giftCollectionAliasKeys(pair.collection),
+  ].filter(Boolean).map(giftSnapshotKey))];
+  const collection = (collections || []).find((item) => aliases.includes(giftSnapshotKey(item.collectionKey || item.collection || "")));
+  return collection ? Object.values(collection.combinations || {}) : [];
+}
+
+function rarityPremiumMultiplier(pair = {}, modelEntries = [], backdropEntries = []) {
+  const modelRarity = Number(pair.modelRarityPct || 0);
+  const backdropRarity = Number(pair.backdropRarityPct || 0);
+  const hasBothSignals = modelEntries.length > 0 && backdropEntries.length > 0;
+  if (!hasBothSignals || !(modelRarity > 0 || backdropRarity > 0)) return 1;
+  const modelBoost = modelRarity > 0 ? Math.min(1.18, Math.max(1, Math.sqrt(5 / Math.max(modelRarity, 0.25)))) : 1;
+  const backdropBoost = backdropRarity > 0 ? Math.min(1.28, Math.max(1, Math.sqrt(4 / Math.max(backdropRarity, 0.2)))) : 1;
+  return Math.min(1.35, modelBoost * backdropBoost);
+}
+
+function traitRegistryForCollection(pair = {}, collections = []) {
+  const aliases = [...new Set([
+    pair.collection,
+    pair.collectionKey,
+    ...(pair.collectionKeys || []),
+    ...giftCollectionAliasKeys(pair.collection),
+  ].filter(Boolean).map(giftSnapshotKey))];
+  const collection = (collections || []).find((item) => aliases.includes(giftSnapshotKey(item.collectionKey || item.collection || "")));
+  return collection?.attributes || {};
+}
+
+function traitRarityFromRegistry(attributes = {}, type = "", value = "") {
+  const key = giftSnapshotKey(value);
+  if (!key) return 0;
+  const bucket = attributes[String(type || "").toLowerCase()] || attributes[type] || {};
+  const attr = bucket[key];
+  return Number(attr?.rarity || attr?.rarityPct || attr?.rarity_percent || 0);
+}
+
+function backdropValueFamily(backdrop = "") {
+  const key = normalizeCollectibleAlias(backdrop);
+  if (!key) return "";
+  if (/(black|onyx|noir|midnight|night|dark|obsidian|charcoal|carbon|eclipse|shadow|void|raven)/.test(key)) return "dark";
+  if (/(gold|golden|yellow|amber|honey|lemon|sun|solar|champagne)/.test(key)) return "gold";
+  if (/(white|ivory|snow|pearl|cream|silver|platinum|diamond)/.test(key)) return "light";
+  if (/(red|rose|ruby|coral|crimson|scarlet|pink)/.test(key)) return "warm";
+  if (/(green|emerald|jade|mint|lime|olive|pistachio|shamrock)/.test(key)) return "green";
+  if (/(blue|azure|aqua|cyan|teal|sky|navy|sapphire)/.test(key)) return "blue";
+  if (/(purple|violet|lilac|lavender|amethyst|indigo)/.test(key)) return "purple";
+  return "";
+}
+
+function effectiveBackdropRarityPct(backdrop = "", rarityPct = 0) {
+  const rarity = Number(rarityPct || 0);
+  return rarity;
+}
+
+const BACKDROP_MARKET_TIERS = {
+  black: { tier: "S+", premium: 7.06 },
+  onyxblack: { tier: "S", premium: 2 },
+  midnightblue: { tier: "B", premium: 1.25 },
+  gunmetal: { tier: "B", premium: 1.21 },
+  fireengine: { tier: "B", premium: 1.19 },
+  carmine: { tier: "B", premium: 1.17 },
+  ivorywhite: { tier: "B", premium: 1.16 },
+  celticblue: { tier: "B", premium: 1.11 },
+  electricpurple: { tier: "C", premium: 1.08 },
+  fandango: { tier: "C", premium: 1.08 },
+  amber: { tier: "C", premium: 1.06 },
+  mexicanpink: { tier: "C", premium: 1.06 },
+  romansilver: { tier: "C", premium: 1.05 },
+  raspberry: { tier: "C", premium: 1.05 },
+  mustard: { tier: "C", premium: 1.04 },
+  platinum: { tier: "C", premium: 1.04 },
+  cyberpunk: { tier: "D+", premium: 1.01 },
+  marineblue: { tier: "D+", premium: 1.01 },
+  steelgrey: { tier: "D+", premium: 1 },
+  electricindigo: { tier: "D+", premium: 1 },
+  indigodye: { tier: "D+", premium: 1 },
+  silverblue: { tier: "D+", premium: 1 },
+  skyblue: { tier: "D+", premium: 1 },
+  sapphire: { tier: "D+", premium: 1 },
+  frenchblue: { tier: "D+", premium: 1 },
+  satingold: { tier: "D+", premium: 1 },
+  pacificcyan: { tier: "D+", premium: 1 },
+  puregold: { tier: "D+", premium: 1 },
+  englishviolet: { tier: "D+", premium: 1 },
+  mysticpearl: { tier: "D+", premium: 1 },
+  azureblue: { tier: "D+", premium: 1 },
+  purple: { tier: "D+", premium: 1 },
+  grape: { tier: "D+", premium: 1 },
+  navyblue: { tier: "D+", premium: 1 },
+  caramel: { tier: "D+", premium: 1 },
+  darklilac: { tier: "D+", premium: 1 },
+  burgundy: { tier: "D+", premium: 1 },
+  lavender: { tier: "D+", premium: 1 },
+  battleshipgrey: { tier: "D+", premium: 1 },
+  cobaltblue: { tier: "D+", premium: 1 },
+  cappuccino: { tier: "D+", premium: 1 },
+  neonblue: { tier: "D+", premium: 1 },
+  tomato: { tier: "D+", premium: 1 },
+  sealbrown: { tier: "D+", premium: 1 },
+  frenchviolet: { tier: "D+", premium: 1 },
+  feldgrau: { tier: "D+", premium: 0.99 },
+  moonstone: { tier: "D+", premium: 0.99 },
+  persimmon: { tier: "D+", premium: 0.99 },
+  oldgold: { tier: "D+", premium: 0.98 },
+  aquamarine: { tier: "D+", premium: 0.98 },
+  strawberry: { tier: "D", premium: 0.97 },
+  desertsand: { tier: "D", premium: 0.97 },
+  riflegreen: { tier: "D", premium: 0.97 },
+  rosewood: { tier: "D", premium: 0.96 },
+  turquoise: { tier: "D", premium: 0.96 },
+  deepcyan: { tier: "D", premium: 0.95 },
+  orange: { tier: "D", premium: 0.95 },
+  coralred: { tier: "D", premium: 0.95 },
+  burntsienna: { tier: "D", premium: 0.95 },
+  chestnut: { tier: "D", premium: 0.95 },
+  copper: { tier: "D", premium: 0.95 },
+  pinegreen: { tier: "D", premium: 0.95 },
+  carrotjuice: { tier: "D", premium: 0.95 },
+  chocolate: { tier: "D", premium: 0.94 },
+  darkgreen: { tier: "D", premium: 0.94 },
+  malachite: { tier: "D", premium: 0.94 },
+  pacificgreen: { tier: "D", premium: 0.93 },
+  camogreen: { tier: "D", premium: 0.93 },
+  jadegreen: { tier: "D", premium: 0.93 },
+  lemongrass: { tier: "D", premium: 0.92 },
+  shamrockgreen: { tier: "E", premium: 0.92 },
+  gunshipgreen: { tier: "E", premium: 0.92 },
+  rangergreen: { tier: "E", premium: 0.91 },
+  pistachio: { tier: "E", premium: 0.91 },
+  tacticalpine: { tier: "E", premium: 0.9 },
+  lightolive: { tier: "E", premium: 0.9 },
+  mintgreen: { tier: "E", premium: 0.9 },
+  emerald: { tier: "E", premium: 0.9 },
+  huntergreen: { tier: "E", premium: 0.9 },
+  khakigreen: { tier: "E", premium: 0.9 },
+};
+
+function backdropMarketTier(backdrop = "") {
+  return BACKDROP_MARKET_TIERS[giftSnapshotKey(backdrop)] || null;
+}
+
+function backdropMarketPremium(backdrop = "") {
+  const tier = backdropMarketTier(backdrop);
+  if (tier) return tier.premium;
+  const family = backdropValueFamily(backdrop);
+  if (family === "dark") return 1.25;
+  if (family === "gold") return 1.05;
+  if (family === "light") return 1.08;
+  return 1;
+}
+
+function softBackdropPremiumBridge(targetBackdrop = "", comparableBackdrop = "") {
+  const target = backdropMarketPremium(targetBackdrop);
+  const comparable = backdropMarketPremium(comparableBackdrop);
+  if (!(target > comparable) || !(comparable > 0)) return 1;
+  return clampNumber(Math.sqrt(target / comparable), 1, 1.22);
+}
+
+function softModelRarityBridge(targetRarityPct = 0, comparableRarityPct = 0) {
+  const target = Number(targetRarityPct || 0);
+  const comparable = Number(comparableRarityPct || 0);
+  if (!(target > 0) || !(comparable > 0)) return 1;
+  return clampNumber(Math.sqrt(comparable / target), 0.85, 1.25);
+}
+
+function backdropFamilyEntries(pair = {}, entries = []) {
+  const family = backdropValueFamily(pair.backdrop);
+  if (!family) return [];
+  return entries.filter((entry) => backdropValueFamily(entry.backdrop || "") === family);
+}
+
+function clampNumber(value = 0, min = 0, max = Number.POSITIVE_INFINITY) {
+  const number = Number(value);
+  if (!Number.isFinite(number)) return min;
+  return Math.min(max, Math.max(min, number));
+}
+
+function estimateConfidenceForSignals(modelEntries = [], backdropEntries = [], familyEntries = []) {
+  if (modelEntries.length >= 5 && backdropEntries.length >= 5) return "medium";
+  if (modelEntries.length >= 3 && (backdropEntries.length >= 2 || familyEntries.length >= 8)) return "low";
+  return "very-low";
+}
+
+function closestRarityBackdropEntries(pair = {}, entries = []) {
+  const targetRarity = effectiveBackdropRarityPct(pair.backdrop, pair.backdropRarityPct);
+  if (!(targetRarity > 0)) return [];
+  const sameOrLower = entries
+    .filter((entry) => Number(entry.backdropRarityPct || 0) > 0)
+    .filter((entry) => {
+      const entryRarity = effectiveBackdropRarityPct(entry.backdrop, entry.backdropRarityPct);
+      return entryRarity >= targetRarity;
+    })
+    .sort((a, b) => {
+      const aDelta = effectiveBackdropRarityPct(a.backdrop, a.backdropRarityPct) - targetRarity;
+      const bDelta = effectiveBackdropRarityPct(b.backdrop, b.backdropRarityPct) - targetRarity;
+      return aDelta - bDelta;
+    });
+  return sameOrLower.slice(0, Math.max(3, Math.min(12, sameOrLower.length)));
+}
+
+function rarityMatchedComparableEstimate(pair = {}, entries = [], modelEntries = [], sameBackdropEntries = [], fallbackBackdropEntries = []) {
+  const currentModelFloor = percentileNumber(modelEntries.map((entry) => entry.floorTon), 0.25);
+  const currentModelRarity = Number(pair.modelRarityPct || 0);
+  const directCandidates = [...sameBackdropEntries, ...fallbackBackdropEntries];
+  const broadCandidates = directCandidates.length ? directCandidates : entries;
+  const candidates = broadCandidates
+    .filter((entry) => entry.floorTon > 0)
+    .filter((entry) => !currentModelRarity || Number(entry.modelRarityPct || 0) > 0)
+    .sort((a, b) => {
+      if (currentModelRarity) {
+        const rarityDelta = Math.abs(Number(a.modelRarityPct || 0) - currentModelRarity) - Math.abs(Number(b.modelRarityPct || 0) - currentModelRarity);
+        if (rarityDelta) return rarityDelta;
+      }
+      const aBackdropDelta = Math.abs(backdropMarketPremium(a.backdrop) - backdropMarketPremium(pair.backdrop));
+      const bBackdropDelta = Math.abs(backdropMarketPremium(b.backdrop) - backdropMarketPremium(pair.backdrop));
+      if (aBackdropDelta !== bBackdropDelta) return aBackdropDelta - bBackdropDelta;
+      return a.floorTon - b.floorTon;
+    })
+    .slice(0, directCandidates.length ? 8 : 14);
+  if (!candidates.length) return { estimateTon: 0, samples: 0, basis: "" };
+  const sameModelSamples = candidates.filter((entry) => entry.modelKey === pair.modelKey).length;
+  const adjusted = candidates.map((entry) => {
+    const sameModel = entry.modelKey === pair.modelKey;
+    const comparableModelEntries = entries.filter((candidate) => candidate.modelKey === entry.modelKey);
+    const comparableModelFloor = percentileNumber(
+      comparableModelEntries.length
+        ? comparableModelEntries.map((modelEntry) => modelEntry.floorTon)
+        : [entry.floorTon],
+      0.25
+    );
+    const modelRatio = !sameModel && currentModelFloor > 0 && comparableModelFloor > 0
+      ? clampNumber(currentModelFloor / comparableModelFloor, 0.55, 1.9)
+      : 1;
+    const modelRarityBridge = !sameModel
+      ? softModelRarityBridge(pair.modelRarityPct, entry.modelRarityPct)
+      : 1;
+    const backdropBridge = softBackdropPremiumBridge(pair.backdrop, entry.backdrop);
+    return entry.floorTon * modelRatio * modelRarityBridge * backdropBridge;
+  });
+  return {
+    estimateTon: percentileNumber(adjusted, 0.35),
+    samples: candidates.length,
+    sameModelSamples,
+    differentModelSamples: candidates.length - sameModelSamples,
+    basis: sameModelSamples
+      ? "same-model-backdrop-bridge"
+      : (sameBackdropEntries.length
+        ? "different-model-same-backdrop"
+        : (fallbackBackdropEntries.length ? "different-model-lower-rarity-backdrop" : "broad-collection-rarity-backdrop")),
+  };
+}
+
+function estimatedGiftComboFloorFromRegistry(pair = {}, collections = [], tonRate = 0) {
+  const traitRegistry = traitRegistryForCollection(pair, collections);
+  const pairModelRarity = Number(pair.modelRarityPct || 0) || traitRarityFromRegistry(traitRegistry, "model", pair.model);
+  const pairBackdropRarity = Number(pair.backdropRarityPct || 0) || traitRarityFromRegistry(traitRegistry, "backdrop", pair.backdrop);
+  const entries = collectionComboEntriesForPair(pair, collections)
+    .map((entry) => ({
+      ...entry,
+      floorTon: Number(entry.floorTon || 0),
+      modelKey: giftSnapshotKey(entry.model || ""),
+      backdropKey: giftSnapshotKey(entry.backdrop || ""),
+      modelRarityPct: traitRarityFromRegistry(traitRegistry, "model", entry.model),
+      backdropRarityPct: traitRarityFromRegistry(traitRegistry, "backdrop", entry.backdrop),
+    }))
+    .filter((entry) => entry.floorTon > 0);
+  if (!entries.length) return null;
+  pair = { ...pair, modelRarityPct: pairModelRarity, backdropRarityPct: pairBackdropRarity };
+  const modelKey = giftSnapshotKey(pair.model);
+  const backdropKey = giftSnapshotKey(pair.backdrop);
+  const modelEntries = entries.filter((entry) => entry.modelKey === modelKey);
+  const backdropEntries = entries.filter((entry) => entry.backdropKey === backdropKey);
+  const familyEntries = backdropFamilyEntries(pair, entries);
+  const hasDirectBackdropEvidence = backdropEntries.length > 0 || familyEntries.length > 0;
+  const collectionFloor = percentileNumber(entries.map((entry) => entry.floorTon), 0);
+  const collectionMedian = percentileNumber(entries.map((entry) => entry.floorTon), 0.5);
+  const collectionHigh = percentileNumber(entries.map((entry) => entry.floorTon), 0.9);
+  const modelFloor = percentileNumber(modelEntries.map((entry) => entry.floorTon), 0.25);
+  const backdropFloor = percentileNumber(backdropEntries.map((entry) => entry.floorTon), 0.25);
+  const backdropFamilyFloor = percentileNumber(familyEntries.map((entry) => entry.floorTon), backdropValueFamily(pair.backdrop) === "dark" ? 0.45 : 0.35);
+  const rarityBackdropEntries = closestRarityBackdropEntries(pair, entries);
+  const comparable = rarityMatchedComparableEstimate(pair, entries, modelEntries, backdropEntries, rarityBackdropEntries);
+  let estimateTon = 0;
+  if (comparable.estimateTon > 0) estimateTon = comparable.estimateTon;
+  else if (modelFloor > 0 && backdropFloor > 0) estimateTon = Math.sqrt(modelFloor * backdropFloor);
+  else if (modelFloor > 0 && backdropFamilyFloor > 0) estimateTon = Math.sqrt(modelFloor * backdropFamilyFloor);
+  else estimateTon = modelFloor || backdropFloor || backdropFamilyFloor;
+  const rarityMultiplier = rarityPremiumMultiplier(pair, modelEntries, backdropEntries);
+  const rawMarketPremium = backdropMarketPremium(pair.backdrop);
+  const marketPremium = hasDirectBackdropEvidence ? 1 : clampNumber(rawMarketPremium, 0.9, 1.08);
+  const marketTier = backdropMarketTier(pair.backdrop);
+  estimateTon *= rarityMultiplier * marketPremium;
+  const family = backdropValueFamily(pair.backdrop);
+  const lowerBound = collectionFloor > 0 ? collectionFloor : 0;
+  const upperBound = collectionHigh > 0
+    ? collectionHigh * (family === "dark" ? 1.8 : 1.35)
+    : Number.POSITIVE_INFINITY;
+  estimateTon = clampNumber(estimateTon, lowerBound, upperBound);
+  if (!(estimateTon > 0)) return null;
+  const confidence = estimateConfidenceForSignals(modelEntries, backdropEntries, familyEntries);
+  return {
+    collection: pair.collection,
+    model: pair.model,
+    backdrop: pair.backdrop,
+    floorTon: estimateTon,
+    floorUsd: estimateTon * tonRate,
+    floorStatus: "estimated",
+    marketPlatform: "Estimated Value",
+    source: "estimated-combo-value",
+    listedCount: 0,
+    snapshotAt: new Date().toISOString(),
+    marketUpdatedAt: new Date().toISOString(),
+    estimateConfidence: confidence,
+    estimateSignals: {
+      collectionFloorTon: collectionFloor,
+      collectionMedianTon: collectionMedian,
+      collectionHighTon: collectionHigh,
+      modelFloorTon: modelFloor,
+      backdropFloorTon: backdropFloor,
+      backdropFamily: family,
+      backdropFamilyFloorTon: backdropFamilyFloor,
+      modelSamples: modelEntries.length,
+      backdropSamples: backdropEntries.length,
+      backdropFamilySamples: familyEntries.length,
+      rarityMatchedSamples: comparable.samples,
+      sameModelComparableSamples: comparable.sameModelSamples || 0,
+      differentModelComparableSamples: comparable.differentModelSamples || 0,
+      estimateBasis: comparable.basis || "model-backdrop-comps",
+      modelRarityPct: Number(pair.modelRarityPct || 0),
+      backdropRarityPct: Number(pair.backdropRarityPct || 0),
+      rarityMultiplier,
+      backdropMarketTier: marketTier?.tier || "",
+      backdropMarketPremium: marketPremium,
+    },
+  };
 }
 
 async function priceWalletGiftsFromD1(gifts = [], tonRate = 0, context = "wallet-import") {
@@ -5171,10 +5634,66 @@ async function priceWalletGiftsFromD1(gifts = [], tonRate = 0, context = "wallet
   ]));
   let resolved = 0;
   let missing = 0;
+  const lastSaleFloors = new Map();
+  const missingPairs = pairs.filter((pair) => !d1ComboForGiftPair(pair, combosByKey));
+  const lastSaleLookupLimit = Math.max(0, Number(process.env.GIFT_IMPORT_LAST_SALE_LOOKUP_LIMIT || 80));
+  const lastSaleConcurrency = Math.max(1, Math.min(3, Number(process.env.GIFT_IMPORT_LAST_SALE_CONCURRENCY || 2)));
+  if (lastSaleLookupLimit && missingPairs.length) {
+    const saleStarted = Date.now();
+    await mapLimit(missingPairs.slice(0, lastSaleLookupLimit), lastSaleConcurrency, async (pair) => {
+      const floor = await settleWithin(fastExactLastSaleFloorForPair(pair, tonRate), 4500, null);
+      if (floor) lastSaleFloors.set(giftComboPairKey(pair), floor);
+    });
+    console.log(`[gift-import-pricing] ${context}: lastSaleChecked=${Math.min(missingPairs.length, lastSaleLookupLimit)} lastSaleResolved=${lastSaleFloors.size} lastSaleMs=${Date.now() - saleStarted}`);
+  }
   const priced = gifts.map((gift) => {
     const pair = giftFloorPairFromItem(gift);
     const combo = pair ? d1ComboForGiftPair(pair, combosByKey) : null;
-    if (!combo || !(Number(combo.floorTon || 0) > 0)) {
+    const thinListedCombo = combo && Number(combo.floorTon || 0) > 0 && Number(combo.listedCount || 0) <= 1;
+    if (!combo || !(Number(combo.floorTon || 0) > 0) || thinListedCombo) {
+      const lastSaleFloor = pair ? lastSaleFloors.get(giftComboPairKey(pair)) : null;
+      if (lastSaleFloor) {
+        resolved += 1;
+        return {
+          ...gift,
+          floorStatus: "last-sale",
+          floorTon: Number(lastSaleFloor.floorTon || 0),
+          floorUsd: Number(lastSaleFloor.floorUsd || 0),
+          marketplace: "",
+          marketPlatform: lastSaleFloor.marketPlatform || "Last Sale",
+          marketUrl: "",
+          marketUpdatedAt: lastSaleFloor.lastSaleDate || "",
+          snapshotAt: lastSaleFloor.lastSaleDate || "",
+          listedCount: 0,
+          source: "last-sale-exact",
+          floorSource: "last-sale",
+          recentSales: lastSaleFloor.recentSales || [],
+          priceLoading: false,
+        };
+      }
+      const estimate = pair ? estimatedGiftComboFloorFromRegistry(pair, lookup.collections || [], tonRate) : null;
+      if (estimate) {
+        resolved += 1;
+        return {
+          ...gift,
+          floorStatus: "estimated",
+          floorTon: Number(estimate.floorTon || 0),
+          floorUsd: Number(estimate.floorUsd || 0),
+          marketplace: "",
+          marketPlatform: "Estimated Value",
+          marketUrl: "",
+          marketUpdatedAt: estimate.marketUpdatedAt || "",
+          snapshotAt: estimate.snapshotAt || "",
+          listedCount: thinListedCombo ? Number(combo.listedCount || 0) : 0,
+          source: "estimated-combo-value",
+          floorSource: "estimate",
+          estimateConfidence: estimate.estimateConfidence,
+          estimateSignals: estimate.estimateSignals,
+          ignoredFloorTon: thinListedCombo ? Number(combo.floorTon || 0) : 0,
+          ignoredFloorReason: thinListedCombo ? "single-active-listing" : "",
+          priceLoading: false,
+        };
+      }
       missing += 1;
       return {
         ...gift,
@@ -5203,6 +5722,7 @@ async function priceWalletGiftsFromD1(gifts = [], tonRate = 0, context = "wallet
       marketUpdatedAt: combo.snapshotAt || "",
       listedCount: Number(combo.listedCount || 0),
       source: "d1-backdrop-floor",
+      floorSource: "backdrop",
       priceLoading: false,
     };
   });
@@ -5317,9 +5837,10 @@ async function d1GiftCollectionComboFloors(pairs = []) {
     return {
       combinations,
       coverage: [...coverage].map(([collectionKey, snapshotAt]) => ({ collectionKey, snapshotAt })),
+      collections: [...collectionMaps.values()],
     };
   } catch {
-    return { combinations: [], coverage: [] };
+    return { combinations: [], coverage: [], collections: [] };
   }
 }
 
@@ -5632,6 +6153,26 @@ async function thermosGiftComboFloor(collectionName = "", modelName = "", backdr
   }
 }
 
+function estimatedComboFloorPayload({ estimate = null, collectionName = "", modelName = "", backdropName = "", tonRate = 0, comboHistory = [], ignoredFloor = null } = {}) {
+  if (!estimate) return null;
+  return {
+    ...estimate,
+    volume24hTon: 0,
+    volume24hUsd: 0,
+    change24hPct: 0,
+    recentSales: [],
+    canonicalName: collectionName,
+    modelName,
+    backdropName,
+    tonUsdRate: tonRate,
+    listedCount: ignoredFloor ? Number(ignoredFloor.listedCount || 0) : Number(estimate.listedCount || 0),
+    ignoredFloorTon: ignoredFloor ? Number(ignoredFloor.floorTon || 0) : 0,
+    ignoredFloorReason: ignoredFloor ? "single-active-listing" : "",
+    floorHistory: comboHistory,
+    floorHistorySource: comboHistory.length >= 2 ? "tontrack-combo-registry" : "",
+  };
+}
+
 function bestThermosGiftCollection(collections = [], aliases = []) {
   const aliasKeys = aliases.map(giftSnapshotKey).filter(Boolean);
   const singularKeys = aliasKeys.map((key) => key.endsWith("s") ? key.slice(0, -1) : key);
@@ -5658,7 +6199,8 @@ async function thermosGiftFloorLookup(aliasObject = {}, aliases = [], tonRate = 
       d1GiftComboFloor(requestedCollectionName, requestedModelName, requestedBackdropName),
       d1GiftComboHistory(requestedCollectionName, requestedModelName, requestedBackdropName),
     ]);
-    if (d1Floor) {
+    const singleListingFloor = d1Floor && Number(d1Floor.floorTon || 0) > 0 && Number(d1Floor.listedCount || 0) <= 1;
+    if (d1Floor && !singleListingFloor) {
       return {
         floorTon: Number(d1Floor.floorTon || 0),
         floorUsd: Number(d1Floor.floorTon || 0) * tonRate,
@@ -5688,6 +6230,27 @@ async function thermosGiftFloorLookup(aliasObject = {}, aliases = [], tonRate = 
       backdrop: requestedBackdropName,
     }]);
     if (coverage.coverage?.length) {
+      const estimate = estimatedGiftComboFloorFromRegistry({
+        ...(giftFloorPairFromItem({ collection: requestedCollectionName, attributes: aliasObject.attributes || [] }) || {}),
+        collection: requestedCollectionName,
+        model: requestedModelName,
+        backdrop: requestedBackdropName,
+        collectionKey: giftSnapshotKey(requestedCollectionName),
+        collectionKeys: giftCollectionAliasKeys(requestedCollectionName),
+        modelKey: giftSnapshotKey(requestedModelName),
+        backdropKey: giftSnapshotKey(requestedBackdropName),
+      }, coverage.collections || [], tonRate);
+      if (estimate) {
+        return estimatedComboFloorPayload({
+          estimate,
+          collectionName: requestedCollectionName,
+          modelName: requestedModelName,
+          backdropName: requestedBackdropName,
+          tonRate,
+          comboHistory,
+          ignoredFloor: singleListingFloor ? d1Floor : null,
+        });
+      }
       return {
         floorTon: 0,
         floorUsd: 0,
@@ -5728,6 +6291,31 @@ async function thermosGiftFloorLookup(aliasObject = {}, aliases = [], tonRate = 
     }
   }
   if (modelName && backdropName && !comboFloor) {
+    const coverage = await d1GiftComboFloors([{
+      collection: collectionName,
+      model: modelName,
+      backdrop: backdropName,
+    }]);
+    const estimate = estimatedGiftComboFloorFromRegistry({
+      ...(giftFloorPairFromItem({ collection: collectionName, attributes: aliasObject.attributes || [] }) || {}),
+      collection: collectionName,
+      model: modelName,
+      backdrop: backdropName,
+      collectionKey: giftSnapshotKey(collectionName),
+      collectionKeys: giftCollectionAliasKeys(collectionName),
+      modelKey: giftSnapshotKey(modelName),
+      backdropKey: giftSnapshotKey(backdropName),
+    }, coverage.collections || [], tonRate);
+    if (estimate) {
+      return estimatedComboFloorPayload({
+        estimate,
+        collectionName,
+        modelName,
+        backdropName,
+        tonRate,
+        comboHistory,
+      });
+    }
     return {
       floorTon: 0,
       floorUsd: 0,
@@ -5744,6 +6332,34 @@ async function thermosGiftFloorLookup(aliasObject = {}, aliases = [], tonRate = 
       floorHistory: comboHistory,
       floorHistorySource: comboHistory.length >= 2 ? "tontrack-combo-registry" : "",
     };
+  }
+  if (modelName && backdropName && comboFloor && Number(comboFloor.floorTon || 0) > 0 && Number(comboFloor.listedCount || 0) <= 1) {
+    const coverage = await d1GiftComboFloors([{
+      collection: collectionName,
+      model: modelName,
+      backdrop: backdropName,
+    }]);
+    const estimate = estimatedGiftComboFloorFromRegistry({
+      ...(giftFloorPairFromItem({ collection: collectionName, attributes: aliasObject.attributes || [] }) || {}),
+      collection: collectionName,
+      model: modelName,
+      backdrop: backdropName,
+      collectionKey: giftSnapshotKey(collectionName),
+      collectionKeys: giftCollectionAliasKeys(collectionName),
+      modelKey: giftSnapshotKey(modelName),
+      backdropKey: giftSnapshotKey(backdropName),
+    }, coverage.collections || [], tonRate);
+    if (estimate) {
+      return estimatedComboFloorPayload({
+        estimate,
+        collectionName,
+        modelName,
+        backdropName,
+        tonRate,
+        comboHistory,
+        ignoredFloor: comboFloor,
+      });
+    }
   }
   const floorTon = Number(comboFloor?.floorTon || modelFloor?.floorTon || base.floorTon || 0);
   const floorUsd = floorTon > 0 ? floorTon * tonRate : Number(comboFloor?.floorUsd || modelFloor?.floorUsd || base.floorUsd || 0);
@@ -6507,6 +7123,8 @@ async function collectibleFloor(collection) {
 function marketSourceLabel(source = "") {
   const value = String(source || "").toLowerCase();
   if (value.includes("thermos")) return "Thermos";
+  if (value.includes("tonnel")) return "Tonnel";
+  if (value.includes("portal")) return "Portals";
   if (value.includes("tgmrkt") || value.includes("mrkt")) return "MRKT";
   if (value.includes("getgems")) return "Getgems";
   if (value.includes("tonapi")) return "TonAPI";
@@ -6558,6 +7176,235 @@ function giftTraitLookup(attributes = []) {
     backdrop: find("backdrop"),
     symbol: find("symbol"),
   };
+}
+
+function warnCollectibleSalesOnce(key = "", message = "") {
+  if (!key || collectibleSalesWarningKeys.has(key)) return;
+  collectibleSalesWarningKeys.add(key);
+  console.warn(message);
+}
+
+function giftCollectionName(collectionObject = {}, aliases = []) {
+  const direct = [collectionObject.name, collectionObject.title, collectionObject.item]
+    .map((value) => String(value || "").trim())
+    .find((value) => value && !/^[-\w]{40,}$/.test(value) && !value.includes(":"));
+  if (direct) return direct;
+  return aliases
+    .map((value) => String(value || "").trim())
+    .find((value) => value && !value.includes(":") && value.length < 80) || "";
+}
+
+function giftCollectionNameVariants(collectionObject = {}, aliases = []) {
+  const primary = giftCollectionName(collectionObject, aliases);
+  return [...new Set([
+    primary,
+    ...aliases,
+    primary.replace(/s$/i, ""),
+    primary ? `${primary}s` : "",
+  ].map((value) => String(value || "").trim()).filter((value) => value && !value.includes(":") && value.length < 80))].slice(0, 4);
+}
+
+function rawTraitFilterFromAttributes(traits = "") {
+  try {
+    const parsed = JSON.parse(traits || "null");
+    if (!Array.isArray(parsed)) return null;
+    const byName = new Map(parsed.map((trait) => [
+      String(trait.label || trait.trait_type || "").toLowerCase(),
+      String(trait.value || "").trim(),
+    ]));
+    return {
+      model: byName.get("model") || "",
+      backdrop: byName.get("backdrop") || "",
+      symbol: byName.get("symbol") || "",
+    };
+  } catch {
+    return null;
+  }
+}
+
+function traitComparable(value = "") {
+  return normalizeCollectibleAlias(String(value || "").replace(/\s*\([^)]*\)\s*$/g, ""));
+}
+
+function saleTraitValue(row = {}, keys = []) {
+  for (const key of keys) {
+    const direct = row?.[key];
+    if (direct !== undefined && direct !== null && String(direct).trim()) return String(direct).trim();
+  }
+  const traitBuckets = [
+    row?.traits,
+    row?.attributes,
+    row?.metadata?.attributes,
+    row?.metadata?.traits,
+    row?.gift?.traits,
+    row?.gift?.attributes,
+    row?.gift?.metadata?.attributes,
+    row?.nft?.traits,
+    row?.nft?.attributes,
+    row?.item?.traits,
+    row?.item?.attributes,
+  ];
+  for (const traits of traitBuckets) {
+    if (!Array.isArray(traits)) continue;
+    for (const trait of traits) {
+      const label = String(trait?.label || trait?.trait_type || trait?.traitType || trait?.type || trait?.name || "").toLowerCase();
+      if (keys.some((key) => label.includes(key.replace(/name$/i, "").toLowerCase()))) {
+        return String(trait?.value || trait?.trait_value || trait?.traitValue || trait?.text || "").trim();
+      }
+    }
+  }
+  const nested = row?.properties || row?.params || row?.details || row?.gift?.properties || row?.nft?.properties || {};
+  if (nested && typeof nested === "object") {
+    for (const key of keys) {
+      const compactKey = key.replace(/name$/i, "");
+      const value = nested[key] || nested[compactKey] || nested[compactKey.toLowerCase()];
+      if (value !== undefined && value !== null && String(value).trim()) return String(value).trim();
+    }
+  }
+  return "";
+}
+
+function exactSaleRowsFromPayload(payload, tonRate = 0, source = "", traitFilter = null) {
+  const requiredModel = traitComparable(traitFilter?.model || "");
+  const requiredBackdrop = traitComparable(traitFilter?.backdrop || "");
+  const requiredSymbol = traitComparable(traitFilter?.symbol || "");
+  return walkObjects(payload, 1800)
+    .filter((row) => row && typeof row === "object")
+    .map((row) => {
+      const gift = row.gift || row.nft || row.item || row;
+      const model = saleTraitValue(gift, ["modelName", "model_name", "model", "character"])
+        || saleTraitValue(row, ["modelName", "model_name", "model", "character"]);
+      const backdrop = saleTraitValue(gift, ["backdropName", "backdrop_name", "backdrop"])
+        || saleTraitValue(row, ["backdropName", "backdrop_name", "backdrop"]);
+      const symbol = saleTraitValue(gift, ["symbolName", "symbol_name", "patternName", "pattern_name", "symbol"])
+        || saleTraitValue(row, ["symbolName", "symbol_name", "patternName", "pattern_name", "symbol"]);
+      if (requiredModel && traitComparable(model) !== requiredModel) return null;
+      if (requiredBackdrop && traitComparable(backdrop) !== requiredBackdrop) return null;
+      if (requiredSymbol && symbol && traitComparable(symbol) !== requiredSymbol) return null;
+      const priceTon = xgiftTonValue(
+        row?.priceTon,
+        row?.price_ton,
+        row?.price,
+        row?.amount,
+        row?.salePrice,
+        row?.sale_price,
+        row?.value,
+        row?.payload?.price,
+        gift?.price,
+        gift?.salePrice
+      );
+      const priceUsd = pickPositive(
+        Number(row?.priceUsd || 0),
+        Number(row?.price_usd || 0),
+        priceTon > 0 && tonRate > 0 ? priceTon * tonRate : 0
+      );
+      const date = row?.timestamp || row?.time || row?.date || row?.createdAt || row?.created_at || row?.soldAt || row?.sold_at;
+      if (!(priceTon > 0 || priceUsd > 0) || !date) return null;
+      return {
+        priceTon: priceTon || (tonRate > 0 ? priceUsd / tonRate : 0),
+        priceUsd: priceUsd || (priceTon * tonRate),
+        date: typeof date === "number" ? new Date(date > 1e12 ? date : date * 1000).toISOString() : date,
+        marketplace: marketSourceLabel(row?.market || row?.marketplace || row?.source || source),
+        buyer: row?.buyer || row?.buyerAddress || row?.to || "",
+        seller: row?.seller || row?.sellerAddress || row?.from || "",
+        mint: Number(gift?.number || gift?.giftNumber || gift?.gift_id || row?.gift_id || 0),
+        model,
+        backdrop,
+        symbol,
+        exact: Boolean(requiredModel && requiredBackdrop),
+      };
+    })
+    .filter(Boolean)
+    .sort((a, b) => new Date(b.date || 0).getTime() - new Date(a.date || 0).getTime())
+    .slice(0, 5);
+}
+
+function uniqueSales(rows = []) {
+  const seen = new Set();
+  return (rows || []).filter((sale) => {
+    const key = [
+      sale.marketplace || "",
+      sale.date || "",
+      Number(sale.priceTon || 0).toFixed(6),
+      sale.mint || "",
+      sale.model || "",
+      sale.backdrop || "",
+    ].join("|");
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+function tonnelTraitRegex(value = "") {
+  const escaped = String(value || "").trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return escaped ? { "$regex": `^${escaped}( \\(|$)` } : undefined;
+}
+
+async function tonnelExactComboSales(collectionNames = [], traitFilter = null, tonRate = 0) {
+  if (!tonnelAuthData) {
+    warnCollectibleSalesOnce("tonnel-auth-missing", "[sales] Tonnel exact sale history skipped: TONNEL_AUTH_DATA is not set");
+    return [];
+  }
+  if (!traitFilter?.model || !traitFilter?.backdrop) return [];
+  const rows = [];
+  for (const collectionName of (Array.isArray(collectionNames) ? collectionNames : [collectionNames]).filter(Boolean)) {
+    const filter = {
+      gift_name: collectionName,
+      model: tonnelTraitRegex(traitFilter.model),
+      backdrop: tonnelTraitRegex(traitFilter.backdrop),
+    };
+    Object.keys(filter).forEach((key) => filter[key] === undefined && delete filter[key]);
+    const pages = Math.max(1, Math.min(3, Number(process.env.TONNEL_SALE_HISTORY_PAGES || 2)));
+    for (let page = 1; page <= pages; page += 1) {
+      const payload = await marketJson("https://gifts2.tonnel.network/api/saleHistory", {
+        method: "POST",
+        headers: { origin: "https://market.tonnel.network", referer: "https://market.tonnel.network/" },
+        body: {
+          authData: tonnelAuthData,
+          page,
+          limit: 20,
+          type: "ALL",
+          filter,
+          sort: { timestamp: -1, gift_id: -1 },
+        },
+      }, 6500);
+      rows.push(...exactSaleRowsFromPayload(payload, tonRate, "Tonnel", traitFilter));
+    }
+  }
+  return uniqueSales(rows).sort((a, b) => new Date(b.date || 0).getTime() - new Date(a.date || 0).getTime()).slice(0, 5);
+}
+
+async function portalsExactComboSales(collectionNames = [], traitFilter = null, tonRate = 0) {
+  if (!portalsAuthData) {
+    warnCollectibleSalesOnce("portals-auth-missing", "[sales] Portals exact sale history skipped: PORTALS_AUTH_DATA is not set");
+    return [];
+  }
+  if (!traitFilter?.model || !traitFilter?.backdrop) return [];
+  const rows = [];
+  for (const collectionName of (Array.isArray(collectionNames) ? collectionNames : [collectionNames]).filter(Boolean)) {
+    const pages = Math.max(1, Math.min(3, Number(process.env.PORTALS_SALE_HISTORY_PAGES || 2)));
+    for (let page = 0; page < pages; page += 1) {
+      const params = new URLSearchParams({
+        offset: String(page * 20),
+        limit: "20",
+        sort_by: "latest",
+        action_types: "buy",
+        filter_by_collections: collectionName,
+        filter_by_models: traitFilter.model,
+        filter_by_backdrops: traitFilter.backdrop,
+      });
+      const payload = await marketJson(`${portalsApiBase}/market/actions/?${params.toString()}`, {
+        headers: {
+          authorization: portalsAuthData.startsWith("tma ") ? portalsAuthData : `tma ${portalsAuthData}`,
+          origin: "https://portals-market.com",
+          referer: "https://portals-market.com/",
+        },
+      }, 6500);
+      rows.push(...exactSaleRowsFromPayload(payload, tonRate, "Portals", traitFilter));
+    }
+  }
+  return uniqueSales(rows).sort((a, b) => new Date(b.date || 0).getTime() - new Date(a.date || 0).getTime()).slice(0, 5);
 }
 
 async function seeTgJson(pathname, params = {}, tgauth = "", timeoutMs = 3500) {
@@ -6945,6 +7792,7 @@ function seeHistorySales(payload, tonRate = 0, traits = {}) {
       model: row.model_name || traits.model || "",
       backdrop: row.backdrop_name || traits.backdrop || "",
       symbol: row.pattern_name || row.symbol_name || traits.symbol || "",
+      exact: Boolean(traits.model && traits.backdrop && (row.model_name || traits.model) && (row.backdrop_name || traits.backdrop)),
     };
   }).filter(Boolean).slice(0, 5);
 }
@@ -6977,18 +7825,12 @@ async function collectibleSales(collection, traits = "") {
   const aliases = typeof collection === "object"
     ? [collection.address, collection.name, collection.item, collection.title].filter(Boolean)
     : [collection].filter(Boolean);
-  let traitFilter = null;
-  try {
-    const parsed = JSON.parse(traits || "null");
-    if (Array.isArray(parsed)) {
-      const byName = new Map(parsed.map((trait) => [String(trait.label || trait.trait_type || "").toLowerCase(), String(trait.value || "").trim().toLowerCase()]));
-      traitFilter = {
-        model: byName.get("model") || "",
-        backdrop: byName.get("backdrop") || "",
-        symbol: byName.get("symbol") || "",
-      };
-    }
-  } catch {}
+  const rawTraitFilter = rawTraitFilterFromAttributes(traits);
+  const traitFilter = rawTraitFilter ? {
+    model: String(rawTraitFilter.model || "").trim().toLowerCase(),
+    backdrop: String(rawTraitFilter.backdrop || "").trim().toLowerCase(),
+    symbol: String(rawTraitFilter.symbol || "").trim().toLowerCase(),
+  } : null;
   const matchesTraits = (gift = {}) => {
     if (!traitFilter) return true;
     const modelOk = !traitFilter.model || String(gift.modelName || gift.modelTitle || "").trim().toLowerCase() === traitFilter.model;
@@ -6996,6 +7838,19 @@ async function collectibleSales(collection, traits = "") {
     const symbolOk = !traitFilter.symbol || String(gift.symbolName || "").trim().toLowerCase() === traitFilter.symbol;
     return modelOk && backdropOk && symbolOk;
   };
+  const exactCollectionNames = giftCollectionNameVariants(collectionObject, aliases);
+  if (rawTraitFilter?.model && rawTraitFilter?.backdrop) {
+    const settled = await Promise.allSettled([
+      tonnelExactComboSales(exactCollectionNames, rawTraitFilter, tonRate),
+      portalsExactComboSales(exactCollectionNames, rawTraitFilter, tonRate),
+    ]);
+    const exactRows = settled.flatMap((result, index) => {
+      if (result.status === "fulfilled") return Array.isArray(result.value) ? result.value : [];
+      warnCollectibleSalesOnce(`exact-sales-${index}-${result.reason?.message || "failed"}`, `[sales] exact sale history source failed: ${result.reason?.message || result.reason}`);
+      return [];
+    }).sort((a, b) => new Date(b.date || 0).getTime() - new Date(a.date || 0).getTime()).slice(0, 5);
+    if (exactRows.length) return setCachedMapValue(collectibleSalesCache, key, exactRows, 3 * 60 * 1000);
+  }
   if (collectionObject.kind === "gift" && collectionObject.tgauth) {
     try {
       const seeGift = await seeGiftContext({
@@ -7077,6 +7932,8 @@ async function accountNftHistory(address) {
 }
 
 function attrPercent(attr = {}) {
+  const perMille = Number(attr?.rarity_per_mille ?? attr?.rarityPermille ?? attr?.rarityPerMille ?? NaN);
+  if (Number.isFinite(perMille) && perMille > 0) return perMille / 10;
   const raw = String(attr?.rarity || attr?.percent || "");
   const match = raw.match(/([\d.]+)\s*%/);
   return match ? Number(match[1]) : null;
@@ -7133,19 +7990,124 @@ function salesDerivedFloorHistory(sales = [], floor = {}, range = "7d") {
   return unique.length >= 2 ? unique : [];
 }
 
+function exactTraitSale(sales = [], traits = {}) {
+  const modelKey = traitComparable(traits.model || "");
+  const backdropKey = traitComparable(traits.backdrop || "");
+  if (!modelKey || !backdropKey) return null;
+  return (sales || []).find((sale) => (
+    sale.exact
+    && traitComparable(sale.model || "") === modelKey
+    && traitComparable(sale.backdrop || "") === backdropKey
+  )) || null;
+}
+
+function activeListingFloor(floor = {}) {
+  const source = `${floor.source || ""} ${floor.marketPlatform || ""}`.toLowerCase();
+  return (Number(floor.floorTon || 0) > 0 || Number(floor.floorUsd || 0) > 0)
+    && !/estimated|last.sale/.test(source)
+    && Number(floor.listedCount || 0) > 0;
+}
+
+function attributesFromGiftFloorPair(pair = {}) {
+  return [
+    pair.model ? { label: "Model", value: pair.model } : null,
+    pair.backdrop ? { label: "Backdrop", value: pair.backdrop } : null,
+    pair.symbol ? { label: "Symbol", value: pair.symbol } : null,
+  ].filter(Boolean);
+}
+
+function lastSaleFloorFromSale(sale = {}, tonRate = 0) {
+  const saleTon = Number(sale.priceTon || 0) || (tonRate > 0 ? Number(sale.priceUsd || 0) / tonRate : 0);
+  const saleUsd = Number(sale.priceUsd || 0) || (saleTon * tonRate);
+  if (!(saleTon > 0 || saleUsd > 0)) return null;
+  return {
+    floorTon: saleTon,
+    floorUsd: saleUsd,
+    floorStatus: "last-sale",
+    marketPlatform: sale.marketplace ? `Last Sale · ${sale.marketplace}` : "Last Sale",
+    marketUrl: "",
+    source: "last-sale-exact",
+    listedCount: 0,
+    recentSales: [sale],
+    lastSaleDate: sale.date || "",
+    tonUsdRate: tonRate,
+  };
+}
+
+async function exactLastSaleFloorForPair(pair = {}, tonRate = 0) {
+  if (!pair.collection || !pair.model || !pair.backdrop) return null;
+  const collection = {
+    name: pair.collection,
+    item: pair.collection,
+    kind: "gift",
+    attributes: attributesFromGiftFloorPair(pair),
+  };
+  const sales = await collectibleSales(collection, JSON.stringify(collection.attributes));
+  return lastSaleFloorFromSale(exactTraitSale(sales, pair), tonRate);
+}
+
+async function fastExactLastSaleFloorForPair(pair = {}, tonRate = 0) {
+  if (!pair.collection || !pair.model || !pair.backdrop) return null;
+  const collectionNames = giftCollectionNameVariants({ name: pair.collection, item: pair.collection }, [
+    pair.collection,
+    ...(pair.collectionKeys || []),
+  ]);
+  const settled = await Promise.allSettled([
+    tonnelExactComboSales(collectionNames, pair, tonRate),
+    portalsExactComboSales(collectionNames, pair, tonRate),
+  ]);
+  const sourceNames = ["Tonnel", "Portals"];
+  const rows = uniqueSales(settled.flatMap((result) => (result.status === "fulfilled" && Array.isArray(result.value) ? result.value : [])));
+  if (rows.length) {
+    console.log(`[gift-last-sale] ${pair.collection} / ${pair.model} / ${pair.backdrop}: exactRows=${rows.length}`);
+  } else if (process.env.GIFT_LAST_SALE_DEBUG === "1") {
+    const status = settled.map((result, index) => (
+      result.status === "fulfilled"
+        ? `${sourceNames[index]}=0`
+        : `${sourceNames[index]}=${String(result.reason?.message || result.reason || "failed").slice(0, 80)}`
+    )).join(" ");
+    console.log(`[gift-last-sale] ${pair.collection} / ${pair.model} / ${pair.backdrop}: ${status}`);
+  }
+  const sale = rows.sort((a, b) => new Date(b.date || 0).getTime() - new Date(a.date || 0).getTime())[0];
+  return lastSaleFloorFromSale(sale, tonRate);
+}
+
 async function giftDetailData({ walletAddress, nftAddress, collectionAddress = "", collectionName = "", itemName = "", attributes = [], tgauth = "", range = "7d" }) {
   const traitPayload = JSON.stringify(Array.isArray(attributes) ? attributes : []);
+  const traits = giftTraitLookup(Array.isArray(attributes) ? attributes : []);
+  const exactCollectionName = collectionName || itemName || "";
+  const exactModelName = traits.model || "";
+  const exactBackdropName = traits.backdrop || "";
+  const hasExactGiftCombo = Boolean(exactCollectionName && exactModelName && exactBackdropName);
   const giftLookup = collectionAddress || collectionName || itemName
     ? { address: collectionAddress || collectionName || itemName, name: collectionName, item: itemName, kind: "gift", attributes, tgauth, period: range }
     : collectionName || itemName;
-  const [floorResult, salesResult, historyResult] = await Promise.allSettled([
-    collectibleFloor(giftLookup),
-    collectibleSales(giftLookup, traitPayload),
-    accountNftHistory(walletAddress),
+  const extraTimeoutMs = hasExactGiftCombo ? 250 : 1200;
+  const floorPromise = collectibleFloor(giftLookup).catch(() => ({}));
+  const salesPromise = settleWithin(collectibleSales(giftLookup, traitPayload), extraTimeoutMs, []);
+  const operationsPromise = settleWithin(accountNftHistory(walletAddress), extraTimeoutMs, []);
+  let floor = await floorPromise;
+  const [sales, operations] = await Promise.all([
+    salesPromise,
+    operationsPromise,
   ]);
-  const floor = floorResult.status === "fulfilled" ? floorResult.value || {} : {};
-  const sales = salesResult.status === "fulfilled" ? salesResult.value || [] : [];
-  const operations = historyResult.status === "fulfilled" ? historyResult.value || [] : [];
+  const lastExactSale = exactTraitSale(sales, traits);
+  if (!activeListingFloor(floor) && lastExactSale && (Number(lastExactSale.priceTon || 0) > 0 || Number(lastExactSale.priceUsd || 0) > 0)) {
+    const saleTon = Number(lastExactSale.priceTon || 0) || (tonRate > 0 ? Number(lastExactSale.priceUsd || 0) / tonRate : 0);
+    const saleUsd = Number(lastExactSale.priceUsd || 0) || (saleTon * tonRate);
+    floor = {
+      ...floor,
+      floorTon: saleTon,
+      floorUsd: saleUsd,
+      marketPlatform: lastExactSale.marketplace ? `Last Sale · ${lastExactSale.marketplace}` : "Last Sale",
+      marketUrl: "",
+      source: "last-sale-exact",
+      listedCount: 0,
+      recentSales: sales,
+      lastSaleDate: lastExactSale.date || "",
+      tonUsdRate: tonRate,
+    };
+  }
   const nftOps = operations.filter((operation) => sameAddress(operation?.item?.address, nftAddress)).sort((a, b) => Number(b.utime || 0) - Number(a.utime || 0));
   const inbound = nftOps.find((operation) => sameAddress(operation?.destination?.address, walletAddress));
   const senderAddress = inbound?.source?.address || "";
@@ -7161,11 +8123,17 @@ async function giftDetailData({ walletAddress, nftAddress, collectionAddress = "
   });
   let floorHistory = Array.isArray(floor.floorHistory) ? floor.floorHistory : [];
   let floorHistorySource = floor.floorHistorySource || "";
-  if (floorHistory.length < 2) {
+  if (hasExactGiftCombo) {
+    if (!(floorHistorySource === "tontrack-combo-registry" && floorHistory.length >= 2)) {
+      const exactHistory = await d1GiftComboHistory(exactCollectionName, exactModelName, exactBackdropName);
+      floorHistory = exactHistory.length >= 2 ? exactHistory : [];
+      floorHistorySource = exactHistory.length >= 2 ? "tontrack-combo-registry" : "";
+    }
+  } else if (floorHistory.length < 2) {
     floorHistory = salesDerivedFloorHistory(sales, floor, range);
     floorHistorySource = floorHistory.length >= 2 ? "sales-derived" : "";
   }
-  if (floorHistory.length < 2) {
+  if (!hasExactGiftCombo && floorHistory.length < 2) {
     floorHistory = await giftSnapshotHistory(floor.canonicalName || collectionName || itemName, range);
     floorHistorySource = floorHistory.length >= 2 ? "tontrack-snapshots" : "";
   }
@@ -7177,7 +8145,7 @@ async function giftDetailData({ walletAddress, nftAddress, collectionAddress = "
       volume24hTon: sales24hRows.reduce((sum, sale) => sum + Number(sale.priceTon || 0), 0),
       volume24hUsd: sales24hRows.reduce((sum, sale) => sum + Number(sale.priceUsd || 0), 0),
     },
-    salesScope: sales.some((sale) => sale.model || sale.backdrop || sale.symbol) ? "same-traits" : "collection",
+    salesScope: sales.some((sale) => sale.exact) ? "same-traits" : "collection",
     floorHistory,
     floorHistorySource,
     origin: {
@@ -7325,6 +8293,25 @@ async function handleApi(req, res, url) {
           model.marketUpdatedAt = "";
           return model;
         }
+        if (Number(combo.floorTon || 0) > 0 && Number(combo.listedCount || 0) <= 1) {
+          const estimate = estimatedGiftComboFloorFromRegistry(pair, comboLookup.collections || [], rate);
+          if (estimate) {
+            model.floorTon = Number(estimate.floorTon || 0);
+            model.floorUsd = Number(estimate.floorUsd || 0);
+            model.tonUsdRate = rate;
+            model.listedCount = Number(combo.listedCount || 0);
+            model.source = "estimated-combo-value";
+            model.marketPlatform = "Estimated Value";
+            model.marketUrl = "";
+            model.listingId = "";
+            model.marketUpdatedAt = estimate.marketUpdatedAt || "";
+            model.estimateConfidence = estimate.estimateConfidence;
+            model.estimateSignals = estimate.estimateSignals;
+            model.ignoredFloorTon = Number(combo.floorTon || 0);
+            model.ignoredFloorReason = "single-active-listing";
+            return model;
+          }
+        }
         model.floorTon = Number(combo.floorTon || 0);
         model.floorUsd = model.floorTon * rate;
         model.tonUsdRate = rate;
@@ -7370,6 +8357,7 @@ async function handleApi(req, res, url) {
           }
         }
       }
+      warmGiftComboHistoryCache(responseModels);
       return json(res, 200, responsePayload);
     } catch (error) {
       return json(res, 400, { error: error.message, models: [], pending: [] });

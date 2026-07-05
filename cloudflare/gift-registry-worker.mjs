@@ -1,4 +1,5 @@
 const BUCKET_COUNT = 32;
+const UNCHANGED_SAMPLE_MS = 24 * 60 * 60 * 1000;
 
 function json(payload, status = 200) {
   return new Response(JSON.stringify(payload), {
@@ -227,21 +228,46 @@ async function readCollectionCombos(env, collections = []) {
 }
 
 async function readComboHistory(env, collection, model, backdrop) {
-  const collectionKey = key(collection);
+  const collectionKeys = collectionAliasKeys(collection);
   const targetKey = comboKey(model, backdrop);
-  if (!collectionKey || targetKey === ":") return [];
+  if (!collectionKeys.length || targetKey === ":") return [];
   const bucket = bucketFor(targetKey);
+  const results = await env.GIFT_REGISTRY.batch(collectionKeys.map((collectionKey) => (
+    env.GIFT_REGISTRY.prepare(
+      `SELECT sampled_at, changes_json
+       FROM gift_combo_history_buckets
+       WHERE collection_key = ?1 AND bucket = ?2
+       ORDER BY sampled_at ASC`
+    ).bind(collectionKey, bucket)
+  )));
+  const seen = new Set();
+  return results.flatMap((result) => (result.results || []).map((row) => {
+    const entry = JSON.parse(row.changes_json || "{}")[targetKey];
+    if (!entry || !(Number(entry.f || 0) > 0)) return null;
+    const id = `${row.sampled_at}:${Number(entry.f || 0)}`;
+    if (seen.has(id)) return null;
+    seen.add(id);
+    return { timestamp: row.sampled_at, floorTon: Number(entry.f || 0), listedCount: Number(entry.l || 0) };
+  }).filter(Boolean)).sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+}
+
+async function lastHistorySampleTimes(env, collectionKey, bucketIndex) {
   const result = await env.GIFT_REGISTRY.prepare(
     `SELECT sampled_at, changes_json
      FROM gift_combo_history_buckets
      WHERE collection_key = ?1 AND bucket = ?2
-     ORDER BY sampled_at ASC`
-  ).bind(collectionKey, bucket).all();
-  return (result.results || []).map((row) => {
-    const entry = JSON.parse(row.changes_json || "{}")[targetKey];
-    if (!entry || !(Number(entry.f || 0) > 0)) return null;
-    return { timestamp: row.sampled_at, floorTon: Number(entry.f || 0), listedCount: Number(entry.l || 0) };
-  }).filter(Boolean);
+     ORDER BY sampled_at DESC`
+  ).bind(collectionKey, bucketIndex).all();
+  const latest = new Map();
+  for (const row of result.results || []) {
+    const sampledAt = new Date(row.sampled_at || 0).getTime();
+    if (!Number.isFinite(sampledAt)) continue;
+    const entries = JSON.parse(row.changes_json || "{}");
+    for (const targetKey of Object.keys(entries)) {
+      if (!latest.has(targetKey)) latest.set(targetKey, sampledAt);
+    }
+  }
+  return latest;
 }
 
 async function ingestCollection(request, env) {
@@ -367,9 +393,15 @@ async function ingestCollectionBucket(request, env) {
     ).bind(collectionKey, bucketIndex, snapshotAt, combinationsJson).run();
 
     const previousEntries = JSON.parse(previous?.combinations_json || "{}");
+    const lastSamples = await lastHistorySampleTimes(env, collectionKey, bucketIndex);
+    const sampleAt = new Date(snapshotAt || Date.now()).getTime();
     const changes = {};
     for (const [targetKey, entry] of Object.entries(bucket)) {
-      if (JSON.stringify(previousEntries[targetKey] || null) !== JSON.stringify(entry)) {
+      const previousEntry = previousEntries[targetKey] || null;
+      const valueChanged = JSON.stringify(previousEntry) !== JSON.stringify(entry);
+      const lastSampleAt = lastSamples.get(targetKey) || 0;
+      const sampleDue = !lastSampleAt || (Number.isFinite(sampleAt) && sampleAt - lastSampleAt >= UNCHANGED_SAMPLE_MS);
+      if (valueChanged || sampleDue) {
         changes[targetKey] = entry;
       }
     }
@@ -381,6 +413,25 @@ async function ingestCollectionBucket(request, env) {
         ON CONFLICT(collection_key, sampled_at, bucket) DO UPDATE SET
           changes_json=excluded.changes_json`
       ).bind(collectionKey, snapshotAt, bucketIndex, JSON.stringify(changes)).run();
+    }
+  } else {
+    const lastSamples = await lastHistorySampleTimes(env, collectionKey, bucketIndex);
+    const sampleAt = new Date(snapshotAt || Date.now()).getTime();
+    const samples = {};
+    for (const [targetKey, entry] of Object.entries(bucket)) {
+      const lastSampleAt = lastSamples.get(targetKey) || 0;
+      if (!lastSampleAt || (Number.isFinite(sampleAt) && sampleAt - lastSampleAt >= UNCHANGED_SAMPLE_MS)) {
+        samples[targetKey] = entry;
+      }
+    }
+    if (Object.keys(samples).length) {
+      await env.GIFT_REGISTRY.prepare(
+        `INSERT INTO gift_combo_history_buckets (
+          collection_key, sampled_at, bucket, changes_json
+        ) VALUES (?1,?2,?3,?4)
+        ON CONFLICT(collection_key, sampled_at, bucket) DO UPDATE SET
+          changes_json=excluded.changes_json`
+      ).bind(collectionKey, snapshotAt, bucketIndex, JSON.stringify(samples)).run();
     }
   }
   return json({
@@ -584,9 +635,10 @@ export default {
     return json({ error: "Not found" }, 404);
   },
   async scheduled(_event, env) {
+    const cutoff = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
     await env.GIFT_REGISTRY.prepare(
       `DELETE FROM gift_combo_history_buckets
-       WHERE sampled_at < datetime('now', '-7 days')`
-    ).run();
+       WHERE sampled_at < ?1`
+    ).bind(cutoff).run();
   },
 };

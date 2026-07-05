@@ -67,6 +67,33 @@ function key(value = "") {
   return String(value).toLowerCase().replace(/[^a-z0-9]+/g, "");
 }
 
+function singularWord(word = "") {
+  if (word.length < 4 || word.endsWith("ss")) return word;
+  if (word.endsWith("ies")) return `${word.slice(0, -3)}y`;
+  if (word.endsWith("boxes")) return `${word.slice(0, -5)}box`;
+  if (/(?:ches|shes)$/.test(word)) return word.slice(0, -2);
+  if (word.endsWith("s")) return word.slice(0, -1);
+  return word;
+}
+
+function wordVariants(word = "") {
+  const variants = new Set([word]);
+  const singular = singularWord(word);
+  if (singular) variants.add(singular);
+  if (word.length >= 3 && !word.endsWith("s")) variants.add(`${word}s`);
+  return [...variants].filter(Boolean);
+}
+
+function collectionAliasKeys(value = "") {
+  const words = String(value || "").toLowerCase().match(/[a-z0-9]+/g) || [];
+  if (!words.length) return [];
+  let combinations = [""];
+  words.forEach((word) => {
+    combinations = combinations.flatMap((prefix) => wordVariants(word).map((variant) => `${prefix}${variant}`));
+  });
+  return [...new Set([key(value), ...combinations.map(key)])].filter(Boolean);
+}
+
 function comboKey(model = "", backdrop = "") {
   return `${key(model)}:${key(backdrop)}`;
 }
@@ -641,10 +668,11 @@ async function runCycle({ resetCompleted = false } = {}) {
   }
   const filterIndex = process.argv.indexOf("--collection");
   const onlyCollection = filterIndex >= 0 ? String(process.argv[filterIndex + 1] || "").trim() : "";
+  const onlyCollectionKeys = new Set(collectionAliasKeys(onlyCollection));
   const collectionsPayload = await fetchJson(`${thermosBase}/collections`);
   const rows = Array.isArray(collectionsPayload) ? collectionsPayload : (collectionsPayload.items || collectionsPayload.collections || []);
   const names = [...new Set(rows.map((item) => String(item?.name || item?.collection || item?.title || "").trim()).filter(Boolean))]
-    .filter((name) => !onlyCollection || key(name) === key(onlyCollection));
+    .filter((name) => !onlyCollection || collectionAliasKeys(name).some((aliasKey) => onlyCollectionKeys.has(aliasKey)));
   if (!names.length) throw new Error("No Thermos collections found");
   const freshCollections = (!process.argv.includes("--reset") && !onlyCollection)
     ? await registryFreshCollections()

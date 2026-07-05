@@ -3391,6 +3391,15 @@ small {
   background: var(--mint);
 }
 
+.status-badge.is-estimated {
+  color: var(--amber);
+  background: rgba(214,189,104,0.14);
+}
+
+.status-badge.is-estimated::before {
+  background: var(--amber);
+}
+
 .trait-pill-row,
 .sticker-badge-row {
   display: flex;
