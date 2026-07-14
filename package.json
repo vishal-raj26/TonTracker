@@ -11,13 +11,15 @@
     "worker:gift-models:once": "node gift-model-snapshot-once.js",
     "worker:gift-combos": "node scripts/snapshot-gift-combos.js --continuous",
     "worker:gift-combos:once": "node scripts/snapshot-gift-combos.js",
+    "worker:gift-sales": "node scripts/snapshot-gift-sales.js --continuous",
+    "worker:gift-sales:once": "node scripts/snapshot-gift-sales.js",
     "worker:gift-snapshots:15m": "set GIFT_SNAPSHOT_INTERVAL_MS=900000&& node gift-snapshot-worker.js",
     "ingest:gift-layers": "node scripts/ingest-giftchanges-layers.js"
   },
   "dependencies": {
     "@ton/core": "^0.63.1",
     "@tonconnect/ui": "^2.4.4",
-    "pg": "^8.13.1"
+    "pg": "^8.13.1",
+    "telegram": "^2.26.22"
   }
 }
-
