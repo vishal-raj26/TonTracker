@@ -579,8 +579,13 @@ function startMojibakeObserver() {
   if (mojibakeObserverStarted || !document.body) return;
   mojibakeObserverStarted = true;
   normalizeVisibleText(document.body);
-  new MutationObserver((records) => records.forEach((record) => record.addedNodes.forEach(normalizeVisibleText)))
-    .observe(document.body, { childList: true, subtree: true });
+  new MutationObserver((records) => records.forEach((record) => {
+    if (record.type === "characterData") {
+      normalizeVisibleText(record.target);
+      return;
+    }
+    record.addedNodes.forEach(normalizeVisibleText);
+  })).observe(document.body, { childList: true, characterData: true, subtree: true });
 }
 
 if (document.readyState === "loading") {
