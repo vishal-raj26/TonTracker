@@ -1,0 +1,73 @@
+{
+  "schemaVersion": 1,
+  "metric": "Nonblank, noncomment first-party JavaScript physical source lines",
+  "baselineSloc": 2523,
+  "requiredReductionPercent": 70,
+  "maximumSloc": 756,
+  "components": [
+    {
+      "path": "chart-platform.js",
+      "mode": "file"
+    },
+    {
+      "path": "test/chart-platform.test.js",
+      "mode": "file"
+    },
+    {
+      "path": "app.js",
+      "mode": "functions",
+      "functions": [
+        "giftComboHistoryCandidates",
+        "giftComboHistoryCacheKey",
+        "fetchGiftComboHistoryPayload",
+        "giftFloorHistoryPointsFromPayload",
+        "applyGiftFloorHistory",
+        "loadGiftComboHistoryFast",
+        "buildStickerHistory",
+        "renderTokenChartControls",
+        "tokenChartAxisLabel",
+        "renderTokenChartMetrics",
+        "tokenChartQuery",
+        "normalizeTokenDetailChart",
+        "setTokenDetailChart",
+        "tokenChartRangeMs",
+        "tokenChartRangeLabel",
+        "drawDetailPriceChart",
+        "normalizeWalletHistory",
+        "activePortfolioRange",
+        "renderDonut",
+        "portfolioHistoryRows",
+        "portfolioTimeLabel",
+        "renderPortfolioGraph",
+        "renderAnalyticsChart"
+      ]
+    },
+    {
+      "path": "server.js",
+      "mode": "functions",
+      "functions": [
+        "giftSnapshotHistoryDb",
+        "giftSnapshotHistoryJson",
+        "giftSnapshotHistory",
+        "giftModelSnapshotHistoryDb",
+        "giftModelSnapshotHistoryJson",
+        "giftModelSnapshotHistory",
+        "getRateChart",
+        "priceAt",
+        "tokenDetailRangeWindow",
+        "mapChartPayload",
+        "chartFromBestSources",
+        "chartStaleness",
+        "d1GiftComboHistory",
+        "salesDerivedFloorHistory"
+      ]
+    }
+  ],
+  "excluded": [
+    "Vendored or generated Chart.js",
+    "HTML",
+    "CSS",
+    "package-lock.json",
+    "Non-chart declarations in shared first-party JavaScript files"
+  ]
+}

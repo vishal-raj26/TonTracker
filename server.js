@@ -1,9 +1,11 @@
 const http = require("http");
 const fs = require("fs");
 const path = require("path");
+const zlib = require("zlib");
 const { URL } = require("url");
 const { execFile } = require("child_process");
 const { Address } = require("@ton/core");
+const crypto = require("crypto");
 
 const root = __dirname;
 function loadEnvFile() {
@@ -26,6 +28,8 @@ loadEnvFile();
 const port = Number(process.env.PORT || 5177);
 const tonApiBase = "https://tonapi.io/v2";
 const tonApiKey = process.env.TONAPI_KEY || "";
+const tonCenterApiBase = String(process.env.TONCENTER_API_BASE || "https://toncenter.com/api/v3").replace(/\/+$/, "");
+const tonCenterApiKey = String(process.env.TONCENTER_API_KEY || "");
 const usdTonRate = 3.12;
 const nativeTonLogo = "https://raw.githubusercontent.com/tonkeeper/opentonapi/master/pkg/references/media/ton_symbol.png";
 const JETTON_QUALITY_RULES = {
@@ -45,11 +49,29 @@ const collectiblesRegistryFile = path.join(dataDir, "telegram-collectibles-regis
 const stickerCollectionsRegistryFile = path.join(dataDir, "sticker-collections-registry.json");
 const giftFloorSnapshotsFile = path.join(dataDir, "gift-floor-snapshots.json");
 const giftLayerRegistryFile = path.join(dataDir, "gift-layer-registry.json");
+// Railway mounts its persistent data volume at /app/data. Keep the verified
+// shared layer catalog outside that mount so a new volume cannot hide it.
+const bundledGiftLayerRegistryFile = path.join(root, "assets", "gift-layer-registry.json");
 const d1GiftRegistryUrl = String(process.env.D1_REGISTRY_URL || "").replace(/\/+$/, "");
 const d1GiftIngestSecret = String(process.env.D1_INGEST_SECRET || process.env.INGEST_SECRET || "");
 const giftRegistryProxyUrl = String(process.env.GIFT_REGISTRY_PROXY_URL || "").replace(/\/+$/, "");
 const publicGiftRegistryUrl = "https://tontrack-gift-registry.vishu-vishal264.workers.dev";
 const giftRegistryReadUrl = d1GiftRegistryUrl || publicGiftRegistryUrl;
+async function d1RegistryJson(route = "", options = {}, directTimeoutMs = 15000) {
+  const candidates = [
+    giftRegistryReadUrl ? { url: `${giftRegistryReadUrl}${route}`, timeoutMs: directTimeoutMs } : null,
+    giftRegistryProxyUrl ? { url: `${giftRegistryProxyUrl}/api/gift-registry${route}`, timeoutMs: 2500 } : null,
+  ].filter((candidate, index, list) => candidate && list.findIndex((item) => item?.url === candidate.url) === index);
+  let lastError = null;
+  for (const candidate of candidates) {
+    try {
+      return await marketJson(candidate.url, options, candidate.timeoutMs);
+    } catch (error) {
+      lastError = error;
+    }
+  }
+  throw lastError || new Error("Gift registry is unavailable");
+}
 const giftComboCoverageMaxAgeMs = Math.max(60 * 60 * 1000, Number(process.env.GIFT_COMBO_COVERAGE_MAX_AGE_MS || 12 * 60 * 60 * 1000));
 const tonnelAuthData = String(process.env.TONNEL_AUTH_DATA || process.env.TONNEL_AUTH || "");
 const portalsAuthData = String(process.env.PORTALS_AUTH_DATA || process.env.PORTALS_TMA_AUTH || "");
@@ -57,6 +79,9 @@ const portalsApiBase = String(process.env.PORTALS_API_BASE || "https://portals-m
 const thermosBackendApiBase = String(process.env.THERMOS_BACKEND_API_BASE || "https://backend.thermos.gifts").replace(/\/+$/, "");
 const thermosApiToken = String(process.env.THERMOS_API_TOKEN || "");
 const thermosJwtEnv = String(process.env.THERMOS_JWT || "");
+const duneApiKey = String(process.env.DUNE_API_KEY || "");
+const duneGiftModelStatsQueryId = String(process.env.DUNE_GIFT_MODEL_STATS_QUERY_ID || "");
+const duneGiftCollectionStatsQueryId = String(process.env.DUNE_GIFT_COLLECTION_STATS_QUERY_ID || "5254340");
 let giftSnapshotPgPool = null;
 let giftSnapshotPgInitPromise = null;
 let giftSnapshotPgUnavailableLogged = false;
@@ -74,6 +99,10 @@ const giftComboBulkResponseCache = new Map();
 const giftComboFloorCache = new Map();
 const giftComboHistoryCache = new Map();
 const giftComboHistoryWarmJobs = new Set();
+const giftSalesRegistryCache = new Map();
+let duneGiftModelStatsCache = { rows: [], expiresAt: 0, promise: null };
+let duneGiftCollectionStatsCache = { rows: [], expiresAt: 0, promise: null };
+const duneGiftCollectionHolderCache = new Map();
 const txActionCache = new Map();
 const dnsNameCache = new Map();
 const historyCacheVersion = "short-ranges-v3";
@@ -90,18 +119,29 @@ function loadCollectiblesRegistry() {
 
 const collectiblesRegistry = loadCollectiblesRegistry();
 function loadGiftLayerRegistry() {
-  try {
-    const parsed = JSON.parse(fs.readFileSync(giftLayerRegistryFile, "utf8"));
-    return parsed && typeof parsed === "object" ? parsed : { version: 1, collections: {} };
-  } catch {
-    return { version: 1, collections: {} };
-  }
+  const readRegistry = (file) => {
+    try {
+      const parsed = JSON.parse(fs.readFileSync(file, "utf8"));
+      return parsed && typeof parsed === "object" ? parsed : {};
+    } catch {
+      return {};
+    }
+  };
+  const bundled = readRegistry(bundledGiftLayerRegistryFile);
+  const runtime = readRegistry(giftLayerRegistryFile);
+  return {
+    ...bundled,
+    ...runtime,
+    collections: { ...(bundled.collections || {}), ...(runtime.collections || {}) },
+    backdrops: { ...(bundled.backdrops || {}), ...(runtime.backdrops || {}) },
+    patterns: { ...(bundled.patterns || {}), ...(runtime.patterns || {}) },
+  };
 }
 
 const giftLayerRegistry = loadGiftLayerRegistry();
+console.info(`[gift-layer-registry] loaded collections=${Object.keys(giftLayerRegistry.collections || {}).length} backdrops=${Object.keys(giftLayerRegistry.backdrops || {}).length} patterns=${Object.keys(giftLayerRegistry.patterns || {}).length}`);
 let giftLayerRegistrySaveTimer = 0;
 const jettonHistoryTtl = 15 * 60 * 1000;
-const fastGraphHistoryOnly = false;
 const geckoIdCache = new Map();
 const tokenDetailCache = new Map();
 const collectiblesCache = new Map();
@@ -116,6 +156,8 @@ let stickerdomStatsPromise = null;
 let thermosStickerStatsCache = null;
 let thermosStickerStatsExpiresAt = 0;
 let thermosStickerStatsPromise = null;
+const thermosStickerCollectionCache = new Map();
+const stickerAnimationPayloadCache = new Map();
 let stickersToolsStatsCache = null;
 let stickersToolsStatsExpiresAt = 0;
 let stickersToolsStatsPromise = null;
@@ -157,6 +199,7 @@ const giftSnapshotIntervalMs = Number(process.env.GIFT_SNAPSHOT_INTERVAL_MS || 6
 const giftSnapshotUnchangedIntervalMs = Number(process.env.GIFT_SNAPSHOT_UNCHANGED_INTERVAL_MS || 23 * 60 * 60 * 1000);
 const giftSnapshotRetentionDays = Number(process.env.GIFT_SNAPSHOT_RETENTION_DAYS || 370);
 const giftSnapshotDelayMs = Number(process.env.GIFT_SNAPSHOT_DELAY_MS || 15000);
+const estimateHistoryRefreshIntervalMs = Math.max(60 * 60 * 1000, Number(process.env.ESTIMATE_HISTORY_REFRESH_INTERVAL_MS || 6 * 60 * 60 * 1000));
 const giftModelRetryDelayMs = Number(process.env.GIFT_MODEL_RETRY_DELAY_MS || 120000);
 const giftModelRetryCount = Number(process.env.GIFT_MODEL_RETRY_COUNT || 2);
 const isRailwayRuntime = Boolean(process.env.RAILWAY_ENVIRONMENT || process.env.RAILWAY_SERVICE_ID || process.env.RAILWAY_PROJECT_ID);
@@ -317,7 +360,15 @@ function rememberGiftLayeredMedia(payload = {}) {
   };
 }
 
-function giftLayeredMediaPayload({ collectionName = "", attributes = [], image = "", animationUrl = "", mediaType = "" } = {}) {
+function giftLayeredMediaPayload({
+  collectionName = "",
+  attributes = [],
+  image = "",
+  animationUrl = "",
+  patternImageUrl = "",
+  backdropPalette = null,
+  mediaType = "",
+} = {}) {
   const traits = giftTraitLookup(attributes || []);
   const requestedCollection = String(collectionName || "").trim();
   const modelName = String(traits.model || "").trim();
@@ -334,17 +385,24 @@ function giftLayeredMediaPayload({ collectionName = "", attributes = [], image =
     || giftLayerRegistry.backdrops?.[layerRegistryKey(backdropName)];
   const storedPattern = collectionEntry?.patterns?.[layerRegistryKey(patternName)]
     || giftLayerRegistry.patterns?.[layerRegistryKey(patternName)];
-  if (!storedBackdrop?.hex || !storedPattern?.imageUrl) return null;
+  // Keep the same layered-media contract as wallet imports. Telegram's
+  // official backdrop is valid even when it does not expose a static symbol
+  // sticker that CSS can use as a pattern mask.
+  const resolvedPalette = storedBackdrop?.hex || backdropPalette || null;
+  const resolvedPatternImageUrl = storedPattern?.imageUrl || patternImageUrl || "";
+  const resolvedModelAnimationUrl = storedModel?.animationUrl || animationUrl || "";
+  const resolvedModelImageUrl = storedModel?.imageUrl || image || "";
+  if (!resolvedPalette || (!resolvedModelAnimationUrl && !resolvedModelImageUrl)) return null;
   return {
     collectionName: collectionEntry?.collectionName || requestedCollection,
     giftName: collectionEntry?.giftName || collectionEntry?.collectionName || requestedCollection,
     modelName,
     backdropName,
     patternName,
-    modelAnimationUrl: storedModel?.animationUrl || animationUrl || "",
-    modelImageUrl: storedModel?.imageUrl || image || "",
-    patternImageUrl: storedPattern?.imageUrl || "",
-    backdropPalette: storedBackdrop?.hex || null,
+    modelAnimationUrl: resolvedModelAnimationUrl,
+    modelImageUrl: resolvedModelImageUrl,
+    patternImageUrl: resolvedPatternImageUrl,
+    backdropPalette: resolvedPalette,
     mediaType: storedModel?.mediaType || mediaType || "",
   };
 }
@@ -359,7 +417,7 @@ const KNOWN_SYMBOL_GECKO_IDS = {
   TON: "the-open-network",
   USD: "tether",
   USDT: "tether",
-  "USD₮": "tether",
+  "USDâ‚®": "tether",
   JUSDT: "tether",
 };
 
@@ -406,7 +464,8 @@ function readJsonBody(req, maxBytes = 1024 * 1024) {
 }
 
 function safeStaticPath(urlPath) {
-  const pathname = decodeURIComponent(urlPath === "/" ? "/index.html" : urlPath);
+  const appEntryPaths = new Set(["/", "/miniapp-v2", "/miniapp-v2/"]);
+  const pathname = decodeURIComponent(appEntryPaths.has(urlPath) ? "/index.html" : urlPath);
   const filePath = path.resolve(root, `.${pathname}`);
   return filePath.startsWith(root) ? filePath : null;
 }
@@ -426,6 +485,374 @@ function isLocalHttpRequest(req) {
     || remote === "127.0.0.1"
     || remote === "::1"
     || remote === "::ffff:127.0.0.1";
+}
+
+function telegramWebAppConfigured() {
+  return Boolean(String(process.env.TELEGRAM_BOT_TOKEN || "").trim());
+}
+
+function telegramProfile(user = {}) {
+  return {
+    id: String(user.id || ""),
+    firstName: String(user.first_name || user.firstName || "Telegram"),
+    lastName: String(user.last_name || user.lastName || ""),
+    username: String(user.username || ""),
+    photoUrl: String(user.photo_url || user.photoUrl || ""),
+  };
+}
+
+function verifyTelegramWebAppInitData(initData) {
+  if (!telegramWebAppConfigured()) throw new Error("Telegram Mini App auth is not configured on this server");
+  const params = new URLSearchParams(String(initData || ""));
+  const receivedHash = String(params.get("hash") || "");
+  const authDate = Number(params.get("auth_date") || 0);
+  const userJson = params.get("user");
+  if (!receivedHash || !userJson || !Number.isFinite(authDate) || authDate <= 0) throw new Error("Telegram did not provide a valid Mini App session");
+  if ((Date.now() / 1000) - authDate > 24 * 60 * 60) throw new Error("Your Telegram session expired. Reopen TonTrack from Telegram.");
+
+  params.delete("hash");
+  const dataCheckString = [...params.entries()]
+    .sort(([left], [right]) => left.localeCompare(right))
+    .map(([key, value]) => `${key}=${value}`)
+    .join("\n");
+  const secret = crypto.createHmac("sha256", "WebAppData").update(String(process.env.TELEGRAM_BOT_TOKEN)).digest();
+  const expectedHash = crypto.createHmac("sha256", secret).update(dataCheckString).digest("hex");
+  if (receivedHash.length !== expectedHash.length || !crypto.timingSafeEqual(Buffer.from(receivedHash), Buffer.from(expectedHash))) {
+    throw new Error("Telegram session could not be verified");
+  }
+
+  const user = JSON.parse(userJson);
+  if (!user?.id) throw new Error("Telegram did not provide an account identity");
+  return { userId: String(user.id), profile: telegramProfile(user) };
+}
+
+async function telegramBotApi(method, body) {
+  const response = await fetch(`https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/${method}`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok || !payload?.ok) throw new Error(payload?.description || `Telegram ${method} failed`);
+  return payload.result;
+}
+
+function telegramGiftTrait(gift = {}, label = "") {
+  const key = String(label || "").toLowerCase();
+  const direct = gift?.[key];
+  const attribute = (Array.isArray(gift?.attributes) ? gift.attributes : []).find((item) => (
+    String(item?.type || item?.trait_type || item?.name || "").toLowerCase() === key
+  ));
+  const value = direct || attribute || {};
+  const name = String(value?.name || value?.value || "").trim();
+  if (!name) return null;
+  const rarityPerMille = Number(value?.rarity_per_mille ?? value?.rarityPerMille ?? 0);
+  return {
+    trait_type: label,
+    label,
+    value: name,
+    rarity_per_mille: Number.isFinite(rarityPerMille) ? rarityPerMille : 0,
+    rarity: rarityPerMille > 0 ? `${rarityPerMille / 10}%` : "",
+  };
+}
+
+function telegramGiftAttributes(gift = {}) {
+  return ["Model", "Backdrop", "Symbol"]
+    .map((label) => telegramGiftTrait(gift, label))
+    .filter(Boolean);
+}
+
+function telegramColorHex(value, fallback = "") {
+  const color = Number(value);
+  if (!Number.isInteger(color) || color < 0 || color > 0xffffff) return fallback;
+  return `#${color.toString(16).padStart(6, "0")}`;
+}
+
+function telegramBackdropPalette(backdrop = {}) {
+  const colors = backdrop?.colors || {};
+  const centerColor = telegramColorHex(colors.center_color, "");
+  const edgeColor = telegramColorHex(colors.edge_color, "");
+  if (!centerColor || !edgeColor) return null;
+  return {
+    centerColor,
+    edgeColor,
+    patternColor: telegramColorHex(colors.symbol_color, "#ffffff"),
+    textColor: telegramColorHex(colors.text_color, "#ffffff"),
+  };
+}
+
+function telegramGiftCollectionName(gift = {}) {
+  const raw = String(gift?.base_name || gift?.collection_name || gift?.collection?.name || gift?.title || gift?.name || "Telegram Gift").trim();
+  return raw.replace(/\s+#\d+\s*$/i, "").trim() || "Telegram Gift";
+}
+
+function telegramGiftMedia(...candidates) {
+  const usableStickerMedia = (sticker) => {
+    if (!sticker) return null;
+    if (!sticker?.file_id) return null;
+    const previewFileId = sticker?.thumbnail?.file_id ? String(sticker.thumbnail.file_id) : "";
+    // Keep a thumbnail for immediate paint and the source sticker for the
+    // real animation. Both are Telegram-issued file ids, never guessed URLs.
+    if (sticker.is_animated) return { previewFileId, fileId: String(sticker.file_id), mediaType: "lottie" };
+    if (sticker.is_video) return { previewFileId, fileId: String(sticker.file_id), mediaType: "video" };
+    return { previewFileId, fileId: String(sticker.file_id), mediaType: "image" };
+  };
+  for (const gift of candidates) {
+    if (!gift || typeof gift !== "object") continue;
+    const media = usableStickerMedia(gift?.sticker)
+      || usableStickerMedia(gift?.model?.sticker)
+      || (gift?.thumbnail?.file_id ? { fileId: String(gift.thumbnail.file_id), mediaType: "image" } : null)
+      || (gift?.photo?.file_id ? { fileId: String(gift.photo.file_id), mediaType: "image" } : null);
+    if (media) return media;
+  }
+  return null;
+}
+
+const telegramWebAppMediaTickets = new Map();
+const telegramWebAppMediaCache = new Map();
+
+function telegramWebAppMediaTicket(fileId) {
+  const now = Date.now();
+  for (const [ticket, entry] of telegramWebAppMediaTickets) {
+    if (entry.expiresAt <= now) telegramWebAppMediaTickets.delete(ticket);
+  }
+  const ticket = crypto.randomBytes(18).toString("base64url");
+  telegramWebAppMediaTickets.set(ticket, {
+    fileId,
+    expiresAt: now + 60 * 60 * 1000,
+  });
+  const payload = Buffer.from(JSON.stringify({
+    fileId,
+    expiresAt: now + 60 * 60 * 1000,
+  })).toString("base64url");
+  const botToken = String(process.env.TELEGRAM_BOT_TOKEN || "").trim();
+  const signature = botToken
+    ? crypto.createHmac("sha256", botToken).update(payload).digest("base64url")
+    : "";
+  return `/api/telegram/webapp/file?ticket=${encodeURIComponent(ticket)}&payload=${encodeURIComponent(payload)}&signature=${encodeURIComponent(signature)}`;
+}
+
+async function telegramMiniAppAssets(initData) {
+  const identity = verifyTelegramWebAppInitData(initData);
+  const entries = [];
+  let offset = "";
+
+  // Telegram returns a cursor; follow it so an account with more than 100 gifts is complete.
+  for (let pageNumber = 0; pageNumber < 50; pageNumber += 1) {
+    const page = await telegramBotApi("getUserGifts", {
+      user_id: identity.userId,
+      // Import every owned Telegram gift. Only unique gifts with model/backdrop
+      // traits are eligible for exact-combo pricing further below.
+      exclude_unlimited: false,
+      exclude_limited_upgradable: false,
+      exclude_limited_non_upgradable: false,
+      exclude_from_blockchain: false,
+      exclude_unique: false,
+      offset,
+      limit: 100,
+    });
+    entries.push(...(page?.gifts || []));
+    const nextOffset = String(page?.next_offset || "");
+    if (!nextOffset || nextOffset === offset) break;
+    offset = nextOffset;
+  }
+
+  const normalization = {
+    entries: entries.length,
+    unique: 0,
+    regular: 0,
+    missingMedia: 0,
+    layered: 0,
+    backdrops: 0,
+    symbols: 0,
+    symbolSamples: [],
+  };
+  const gifts = entries.map((entry, index) => {
+    // getUserGifts returns an OwnedGift wrapper. Its documented `type` tells
+    // us whether `gift` is unique; unique_gift is not a Bot API field.
+    const ownedGift = entry && typeof entry === "object" ? entry : {};
+    const gift = ownedGift.gift && typeof ownedGift.gift === "object" ? ownedGift.gift : {};
+    const isUnique = ownedGift.type === "unique";
+    const collection = telegramGiftCollectionName(gift);
+    const attributes = telegramGiftAttributes(gift);
+    const traits = giftTraitLookup(attributes);
+    // Match TON-wallet imports: a floor is model + backdrop level. Symbols
+    // remain visible traits, but must never decide whether this gift can use
+    // the shared backdrop floor.
+    const hasPriceTraits = Boolean(traits.model && traits.backdrop);
+    if (isUnique) normalization.unique += 1;
+    else normalization.regular += 1;
+    // Prefer Telegram's complete gift sticker. It already represents the
+    // exact model/backdrop/symbol combination, just like a TON wallet NFT
+    // preview. The model sticker is only a fallback when Telegram omits it.
+    const media = telegramGiftMedia(
+      { sticker: gift?.sticker },
+      gift,
+      ownedGift,
+      { sticker: gift?.model?.sticker },
+    );
+    const imageFileId = media?.fileId || "";
+    const previewFileId = media?.previewFileId || "";
+    if (!imageFileId) normalization.missingMedia += 1;
+    const mediaType = media?.mediaType || "image";
+    const image = mediaType === "image"
+      ? (imageFileId ? telegramWebAppMediaTicket(imageFileId) : "")
+      : (previewFileId ? telegramWebAppMediaTicket(previewFileId) : "");
+    const animationUrl = mediaType === "image" || !imageFileId ? "" : telegramWebAppMediaTicket(imageFileId);
+    // Symbols intentionally resolve only through the verified local pattern
+    // registry. This is the same source and visual treatment as TON-wallet
+    // imports; Telegram sticker thumbnails are not interchangeable pattern art.
+    const symbolImageUrl = "";
+    // Preserve the shared wallet layered-media contract. The backdrop palette
+    // comes from Telegram's official UniqueGift payload when the local registry
+    // does not already have that exact backdrop.
+    const layeredMedia = giftLayeredMediaPayload({
+      collectionName: collection,
+      attributes,
+      image,
+      animationUrl,
+      patternImageUrl: symbolImageUrl,
+      backdropPalette: telegramBackdropPalette(gift?.backdrop),
+      mediaType,
+    });
+    if (layeredMedia) normalization.layered += 1;
+    if (layeredMedia?.backdropPalette) normalization.backdrops += 1;
+    if (layeredMedia?.patternImageUrl) normalization.symbols += 1;
+    if (normalization.symbolSamples.length < 8) {
+      normalization.symbolSamples.push(`${traits.symbol || "(missing)"}:${layeredMedia?.patternImageUrl ? "resolved" : "unresolved"}`);
+    }
+    const identity = String(ownedGift.owned_gift_id || gift.name || gift.gift_id || index);
+    return {
+      type: "gift",
+      id: `telegram:${identity}:${gift.number || index + 1}`,
+      name: collection,
+      collection,
+      collectionAddress: collection,
+      tokenAddress: `telegram:${identity}:${gift.number || index + 1}`,
+      mintIndex: Number(gift.number || index + 1),
+      modelName: hasPriceTraits ? traits.model : "",
+      backdropName: hasPriceTraits ? traits.backdrop : "",
+      symbolName: traits.symbol || "",
+      attributes,
+      telegramImageFileId: imageFileId,
+      image,
+      previewUrl: image,
+      iconUrl: image,
+      // `image` is only the immediate thumbnail. The source can still be a
+      // Telegram Lottie/video sticker and must keep its real media type.
+      mediaType,
+      animationUrl,
+      layeredMedia,
+      marketUrl: gift.name ? `https://t.me/nft/${encodeURIComponent(gift.name)}` : "",
+      source: "telegram-mini-app",
+      uniqueGift: isUnique,
+      // Retain owned gifts even when Telegram omits a priceable trait. The
+      // asset is real; only exact-combo price enrichment is unavailable.
+      floorStatus: hasPriceTraits ? undefined : "unavailable",
+      priceLoading: false,
+    };
+  }).filter(Boolean);
+  console.info(`[telegram-miniapp] normalized gifts=${gifts.length}/${normalization.entries} unique=${normalization.unique} regular=${normalization.regular} missingMedia=${normalization.missingMedia} layered=${normalization.layered} backdrops=${normalization.backdrops} symbols=${normalization.symbols} symbolSamples=${normalization.symbolSamples.join(",")}`);
+
+  // Match the TON-wallet import contract: resolve known exact-combo prices before
+  // returning so the first Telegram render is not a collection of empty cards.
+  // Telegram and TON-wallet imports must use the same verified pricing policy.
+  // A Telegram account is a different ownership source, not a weaker market
+  // data source.
+  const rate = await tonUsdRate();
+  const pricedGifts = await priceWalletGiftsFromD1(gifts, rate, "telegram-miniapp-import");
+  const totalUsd = pricedGifts.reduce((sum, gift) => sum + Math.max(0, Number(gift.floorUsd || 0)), 0);
+  const accountLabel = identity.profile.username ? `@${identity.profile.username}` : (identity.profile.firstName || "Telegram");
+  return {
+    // Keep the wallet-import shape available to every shared client consumer.
+    account: {
+      address: "",
+      displayAddress: accountLabel,
+      tonName: identity.profile.firstName || "Telegram account",
+    },
+    summary: {
+      totalUsd,
+      tonUsdRate: rate,
+      tokenCount: 0,
+      giftCount: pricedGifts.length,
+      stickerCount: 0,
+      nftCount: pricedGifts.length,
+    },
+    assets: {
+      ton: null,
+      jettons: [],
+      collectibles: pricedGifts,
+    },
+    profile: identity.profile,
+    gifts: pricedGifts,
+    stickers: [],
+    diagnostics: {
+      giftsFound: normalization.entries,
+      giftsReturned: pricedGifts.length,
+      uniqueGifts: normalization.unique,
+      regularGifts: normalization.regular,
+      missingMedia: normalization.missingMedia,
+    },
+  };
+}
+
+async function telegramWebAppFile(ticket, payload = "", signature = "") {
+  const now = Date.now();
+  let entry = telegramWebAppMediaTickets.get(String(ticket || ""));
+  if (!entry || entry.expiresAt <= now) {
+    telegramWebAppMediaTickets.delete(String(ticket || ""));
+    const botToken = String(process.env.TELEGRAM_BOT_TOKEN || "").trim();
+    const expectedSignature = botToken && payload
+      ? crypto.createHmac("sha256", botToken).update(payload).digest("base64url")
+      : "";
+    const provided = Buffer.from(String(signature || ""));
+    const expected = Buffer.from(expectedSignature);
+    if (!expected.length || provided.length !== expected.length || !crypto.timingSafeEqual(provided, expected)) {
+      throw new Error("Telegram media link expired");
+    }
+    try {
+      const parsed = JSON.parse(Buffer.from(String(payload), "base64url").toString("utf8"));
+      if (!parsed?.fileId || Number(parsed.expiresAt || 0) <= now) throw new Error("expired");
+      entry = { fileId: String(parsed.fileId), expiresAt: Number(parsed.expiresAt) };
+    } catch {
+      throw new Error("Telegram media link expired");
+    }
+  }
+  const safeFileId = String(entry.fileId || "").trim();
+  if (!safeFileId) throw new Error("Missing Telegram file id");
+  const cached = telegramWebAppMediaCache.get(safeFileId);
+  if (cached?.expiresAt > now) return cached.value;
+  const file = await telegramBotApi("getFile", { file_id: safeFileId });
+  const filePath = String(file?.file_path || "").replace(/^\/+/, "");
+  if (!filePath) throw new Error("Telegram file is unavailable");
+  const botToken = String(process.env.TELEGRAM_BOT_TOKEN || "").trim();
+  if (!botToken) throw new Error("Telegram Mini App auth is not configured on this server");
+  const response = await fetch(`https://api.telegram.org/file/bot${botToken}/${filePath}`);
+  if (!response.ok) throw new Error(`Telegram file download failed (${response.status})`);
+  let bytes = Buffer.from(await response.arrayBuffer());
+  const fileExtension = path.extname(filePath).toLowerCase();
+  let contentType = response.headers.get("content-type") || "";
+  // Telegram stores animated stickers as gzipped TGS files. Browsers cannot
+  // render TGS directly, but the uncompressed payload is standard Lottie JSON.
+  if (fileExtension === ".tgs") {
+    bytes = zlib.gunzipSync(bytes);
+    contentType = "application/json; charset=utf-8";
+  } else if (fileExtension === ".webm") {
+    contentType = "video/webm";
+  } else if (fileExtension === ".webp") {
+    contentType = "image/webp";
+  } else if (fileExtension === ".png") {
+    contentType = "image/png";
+  } else if (/\.jpe?g$/i.test(fileExtension)) {
+    contentType = "image/jpeg";
+  }
+  const result = { bytes, contentType: contentType || "application/octet-stream" };
+  if (telegramWebAppMediaCache.size >= 160) {
+    const oldest = telegramWebAppMediaCache.keys().next().value;
+    if (oldest) telegramWebAppMediaCache.delete(oldest);
+  }
+  telegramWebAppMediaCache.set(safeFileId, { value: result, expiresAt: now + 15 * 60 * 1000 });
+  return result;
 }
 
 function tonConnectManifest(req, res) {
@@ -677,6 +1104,22 @@ async function externalJson(url, timeoutMs = 7000) {
     const text = await response.text();
     const body = text ? JSON.parse(text) : null;
     if (!response.ok) throw new Error(body?.error || body?.message || `${url} failed (${response.status})`);
+    return body;
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+async function tonCenterJson(pathname, timeoutMs = 5000) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  const headers = { accept: "application/json" };
+  if (tonCenterApiKey) headers["x-api-key"] = tonCenterApiKey;
+  try {
+    const response = await fetch(`${tonCenterApiBase}${pathname}`, { headers, signal: controller.signal });
+    const text = await response.text();
+    const body = text ? JSON.parse(text) : null;
+    if (!response.ok) throw new Error(body?.error || body?.message || `TON Center failed (${response.status})`);
     return body;
   } finally {
     clearTimeout(timeout);
@@ -1731,6 +2174,277 @@ async function storedGiftAttributesForPairs(requested = [], pool = null) {
   return byKey;
 }
 
+function modelStatsNumber(...values) {
+  for (const value of values) {
+    if (value === undefined || value === null || value === "") continue;
+    const numeric = Number(String(value).replace(/%$/, ""));
+    if (Number.isFinite(numeric) && numeric >= 0) return numeric;
+  }
+  return null;
+}
+
+function duneSqlString(value = "") {
+  return `'${String(value || "").replace(/'/g, "''")}'`;
+}
+
+async function executeDuneSql(sql = "", { timeoutMs = 30000 } = {}) {
+  if (!duneApiKey || !sql.trim()) return [];
+  const executeResponse = await fetch("https://api.dune.com/api/v1/sql/execute", {
+    method: "POST",
+    headers: {
+      "x-dune-api-key": duneApiKey,
+      "content-type": "application/json",
+      "accept": "application/json",
+    },
+    body: JSON.stringify({ sql, performance: "small" }),
+  });
+  if (!executeResponse.ok) throw new Error(`Dune SQL execute failed (${executeResponse.status})`);
+  const execution = await executeResponse.json();
+  const executionId = execution?.execution_id;
+  if (!executionId) throw new Error("Dune SQL execute did not return an execution id");
+  const started = Date.now();
+  while (Date.now() - started < timeoutMs) {
+    await new Promise((resolve) => setTimeout(resolve, 1200));
+    const resultResponse = await fetch(`https://api.dune.com/api/v1/execution/${encodeURIComponent(executionId)}/results`, {
+      headers: { "x-dune-api-key": duneApiKey, "accept": "application/json" },
+    });
+    if (!resultResponse.ok) throw new Error(`Dune SQL results failed (${resultResponse.status})`);
+    const result = await resultResponse.json();
+    if (result?.state === "QUERY_STATE_COMPLETED") return Array.isArray(result?.result?.rows) ? result.result.rows : [];
+    if (String(result?.state || "").includes("FAILED")) throw new Error(`Dune SQL ${result.state}`);
+  }
+  throw new Error("Dune SQL timed out");
+}
+
+function normalizeDuneGiftModelStatsRow(row = {}) {
+  const collection = String(row.collection || row.collection_name || row.gift || row.gift_name || row.collectionName || "").trim();
+  const model = String(row.model || row.model_name || row.trait_model || row.modelName || "").trim();
+  if (!collection || !model) return null;
+  return {
+    collection,
+    model,
+    modelCount: modelStatsNumber(row.model_count, row.count, row.supply, row.model_supply),
+    supplyPct: modelStatsNumber(row.model_supply_pct, row.supply_pct, row.rarity_pct, row.percent),
+    holderCount: modelStatsNumber(row.holder_count, row.holders, row.unique_holders),
+    transferCount7d: modelStatsNumber(row.transfer_count_7d, row.transfers_7d, row.activity_7d),
+    transferCount30d: modelStatsNumber(row.transfer_count_30d, row.transfers_30d, row.activity_30d),
+    upgradedCount: modelStatsNumber(row.upgraded_count, row.onchain_count, row.minted_count, row.nft_count),
+    source: "dune",
+  };
+}
+
+function normalizeDuneGiftCollectionStatsRow(row = {}) {
+  const collection = String(row.collection || row.collection_name || row.gift || row.gift_name || row.collectionName || "").trim();
+  if (!collection) return null;
+  const collectionAddress = String(row.collection_address || row.collectionAddress || row.address || "").trim();
+  const initialSupply = modelStatsNumber(row.initial_supply, row.total_minted, row.minted_total, row.total_supply, row.supply);
+  const currentSupply = modelStatsNumber(row.current_supply, row.upgraded_supply, row.upgraded_count, row.onchain_supply, row.onchain_count, row.nft_count);
+  const maxSupply = modelStatsNumber(row.max_supply, row.current_max_supply);
+  const burnedFromSupply = initialSupply !== null && maxSupply !== null && initialSupply >= maxSupply ? initialSupply - maxSupply : null;
+  const unupgradedFromSupply = maxSupply !== null && currentSupply !== null && maxSupply >= currentSupply ? maxSupply - currentSupply : null;
+  const unupgradedSupply = modelStatsNumber(row.unupgraded_supply, row.telegram_supply, row.tg_supply, row.offchain_supply, unupgradedFromSupply);
+  const activeSupply = currentSupply !== null && unupgradedSupply !== null ? currentSupply + unupgradedSupply : maxSupply;
+  const holdOnchainPct = activeSupply > 0 && currentSupply !== null ? (currentSupply / activeSupply) * 100 : null;
+  const holdTelegramPct = activeSupply > 0 && unupgradedSupply !== null ? (unupgradedSupply / activeSupply) * 100 : null;
+  return {
+    collection,
+    collectionAddress,
+    mintPriceStars: modelStatsNumber(row.mint_price_stars, row.mint_stars, row.price_stars, row.initial_price_stars),
+    mintPriceTon: modelStatsNumber(row.mint_price_ton, row.mint_ton, row.price_ton, row.initial_price_ton, row.price_ton),
+    mintPriceUsd: modelStatsNumber(row.mint_price_usd, row.mint_usd, row.price_usd, row.initial_price_usd, row.price_usd),
+    upgradedSupply: currentSupply,
+    unupgradedSupply,
+    burnedCount: modelStatsNumber(row.burned_count, row.total_burned, row.burned_supply, row.burn_count, burnedFromSupply),
+    holdOnchainPct: modelStatsNumber(row.hold_onchain_pct, row.hold_onchain, row.onchain_hold_pct, holdOnchainPct),
+    holdTelegramPct: modelStatsNumber(row.hold_tg_pct, row.hold_in_tg, row.hold_telegram_pct, row.telegram_hold_pct, holdTelegramPct),
+    onchainHolders: modelStatsNumber(row.onchain_holders, row.holders_onchain, row.nft_holders, row.unique_onchain_holders),
+    tgHolders: modelStatsNumber(row.tg_holders, row.telegram_holders, row.holders_tg, row.unique_tg_holders),
+    totalMinted: initialSupply,
+    source: "dune",
+  };
+}
+
+async function duneGiftCollectionOnchainHolders(rows = []) {
+  if (!duneApiKey) return new Map();
+  const addresses = [...new Set(rows.map((row) => String(row?.collectionAddress || "").trim()).filter(Boolean))];
+  if (!addresses.length) return new Map();
+  const now = Date.now();
+  const result = new Map();
+  const missing = [];
+  addresses.forEach((address) => {
+    const key = address.toLowerCase();
+    const cached = duneGiftCollectionHolderCache.get(key);
+    if (cached?.expiresAt > now) {
+      result.set(key, cached.value);
+      return;
+    }
+    missing.push(address);
+  });
+  if (!missing.length) return result;
+  const valuesSql = missing.map((address) => `(${duneSqlString(address)})`).join(",\n");
+  const sql = `
+WITH target(collection_address) AS (
+  VALUES ${valuesSql}
+),
+latest_owner AS (
+  SELECT collection_address, owner_address
+  FROM (
+    SELECT
+      lower(collection_address) AS collection_address,
+      nft_item_address,
+      owner_address,
+      row_number() OVER (
+        PARTITION BY nft_item_address
+        ORDER BY timestamp DESC, lt DESC
+      ) AS rn
+    FROM ton.nft_events
+    WHERE lower(collection_address) IN (SELECT lower(collection_address) FROM target)
+      AND owner_address IS NOT NULL
+  )
+  WHERE rn = 1
+)
+SELECT collection_address, count(DISTINCT owner_address) AS onchain_holders
+FROM latest_owner
+GROUP BY 1`;
+  try {
+    const holderRows = await executeDuneSql(sql, { timeoutMs: 85000 });
+    holderRows.forEach((row) => {
+      const key = String(row.collection_address || "").toLowerCase();
+      const value = modelStatsNumber(row.onchain_holders);
+      if (!key || value === null) return;
+      result.set(key, value);
+      duneGiftCollectionHolderCache.set(key, { value, expiresAt: now + 6 * 60 * 60 * 1000 });
+    });
+    missing.forEach((address) => {
+      const key = address.toLowerCase();
+      if (result.has(key)) return;
+      duneGiftCollectionHolderCache.set(key, { value: null, expiresAt: now + 30 * 60 * 1000 });
+    });
+  } catch (error) {
+    console.warn(`[dune-collection-holders] ${error.message}`);
+  }
+  return result;
+}
+
+async function latestDuneGiftModelStatsRows() {
+  if (!duneApiKey || !duneGiftModelStatsQueryId) return [];
+  if (duneGiftModelStatsCache.expiresAt > Date.now()) return duneGiftModelStatsCache.rows;
+  if (duneGiftModelStatsCache.promise) return duneGiftModelStatsCache.promise;
+  duneGiftModelStatsCache.promise = fetch(`https://api.dune.com/api/v1/query/${encodeURIComponent(duneGiftModelStatsQueryId)}/results`, {
+    headers: { "x-dune-api-key": duneApiKey, "accept": "application/json" },
+  })
+    .then(async (response) => {
+      if (!response.ok) throw new Error(`Dune model stats failed (${response.status})`);
+      const payload = await response.json();
+      const rows = Array.isArray(payload?.result?.rows) ? payload.result.rows : [];
+      const normalized = rows.map(normalizeDuneGiftModelStatsRow).filter(Boolean);
+      duneGiftModelStatsCache = { rows: normalized, expiresAt: Date.now() + 15 * 60 * 1000, promise: null };
+      return normalized;
+    })
+    .catch((error) => {
+      duneGiftModelStatsCache.promise = null;
+      console.warn(`[dune-model-stats] ${error.message}`);
+      return [];
+    });
+  return duneGiftModelStatsCache.promise;
+}
+
+async function latestDuneGiftCollectionStatsRows() {
+  if (!duneApiKey || !duneGiftCollectionStatsQueryId) return [];
+  if (duneGiftCollectionStatsCache.expiresAt > Date.now()) return duneGiftCollectionStatsCache.rows;
+  if (duneGiftCollectionStatsCache.promise) return duneGiftCollectionStatsCache.promise;
+  duneGiftCollectionStatsCache.promise = fetch(`https://api.dune.com/api/v1/query/${encodeURIComponent(duneGiftCollectionStatsQueryId)}/results`, {
+    headers: { "x-dune-api-key": duneApiKey, "accept": "application/json" },
+  })
+    .then(async (response) => {
+      if (!response.ok) throw new Error(`Dune collection stats failed (${response.status})`);
+      const payload = await response.json();
+      const rows = Array.isArray(payload?.result?.rows) ? payload.result.rows : [];
+      const normalized = rows.map(normalizeDuneGiftCollectionStatsRow).filter(Boolean);
+      duneGiftCollectionStatsCache = { rows: normalized, expiresAt: Date.now() + 15 * 60 * 1000, promise: null };
+      return normalized;
+    })
+    .catch((error) => {
+      duneGiftCollectionStatsCache.promise = null;
+      console.warn(`[dune-collection-stats] ${error.message}`);
+      return [];
+    });
+  return duneGiftCollectionStatsCache.promise;
+}
+
+async function giftCollectionStatsForPairs(pairs = []) {
+  let requested = requestedGiftModelPairs(pairs);
+  if (!requested.length) return [];
+  const pool = await ensureGiftSnapshotTables();
+  requested = await resolveStoredGiftCollectionKeys(requested, pool);
+  const duneRows = await latestDuneGiftCollectionStatsRows();
+  const duneByKey = new Map(duneRows.map((row) => [giftSnapshotKey(row.collection), row]));
+  const matchedRows = requested.map((pair) => (pair.collectionKeys || [])
+    .map((collectionKey) => duneByKey.get(collectionKey))
+    .find(Boolean)).filter(Boolean);
+  const holderByAddress = await duneGiftCollectionOnchainHolders(matchedRows);
+  return requested.map((pair) => {
+    const dune = (pair.collectionKeys || [])
+      .map((collectionKey) => duneByKey.get(collectionKey))
+      .find(Boolean);
+    const holderCount = modelStatsNumber(
+      dune?.onchainHolders,
+      holderByAddress.get(String(dune?.collectionAddress || "").toLowerCase())
+    );
+    return {
+      collection: pair.collection,
+      mintPriceStars: modelStatsNumber(dune?.mintPriceStars),
+      mintPriceTon: modelStatsNumber(dune?.mintPriceTon),
+      mintPriceUsd: modelStatsNumber(dune?.mintPriceUsd),
+      upgradedSupply: modelStatsNumber(dune?.upgradedSupply),
+      unupgradedSupply: modelStatsNumber(dune?.unupgradedSupply),
+      burnedCount: modelStatsNumber(dune?.burnedCount),
+      holdOnchainPct: modelStatsNumber(dune?.holdOnchainPct),
+      holdTelegramPct: modelStatsNumber(dune?.holdTelegramPct),
+      onchainHolders: holderCount,
+      tgHolders: modelStatsNumber(dune?.tgHolders),
+      totalMinted: modelStatsNumber(dune?.totalMinted),
+      source: dune ? "dune" : "unavailable",
+      updatedAt: dune?.updatedAt || "",
+    };
+  });
+}
+
+async function giftModelStatsForPairs(pairs = []) {
+  let requested = requestedGiftModelPairs(pairs);
+  if (!requested.length) return [];
+  const pool = await ensureGiftSnapshotTables();
+  requested = await resolveStoredGiftCollectionKeys(requested, pool);
+  const [attributesByKey, duneRows] = await Promise.all([
+    storedGiftAttributesForPairs(requested, pool).catch(() => new Map()),
+    latestDuneGiftModelStatsRows(),
+  ]);
+  const duneByKey = new Map(duneRows.map((row) => [
+    `${giftSnapshotKey(row.collection)}:${giftSnapshotKey(row.model)}`,
+    row,
+  ]));
+  return requested.map((pair) => {
+    const modelAttribute = (pair.collectionKeys || [])
+      .map((collectionKey) => attributesByKey.get(`${collectionKey}:model:${pair.modelKey}`))
+      .find(Boolean);
+    const dune = (pair.collectionKeys || [])
+      .map((collectionKey) => duneByKey.get(`${collectionKey}:${pair.modelKey}`))
+      .find(Boolean);
+    return {
+      collection: pair.collection,
+      model: pair.model,
+      modelCount: modelStatsNumber(dune?.modelCount, modelAttribute?.itemCount),
+      supplyPct: modelStatsNumber(dune?.supplyPct, modelAttribute?.rarity),
+      holderCount: modelStatsNumber(dune?.holderCount),
+      transferCount7d: modelStatsNumber(dune?.transferCount7d),
+      transferCount30d: modelStatsNumber(dune?.transferCount30d),
+      upgradedCount: modelStatsNumber(dune?.upgradedCount),
+      source: dune ? "dune+gift-attributes" : (modelAttribute ? "gift-attributes" : "unavailable"),
+      updatedAt: dune?.updatedAt || modelAttribute?.updatedAt || "",
+    };
+  });
+}
+
 async function bulkStoredGiftModelFloors(pairs = []) {
   let requested = requestedGiftModelPairs(pairs);
   if (!requested.length) return [];
@@ -2430,6 +3144,125 @@ async function thermosStickerStats(force = false) {
   return thermosStickerStatsPromise;
 }
 
+async function thermosStickerCollectionDetails(collectionId, { force = false } = {}) {
+  const id = String(collectionId || "").trim();
+  if (!id || !/^[a-z0-9_-]{1,80}$/i.test(id)) throw new Error("Invalid sticker collection id");
+  const cached = thermosStickerCollectionCache.get(id);
+  if (!force && cached?.value && cached.expiresAt > Date.now()) return cached.value;
+  if (!force && cached?.promise) return cached.promise;
+  const promise = marketJson(`https://proxy.thermos.gifts/api/v1/stickers/collections/${encodeURIComponent(id)}`, {}, 8000)
+    .then((value) => {
+      thermosStickerCollectionCache.set(id, {
+        value,
+        expiresAt: Date.now() + 6 * 60 * 60 * 1000,
+        promise: null,
+      });
+      return value;
+    })
+    .catch((error) => {
+      thermosStickerCollectionCache.delete(id);
+      throw error;
+    });
+  thermosStickerCollectionCache.set(id, {
+    value: cached?.value || null,
+    expiresAt: cached?.expiresAt || 0,
+    promise,
+  });
+  return promise;
+}
+
+function stickerRepresentativeMedia(details = {}, characterId = "", characterName = "") {
+  const characters = Array.isArray(details.characters) ? details.characters : [];
+  const requestedId = String(characterId || "").trim();
+  const requestedName = normalizeStickerKey(characterName);
+  const character = characters.find((item) => requestedId && String(item.id || "") === requestedId)
+    || characters.find((item) => requestedName && normalizeStickerKey(item.name) === requestedName)
+    || characters[0];
+  if (!character) return null;
+  const stickers = Array.isArray(character.stickers) ? character.stickers : [];
+  const sticker = stickers.find((item) => ["animated", "video"].includes(String(item.format || "").toLowerCase()))
+    || stickers[0];
+  if (!sticker) return null;
+  const media = Array.isArray(sticker.media) ? sticker.media : [];
+  const preview = String(media.find((item) => item.type === "preview")?.url || "");
+  const format = String(sticker.format || "").toLowerCase();
+  const fallback = String(media.find((item) => item.type === "fallback")?.url || "");
+  if (format === "animated" && fallback) {
+    const params = new URLSearchParams({
+      collection: String(details.collection?.id || ""),
+      character: String(character.id || ""),
+      sticker: String(sticker.id || ""),
+    });
+    return {
+      characterId: character.id,
+      characterName: character.name || "",
+      stickerId: sticker.id,
+      format,
+      preview,
+      animationUrl: `/api/sticker-animation?${params.toString()}`,
+      mediaType: "lottie",
+    };
+  }
+  if (format === "video" && fallback) {
+    return {
+      characterId: character.id,
+      characterName: character.name || "",
+      stickerId: sticker.id,
+      format,
+      preview,
+      animationUrl: fallback,
+      mediaType: "video",
+    };
+  }
+  return {
+    characterId: character.id,
+    characterName: character.name || "",
+    stickerId: sticker.id,
+    format: format || "static",
+    preview,
+    animationUrl: "",
+    mediaType: "image",
+  };
+}
+
+async function stickerAnimationPayload(collectionId, characterId, stickerId = "") {
+  const key = [collectionId, characterId, stickerId].map((value) => String(value || "")).join(":");
+  const cached = stickerAnimationPayloadCache.get(key);
+  if (cached?.value && cached.expiresAt > Date.now()) return cached.value;
+  if (cached?.promise) return cached.promise;
+  const promise = (async () => {
+    const details = await thermosStickerCollectionDetails(collectionId);
+    const character = (details.characters || []).find((item) => String(item.id || "") === String(characterId || ""))
+      || (details.characters || [])[0];
+    if (!character) throw new Error("Sticker character was not found");
+    const sticker = (character.stickers || []).find((item) => String(item.id || "") === String(stickerId || ""))
+      || (character.stickers || []).find((item) => String(item.format || "").toLowerCase() === "animated");
+    if (!sticker || String(sticker.format || "").toLowerCase() !== "animated") throw new Error("Sticker does not provide a TGS animation");
+    const source = String((sticker.media || []).find((item) => item.type === "fallback")?.url || "");
+    if (!source || !/^https:\/\//i.test(source)) throw new Error("Sticker animation source is unavailable");
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10000);
+    try {
+      const response = await fetch(source, { signal: controller.signal });
+      if (!response.ok) throw new Error(`Sticker animation request failed (${response.status})`);
+      const compressed = Buffer.from(await response.arrayBuffer());
+      if (compressed.length > 2 * 1024 * 1024) throw new Error("Sticker animation is too large");
+      const decoded = compressed[0] === 0x1f && compressed[1] === 0x8b ? zlib.gunzipSync(compressed) : compressed;
+      return JSON.parse(decoded.toString("utf8"));
+    } finally {
+      clearTimeout(timeout);
+    }
+  })().then((value) => {
+    stickerAnimationPayloadCache.set(key, { value, expiresAt: Date.now() + 24 * 60 * 60 * 1000, promise: null });
+    return value;
+  }).catch((error) => {
+    stickerAnimationPayloadCache.delete(key);
+    throw error;
+  });
+  stickerAnimationPayloadCache.set(key, { value: cached?.value || null, expiresAt: cached?.expiresAt || 0, promise });
+  return promise;
+}
+
 async function thermosStickerCharacterStats(collectionId) {
   if (!collectionId) return [];
   try {
@@ -2583,14 +3416,19 @@ function stickerCategoryRegistryFromSnapshot() {
         collectionId: Number(collection.id || 0),
         address: collection.address,
         image: collection.preview,
+        animationUrl: collection.animationUrl || "",
+        mediaType: collection.mediaType || "",
       });
       (collection.stickers || []).forEach((sticker) => add([sticker.name, primaryName], {
         brand: primaryName,
         categorySource: (collection.source || []).join(", ") || "snapshot",
         collectionId: Number(collection.id || 0),
         characterId: Number(sticker.id || 0),
+        characterName: sticker.name || "",
         address: sticker.address,
         image: sticker.preview || collection.preview,
+        animationUrl: sticker.animationUrl || collection.animationUrl || "",
+        mediaType: sticker.mediaType || collection.mediaType || "",
       }));
     });
   } catch {}
@@ -2637,7 +3475,7 @@ function stickerSnapshotFloor(aliases = [], tonRate = 0, meta = {}) {
       athFloorUsd: null,
       initUsd: Number(sticker?.initPriceUsd || sticker?.init_price_usd || 0),
       initTon: Number(sticker?.initPriceTon || sticker?.init_price_ton || 0),
-      marketPlatform: `${marketSourceLabel((collection.source || []).join(", ") || source) || "Sticker Registry"}`,
+      marketPlatform: `${marketSourceLabel((collection.source || []).filter((value) => !/mrkt|tgmrkt/i.test(String(value))).join(", ") || source) || "Sticker Registry"}`,
       marketUrl: "",
       collectionId: collection.id,
       characterId: sticker?.id || "",
@@ -2759,6 +3597,16 @@ async function stickerCategoryRegistry(force = false) {
       }
     });
 
+    const snapshotRegistry = stickerCategoryRegistryFromSnapshot();
+    snapshotRegistry.address.forEach((value, key) => {
+      const existing = registry.address.get(key);
+      registry.address.set(key, existing ? { ...value, ...existing, animationUrl: existing.animationUrl || value.animationUrl, mediaType: existing.mediaType || value.mediaType } : value);
+    });
+    snapshotRegistry.name.forEach((value, key) => {
+      const existing = registry.name.get(key);
+      registry.name.set(key, existing ? { ...value, ...existing, animationUrl: existing.animationUrl || value.animationUrl, mediaType: existing.mediaType || value.mediaType } : value);
+    });
+
     stickerCategoryCache = registry;
     stickerCategoryExpiresAt = Date.now() + 30 * 60 * 1000;
     return registry;
@@ -2868,6 +3716,38 @@ async function refreshStickerCollectionsRegistryFile(force = false) {
       const c = addCollection(row.collection_id, { name: row.collection_name, source: "thermos" });
       c.thermosStats = row.stats;
     });
+    const thermosRows = thermos.status === "fulfilled" ? thermos.value : [];
+    const thermosRowsById = new Map(thermosRows.map((row) => [String(row.collection_id || ""), row]));
+    const mediaRefreshBefore = Date.now() - 6 * 60 * 60 * 1000;
+    const mediaRows = [...collections.values()].filter((collection) => {
+      if (!/^\d+$/.test(String(collection.id || ""))) return false;
+      return force || !collection.mediaCheckedAt || new Date(collection.mediaCheckedAt).getTime() < mediaRefreshBefore;
+    }).map((collection) => ({ collection, row: thermosRowsById.get(String(collection.id)) || null }));
+    await mapLimit(mediaRows, 6, async ({ collection, row }) => {
+      try {
+        const details = await thermosStickerCollectionDetails(collection.id, { force: true });
+        const characters = Array.isArray(details.characters) ? details.characters : [];
+        characters.forEach((character) => {
+          const media = stickerRepresentativeMedia(details, character.id, character.name);
+          if (!media) return;
+          addSticker(collection, {
+            id: character.id,
+            name: character.name,
+            preview: media.preview,
+            animationUrl: media.animationUrl,
+            mediaType: media.mediaType,
+            format: media.format,
+            representativeStickerId: media.stickerId,
+          });
+        });
+        const representative = stickerRepresentativeMedia(details);
+        collection.animationUrl = representative?.animationUrl || collection.animationUrl || "";
+        collection.mediaType = representative?.mediaType || collection.mediaType || "";
+        collection.mediaCheckedAt = new Date().toISOString();
+      } catch (error) {
+        console.warn(`[sticker-media] ${row?.collection_name || collection.names?.[0] || collection.id}: ${error.message}`);
+      }
+    });
     const payload = {
       updatedAt: new Date().toISOString(),
       count: collections.size,
@@ -2890,7 +3770,7 @@ function inferStickerBrandName(collection = "", name = "") {
   const raw = String(collection || name || "Sticker Pack").replace(/\s+#\d+.*$/i, "").replace(/\s{2,}/g, " ").trim();
   const haystack = `${name || ""} ${collection || ""}`.replace(/\s+#\d+.*$/i, "").replace(/\s{2,}/g, " ").trim();
   const prefix = raw.split(":")[0].trim();
-  if (prefix && prefix !== raw && /^[a-z0-9 .&'’–-]{2,32}$/i.test(prefix)) return prefix;
+  if (prefix && prefix !== raw && /^[a-z0-9 .&'â€™â€“-]{2,32}$/i.test(prefix)) return prefix;
   const pairs = [
     ["Snoop Dogg x BAYC", "BAYC"],
     ["Bored Ape", "BAYC"],
@@ -2998,7 +3878,7 @@ function inferStickerBrandName(collection = "", name = "") {
   if (/\bgoodies\b/i.test(haystack)) return "Goodies";
   if (/\b(fuse|ton of memes|good vibes club|gold vibes club|the meme ogs|tapps)\b/i.test(haystack)) return "Fuse";
   const prefix = raw.split(":")[0].trim();
-  if (prefix && prefix !== raw && /^[a-z0-9 .&'’-]{2,32}$/i.test(prefix)) return prefix;
+  if (prefix && prefix !== raw && /^[a-z0-9 .&'â€™-]{2,32}$/i.test(prefix)) return prefix;
   return raw.split(":")[0].replace(/\b(set|pack)\s*\d+$/i, "").trim() || raw;
 }
 
@@ -3031,13 +3911,13 @@ function registryTypeText(item = {}) {
   ].filter(Boolean).join(" ").toLowerCase();
 }
 
-function applyRegistryRows(rows = [], result) {
+function applyRegistryRows(rows = [], result, { gifts = true, stickers = true } = {}) {
   rows.forEach((item) => {
     const name = String(registryName(item) || "").trim();
     if (!name) return;
     const typeText = registryTypeText(item);
-    if (/sticker/.test(typeText)) result.validStickerCollectionNames.push(name);
-    if (/gift|telegram_gift|collectible_gift/.test(typeText)) result.validGiftCollectionNames.push(name);
+    if (stickers && /sticker/.test(typeText)) result.validStickerCollectionNames.push(name);
+    if (gifts && /gift|telegram_gift|collectible_gift/.test(typeText)) result.validGiftCollectionNames.push(name);
   });
 }
 
@@ -3066,16 +3946,16 @@ async function refreshCollectiblesRegistry(force = false) {
   if (!force && liveCollectiblesRegistryPromise) return liveCollectiblesRegistryPromise;
   liveCollectiblesRegistryPromise = Promise.allSettled([
     marketJson("https://api.tgmrkt.io/api/v1/collections?limit=200", {}, 5000),
-    marketJson("https://api.tgmrkt.io/api/v1/collections?category=stickers&limit=200", {}, 5000),
     fetchThermosRegistry(),
   ]).then((results) => {
     const registry = { validGiftCollectionNames: [], validStickerCollectionNames: [], updatedAt: new Date().toISOString() };
     STICKER_COLLECTION_ADDRESSES.clear();
-    results.forEach((result) => {
+    results.forEach((result, index) => {
       if (result.status === "fulfilled") {
         const rows = registryItems(result.value);
-        applyRegistryRows(rows, registry);
-        applyStickerRegistryRows(rows);
+        const isMrkt = index === 0;
+        applyRegistryRows(rows, registry, { gifts: true, stickers: !isMrkt });
+        if (!isMrkt) applyStickerRegistryRows(rows);
       }
     });
     registry.validGiftCollectionNames = [...new Set(registry.validGiftCollectionNames)];
@@ -3377,7 +4257,7 @@ function bestNftAnimatedMedia(item = {}) {
 }
 
 function mediaKind(url = "") {
-  if (/\.(?:lottie\.)?json(?:[?#].*)?$/i.test(String(url))) return "lottie";
+  if (/\.(?:lottie\.)?json(?:[?#].*)?$/i.test(String(url)) || /\.tgs(?:[?#].*)?$/i.test(String(url)) || /\/lottie(?:\/|$)/i.test(String(url))) return "lottie";
   if (/\.(webm|mp4|mov)(?:[?#].*)?$/i.test(String(url))) return "video";
   if (url) return "image";
   return "";
@@ -3485,7 +4365,7 @@ function actionTonUsd(valueText, tonUsdRate) {
   const match = String(valueText || "").match(/([-+]?\d+(?:\.\d+)?)\s*TON/i);
   if (!match) return "";
   const usd = Math.abs(Number.parseFloat(match[1])) * tonUsdRate;
-  return Number.isFinite(usd) ? `≈ $${usd.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "";
+  return Number.isFinite(usd) ? `â‰ˆ $${usd.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "";
 }
 
 function actionCounterparty(type, details, direction, walletRaw) {
@@ -3520,8 +4400,8 @@ function collectActionAssets(actions) {
 function signedAmountDisplay(value, direction) {
   if (direction === "Swap") return value || "0 TON";
   if (!value) return "0 TON";
-  if (/^[+\-−]/.test(value)) return value;
-  return `${direction === "Sent" ? "−" : "+"}${value}`;
+  if (/^[+\-âˆ’]/.test(value)) return value;
+  return `${direction === "Sent" ? "âˆ’" : "+"}${value}`;
 }
 
 function tokenLogo(symbol = "TON", image = "") {
@@ -3574,7 +4454,7 @@ async function normalizeTonCenterActions(actions, walletAddress, tonUsdRate = us
         const outgoing = details.dex_outgoing_transfer || {};
         const inMeta = incoming.asset ? (metadata.get(jettonAddressKey(incoming.asset)) || {}) : { symbol: "TON", decimals: 9 };
         const outMeta = outgoing.asset ? (metadata.get(jettonAddressKey(outgoing.asset)) || {}) : { symbol: "TON", decimals: 9 };
-        value = `${formatTokenAmount(incoming.amount, inMeta.decimals)} ${inMeta.symbol || "JETTON"} → ${formatTokenAmount(outgoing.amount, outMeta.decimals)} ${outMeta.symbol || "TON"}`;
+        value = `${formatTokenAmount(incoming.amount, inMeta.decimals)} ${inMeta.symbol || "JETTON"} â†’ ${formatTokenAmount(outgoing.amount, outMeta.decimals)} ${outMeta.symbol || "TON"}`;
       }
       if (type === "jetton_swap") {
         const incoming = details.dex_incoming_transfer || {};
@@ -3680,7 +4560,7 @@ async function transactionDetail(hash) {
     recipientAddress,
     amount: cached.amount || `${formatTokenAmount(tx.in_msg?.value || 0, 9)} TON`,
     usdValue: cached.usdValue || actionTonUsd(`${formatTokenAmount(tx.in_msg?.value || 0, 9)} TON`, await tonUsdRate()) || "n/a",
-    gasFee: `${feeTon} · ${feeUsd}`,
+    gasFee: `${feeTon} Â· ${feeUsd}`,
     timestamp: tx.now ? new Date(tx.now * 1000).toISOString() : "",
     status: cached.status || (tx.description?.aborted ? "Failed" : "Success"),
     type: cached.type || "Transaction",
@@ -3819,30 +4699,17 @@ async function enrichJettonRates(jettons, includeZeroBalances = false, options =
 }
 
 function historyJettonsFromOperations(currentJettons, operations) {
-  const byAddress = new Map();
-  currentJettons.forEach((jetton) => {
-    if (!jetton.address) return;
-    byAddress.set(jetton.address, { ...jetton });
-  });
-  operations.forEach((operation) => {
-    const jetton = operation?.jetton;
-    if (!jetton?.address || byAddress.has(jetton.address)) return;
-    byAddress.set(jetton.address, {
-      type: "token",
-      address: jetton.address,
-      walletAddress: null,
-      name: jetton.name || "Unknown Jetton",
-      symbol: jetton.symbol || "JETTON",
-      image: jetton.image || null,
-      decimals: Number(jetton.decimals || 9),
-      balanceRaw: "0",
-      balance: 0,
-      verification: jetton.verification || "none",
-      priceUsd: 0,
-      valueUsd: 0,
+  const jettons = new Map(currentJettons.filter((item) => item.address).map((item) => [item.address, { ...item }]));
+  operations.forEach(({ jetton = {} }) => {
+    if (!jetton.address || jettons.has(jetton.address)) return;
+    jettons.set(jetton.address, {
+      type: "token", address: jetton.address, walletAddress: null,
+      name: jetton.name || "Unknown Jetton", symbol: jetton.symbol || "JETTON", image: jetton.image || null,
+      decimals: Number(jetton.decimals || 9), balanceRaw: "0", balance: 0,
+      verification: jetton.verification || "none", priceUsd: 0, valueUsd: 0,
     });
   });
-  return [...byAddress.values()];
+  return [...jettons.values()];
 }
 
 async function fetchJettonHistory(address, since = null) {
@@ -3883,28 +4750,14 @@ async function fetchJettonHistory(address, since = null) {
 
 function jettonBalanceAtDate(jetton, date, walletAddress, operations) {
   const target = Math.floor(date.getTime() / 1000);
-  const matchingOperations = operations
-    .filter((operation) => sameAddress(operation?.jetton?.address, jetton.address))
-    .sort((a, b) => Number(a.utime || 0) - Number(b.utime || 0));
-  const hasIncomingHistory = matchingOperations.some((operation) => sameAddress(operation.destination?.address, walletAddress));
-
-  if (Number(jetton.balance || 0) === 0 && hasIncomingHistory) {
-    let rebuiltBalance = 0;
-    matchingOperations.forEach((operation) => {
-      if (operation.utime > target) return;
-      const amount = Number(operation.amount || 0) / 10 ** Number(jetton.decimals || operation?.jetton?.decimals || 9);
-      if (sameAddress(operation.destination?.address, walletAddress)) rebuiltBalance += amount;
-      if (sameAddress(operation.source?.address, walletAddress)) rebuiltBalance -= amount;
-    });
-    return Math.max(0, rebuiltBalance);
-  }
-
-  let balance = Number(jetton.balance || 0);
-  matchingOperations.forEach((operation) => {
-    if (operation.utime <= target) return;
-    const amount = Number(operation.amount || 0) / 10 ** Number(jetton.decimals || operation?.jetton?.decimals || 9);
-    if (sameAddress(operation.destination?.address, walletAddress)) balance -= amount;
-    if (sameAddress(operation.source?.address, walletAddress)) balance += amount;
+  const rows = operations.filter((row) => sameAddress(row?.jetton?.address, jetton.address));
+  const rebuild = Number(jetton.balance || 0) === 0 && rows.some((row) => sameAddress(row.destination?.address, walletAddress));
+  let balance = rebuild ? 0 : Number(jetton.balance || 0);
+  rows.forEach((row) => {
+    if ((rebuild && Number(row.utime) > target) || (!rebuild && Number(row.utime) <= target)) return;
+    const amount = Number(row.amount || 0) / 10 ** Number(jetton.decimals || row.jetton?.decimals || 9);
+    const direction = (sameAddress(row.destination?.address, walletAddress) ? 1 : 0) - (sameAddress(row.source?.address, walletAddress) ? 1 : 0);
+    balance += amount * direction * (rebuild ? 1 : -1);
   });
   return Math.max(0, balance);
 }
@@ -3982,14 +4835,6 @@ function priceAt(chart, date, fallback, maxStalenessMs = Infinity) {
   ), chart[0]);
   if (Math.abs(nearest.timestamp - target) > maxStalenessMs) return fallback;
   return nearest.price || fallback;
-}
-
-function nearestPricePoint(chart, date) {
-  if (!chart.length) return null;
-  const target = date.getTime();
-  return chart.reduce((nearest, point) => (
-    Math.abs(point.timestamp - target) < Math.abs(nearest.timestamp - target) ? point : nearest
-  ), chart[0]);
 }
 
 function tokenDetailRangeWindow(range) {
@@ -4290,128 +5135,55 @@ function saveWalletSnapshot(address, summary) {
 }
 
 function rangeStart(range, now = new Date()) {
-  const ms = {
-    "1D": 24 * 60 * 60 * 1000,
-    "7D": 7 * 24 * 60 * 60 * 1000,
-    "1M": 30 * 24 * 60 * 60 * 1000,
-    "3M": 92 * 24 * 60 * 60 * 1000,
-    "1Y": 366 * 24 * 60 * 60 * 1000,
-  }[range] || 24 * 60 * 60 * 1000;
-  return new Date(now.getTime() - ms);
-}
-
-function walletHistory(address, range = "1D") {
-  const start = rangeStart(range);
-  const normalizedAddress = canonicalAddressKey(address);
-  return readSnapshots()
-    .filter((item) => item.address === normalizedAddress && new Date(item.timestamp) >= start)
-    .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
-}
-
-function historySampleDates(range, now = new Date()) {
-  return historySampleBuckets(range, now).map((bucket) => bucket[0]).filter(Boolean);
-}
-
-function utcHour(date) {
-  return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), date.getUTCHours(), 0, 0, 0));
-}
-
-function utcDay(date) {
-  return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), 0, 0, 0, 0));
-}
-
-function utcMonth(date) {
-  return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 1, 0, 0, 0, 0));
-}
-
-function addUtcHours(date, hours) {
-  return new Date(date.getTime() + hours * 3600000);
-}
-
-function addUtcDays(date, days) {
-  return new Date(date.getTime() + days * 24 * 3600000);
-}
-
-function addUtcMonths(date, months) {
-  return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth() + months, date.getUTCDate(), date.getUTCHours(), 0, 0, 0));
-}
-
-function dailyCandidateBucket(dayStart, now, stepHours = 6) {
-  const dates = [];
-  for (let hour = 0; hour < 24; hour += stepHours) {
-    const date = addUtcHours(dayStart, hour);
-    if (date <= now) dates.push(date);
-  }
-  if (dayStart <= now && now < addUtcDays(dayStart, 1) && dates.at(-1)?.getTime() !== now.getTime()) dates.push(now);
-  return dates;
-}
-
-function monthlyCandidateBucket(monthStart, now) {
-  const nextMonth = addUtcMonths(monthStart, 1);
-  const end = nextMonth < now ? nextMonth : now;
-  const dates = [];
-  for (let day = new Date(monthStart); day < end; day = addUtcDays(day, 1)) {
-    dailyCandidateBucket(day, now, 6).forEach((date) => {
-      if (date < end) dates.push(date);
-    });
-  }
-  if (monthStart <= now && now < nextMonth && dates.at(-1)?.getTime() !== now.getTime()) dates.push(now);
-  return dates;
-}
-
-function intervalCandidateBuckets(start, end, bucketCount, stepHours = 6) {
-  const span = Math.max(1, end.getTime() - start.getTime());
-  return Array.from({ length: bucketCount }, (_, index) => {
-    if (index === bucketCount - 1) return [end];
-    const bucketStart = new Date(start.getTime() + (span * index) / (bucketCount - 1));
-    const bucketEnd = new Date(start.getTime() + (span * (index + 1)) / (bucketCount - 1));
-    const dates = [];
-    for (let date = new Date(bucketStart); date < bucketEnd && date <= end; date = addUtcHours(date, stepHours)) {
-      dates.push(new Date(date));
-    }
-    if (!dates.length) dates.push(bucketStart);
-    return dates;
-  });
-}
-
-function mergeCandidatesIntoMonthlyBuckets(buckets, candidates, now) {
-  const merged = buckets.map((bucket) => [...bucket]);
-  candidates.forEach((date) => {
-    if (!(date instanceof Date) || date > now) return;
-    const monthStart = utcMonth(date).getTime();
-    const bucketIndex = merged.findIndex((bucket) => bucket[0] && utcMonth(bucket[0]).getTime() === monthStart);
-    if (bucketIndex >= 0) merged[bucketIndex].push(date);
-  });
-  return merged.map((bucket) => bucket
-    .sort((a, b) => a - b)
-    .filter((date, index, allDates) => index === 0 || date.getTime() !== allDates[index - 1].getTime()));
+  return new Date(now.getTime() - ({ "1D": 1, "7D": 7, "1M": 30, "3M": 92, "1Y": 366 }[range] || 1) * 86400000);
 }
 
 function historySampleBuckets(range, now = new Date()) {
-  if (range === "1D") {
-    return intervalCandidateBuckets(addUtcHours(now, -24), now, 25, 1);
-  }
-  if (range === "7D") {
-    return intervalCandidateBuckets(addUtcHours(now, -168), now, 15, 1);
+  const shift = (date, amount, unit) => unit === "month"
+    ? new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth() + amount, date.getUTCDate(), date.getUTCHours()))
+    : new Date(date.getTime() + amount * (unit === "day" ? 86400000 : 3600000));
+  const dayStart = (date) => new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+  const monthStart = (date) => new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 1));
+  const candidates = (start, end, stepHours) => {
+    const rows = [];
+    for (let date = new Date(start); date < end && date <= now; date = shift(date, stepHours, "hour")) rows.push(date);
+    return rows.length ? rows : [start];
+  };
+  const spaced = (start, count, stepHours) => Array.from({ length: count }, (_, index) => {
+    if (index === count - 1) return [now];
+    const from = new Date(start.getTime() + ((now - start) * index) / (count - 1));
+    const to = new Date(start.getTime() + ((now - start) * (index + 1)) / (count - 1));
+    return candidates(from, to, stepHours);
+  });
+  if (range === "1D" || range === "7D" || range === "3M") {
+    const config = { "1D": [25, 1], "7D": [15, 1], "3M": [17, 24] }[range];
+    return spaced(range === "3M" ? dayStart(rangeStart(range, now)) : rangeStart(range, now), ...config);
   }
   if (range === "1M") {
-    const today = utcDay(now);
-    return Array.from({ length: 31 }, (_, index) => dailyCandidateBucket(addUtcDays(today, -(30 - index)), now, 6));
-  }
-  if (range === "3M") {
-    return intervalCandidateBuckets(utcDay(rangeStart(range, now)), now, 17, 24);
+    const today = dayStart(now);
+    return Array.from({ length: 31 }, (_, index) => {
+      const start = shift(today, index - 30, "day");
+      const rows = candidates(start, shift(start, 1, "day"), 6).filter((date) => date <= now);
+      if (start <= now && now < shift(start, 1, "day") && rows.at(-1)?.getTime() !== now.getTime()) rows.push(now);
+      return rows;
+    });
   }
   if (range === "1Y") {
-    const thisMonth = utcMonth(now);
-    const monthlyBuckets = Array.from({ length: 13 }, (_, index) => monthlyCandidateBucket(addUtcMonths(thisMonth, -(12 - index)), now));
-    const shorterRangeCandidates = [
-      ...historySampleBuckets("3M", now).flat(),
-      ...historySampleBuckets("1M", now).flat(),
-      ...historySampleBuckets("7D", now).flat(),
-    ];
-    return mergeCandidatesIntoMonthlyBuckets(monthlyBuckets, shorterRangeCandidates, now);
+    const current = monthStart(now);
+    const buckets = Array.from({ length: 13 }, (_, index) => {
+      const start = shift(current, index - 12, "month");
+      const end = shift(start, 1, "month") < now ? shift(start, 1, "month") : now;
+      const rows = candidates(start, end, 6);
+      if (start <= now && now < shift(start, 1, "month") && rows.at(-1)?.getTime() !== now.getTime()) rows.push(now);
+      return rows;
+    });
+    historySampleBuckets("3M", now).concat(historySampleBuckets("1M", now), historySampleBuckets("7D", now)).flat().forEach((date) => {
+      const bucket = buckets.find((rows) => rows[0] && monthStart(rows[0]).getTime() === monthStart(date).getTime());
+      if (bucket && date <= now) bucket.push(date);
+    });
+    return buckets.map((rows) => [...new Map(rows.sort((a, b) => a - b).map((date) => [date.getTime(), date])).values()]);
   }
-  return Array.from({ length: 7 }, (_, index) => [new Date(now.getTime() - (6 - index) * 14 * 24 * 3600000)]);
+  return Array.from({ length: 7 }, (_, index) => [new Date(now.getTime() - (6 - index) * 14 * 86400000)]);
 }
 
 function unix(date) {
@@ -4444,263 +5216,105 @@ async function accountBalanceChangeWithRetry(address, start, end) {
   }
 }
 
-function currentPortfolioPoint(address, now, currentTonBalance, currentTonUsd, currentJettonValueUsd, jettons = []) {
-  const pricedAssetCount = jettons.filter((jetton) => Number(jetton.balance || 0) > 0 && Number(jetton.valueUsd || 0) > 0).length + (currentTonBalance > 0 ? 1 : 0);
-  return {
-    address: address.toLowerCase(),
-    timestamp: now.toISOString(),
-    valueUsd: currentTonBalance * currentTonUsd + currentJettonValueUsd,
-    tonBalance: currentTonBalance,
-    jettonValueUsd: currentJettonValueUsd,
-    tonUsdRate: currentTonUsd,
-    assetCount: jettons.filter((jetton) => Number(jetton.balance || 0) > 0).length + (currentTonBalance > 0 ? 1 : 0),
-    pricedAssetCount,
-    source: "current-prices",
-  };
-}
-
-function firstActivityDateFromOperations(operations) {
-  const firstTimestamp = operations.reduce((earliest, operation) => {
-    const timestamp = Number(operation?.utime || 0);
-    if (!timestamp) return earliest;
-    return earliest ? Math.min(earliest, timestamp) : timestamp;
-  }, 0);
-  return firstTimestamp ? new Date(firstTimestamp * 1000) : null;
-}
-
-function trimDatesToWalletActivity(dates, operations, now) {
-  const firstActivity = firstActivityDateFromOperations(operations);
-  if (!firstActivity) return dates;
-  const filtered = dates.filter((date) => date >= firstActivity);
-  if (!filtered.length || filtered[filtered.length - 1].getTime() < now.getTime()) filtered.push(now);
-  return filtered;
-}
-
-function trimBucketsToWalletActivity(buckets, operations, now) {
-  const firstActivity = firstActivityDateFromOperations(operations);
-  const operationDates = operations
-    .map((operation) => Number(operation?.utime || 0))
-    .filter(Boolean)
-    .map((timestamp) => new Date(timestamp * 1000))
-    .filter((date) => date <= now)
-    .sort((a, b) => a - b);
-  const enriched = buckets.map((bucket, index) => {
-    const base = bucket.filter((date) => date <= now).sort((a, b) => a - b);
-    if (!base.length) return [];
-    const bucketStart = base[0];
-    const nextBucketStart = buckets[index + 1]?.[0] || now;
-    const bucketEnd = nextBucketStart > bucketStart ? nextBucketStart : now;
-    const extras = operationDates.filter((date) => date >= bucketStart && date < bucketEnd);
-    return [...base, ...extras]
-      .sort((a, b) => a - b)
-      .filter((date, dateIndex, allDates) => dateIndex === 0 || date.getTime() !== allDates[dateIndex - 1].getTime());
-  });
-  if (!firstActivity) return enriched.filter((bucket) => bucket.length);
-  const filtered = enriched
-    .map((bucket) => bucket.filter((date) => date >= firstActivity && date <= now))
-    .filter((bucket) => bucket.length);
-  if (!filtered.length) return [[now]];
-  const lastBucket = filtered[filtered.length - 1];
-  if (lastBucket.at(-1)?.getTime() < now.getTime()) lastBucket.push(now);
-  return filtered;
-}
-
-function fallbackTonBalanceFromHistoryTimestamps(currentTonBalance, date, operations) {
-  const firstActivity = firstActivityDateFromOperations(operations);
-  if (firstActivity && date < firstActivity) return 0;
-  return currentTonBalance;
-}
-
-function canUseAccountDiff(range, date, now, currentTonBalance) {
-  if (currentTonBalance <= 0) return false;
-  if (["3M", "1Y"].includes(range)) return false;
-  return true;
-}
-
 function chartStaleness(range) {
   return range === "1D" ? 6 * 3600000 : 48 * 3600000;
 }
 
-async function tonBalanceAtDate({ address, date, now, range, currentNano, currentTonBalance, jettonOperations }) {
-  let tonBalance = fallbackTonBalanceFromHistoryTimestamps(currentTonBalance, date, jettonOperations);
-  if (canUseAccountDiff(range, date, now, currentTonBalance)) {
-    try {
-      const balanceChangeNano = await accountBalanceChangeWithRetry(address, date, now);
-      tonBalance = Math.max(0, nanoToTon(currentNano - balanceChangeNano));
-    } catch (error) {
-      console.warn(`TON diff unavailable for ${date.toISOString()}: ${error.message}`);
-    }
-  }
-  return tonBalance;
-}
-
-async function portfolioAtDate(context, date) {
-  const {
-    address,
-    now,
-    range,
-    currentNano,
-    currentTonBalance,
-    currentTonUsd,
-    currentPoint,
-    jettonOperations,
-    historyJettons,
-    tonChart,
-    jettonCharts,
-    maxStalenessMs,
-  } = context;
-
-  if (date.getTime() >= now.getTime()) return currentPoint;
-
-  const tonBalance = await tonBalanceAtDate({
-    address,
-    date,
-    now,
-    range,
-    currentNano,
-    currentTonBalance,
-    jettonOperations,
-  });
-  const tonPrice = priceAt(tonChart, date, currentTonUsd, maxStalenessMs);
-  let jettonValueUsd = 0;
-  let assetCount = tonBalance > 0 ? 1 : 0;
-  let pricedAssetCount = tonBalance > 0 && tonPrice > 0 ? 1 : 0;
-
-  historyJettons.forEach((jetton) => {
-    const balance = jettonBalanceAtDate(jetton, date, address, jettonOperations);
-    if (balance <= 0) return;
-    assetCount += 1;
-    const price = priceAt(jettonCharts.get(jetton.address) || [], date, Number(jetton.priceUsd || 0), maxStalenessMs);
-    const value = balance * price;
-    if (value > 0) pricedAssetCount += 1;
-    jettonValueUsd += value;
-  });
-
+function currentPortfolioPoint(address, date, tonBalance, tonPrice, jettonValueUsd, jettons, source = "current-prices") {
+  const held = jettons.filter((item) => Number(item.balance || 0) > 0);
   return {
-    address: address.toLowerCase(),
-    timestamp: date.toISOString(),
-    valueUsd: tonBalance * tonPrice + jettonValueUsd,
-    tonBalance,
-    jettonValueUsd,
-    tonUsdRate: tonPrice,
-    assetCount,
-    pricedAssetCount,
-    source: "portfolio-at-time",
+    address: address.toLowerCase(), timestamp: date.toISOString(), valueUsd: tonBalance * tonPrice + jettonValueUsd,
+    tonBalance, jettonValueUsd, tonUsdRate: tonPrice,
+    assetCount: held.length + (tonBalance > 0 ? 1 : 0),
+    pricedAssetCount: held.filter((item) => Number(item.valueUsd || 0) > 0).length + (tonBalance > 0 ? 1 : 0),
+    source,
   };
 }
 
-async function highestPortfolioPointForBucket(context, bucket) {
-  let best = null;
-  for (const date of bucket) {
-    const point = await portfolioAtDate(context, date);
-    if (!best || point.valueUsd > best.valueUsd) best = point;
+function activeHistoryBuckets(range, operations, now) {
+  const buckets = historySampleBuckets(range, now);
+  const activity = operations.map((row) => Number(row.utime || 0)).filter(Boolean).map((time) => new Date(time * 1000)).filter((date) => date <= now).sort((a, b) => a - b);
+  const first = activity[0];
+  const rows = buckets.map((bucket, index) => {
+    const base = bucket.filter((date) => date <= now).sort((a, b) => a - b);
+    if (!base.length) return [];
+    const end = buckets[index + 1]?.[0] || now;
+    return [...new Map([...base, ...activity.filter((date) => date >= base[0] && date < end)].sort((a, b) => a - b).map((date) => [date.getTime(), date])).values()];
+  }).map((bucket) => first ? bucket.filter((date) => date >= first) : bucket).filter((bucket) => bucket.length);
+  if (!rows.length) return [[now]];
+  if (rows.at(-1).at(-1).getTime() < now.getTime()) rows.at(-1).push(now);
+  return rows;
+}
+
+async function buildWalletHistory(address, currentTonBalance, range = "1D", jettons = [], { exact = false, onPoint } = {}) {
+  const now = new Date();
+  const currentTonUsd = await tonUsdRate();
+  let currentJettonValueUsd = jettons.reduce((sum, item) => sum + Number(item.valueUsd || 0), 0);
+  if (exact && !currentJettonValueUsd && jettons.some((item) => Number(item.balance || 0) > 0)) {
+    currentJettonValueUsd = jettons.reduce((sum, item) => sum + Number(item.balance || 0) * Number(item.priceUsd || 0), 0);
   }
-  return best;
-}
-
-async function approximateWalletHistory(address, currentTonBalance, range = "1D", jettons = []) {
-  const now = new Date();
-  const currentTonUsd = await tonUsdRate();
-  const currentJettonValueUsd = jettons.reduce((sum, jetton) => sum + Number(jetton.valueUsd || 0), 0);
   const currentPoint = currentPortfolioPoint(address, now, currentTonBalance, currentTonUsd, currentJettonValueUsd, jettons);
-  const dates = historySampleDates(range, now);
-  const start = dates[0] || rangeStart(range, now);
-  const tonChart = await getRateChart("TON", start, now);
-  const points = dates.map((date) => {
-    const tonPrice = priceAt(tonChart, date, currentTonUsd, chartStaleness(range));
-    return {
-      address: address.toLowerCase(),
-      timestamp: date.toISOString(),
-      valueUsd: currentTonBalance * tonPrice + currentJettonValueUsd,
-      tonBalance: currentTonBalance,
-      jettonValueUsd: currentJettonValueUsd,
-      tonUsdRate: tonPrice,
-      assetCount: jettons.filter((jetton) => Number(jetton.balance || 0) > 0).length + (currentTonBalance > 0 ? 1 : 0),
-      pricedAssetCount: jettons.filter((jetton) => Number(jetton.balance || 0) > 0 && Number(jetton.valueUsd || 0) > 0).length + (currentTonBalance > 0 ? 1 : 0),
-      source: "approx-current-holdings",
-    };
-  });
-  if (!points.length) points.push(currentPoint);
-  else points[points.length - 1] = currentPoint;
-  return points;
-}
-
-async function reconstructWalletHistory(address, currentTonBalance, range = "1D", jettons = [], options = {}) {
-  const now = new Date();
-  const currentNano = Math.round(currentTonBalance * 1_000_000_000);
-  const currentTonUsd = await tonUsdRate();
-  const startHint = rangeStart(range, now);
-  const jettonOperations = await fetchJettonHistory(address, startHint);
-  const historyJettons = await enrichJettonRates(historyJettonsFromOperations(jettons, jettonOperations), true);
-  let currentJettonValueUsd = jettons.reduce((sum, jetton) => sum + (jetton.valueUsd || 0), 0);
-  const buckets = trimBucketsToWalletActivity(historySampleBuckets(range, now), jettonOperations, now);
-  const chartDates = buckets.flat();
-  const start = chartDates[0] || rangeStart(range, now);
+  const operations = exact ? await fetchJettonHistory(address, rangeStart(range, now)) : [];
+  const historyJettons = exact ? await enrichJettonRates(historyJettonsFromOperations(jettons, operations), true) : jettons;
+  const firstActivity = operations.reduce((earliest, row) => {
+    const timestamp = Number(row.utime || 0);
+    return timestamp && (!earliest || timestamp < earliest) ? timestamp : earliest;
+  }, 0);
+  const buckets = exact ? activeHistoryBuckets(range, operations, now) : historySampleBuckets(range, now).map((bucket) => bucket.slice(0, 1));
+  const start = buckets.flat()[0] || rangeStart(range, now);
   const tonChart = await getRateChart("TON", start, now);
   if (!tonChart.length) console.warn(`TON chart empty for ${range}; using current TON/USD rate for all points.`);
-  const jettonCharts = new Map();
-  const maxStalenessMs = chartStaleness(range);
-  if (currentJettonValueUsd === 0 && jettons.some((jetton) => Number(jetton.balance || 0) > 0)) {
-    currentJettonValueUsd = jettons.reduce((sum, jetton) => {
-      const price = priceAt(jettonCharts.get(jetton.address) || [], now, Number(jetton.priceUsd || 0), maxStalenessMs);
-      return sum + Number(jetton.balance || 0) * price;
-    }, 0);
-  }
-  const currentPoint = currentPortfolioPoint(address, now, currentTonBalance, currentTonUsd, currentJettonValueUsd, jettons);
-  const context = {
-    address,
-    now,
-    range,
-    currentNano,
-    currentTonBalance,
-    currentTonUsd,
-    currentPoint,
-    jettonOperations,
-    historyJettons,
-    tonChart,
-    jettonCharts,
-    maxStalenessMs,
-  };
   const points = [];
   for (const bucket of buckets) {
     try {
-      points.push(await highestPortfolioPointForBucket(context, bucket));
-      options.onPoint?.(points.slice());
+      const candidates = [];
+      for (const date of bucket) {
+        if (date >= now) { candidates.push(currentPoint); continue; }
+        let tonBalance = currentTonBalance;
+        if (exact && firstActivity && date.getTime() < firstActivity * 1000) tonBalance = 0;
+        if (exact && currentTonBalance > 0 && !["3M", "1Y"].includes(range)) {
+          try { tonBalance = Math.max(0, nanoToTon(Math.round(currentTonBalance * 1e9) - await accountBalanceChangeWithRetry(address, date, now))); }
+          catch (error) { console.warn(`TON diff unavailable for ${date.toISOString()}: ${error.message}`); }
+        }
+        const tonPrice = priceAt(tonChart, date, currentTonUsd, chartStaleness(range));
+        if (!exact) { candidates.push(currentPortfolioPoint(address, date, tonBalance, tonPrice, currentJettonValueUsd, jettons, "approx-current-holdings")); continue; }
+        let jettonValueUsd = 0;
+        let assetCount = tonBalance > 0 ? 1 : 0;
+        let pricedAssetCount = tonBalance > 0 && tonPrice > 0 ? 1 : 0;
+        historyJettons.forEach((jetton) => {
+          const balance = jettonBalanceAtDate(jetton, date, address, operations);
+          const value = balance * Number(jetton.priceUsd || 0);
+          if (balance > 0) assetCount += 1;
+          if (value > 0) pricedAssetCount += 1;
+          jettonValueUsd += value;
+        });
+        candidates.push({ address: address.toLowerCase(), timestamp: date.toISOString(), valueUsd: tonBalance * tonPrice + jettonValueUsd, tonBalance, jettonValueUsd, tonUsdRate: tonPrice, assetCount, pricedAssetCount, source: "portfolio-at-time" });
+      }
+      const best = candidates.sort((a, b) => Number(b.valueUsd || 0) - Number(a.valueUsd || 0))[0];
+      if (best) points.push(best);
+      onPoint?.(points.slice());
     } catch (error) {
       console.warn(`Skipping history bucket ${bucket[0]?.toISOString() || "unknown"}: ${error.message}`);
     }
   }
-  if (!points.length) {
-    points.push(currentPoint);
-  } else {
-    points[points.length - 1] = currentPoint;
-  }
-  options.onPoint?.(points.slice());
+  if (!points.length) points.push(currentPoint);
+  else points[points.length - 1] = currentPoint;
+  onPoint?.(points.slice());
   return points;
 }
 
-async function cachedWalletHistory(address, currentTonBalance, range, jettons, onPoint = null) {
+function approximateWalletHistory(address, currentTonBalance, range, jettons) {
+  return buildWalletHistory(address, currentTonBalance, range, jettons);
+}
+
+function reconstructWalletHistory(address, currentTonBalance, range, jettons, options = {}) {
+  return buildWalletHistory(address, currentTonBalance, range, jettons, { exact: true, onPoint: options.onPoint });
+}
+
+function cacheHistoryPoints(address, range, points, source = "memory") {
   const key = historyCacheKey(address, range);
-  const cached = walletHistoryCache.get(key);
-  if (cached?.points && cached.expiresAt > Date.now()) return cached.points;
-  if (cached?.promise) return cached.promise;
-  const diskPoints = readHistoryDiskCache(address, range);
-  if (diskPoints.length) {
-    walletHistoryCache.set(key, { points: diskPoints, expiresAt: Date.now() + walletHistoryTtl });
-    return diskPoints;
-  }
-  const promise = reconstructWalletHistory(address, currentTonBalance, range, jettons, { onPoint })
-    .then((points) => {
-      writeHistoryDiskCache(address, range, points);
-      walletHistoryCache.set(key, { points, expiresAt: Date.now() + walletHistoryTtl });
-      return points;
-    })
-    .catch((error) => {
-      walletHistoryCache.delete(key);
-      throw error;
-    });
-  walletHistoryCache.set(key, { promise, expiresAt: Date.now() + walletHistoryTtl });
-  return promise;
+  walletHistoryCache.set(key, { points, expiresAt: Date.now() + walletHistoryTtl, source });
+  return points;
 }
 
 function clearWalletHistoryCache(address) {
@@ -4715,10 +5329,7 @@ function historyJobStatus(address, range) {
   const cached = walletHistoryCache.get(key);
   if (cached?.points) return { status: "ready", points: cached.points, source: cached.source || "memory" };
   const diskPoints = readHistoryDiskCache(address, range);
-  if (diskPoints.length) {
-    walletHistoryCache.set(key, { points: diskPoints, expiresAt: Date.now() + walletHistoryTtl });
-    return { status: "ready", points: diskPoints, source: "disk" };
-  }
+  if (diskPoints.length) return { status: "ready", points: cacheHistoryPoints(address, range, diskPoints, "disk"), source: "disk" };
   const job = walletHistoryJobs.get(key);
   if (job) return { status: job.status, points: [], error: job.error || null, source: "job" };
   return { status: "missing", points: [], source: "none" };
@@ -4731,17 +5342,8 @@ function startHistoryJob(address, currentTonBalance, range, jettons) {
   const activeJob = walletHistoryJobs.get(key);
   if (activeJob && ["queued", "building"].includes(activeJob.status)) return activeJob;
   const job = {
-    status: "queued",
-    points: [],
-    error: null,
-    address,
-    range,
-    currentTonBalance,
-    jettons,
-    approxPoints: [],
-    queuedAt: new Date().toISOString(),
-    startedAt: null,
-    finishedAt: null,
+    status: "queued", points: [], error: null, address, range, currentTonBalance, jettons, approxPoints: [],
+    queuedAt: new Date().toISOString(), startedAt: null, finishedAt: null,
   };
   walletHistoryJobs.set(key, job);
   approximateWalletHistory(address, currentTonBalance, range, jettons)
@@ -4751,9 +5353,9 @@ function startHistoryJob(address, currentTonBalance, range, jettons) {
     job.status = "building";
     job.startedAt = new Date().toISOString();
     try {
-      job.points = await cachedWalletHistory(address, currentTonBalance, range, jettons, (points) => {
-        job.points = points;
-      });
+      job.points = await reconstructWalletHistory(address, currentTonBalance, range, jettons, { onPoint: (points) => { job.points = points; } });
+      writeHistoryDiskCache(address, range, job.points);
+      cacheHistoryPoints(address, range, job.points);
       job.status = "ready";
       job.finishedAt = new Date().toISOString();
       return job.points;
@@ -4770,22 +5372,7 @@ function startHistoryJob(address, currentTonBalance, range, jettons) {
 }
 
 function startWalletHistoryJobs(address, currentTonBalance, jettons) {
-  if (fastGraphHistoryOnly) {
-    prewarmFastGraphHistory(address, currentTonBalance, jettons).catch((error) => {
-      console.warn(`Fast graph prewarm failed: ${error.message}`);
-    });
-    return;
-  }
   historyRanges.forEach((range) => startHistoryJob(address, currentTonBalance, range, jettons));
-}
-
-async function prewarmFastGraphHistory(address, currentTonBalance, jettons) {
-  for (const range of historyRanges) {
-    const key = historyCacheKey(address, range);
-    if (walletHistoryCache.get(key)?.points) continue;
-    const points = await approximateWalletHistory(address, currentTonBalance, range, jettons);
-    walletHistoryCache.set(key, { points, expiresAt: Date.now() + walletHistoryTtl, source: "fast-current-holdings" });
-  }
 }
 
 async function walletImport(address) {
@@ -5092,7 +5679,7 @@ async function thermosGiftModelPayload(collectionName = "", { force = false, ton
   return thermosGiftModelPayloadFromAttributes(canonicalName, mergedPayload, rate);
 }
 
-async function d1GiftComboFloor(collectionName = "", modelName = "", backdropName = "") {
+async function d1GiftComboFloor(collectionName = "", modelName = "", backdropName = "", symbolName = "") {
   if (!giftRegistryReadUrl || !collectionName || !modelName || !backdropName) return null;
   const cacheKey = [
     ...giftCollectionAliasKeys(collectionName),
@@ -5106,8 +5693,9 @@ async function d1GiftComboFloor(collectionName = "", modelName = "", backdropNam
       collection: collectionName,
       model: modelName,
       backdrop: backdropName,
+      symbol: symbolName,
     });
-    const payload = await marketJson(`${giftRegistryReadUrl}/combo?${params}`, {}, 1500);
+    const payload = await d1RegistryJson(`/combo?${params}`, {}, 1500);
     const floor = Number(payload?.floorTon || 0) > 0 ? payload : null;
     giftComboFloorCache.set(cacheKey, { value: floor, expiresAt: Date.now() + (floor ? 5 * 60 * 1000 : 45 * 1000) });
     return floor;
@@ -5117,9 +5705,10 @@ async function d1GiftComboFloor(collectionName = "", modelName = "", backdropNam
   }
 }
 
-async function d1GiftComboHistory(collectionName = "", modelName = "", backdropName = "") {
+async function d1GiftComboHistory(collectionName = "", modelName = "", backdropName = "", symbolName = "", options = {}) {
   if (!collectionName || !modelName || !backdropName) return [];
-  if (!giftRegistryReadUrl && !giftRegistryProxyUrl) return [];
+  const preferDirect = Boolean(options.preferDirect);
+  if (!giftRegistryReadUrl && (!giftRegistryProxyUrl || preferDirect)) return [];
   const cacheKey = [
     ...giftCollectionAliasKeys(collectionName),
     giftSnapshotKey(modelName),
@@ -5128,11 +5717,8 @@ async function d1GiftComboHistory(collectionName = "", modelName = "", backdropN
   const cached = giftComboHistoryCache.get(cacheKey);
   if (cached?.expiresAt > Date.now()) return cached.value;
   try {
-    const params = new URLSearchParams({ collection: collectionName, model: modelName, backdrop: backdropName });
-    const endpoint = giftRegistryProxyUrl
-      ? `${giftRegistryProxyUrl}/api/gift-registry/history?${params}`
-      : `${giftRegistryReadUrl}/history?${params}`;
-    const payload = await marketJson(endpoint, {}, giftRegistryProxyUrl ? 2500 : 1500);
+    const params = new URLSearchParams({ collection: collectionName, model: modelName, backdrop: backdropName, symbol: symbolName });
+    const payload = await d1RegistryJson(`/history?${params}`, {}, preferDirect ? 1500 : 8000);
     const history = Array.isArray(payload) ? payload : [];
     giftComboHistoryCache.set(cacheKey, { value: history, expiresAt: Date.now() + (history.length ? 5 * 60 * 1000 : 45 * 1000) });
     return history;
@@ -5140,6 +5726,87 @@ async function d1GiftComboHistory(collectionName = "", modelName = "", backdropN
     giftComboHistoryCache.set(cacheKey, { value: [], expiresAt: Date.now() + 30 * 1000 });
     return [];
   }
+}
+
+async function d1GiftSales(collectionName = "", modelName = "", backdropName = "", symbolName = "", limit = 5) {
+  if (!giftRegistryReadUrl || !collectionName || !modelName || !backdropName || !symbolName) return [];
+  const cacheKey = [
+    ...giftCollectionAliasKeys(collectionName),
+    giftSnapshotKey(modelName),
+    giftSnapshotKey(backdropName),
+    giftSnapshotKey(symbolName),
+    Math.max(1, Math.min(20, Number(limit || 5))),
+  ].filter(Boolean).join(":");
+  const cached = giftSalesRegistryCache.get(cacheKey);
+  if (cached?.expiresAt > Date.now()) return cached.value;
+  try {
+    const params = new URLSearchParams({
+      collection: collectionName,
+      model: modelName,
+      backdrop: backdropName,
+      symbol: symbolName,
+      limit: String(Math.max(1, Math.min(20, Number(limit || 5)))),
+    });
+    const payload = await marketJson(`${giftRegistryReadUrl}/sales?${params}`, {}, 2500);
+    const expectedModelKey = giftSnapshotKey(modelName);
+    const expectedBackdropKey = giftSnapshotKey(backdropName);
+    const expectedSymbolKey = giftSnapshotKey(symbolName);
+    const rows = (Array.isArray(payload?.sales) ? payload.sales : []).map((sale) => ({
+      priceTon: Number(sale.priceTon || 0),
+      priceUsd: 0,
+      date: sale.date || "",
+      marketplace: marketSourceLabel(sale.marketplace || "GiftSatellite"),
+      buyer: "",
+      seller: "",
+      mint: Number(sale.mint || 0),
+      model: sale.model || modelName,
+      backdrop: sale.backdrop || backdropName,
+      symbol: sale.symbol || "",
+      giftUrl: sale.giftUrl || "",
+      saleId: sale.saleId || "",
+      exact: true,
+    })).filter((sale) => (
+      sale.priceTon > 0
+      && sale.date
+      && giftSnapshotKey(sale.model) === expectedModelKey
+      && giftSnapshotKey(sale.backdrop) === expectedBackdropKey
+      && giftSnapshotKey(sale.symbol) === expectedSymbolKey
+    ));
+    giftSalesRegistryCache.set(cacheKey, { value: rows, expiresAt: Date.now() + (rows.length ? 5 * 60 * 1000 : 60 * 1000) });
+    return rows;
+  } catch {
+    giftSalesRegistryCache.set(cacheKey, { value: [], expiresAt: Date.now() + 30 * 1000 });
+    return [];
+  }
+}
+
+function queueD1GiftSalesTargets(pairs = []) {
+  const registryUrl = d1GiftRegistryUrl || publicGiftRegistryUrl;
+  if (!registryUrl || !d1GiftIngestSecret || !pairs.length) return;
+  const unique = new Map();
+  pairs.forEach((pair) => {
+    if (!pair?.collection || !pair?.model || !pair?.backdrop || !pair?.symbol) return;
+    const targetKey = giftComboPairKey(pair);
+    if (targetKey) unique.set(targetKey, {
+      collection: pair.collection,
+      model: pair.model,
+      backdrop: pair.backdrop,
+      symbol: pair.symbol,
+    });
+  });
+  const targets = [...unique.values()];
+  if (!targets.length) return;
+  setImmediate(() => {
+    mapLimit(
+      Array.from({ length: Math.ceil(targets.length / 1000) }, (_, index) => targets.slice(index * 1000, (index + 1) * 1000)),
+      2,
+      (chunk) => marketJson(`${registryUrl}/ingest/sales-targets`, {
+        method: "POST",
+        headers: { authorization: `Bearer ${d1GiftIngestSecret}` },
+        body: { pairs: chunk, priority: 500, requestedAt: new Date().toISOString() },
+      }, 5000)
+    ).catch((error) => console.warn(`[gift-sales-targets] queue failed: ${String(error.message || error).slice(0, 140)}`));
+  });
 }
 
 function warmGiftComboHistoryCache(models = []) {
@@ -5156,7 +5823,7 @@ function warmGiftComboHistoryCache(models = []) {
     seen.add(cacheKey);
     const cached = giftComboHistoryCache.get(cacheKey);
     if (cached?.expiresAt > Date.now() || giftComboHistoryWarmJobs.has(cacheKey)) return;
-    unique.push({ cacheKey, collection: model.collection, model: model.model, backdrop: model.backdrop });
+    unique.push({ cacheKey, collection: model.collection, model: model.model, backdrop: model.backdrop, symbol: model.symbol });
   });
   const selected = unique.slice(0, 120);
   if (!selected.length) return;
@@ -5164,7 +5831,7 @@ function warmGiftComboHistoryCache(models = []) {
     mapLimit(selected, 4, async (item) => {
       giftComboHistoryWarmJobs.add(item.cacheKey);
       try {
-        await d1GiftComboHistory(item.collection, item.model, item.backdrop);
+        await d1GiftComboHistory(item.collection, item.model, item.backdrop, item.symbol);
       } finally {
         giftComboHistoryWarmJobs.delete(item.cacheKey);
       }
@@ -5192,6 +5859,7 @@ async function d1GiftComboFloors(pairs = []) {
         collection,
         model: pair.model,
         backdrop: pair.backdrop,
+        symbol: pair.symbol,
       });
     });
   });
@@ -5206,10 +5874,7 @@ async function d1GiftComboFloors(pairs = []) {
     const batchChunks = chunks.slice(index, index + concurrentD1Reads);
     const responses = await Promise.all(batchChunks.map(async (chunk) => {
       try {
-        const endpoint = giftRegistryProxyUrl
-          ? `${giftRegistryProxyUrl}/api/gift-registry/combos`
-          : `${giftRegistryReadUrl}/combos`;
-        return await marketJson(endpoint, {
+        return await d1RegistryJson("/combos", {
           method: "POST",
           body: { pairs: chunk },
         }, 15000);
@@ -5227,8 +5892,26 @@ async function d1GiftComboFloors(pairs = []) {
       });
     });
   }
+  const mergedCombinations = new Map();
+  const addCombination = (combination) => {
+    const key = [combination?.collection, combination?.model, combination?.backdrop]
+      .map(giftSnapshotKey)
+      .join(":");
+    if (!key || key === "::") return;
+    const existing = mergedCombinations.get(key);
+    const candidateAt = new Date(combination?.snapshotAt || 0).getTime() || 0;
+    const existingAt = new Date(existing?.snapshotAt || 0).getTime() || 0;
+    if (!existing || candidateAt > existingAt || (candidateAt === existingAt && Number(combination?.listedCount || 0) > Number(existing?.listedCount || 0))) {
+      mergedCombinations.set(key, combination);
+    }
+  };
+  (collectionLookup.combinations || []).forEach(addCombination);
+  combinations.forEach(addCombination);
+  (collectionLookup.coverage || []).forEach((entry) => {
+    if (entry?.collectionKey && entry?.snapshotAt) coverage.set(giftSnapshotKey(entry.collectionKey), entry.snapshotAt);
+  });
   return {
-    combinations,
+    combinations: [...mergedCombinations.values()],
     coverage: [...coverage].map(([collectionKey, snapshotAt]) => ({ collectionKey, snapshotAt })),
     collections: collectionLookup.collections || [],
   };
@@ -5239,9 +5922,12 @@ function giftFloorPairFromItem(item = {}) {
   const traits = giftTraitLookup(attributes);
   const attr = (label) => (attributes || []).find((trait) => String(trait?.label || trait?.trait_type || "").toLowerCase() === label);
   const collection = String(item.collection || item.name || "").trim();
-  const model = String(traits.model || "").trim();
-  const backdrop = String(traits.backdrop || "").trim();
-  const symbol = String(traits.symbol || "").trim();
+  // All importers normalize these fields before pricing. Prefer them over a
+  // source-specific attributes array so Telegram and TON-wallet gifts use the
+  // same collection/model/backdrop/symbol identity at the D1 boundary.
+  const model = String(item.modelName || item.model || traits.model || "").trim();
+  const backdrop = String(item.backdropName || item.backdrop || traits.backdrop || "").trim();
+  const symbol = String(item.symbolName || item.symbol || traits.symbol || "").trim();
   if (!collection || !model || !backdrop) return null;
   return {
     collection,
@@ -5270,14 +5956,49 @@ function percentileNumber(values = [], percentile = 0.5) {
   return numbers[index];
 }
 
-function collectionComboEntriesForPair(pair = {}, collections = []) {
+function registryCollectionCandidatesForPair(pair = {}, collections = []) {
   const aliases = [...new Set([
     pair.collection,
     pair.collectionKey,
     ...(pair.collectionKeys || []),
     ...giftCollectionAliasKeys(pair.collection),
   ].filter(Boolean).map(giftSnapshotKey))];
-  const collection = (collections || []).find((item) => aliases.includes(giftSnapshotKey(item.collectionKey || item.collection || "")));
+  return (collections || []).filter((item) => aliases.includes(giftSnapshotKey(item.collectionKey || item.collection || "")));
+}
+
+function registryCollectionQualityForPair(collection = {}, pair = {}) {
+  const entries = Object.values(collection.combinations || {});
+  const isExact = (entry) => (
+    giftSnapshotKey(entry?.model) === giftSnapshotKey(pair.model)
+    && giftSnapshotKey(entry?.backdrop) === giftSnapshotKey(pair.backdrop)
+    && giftSnapshotKey(entry?.symbol) === giftSnapshotKey(pair.symbol)
+  );
+  const isReliable = (entry) => Number(entry?.floorTon || 0) > 0 && Number(entry?.listedCount || 0) > 1;
+  const reliableEntries = entries.filter(isReliable);
+  const reliableExactEntries = reliableEntries.filter(isExact);
+  const snapshotAt = new Date(collection.snapshotAt || 0).getTime() || 0;
+  // Prefer a broad, multi-listing snapshot over a thin singular/plural alias.
+  // Thin aliases are often a partial scanner result and must not set an estimate.
+  return [reliableExactEntries.length, reliableEntries.length, entries.length, snapshotAt];
+}
+
+function bestRegistryCollectionForPair(pair = {}, collections = []) {
+  const candidates = registryCollectionCandidatesForPair(pair, collections);
+  if (!candidates.length) return null;
+  return candidates.reduce((best, candidate) => {
+    const bestQuality = registryCollectionQualityForPair(best, pair);
+    const candidateQuality = registryCollectionQualityForPair(candidate, pair);
+    for (let index = 0; index < candidateQuality.length; index += 1) {
+      if (candidateQuality[index] !== bestQuality[index]) {
+        return candidateQuality[index] > bestQuality[index] ? candidate : best;
+      }
+    }
+    return best;
+  });
+}
+
+function collectionComboEntriesForPair(pair = {}, collections = []) {
+  const collection = bestRegistryCollectionForPair(pair, collections);
   return collection ? Object.values(collection.combinations || {}) : [];
 }
 
@@ -5292,13 +6013,7 @@ function rarityPremiumMultiplier(pair = {}, modelEntries = [], backdropEntries =
 }
 
 function traitRegistryForCollection(pair = {}, collections = []) {
-  const aliases = [...new Set([
-    pair.collection,
-    pair.collectionKey,
-    ...(pair.collectionKeys || []),
-    ...giftCollectionAliasKeys(pair.collection),
-  ].filter(Boolean).map(giftSnapshotKey))];
-  const collection = (collections || []).find((item) => aliases.includes(giftSnapshotKey(item.collectionKey || item.collection || "")));
+  const collection = bestRegistryCollectionForPair(pair, collections);
   return collection?.attributes || {};
 }
 
@@ -5308,6 +6023,35 @@ function traitRarityFromRegistry(attributes = {}, type = "", value = "") {
   const bucket = attributes[String(type || "").toLowerCase()] || attributes[type] || {};
   const attr = bucket[key];
   return Number(attr?.rarity || attr?.rarityPct || attr?.rarity_percent || 0);
+}
+
+function giftTraitMetricsFromRegistry(pair = {}, collections = []) {
+  const attributes = traitRegistryForCollection(pair, collections);
+  const entries = [
+    ["Model", "model", pair.model],
+    ["Backdrop", "backdrop", pair.backdrop],
+    ["Symbol", "symbol", pair.symbol],
+  ];
+  const traitMetrics = {};
+  entries.forEach(([label, type, value]) => {
+    if (!value) return;
+    const rarity = traitRarityFromRegistry(attributes, type, value);
+    if (rarity > 0) traitMetrics[label] = { type: label, value, rarity };
+  });
+  return traitMetrics;
+}
+
+function giftTraitMetricsFromStoredAttributes(pair = {}, attributesByKey = new Map()) {
+  const traitMetrics = {};
+  [["Model", "model", pair.modelKey], ["Backdrop", "backdrop", pair.backdropKey], ["Symbol", "symbol", pair.symbolKey]]
+    .forEach(([label, type, valueKey]) => {
+      if (!valueKey) return;
+      const attribute = (pair.collectionKeys || [])
+        .map((collectionKey) => attributesByKey.get(`${collectionKey}:${type}:${valueKey}`))
+        .find(Boolean);
+      if (attribute) traitMetrics[label] = attribute;
+    });
+  return traitMetrics;
 }
 
 function backdropValueFamily(backdrop = "") {
@@ -5620,6 +6364,7 @@ async function priceWalletGiftsFromD1(gifts = [], tonRate = 0, context = "wallet
     pairsByKey.set(giftComboPairKey(pair), pair);
   });
   const pairs = [...pairsByKey.values()];
+  queueD1GiftSalesTargets(pairs);
   console.log(`[gift-import-pricing] ${context}: gifts=${gifts.length} uniqueCombos=${pairs.length}`);
   if (!pairs.length) {
     console.log(`[gift-import-pricing] ${context}: d1Batches=0 resolved=0 missing=${gifts.length} totalMs=${Date.now() - started}`);
@@ -5638,7 +6383,11 @@ async function priceWalletGiftsFromD1(gifts = [], tonRate = 0, context = "wallet
   const missingPairs = pairs.filter((pair) => !d1ComboForGiftPair(pair, combosByKey));
   const lastSaleLookupLimit = Math.max(0, Number(process.env.GIFT_IMPORT_LAST_SALE_LOOKUP_LIMIT || 80));
   const lastSaleConcurrency = Math.max(1, Math.min(3, Number(process.env.GIFT_IMPORT_LAST_SALE_CONCURRENCY || 2)));
-  if (lastSaleLookupLimit && missingPairs.length) {
+  // Import sources share the same read policy. Telegram ownership must never
+  // make an otherwise verified wallet price disappear just because D1 is
+  // temporarily missing that exact combo.
+  const shouldLookupLiveLastSales = true;
+  if (shouldLookupLiveLastSales && lastSaleLookupLimit && missingPairs.length) {
     const saleStarted = Date.now();
     await mapLimit(missingPairs.slice(0, lastSaleLookupLimit), lastSaleConcurrency, async (pair) => {
       const floor = await settleWithin(fastExactLastSaleFloorForPair(pair, tonRate), 4500, null);
@@ -5673,6 +6422,13 @@ async function priceWalletGiftsFromD1(gifts = [], tonRate = 0, context = "wallet
       }
       const estimate = pair ? estimatedGiftComboFloorFromRegistry(pair, lookup.collections || [], tonRate) : null;
       if (estimate) {
+        ingestD1GiftEstimateHistory({
+          collectionName: pair.collection,
+          modelName: pair.model,
+          backdropName: pair.backdrop,
+          floorTon: estimate.floorTon,
+          snapshotAt: estimate.snapshotAt || new Date().toISOString(),
+        }).catch(() => null);
         resolved += 1;
         return {
           ...gift,
@@ -5714,6 +6470,7 @@ async function priceWalletGiftsFromD1(gifts = [], tonRate = 0, context = "wallet
       floorStatus: "priced",
       floorTon,
       floorUsd: floorTon * tonRate,
+      floorStars: Number(combo.floorStars || 0),
       marketplace: combo.marketplace || "",
       marketPlatform: combo.marketplace || "Backdrop Floor",
       marketUrl: combo.listingUrl || "",
@@ -5726,7 +6483,11 @@ async function priceWalletGiftsFromD1(gifts = [], tonRate = 0, context = "wallet
       priceLoading: false,
     };
   });
-  const healingScheduled = scheduleGiftComboFloorHeal(pairs, combosByKey, tonRate);
+  // A Telegram import is a D1 read path. It must not quietly trigger live
+  // market reads that can change the result on the user's next screen.
+  const healingScheduled = context === "telegram-miniapp-import"
+    ? 0
+    : scheduleGiftComboFloorHeal(pairs, combosByKey, tonRate);
   if (healingScheduled) {
     console.log(`[gift-import-pricing] ${context}: exactHealScheduled=${healingScheduled}`);
   }
@@ -5763,18 +6524,22 @@ async function d1GiftCollectionComboFloors(pairs = []) {
     fetchCollections.push(collection);
   });
   try {
-    const collectionChunks = Array.from({ length: Math.ceil(fetchCollections.length / 50) }, (_, index) => fetchCollections.slice(index * 50, index * 50 + 50));
+    const collectionChunkSize = Math.max(5, Math.min(25, Number(process.env.GIFT_COLLECTION_COMBO_CHUNK_SIZE || 20)));
+    const collectionChunks = Array.from({ length: Math.ceil(fetchCollections.length / collectionChunkSize) }, (_, index) => fetchCollections.slice(index * collectionChunkSize, index * collectionChunkSize + collectionChunkSize));
     const payloadCollections = [];
-    const concurrentCollectionReads = 6;
+    const concurrentCollectionReads = Math.max(1, Math.min(4, Number(process.env.GIFT_COLLECTION_COMBO_CONCURRENCY || 4)));
+    const appendPayloadCollections = (payloads = []) => {
+      payloads.forEach((payload) => {
+        if (Array.isArray(payload?.collections)) payloadCollections.push(...payload.collections);
+      });
+    };
     for (let index = 0; index < collectionChunks.length; index += concurrentCollectionReads) {
       const batchStarted = Date.now();
       const batchNumber = Math.floor(index / concurrentCollectionReads) + 1;
       const batchChunks = collectionChunks.slice(index, index + concurrentCollectionReads);
       const responses = await Promise.all(batchChunks.map(async (collectionsChunk) => {
         try {
-          return await marketJson(giftRegistryProxyUrl
-            ? `${giftRegistryProxyUrl}/api/gift-registry/collection-combos`
-            : `${giftRegistryReadUrl}/collection-combos`, {
+          return await d1RegistryJson("/collection-combos", {
               method: "POST",
               body: { collections: collectionsChunk },
             }, 15000);
@@ -5782,11 +6547,40 @@ async function d1GiftCollectionComboFloors(pairs = []) {
           return null;
         }
       }));
-      responses.forEach((payload) => {
-        if (Array.isArray(payload?.collections)) payloadCollections.push(...payload.collections);
-      });
+      appendPayloadCollections(responses);
       if (batchChunks.length) {
         console.log(`[gift-d1-lookup] collectionBatch=${batchNumber}/${Math.ceil(collectionChunks.length / concurrentCollectionReads)} chunks=${batchChunks.length} collections=${batchChunks.reduce((sum, chunk) => sum + chunk.length, 0)} ms=${Date.now() - batchStarted}`);
+      }
+    }
+    const returnedCollectionKeys = () => new Set(payloadCollections.flatMap((collection) => [
+      collection.collection,
+      collection.collectionKey,
+      ...giftCollectionAliasKeys(collection.collection || collection.collectionKey || ""),
+    ].filter(Boolean).map(giftSnapshotKey)));
+    const firstPassKeys = returnedCollectionKeys();
+    const retryCollections = fetchCollections.filter((collection) => {
+      const aliases = [collection, giftSnapshotKey(collection), ...giftCollectionAliasKeys(collection)].filter(Boolean).map(giftSnapshotKey);
+      return !aliases.some((key) => firstPassKeys.has(key));
+    });
+    if (retryCollections.length) {
+      const retryChunkSize = Math.max(1, Math.min(10, Number(process.env.GIFT_COLLECTION_COMBO_RETRY_CHUNK_SIZE || 8)));
+      const retryChunks = Array.from({ length: Math.ceil(retryCollections.length / retryChunkSize) }, (_, index) => retryCollections.slice(index * retryChunkSize, index * retryChunkSize + retryChunkSize));
+      for (let index = 0; index < retryChunks.length; index += concurrentCollectionReads) {
+        const batchStarted = Date.now();
+        const batchNumber = Math.floor(index / concurrentCollectionReads) + 1;
+        const batchChunks = retryChunks.slice(index, index + concurrentCollectionReads);
+        const responses = await Promise.all(batchChunks.map(async (collectionsChunk) => {
+          try {
+            return await d1RegistryJson("/collection-combos", {
+                method: "POST",
+                body: { collections: collectionsChunk },
+              }, 12000);
+          } catch {
+            return null;
+          }
+        }));
+        appendPayloadCollections(responses);
+        console.log(`[gift-d1-lookup] collectionRetry=${batchNumber}/${Math.ceil(retryChunks.length / concurrentCollectionReads)} chunks=${batchChunks.length} collections=${batchChunks.reduce((sum, chunk) => sum + chunk.length, 0)} ms=${Date.now() - batchStarted}`);
       }
     }
     const collectionMaps = new Map();
@@ -5823,7 +6617,9 @@ async function d1GiftCollectionComboFloors(pairs = []) {
           collection: collection.collection || pair.collection,
           model: entry.model || pair.model,
           backdrop: entry.backdrop || pair.backdrop,
+          symbol: entry.symbol || pair.symbol,
           floorTon: Number(entry.floorTon || 0),
+          floorStars: Number(entry.floorStars || 0),
           listedCount: Number(entry.listedCount || 0),
           marketplace: entry.marketplace || "",
           listingUrl: entry.listingUrl || "",
@@ -5855,6 +6651,7 @@ async function ingestD1GiftCombo(record = {}) {
         collection: record.collectionName || record.collection,
         model: record.modelName || record.model,
         backdrop: record.backdropName || record.backdrop,
+        symbol: record.symbolName || record.symbol,
         floorTon: record.floorTon,
         listedCount: record.listedCount,
         marketplace: record.marketplace || record.marketPlatform || "",
@@ -5871,8 +6668,30 @@ async function ingestD1GiftCombo(record = {}) {
   }
 }
 
-async function thermosExactGiftComboFloor(collectionName = "", modelName = "", backdropName = "", tonRate = 0) {
-  if (!collectionName || !modelName || !backdropName) return null;
+async function ingestD1GiftEstimateHistory(record = {}) {
+  const registryUrl = d1GiftRegistryUrl || publicGiftRegistryUrl;
+  if (!registryUrl || !d1GiftIngestSecret || !(Number(record.floorTon || 0) > 0)) return false;
+  try {
+    await marketJson(`${registryUrl}/ingest/estimate-history`, {
+      method: "POST",
+      headers: { authorization: `Bearer ${d1GiftIngestSecret}` },
+      body: {
+        collection: record.collectionName || record.collection,
+        model: record.modelName || record.model,
+        backdrop: record.backdropName || record.backdrop,
+        floorTon: record.floorTon,
+        snapshotAt: record.timestamp || record.snapshotAt || new Date().toISOString(),
+      },
+    }, 15000);
+    return true;
+  } catch (error) {
+    console.warn(`[gift-estimate-d1] ingest failed for ${record.collectionName || record.collection} / ${record.modelName || record.model} / ${record.backdropName || record.backdrop}: ${String(error.message || error).slice(0, 160)}`);
+    return false;
+  }
+}
+
+async function thermosExactGiftComboFloor(collectionName = "", modelName = "", backdropName = "", symbolName = "", tonRate = 0) {
+  if (!collectionName || !modelName || !backdropName || !symbolName) return null;
   try {
     const collections = await thermosGiftCollections();
     const collectionRow = bestThermosGiftCollection(collections, [collectionName]);
@@ -5889,7 +6708,7 @@ async function thermosExactGiftComboFloor(collectionName = "", modelName = "", b
         collections: [canonicalName],
         models: [modelName],
         backdrops: [backdropName],
-        symbols: [],
+        symbols: [symbolName],
         markets: [],
       },
     }, 8000);
@@ -5909,6 +6728,9 @@ async function thermosExactGiftComboFloor(collectionName = "", modelName = "", b
       backdrop: item?.backdrop?.name || backdropName,
       backdropName: item?.backdrop?.name || backdropName,
       backdropKey: giftSnapshotKey(item?.backdrop?.name || backdropName),
+      symbol: item?.symbol?.name || item?.pattern?.name || symbolName,
+      symbolName: item?.symbol?.name || item?.pattern?.name || symbolName,
+      symbolKey: giftSnapshotKey(item?.symbol?.name || item?.pattern?.name || symbolName),
       timestamp: new Date().toISOString(),
       floorTon,
       floorUsd: floorTon * tonRate,
@@ -5928,7 +6750,7 @@ async function thermosExactGiftComboFloor(collectionName = "", modelName = "", b
     ]);
     return record;
   } catch (error) {
-    console.warn(`[gift-combo-exact] ${collectionName} / ${modelName} / ${backdropName}: ${String(error.message || error).slice(0, 160)}`);
+    console.warn(`[gift-combo-exact] ${collectionName} / ${modelName} / ${backdropName} / ${symbolName}: ${String(error.message || error).slice(0, 160)}`);
     return null;
   }
 }
@@ -5955,7 +6777,7 @@ function missingGiftComboFloorPairs(pairs = [], combosByKey = new Map()) {
     const aliases = [...new Set([pair.collection, pair.collectionKey, ...(pair.collectionKeys || [])].filter(Boolean))];
     const hasCombo = aliases.some((collection) => combosByKey.has([collection, pair.model, pair.backdrop].map(giftSnapshotKey).join(":")));
     if (hasCombo) return;
-    const requestKey = [pair.collectionKey, pair.modelKey, pair.backdropKey].join(":");
+    const requestKey = giftComboPairKey(pair);
     if (seen.has(requestKey)) return;
     seen.add(requestKey);
     missing.push(pair);
@@ -5964,7 +6786,11 @@ function missingGiftComboFloorPairs(pairs = [], combosByKey = new Map()) {
 }
 
 function giftComboPairKey(pair = {}) {
-  return [pair.collectionKey || giftSnapshotKey(pair.collection), pair.modelKey || giftSnapshotKey(pair.model), pair.backdropKey || giftSnapshotKey(pair.backdrop)].join(":");
+  return [
+    pair.collectionKey || giftSnapshotKey(pair.collection),
+    pair.modelKey || giftSnapshotKey(pair.model),
+    pair.backdropKey || giftSnapshotKey(pair.backdrop),
+  ].join(":");
 }
 
 function rememberGiftComboExactMiss(pair = {}) {
@@ -5985,6 +6811,12 @@ function giftComboSnapshotAgeMs(combo = {}) {
   return time > 0 ? Date.now() - time : Number.POSITIVE_INFINITY;
 }
 
+function isFreshGiftComboFloor(combo = {}) {
+  if (!(Number(combo.floorTon || 0) > 0)) return false;
+  const maxAgeMs = Math.max(5 * 60 * 1000, Number(process.env.GIFT_COMBO_MAX_FLOOR_AGE_MS || 6 * 60 * 60 * 1000));
+  return giftComboSnapshotAgeMs(combo) <= maxAgeMs;
+}
+
 function findGiftComboForPair(pair = {}, combosByKey = new Map()) {
   const collectionAliases = [...new Set([
     pair.collection,
@@ -5992,9 +6824,23 @@ function findGiftComboForPair(pair = {}, combosByKey = new Map()) {
     ...(pair.collectionKeys || []),
     ...giftCollectionAliasKeys(pair.collection),
   ].filter(Boolean))];
-  return collectionAliases
+  const matches = collectionAliases
     .map((collection) => combosByKey.get([collection, pair.model, pair.backdrop].map(giftSnapshotKey).join(":")))
-    .find(Boolean) || null;
+    .filter(Boolean);
+  if (!matches.length) return null;
+  // Alias records represent the same gift collection from separate scanners.
+  // Use the lowest verified active floor across them; recency only breaks ties.
+  const activeMatches = matches.filter((candidate) => Number(candidate?.floorTon || 0) > 0);
+  const reliableMatches = activeMatches.filter((candidate) => Number(candidate?.listedCount || 0) > 1);
+  const candidates = reliableMatches.length ? reliableMatches : (activeMatches.length ? activeMatches : matches);
+  return candidates.reduce((best, candidate) => {
+    const bestFloor = Number(best?.floorTon || Infinity);
+    const candidateFloor = Number(candidate?.floorTon || Infinity);
+    if (candidateFloor !== bestFloor) return candidateFloor < bestFloor ? candidate : best;
+    const bestAt = new Date(best?.snapshotAt || 0).getTime() || 0;
+    const candidateAt = new Date(candidate?.snapshotAt || 0).getTime() || 0;
+    return candidateAt > bestAt ? candidate : best;
+  });
 }
 
 function hasRecentGiftComboStaleRefresh(pair = {}) {
@@ -6040,7 +6886,7 @@ function scheduleStaleGiftComboFloorHeal(pairs = [], combosByKey = new Map(), to
     .then(async () => {
       await mapLimit(scheduled, 1, async (pair) => {
         try {
-          await thermosExactGiftComboFloor(pair.collection, pair.model, pair.backdrop, tonRate);
+          await thermosExactGiftComboFloor(pair.collection, pair.model, pair.backdrop, pair.symbol, tonRate);
         } finally {
           rememberGiftComboStaleRefresh(pair);
           giftComboHealJobs.delete(giftComboPairKey(pair));
@@ -6072,7 +6918,7 @@ function scheduleGiftComboFloorHeal(pairs = [], combosByKey = new Map(), tonRate
     .then(async () => {
       await mapLimit(missing, 1, async (pair) => {
         try {
-          const combo = await thermosExactGiftComboFloor(pair.collection, pair.model, pair.backdrop, tonRate);
+          const combo = await thermosExactGiftComboFloor(pair.collection, pair.model, pair.backdrop, pair.symbol, tonRate);
           if (!combo) rememberGiftComboExactMiss(pair);
         } finally {
           giftComboHealJobs.delete(giftComboPairKey(pair));
@@ -6080,7 +6926,7 @@ function scheduleGiftComboFloorHeal(pairs = [], combosByKey = new Map(), tonRate
       });
     })
     .catch(() => {
-      missing.forEach((pair) => giftComboHealJobs.delete([pair.collectionKey, pair.modelKey, pair.backdropKey].join(":")));
+      missing.forEach((pair) => giftComboHealJobs.delete(giftComboPairKey(pair)));
     });
   return missing.length;
 }
@@ -6091,16 +6937,16 @@ async function healMissingGiftComboFloors(pairs = [], combosByKey = new Map(), t
   if (!limit || !missing.length) return [];
   const selected = missing.slice(0, limit);
   const healed = await mapLimit(selected, 1, async (pair) => {
-    const combo = await thermosExactGiftComboFloor(pair.collection, pair.model, pair.backdrop, tonRate);
+    const combo = await thermosExactGiftComboFloor(pair.collection, pair.model, pair.backdrop, pair.symbol, tonRate);
     if (!combo) rememberGiftComboExactMiss(pair);
     return combo;
   });
   return healed.filter((combo) => combo && Number(combo.floorTon || 0) > 0);
 }
 
-async function thermosGiftComboFloor(collectionName = "", modelName = "", backdropName = "", tonRate = 0) {
-  if (!collectionName || !modelName || !backdropName) return null;
-  const d1Floor = await d1GiftComboFloor(collectionName, modelName, backdropName);
+async function thermosGiftComboFloor(collectionName = "", modelName = "", backdropName = "", symbolName = "", tonRate = 0) {
+  if (!collectionName || !modelName || !backdropName || !symbolName) return null;
+  const d1Floor = await d1GiftComboFloor(collectionName, modelName, backdropName, symbolName);
   if (d1Floor) {
     return {
       ...d1Floor,
@@ -6108,11 +6954,8 @@ async function thermosGiftComboFloor(collectionName = "", modelName = "", backdr
       tonUsdRate: tonRate,
     };
   }
-  const stored = await latestGiftComboFloor(collectionName, modelName, backdropName);
-  const storedAt = new Date(stored?.timestamp || 0).getTime();
-  if (stored && Number(stored.floorTon || 0) > 0 && Date.now() - storedAt < 3 * 60 * 60 * 1000) {
-    return { ...stored, source: stored.source || "thermos-combo" };
-  }
+  // The legacy local cache is keyed only by model + backdrop. It cannot prove
+  // that a price belongs to this symbol, so never surface it as an exact floor.
   try {
     const payload = await marketJson("https://proxy.thermos.gifts/api/v1/gifts", {
       method: "POST",
@@ -6124,13 +6967,13 @@ async function thermosGiftComboFloor(collectionName = "", modelName = "", backdr
         collections: [collectionName],
         models: [modelName],
         backdrops: [backdropName],
-        symbols: [],
+        symbols: [symbolName],
         markets: [],
       },
     }, 10000);
     const item = Array.isArray(payload?.items) ? payload.items[0] : null;
     const floorTon = nanoTon(item?.price);
-    if (!(floorTon > 0)) return stored && Number(stored.floorTon || 0) > 0 ? stored : null;
+    if (!(floorTon > 0)) return null;
     const record = {
       collectionKey: giftSnapshotKey(collectionName),
       collectionName,
@@ -6138,6 +6981,8 @@ async function thermosGiftComboFloor(collectionName = "", modelName = "", backdr
       modelName,
       backdropKey: giftSnapshotKey(backdropName),
       backdropName,
+      symbolKey: giftSnapshotKey(symbolName),
+      symbolName,
       timestamp: new Date().toISOString(),
       floorTon,
       floorUsd: floorTon * tonRate,
@@ -6149,7 +6994,7 @@ async function thermosGiftComboFloor(collectionName = "", modelName = "", backdr
     await appendGiftComboFloorSnapshot(record);
     return record;
   } catch {
-    return stored && Number(stored.floorTon || 0) > 0 ? stored : null;
+    return null;
   }
 }
 
@@ -6169,8 +7014,24 @@ function estimatedComboFloorPayload({ estimate = null, collectionName = "", mode
     ignoredFloorTon: ignoredFloor ? Number(ignoredFloor.floorTon || 0) : 0,
     ignoredFloorReason: ignoredFloor ? "single-active-listing" : "",
     floorHistory: comboHistory,
-    floorHistorySource: comboHistory.length >= 2 ? "tontrack-combo-registry" : "",
+    floorHistorySource: comboHistory.length >= 2 ? "tontrack-estimate-history" : "",
   };
+}
+
+async function estimatedComboFloorPayloadWithHistory({ estimate = null, collectionName = "", modelName = "", backdropName = "", symbolName = "", tonRate = 0, comboHistory = [], ignoredFloor = null } = {}) {
+  if (!estimate) return null;
+  if (!comboHistory.length && Number(estimate.floorTon || 0) > 0) {
+    await ingestD1GiftEstimateHistory({
+      collectionName,
+      modelName,
+      backdropName,
+      symbolName,
+      floorTon: estimate.floorTon,
+      snapshotAt: estimate.snapshotAt || new Date().toISOString(),
+    });
+    comboHistory = await d1GiftComboHistory(collectionName, modelName, backdropName, symbolName, { preferDirect: true });
+  }
+  return estimatedComboFloorPayload({ estimate, collectionName, modelName, backdropName, tonRate, comboHistory, ignoredFloor });
 }
 
 function bestThermosGiftCollection(collections = [], aliases = []) {
@@ -6194,10 +7055,11 @@ async function thermosGiftFloorLookup(aliasObject = {}, aliases = [], tonRate = 
     .find((value) => value && !/^(?:0:|EQ|UQ)[A-Za-z0-9_:-]+$/.test(String(value))) || "";
   const requestedModelName = traits.model || "";
   const requestedBackdropName = traits.backdrop || "";
-  if (requestedCollectionName && requestedModelName && requestedBackdropName) {
+  const requestedSymbolName = traits.symbol || "";
+  if (requestedCollectionName && requestedModelName && requestedBackdropName && requestedSymbolName) {
     const [d1Floor, comboHistory] = await Promise.all([
-      d1GiftComboFloor(requestedCollectionName, requestedModelName, requestedBackdropName),
-      d1GiftComboHistory(requestedCollectionName, requestedModelName, requestedBackdropName),
+      d1GiftComboFloor(requestedCollectionName, requestedModelName, requestedBackdropName, requestedSymbolName),
+      d1GiftComboHistory(requestedCollectionName, requestedModelName, requestedBackdropName, requestedSymbolName),
     ]);
     const singleListingFloor = d1Floor && Number(d1Floor.floorTon || 0) > 0 && Number(d1Floor.listedCount || 0) <= 1;
     if (d1Floor && !singleListingFloor) {
@@ -6235,10 +7097,12 @@ async function thermosGiftFloorLookup(aliasObject = {}, aliases = [], tonRate = 
         collection: requestedCollectionName,
         model: requestedModelName,
         backdrop: requestedBackdropName,
+        symbol: requestedSymbolName,
         collectionKey: giftSnapshotKey(requestedCollectionName),
         collectionKeys: giftCollectionAliasKeys(requestedCollectionName),
         modelKey: giftSnapshotKey(requestedModelName),
         backdropKey: giftSnapshotKey(requestedBackdropName),
+        symbolKey: giftSnapshotKey(requestedSymbolName),
       }, coverage.collections || [], tonRate);
       if (estimate) {
         return estimatedComboFloorPayload({
@@ -6276,6 +7140,7 @@ async function thermosGiftFloorLookup(aliasObject = {}, aliases = [], tonRate = 
   const base = collectionRow ? normalizeThermosCollection(collectionRow, tonRate) : {};
   const modelName = traits.model || "";
   const backdropName = traits.backdrop || "";
+  const symbolName = traits.symbol || "";
   let modelFloor = null;
   let comboFloor = null;
   let comboHistory = [];
@@ -6283,18 +7148,19 @@ async function thermosGiftFloorLookup(aliasObject = {}, aliases = [], tonRate = 
     const modelPayload = await thermosGiftModelPayload(collectionName, { tonRate });
     modelFloor = modelPayload.models.find((model) => giftSnapshotKey(model.model) === giftSnapshotKey(modelName)) || null;
     if (modelPayload.models.length) appendGiftModelFloorSnapshots(collectionName, modelPayload).catch(() => null);
-    if (backdropName) {
+    if (backdropName && symbolName) {
       [comboFloor, comboHistory] = await Promise.all([
-        thermosGiftComboFloor(collectionName, modelName, backdropName, tonRate),
-        d1GiftComboHistory(collectionName, modelName, backdropName),
+        thermosGiftComboFloor(collectionName, modelName, backdropName, symbolName, tonRate),
+        d1GiftComboHistory(collectionName, modelName, backdropName, symbolName),
       ]);
     }
   }
-  if (modelName && backdropName && !comboFloor) {
+  if (modelName && backdropName && symbolName && !comboFloor) {
     const coverage = await d1GiftComboFloors([{
       collection: collectionName,
       model: modelName,
       backdrop: backdropName,
+      symbol: symbolName,
     }]);
     const estimate = estimatedGiftComboFloorFromRegistry({
       ...(giftFloorPairFromItem({ collection: collectionName, attributes: aliasObject.attributes || [] }) || {}),
@@ -6305,13 +7171,15 @@ async function thermosGiftFloorLookup(aliasObject = {}, aliases = [], tonRate = 
       collectionKeys: giftCollectionAliasKeys(collectionName),
       modelKey: giftSnapshotKey(modelName),
       backdropKey: giftSnapshotKey(backdropName),
+      symbolKey: giftSnapshotKey(symbolName),
     }, coverage.collections || [], tonRate);
     if (estimate) {
-      return estimatedComboFloorPayload({
+      return estimatedComboFloorPayloadWithHistory({
         estimate,
         collectionName,
         modelName,
         backdropName,
+        symbolName,
         tonRate,
         comboHistory,
       });
@@ -6338,6 +7206,7 @@ async function thermosGiftFloorLookup(aliasObject = {}, aliases = [], tonRate = 
       collection: collectionName,
       model: modelName,
       backdrop: backdropName,
+      symbol: symbolName,
     }]);
     const estimate = estimatedGiftComboFloorFromRegistry({
       ...(giftFloorPairFromItem({ collection: collectionName, attributes: aliasObject.attributes || [] }) || {}),
@@ -6348,13 +7217,15 @@ async function thermosGiftFloorLookup(aliasObject = {}, aliases = [], tonRate = 
       collectionKeys: giftCollectionAliasKeys(collectionName),
       modelKey: giftSnapshotKey(modelName),
       backdropKey: giftSnapshotKey(backdropName),
+      symbolKey: giftSnapshotKey(symbolName),
     }, coverage.collections || [], tonRate);
     if (estimate) {
-      return estimatedComboFloorPayload({
+      return estimatedComboFloorPayloadWithHistory({
         estimate,
         collectionName,
         modelName,
         backdropName,
+        symbolName,
         tonRate,
         comboHistory,
         ignoredFloor: comboFloor,
@@ -6518,6 +7389,17 @@ async function walletNftsByType(address) {
       normalized.categorySource = match?.categorySource || "inferred";
       normalized.collectionId = match?.collectionId || "";
       normalized.characterId = match?.characterId || "";
+      normalized.characterName = match?.characterName || normalized.characterName || normalized.name || "";
+      // Registry records classify a sticker and can carry representative media.
+      // They must never replace the NFT's own preview/animation: one broad
+      // name match can otherwise give several different packs the same video.
+      const hasNativeMedia = Boolean(normalized.image || normalized.animatedImage || normalized.animationUrl);
+      if (!hasNativeMedia && match?.animationUrl) {
+        normalized.animatedImage = match.animationUrl;
+        normalized.animationUrl = match.animationUrl;
+        normalized.mediaType = match.mediaType || mediaKind(match.animationUrl);
+        normalized.image = match.image || normalized.image;
+      }
       const fastFloor = stickerSnapshotFloor(
         [normalized.collectionAddress, normalized.collection, normalized.name, normalized.brand],
         tonRate,
@@ -6559,7 +7441,7 @@ async function walletNftsByType(address) {
 }
 
 async function getCollectibles(address) {
-  const key = `${canonicalAddressKey(address)}:wallet-v5`;
+  const key = `${canonicalAddressKey(address)}:wallet-v6-priced`;
   const cached = cachedMapValue(collectiblesCache, key);
   if (cached) return cached;
   const tonRate = await tonUsdRate();
@@ -6638,7 +7520,7 @@ async function getCollectibles(address) {
 }
 
 function getCollectiblesShared(address) {
-  const key = `${canonicalAddressKey(address)}:wallet-v5`;
+  const key = `${canonicalAddressKey(address)}:wallet-v6-priced`;
   const cached = cachedMapValue(collectiblesCache, key);
   if (cached) return Promise.resolve(cached);
   if (collectiblesRequests.has(key)) return collectiblesRequests.get(key);
@@ -6659,7 +7541,7 @@ async function collectibleFloor(collection) {
   const traitKey = [requestedTraits.model, requestedTraits.backdrop, requestedTraits.symbol]
     .map(giftSnapshotKey)
     .join(":");
-  const key = `${aliases.map((value) => String(value).toLowerCase()).join("|")}${periodKey}|${traitKey}`;
+  const key = `kind:${String(aliasObject.kind || "collectible").toLowerCase()}|${aliases.map((value) => String(value).toLowerCase()).join("|")}${periodKey}|${traitKey}`;
   let tonRate = await tonUsdRate();
   const cached = cachedMapValue(collectibleFloorCache, key);
   if (cached) {
@@ -6690,7 +7572,6 @@ async function collectibleFloor(collection) {
   const includes = (...values) => collectibleAliasIncludes(aliases, ...values);
   const chainAddress = aliases.find((value) => /^(?:0:|EQ|UQ)[A-Za-z0-9_:-]+$/.test(String(value || ""))) || "";
   const collectionAddress = chainAddress || aliases[0] || "";
-  const seeTraits = requestedTraits;
   const giftCandidates = [];
   const addGiftCandidate = (payload = {}, source = "") => {
     const candidate = withSource(payload, source);
@@ -6732,101 +7613,6 @@ async function collectibleFloor(collection) {
       console.warn(`[Thermos] gift floor unavailable for ${aliases.join(" | ")}: ${error.message}`);
       return setCachedMapValue(collectibleFloorCache, key, withSource({ ...zeroFloor(), source: "thermos-missing" }, "thermos-missing"), 60 * 1000);
     }
-    try {
-      const xgiftName = [aliasObject.item, aliasObject.title, aliasObject.name, ...aliases]
-        .find((value) => value && !/^(?:0:|EQ|UQ|0:)[A-Za-z0-9_:-]+$/.test(String(value))) || "";
-      const xgift = await xgiftBridge("gift-floor", {
-        name: xgiftName,
-        collection: xgiftName,
-        period: aliasObject.period || "7d",
-      }, 7000);
-      if (xgift?.ok && Number(xgift.floorTon || 0) > 0) {
-        const xgiftPayload = {
-          ...zeroFloor(),
-          floorTon: Number(xgift.floorTon || 0),
-          floorUsd: Number(xgift.floorUsd || 0),
-          volume24hTon: Number(xgift.volume24hTon || 0),
-          volume24hUsd: Number(xgift.volume24hUsd || 0),
-          change24hPct: Number(xgift.change24hPct || 0),
-          periodChangePct: Number(xgift.periodChangePct || 0),
-          sales24h: Number(xgift.sales24h || 0),
-          sales30d: Number(xgift.sales30d || 0),
-          totalSupply: Number(xgift.totalSupply || 0),
-          opened: Number(xgift.opened || 0),
-          onchain: Number(xgift.onchain || 0),
-          holders: Number(xgift.holders || 0),
-          listedCount: Number(xgift.listedCount || 0),
-          athFloorUsd: Number(xgift.athFloorUsd || 0),
-          marketUpdatedAt: xgift.marketUpdatedAt || "",
-          canonicalName: xgift.canonicalName || xgiftName,
-          giftId: xgift.giftId || "",
-          marketUrl: xgift.marketUrl || "",
-          graphImageUrl: xgift.graphImageUrl || "",
-          marketPlatform: "xGift",
-          source: "xgift",
-          tonUsdRate: Number(xgift.tonUsdRate || tonRate),
-          recentSales: Array.isArray(xgift.recentSales) ? xgift.recentSales : [],
-        };
-        await appendGiftFloorSnapshot(xgiftPayload.canonicalName || xgiftName, xgiftPayload);
-        let floorHistory = Array.isArray(xgift.floorHistory) ? xgift.floorHistory : [];
-        let floorHistorySource = floorHistoryMatchesCurrentFloor(floorHistory, Number(xgift.floorTon || 0), Number(xgift.floorUsd || 0)) ? "xgift-json" : "";
-        if (floorHistory.length >= 2 && !floorHistorySource) floorHistory = [];
-        if (floorHistory.length < 2) {
-          floorHistory = await seePublicFloorHistory(xgift.canonicalName || xgiftName, seeTraits.model || "", tonRate, aliasObject.period || "7d");
-          if (floorHistoryMatchesCurrentFloor(floorHistory, Number(xgift.floorTon || 0), Number(xgift.floorUsd || 0))) {
-            floorHistorySource = "see.tg-graphics";
-          } else {
-            if (floorHistory.length >= 2) console.warn(`[see.tg] rejected mismatched gift graph for ${xgiftName}: latest=${floorHistory[floorHistory.length - 1]?.priceTon || 0} TON current=${xgift.floorTon || 0} TON`);
-            floorHistory = [];
-            floorHistorySource = "";
-          }
-        }
-        if (floorHistory.length < 2) {
-          floorHistory = await giftSnapshotHistory(xgiftPayload.canonicalName || xgiftName, aliasObject.period || "7d");
-          floorHistorySource = floorHistory.length >= 2 ? "tontrack-snapshots" : "";
-        }
-        return setCachedMapValue(collectibleFloorCache, key, {
-          ...xgiftPayload,
-          floorHistory,
-          floorHistorySource,
-        }, 3 * 60 * 1000);
-      }
-    } catch (error) {
-      console.warn(`[xGift] floor unavailable for ${aliases.join(" | ")}: ${error.message}`);
-    }
-    try {
-      const seeGift = await seeGiftContext({
-        aliases,
-        itemName: aliasObject.item || "",
-        collectionName: aliasObject.name || "",
-        attributes: aliasObject.attributes || [],
-        tgauth: aliasObject.tgauth || "",
-      });
-      if (seeGift?.gift_id || seeGift?.slug) {
-        const [seeMarketResult, seeChartResult] = await Promise.allSettled([
-          seeTgJson("/api/market/floors", {
-            gift_id: seeGift.gift_id || "",
-            slug: seeGift.slug || "",
-            model_name: seeGift.model_name || seeTraits.model || "",
-            backdrop_name: seeGift.backdrop_name || seeTraits.backdrop || "",
-          }, aliasObject.tgauth || ""),
-          seeTgJson("/api/graphics/floors", {
-            gift_id: seeGift.gift_id || "",
-            slug: seeGift.slug || "",
-            model_name: seeGift.model_name || seeTraits.model || "",
-          }, aliasObject.tgauth || ""),
-        ]);
-        const seeFloor = seeMarketResult.status === "fulfilled" ? seeMarketFloorPayload(seeMarketResult.value, tonRate) : null;
-        const seeHistory = seeChartResult.status === "fulfilled" ? seeFloorHistoryPoints(seeChartResult.value, tonRate) : [];
-        if (seeFloor) {
-          addGiftCandidate({
-            ...seeFloor,
-            floorHistory: seeHistory,
-            listedCount: Math.max(Number(seeFloor.listedCount || 0), Number(seeGift.listed_count || 0)),
-          }, "see.tg");
-        }
-      }
-    } catch {}
   }
   if (!isGiftLookup) {
     try {
@@ -6849,6 +7635,9 @@ async function collectibleFloor(collection) {
       const targetCollection = characterMatch?.item || foundCollection;
       const targetCharacter = characterMatch?.character || null;
       if (targetCollection) {
+        const characterVolume24hTon = Number(targetCharacter?.volume24h?.volume?.ton || targetCharacter?.["24h"]?.volume?.ton || 0);
+        const characterVolume24hUsd = Number(targetCharacter?.volume24h?.volume?.usd || targetCharacter?.["24h"]?.volume?.usd || 0);
+        const characterSales24h = Number(targetCharacter?.volume24h?.trades || targetCharacter?.["24h"]?.trades || 0);
         if (targetCharacter?.id) {
           const characterStats = await thermosStickerCharacterStats(targetCollection.id);
           const row = characterStats.find((entry) => Number(entry.character_id) === Number(targetCharacter.id));
@@ -6859,10 +7648,10 @@ async function collectibleFloor(collection) {
             return setCachedMapValue(collectibleFloorCache, key, {
               floorTon: thermosFloorTon,
               floorUsd: thermosFloorTon * tonRate,
-              volume24hTon: 0,
-              volume24hUsd: 0,
+              volume24hTon: characterVolume24hTon,
+              volume24hUsd: characterVolume24hUsd,
               change24hPct: 0,
-              sales24h: Number(row?.stats?.count || 0),
+              sales24h: characterSales24h,
               totalSupply: Number(targetCharacter.originalSupply || targetCharacter.supply || 0),
               holders: 0,
               listedCount: Number(row?.stats?.count || 0),
@@ -6887,13 +7676,13 @@ async function collectibleFloor(collection) {
             return setCachedMapValue(collectibleFloorCache, key, {
               floorTon,
               floorUsd,
-              volume24hTon: 0,
-              volume24hUsd: 0,
+              volume24hTon: characterVolume24hTon,
+              volume24hUsd: characterVolume24hUsd,
               change24hPct: 0,
-              sales24h: 0,
+              sales24h: characterSales24h,
               totalSupply: Number(targetCharacter.originalSupply || targetCharacter.supply || 0),
               holders: 0,
-              listedCount: toolsFloor.platforms.length,
+              listedCount: 0,
               athFloorUsd: null,
               initUsd: init?.floorUsd || 0,
               initTon: init?.floorTon || 0,
@@ -6938,10 +7727,10 @@ async function collectibleFloor(collection) {
           return setCachedMapValue(collectibleFloorCache, key, {
             floorTon: floor.price.floorTon,
             floorUsd: floor.price.floorUsd,
-            volume24hTon: 0,
-            volume24hUsd: 0,
+            volume24hTon: characterVolume24hTon,
+            volume24hUsd: characterVolume24hUsd,
             change24hPct: 0,
-            sales24h: 0,
+            sales24h: characterSales24h,
             totalSupply: characters.reduce((sum, character) => sum + Number(character.originalSupply || character.supply || 0), 0),
             holders: 0,
             listedCount: priced.length,
@@ -6978,7 +7767,7 @@ async function collectibleFloor(collection) {
       }, "thermos");
     }
   } catch {}
-  if (chainAddress && !isGiftLookup) {
+  if (chainAddress && !isGiftLookup && !isStickerLookup) {
     try {
       const [collectionResult, statsResult] = await Promise.allSettled([
         marketJson(`https://api.tgmrkt.io/api/v1/collections/${encodeURIComponent(chainAddress)}`, {}, 5000),
@@ -7065,7 +7854,7 @@ async function collectibleFloor(collection) {
       }
     } catch {}
   }
-  try {
+  if (!isStickerLookup) try {
     const mrktCollections = await marketJson("https://api.tgmrkt.io/api/v1/gifts/collections", {}, 7000);
     const found = (mrktCollections || []).find((item) =>
       matches(item.title, item.name)
@@ -7133,6 +7922,68 @@ function marketSourceLabel(source = "") {
   if (value.includes("goodies")) return "Goodies";
   if (value.includes("fuse")) return "Fuse";
   return String(source || "");
+}
+
+async function stickerDetailIntel({ collectionId = "", characterId = "", characterName = "" } = {}) {
+  const collectionKey = String(collectionId || "").trim();
+  if (!collectionKey) return {};
+  const [detailsResult, marketResult] = await Promise.allSettled([
+    thermosStickerCollectionDetails(collectionKey),
+    stickersToolsMarketStats(),
+  ]);
+  const details = detailsResult.status === "fulfilled" ? detailsResult.value : {};
+  const collection = details?.collection || {};
+  const characters = Array.isArray(details?.characters) ? details.characters : [];
+  const wantedName = normalizeStickerKey(characterName);
+  const character = characters.find((item) => String(item?.id || "") === String(characterId || ""))
+    || characters.find((item) => wantedName && normalizeStickerKey(item?.name) === wantedName)
+    || null;
+  const collections = marketResult.status === "fulfilled" ? marketResult.value : {};
+  const marketCollection = collections?.[collectionKey] || null;
+  const marketSticker = marketCollection?.stickers?.[String(character?.id || characterId || "")] || null;
+  const supply = marketSticker?.supply || {};
+  const current = marketSticker?.current || {};
+  const day = marketSticker?.["24h"] || {};
+  const week = marketSticker?.["7d"] || {};
+  const month = marketSticker?.["30d"] || {};
+  const media = Array.isArray(collection?.media) ? collection.media : [];
+  const emojiSet = [...new Set((character?.stickers || []).flatMap((sticker) => Array.isArray(sticker?.emojis) ? sticker.emojis : []))].slice(0, 16);
+  return {
+    about: {
+      creator: collection?.creator?.name || "",
+      description: character?.description || collection?.description || "",
+      official: Array.isArray(collection?.badges) && collection.badges.includes("official"),
+      socialLinks: Array.isArray(collection?.creator?.social_links) ? collection.creator.social_links : [],
+      logoUrl: String(media.find((item) => item?.type === "logo")?.url || ""),
+      coverUrl: String(media.find((item) => item?.type === "cover")?.url || ""),
+      emojiSet,
+      stickerCount: Array.isArray(character?.stickers) ? character.stickers.length : 0,
+    },
+    supply: {
+      initial: Number(supply.initial || 0),
+      current: Number(supply.current || character?.supply || 0),
+      burned: Number(supply.burned || 0),
+      sold: Number(supply.sold || 0),
+      remaining: Number(supply.left || 0),
+    },
+    market: {
+      totalTrades: Number(marketSticker?.trades || 0),
+      uniqueTraders: Number(marketSticker?.unique_trades || 0),
+      medianTon: Number(current?.price?.median?.ton || 0),
+      medianUsd: Number(current?.price?.median?.usd || 0),
+      volume24hTon: Number(day?.volume?.ton || 0),
+      volume7dTon: Number(week?.volume?.ton || 0),
+      volume30dTon: Number(month?.volume?.ton || 0),
+      trades24h: Number(day?.trades || 0),
+      trades7d: Number(week?.trades || 0),
+      trades30d: Number(month?.trades || 0),
+      initialPriceUsd: Number(marketSticker?.init_price_usd || 0),
+      initialPriceTon: Number(marketSticker?.init_price_ton || 0),
+      releaseAt: String(marketSticker?.release_time || marketCollection?.release_time || ""),
+      issuer: String(marketSticker?.issuer || marketCollection?.issuer || ""),
+      royaltiesTon: Number(current?.royalties?.ton || 0),
+    },
+  };
 }
 
 function normalizeCollectibleAlias(value = "") {
@@ -7483,117 +8334,6 @@ async function seeGiftContext({ aliases = [], itemName = "", collectionName = ""
     .sort((a, b) => b.score - a.score)[0]?.row || null;
 }
 
-function seeMarketFloorPayload(payload, tonRate = 0) {
-  const objects = walkObjects(payload);
-  const candidates = objects.map((object) => {
-    const floorTon = pickPositive(
-      numberAtPath(object, "floor.ton"),
-      numberAtPath(object, "ton"),
-      nanoToTon(numberAtPath(object, "nanoton")),
-      nanoToTon(numberAtPath(object, "floor.nanoton"))
-    );
-    const floorUsd = pickPositive(
-      numberAtPath(object, "floor.usd"),
-      numberAtPath(object, "usd"),
-      floorTon > 0 && tonRate > 0 ? floorTon * tonRate : 0
-    );
-    if (floorTon <= 0 && floorUsd <= 0) return null;
-    return {
-      floorTon: floorTon || (tonRate > 0 ? floorUsd / tonRate : 0),
-      floorUsd: floorUsd || (floorTon * tonRate),
-      marketPlatform: marketSourceLabel(textAtPath(object, "market") || textAtPath(object, "marketplace") || textAtPath(object, "source") || "see.tg"),
-      marketUrl: textAtPath(object, "url") || textAtPath(object, "market_url"),
-      listedCount: Math.max(0, numberAtPath(object, "listed_count"), numberAtPath(object, "count")),
-    };
-  }).filter(Boolean);
-  return candidates.sort((a, b) => a.floorTon - b.floorTon)[0] || null;
-}
-
-
-function seeFloorHistoryPoints(payload, tonRate = 0, preferredRange = "") {
-  const floorRoot = payload?.floors && typeof payload.floors === "object" ? payload.floors : null;
-  if (floorRoot) {
-    const rangeOrder = [preferredRange, "7d", "30d", "24h", "12h"].filter((value, index, list) => value && list.indexOf(value) === index);
-    for (const range of rangeOrder) {
-      const rows = Array.isArray(floorRoot[range]) ? floorRoot[range] : [];
-      const points = rows.map((item) => {
-        const timestamp = new Date(item?.date || item?.timestamp || item?.time || 0).getTime();
-        if (!Number.isFinite(timestamp)) return null;
-        const marketRows = Object.entries(item || {})
-          .filter(([key, value]) => !["date", "timestamp", "time", "average"].includes(key) && value && typeof value === "object")
-          .map(([, value]) => ({
-            ton: Number(value.ton || 0),
-            usd: Number(value.usd || 0),
-          }))
-          .filter((value) => value.ton > 0 || value.usd > 0);
-        const chosen = marketRows.sort((a, b) => {
-          const aTon = a.ton || (tonRate > 0 ? a.usd / tonRate : Number.MAX_SAFE_INTEGER);
-          const bTon = b.ton || (tonRate > 0 ? b.usd / tonRate : Number.MAX_SAFE_INTEGER);
-          return aTon - bTon;
-        })[0] || item.average || null;
-        const ton = Number(chosen?.ton || 0);
-        const usd = Number(chosen?.usd || 0);
-        const priceUsd = usd || (ton > 0 && tonRate > 0 ? ton * tonRate : 0);
-        if (!(priceUsd > 0)) return null;
-        return {
-          timestamp,
-          priceTon: ton || (tonRate > 0 ? priceUsd / tonRate : 0),
-          priceUsd,
-        };
-      }).filter(Boolean);
-      if (points.length >= 2) return points.sort((a, b) => a.timestamp - b.timestamp);
-    }
-  }
-  const arrays = walkObjects(payload).filter(Array.isArray);
-  for (const array of arrays) {
-    const points = array.map((item) => {
-      if (!item || typeof item !== "object") return null;
-      const rawTimestamp = item.timestamp || item.time || item.date || item.seen_at;
-      const timestamp = Number(rawTimestamp);
-      const parsedTimestamp = Number.isFinite(timestamp) ? timestamp : new Date(rawTimestamp || 0).getTime();
-      const ton = pickPositive(numberAtPath(item, "ton"), numberAtPath(item, "floor_ton"), nanoToTon(numberAtPath(item, "nanoton")));
-      const usd = pickPositive(numberAtPath(item, "usd"), numberAtPath(item, "floor_usd"), ton > 0 ? ton * tonRate : 0);
-      const priceUsd = usd || (ton * tonRate);
-      if (!Number.isFinite(parsedTimestamp) || !(priceUsd > 0)) return null;
-      return {
-        timestamp: parsedTimestamp > 1e12 ? parsedTimestamp : parsedTimestamp * 1000,
-        priceTon: ton || (tonRate > 0 ? priceUsd / tonRate : 0),
-        priceUsd,
-      };
-    }).filter(Boolean);
-    if (points.length >= 2) return points.sort((a, b) => a.timestamp - b.timestamp);
-  }
-  return [];
-}
-
-async function seePublicFloorHistory(title = "", modelName = "", tonRate = 0, range = "7d") {
-  const cleanTitle = String(title || "").trim();
-  if (!cleanTitle) return [];
-  try {
-    const payload = await seeTgJson("/api/graphics/floors", {
-      title: cleanTitle,
-      model_name: modelName || "",
-    }, "", 3500);
-    return seeFloorHistoryPoints(payload, tonRate, range);
-  } catch {
-    return [];
-  }
-}
-
-function floorHistoryMatchesCurrentFloor(points = [], currentFloorTon = 0, currentFloorUsd = 0, tolerance = 0.35) {
-  if (!Array.isArray(points) || points.length < 2) return false;
-  const latest = points[points.length - 1] || {};
-  const latestTon = Number(latest.priceTon || 0);
-  const latestUsd = Number(latest.priceUsd || 0);
-  if (currentFloorTon > 0 && latestTon > 0) {
-    return Math.abs(latestTon - currentFloorTon) / currentFloorTon <= tolerance;
-  }
-  if (currentFloorUsd > 0 && latestUsd > 0) {
-    return Math.abs(latestUsd - currentFloorUsd) / currentFloorUsd <= tolerance;
-  }
-  return false;
-}
-
 function xgiftTonValue(...values) {
   for (const value of values) {
     const number = Number(value);
@@ -7601,174 +8341,6 @@ function xgiftTonValue(...values) {
     return number > 1e6 ? number / 1e9 : number;
   }
   return 0;
-}
-
-function xgiftGiftRows(payload) {
-  return walkObjects(payload)
-    .filter((item) => item && typeof item === "object")
-    .filter((item) =>
-      item.slug
-      || item.giftSlug
-      || item.modelName
-      || item.model_name
-      || item.backdropName
-      || item.backdrop_name
-      || item.symbolName
-      || item.symbol_name
-    );
-}
-
-function scoreXgiftGiftRow(row, aliases = [], traits = {}) {
-  const nameScore = collectibleAliasMatches(aliases, row?.title, row?.name, row?.collectionName, row?.collection_name, row?.slug) ? 5
-    : collectibleAliasIncludes(aliases, row?.title, row?.name, row?.collectionName, row?.collection_name, row?.slug) ? 3 : 0;
-  const modelScore = traits.model && normalizeCollectibleAlias(row?.modelName || row?.model_name) === normalizeCollectibleAlias(traits.model) ? 3 : 0;
-  const backdropScore = traits.backdrop && normalizeCollectibleAlias(row?.backdropName || row?.backdrop_name) === normalizeCollectibleAlias(traits.backdrop) ? 2 : 0;
-  const symbolScore = traits.symbol && normalizeCollectibleAlias(row?.symbolName || row?.symbol_name || row?.pattern_name) === normalizeCollectibleAlias(traits.symbol) ? 1 : 0;
-  return nameScore + modelScore + backdropScore + symbolScore;
-}
-
-function xgiftBestGift(payload, aliases = [], traits = {}) {
-  return xgiftGiftRows(payload)
-    .map((row) => ({ row, score: scoreXgiftGiftRow(row, aliases, traits) }))
-    .sort((a, b) => b.score - a.score)[0]?.row || null;
-}
-
-function xgiftFloorPayload(payload, tonRate = 0) {
-  const objects = walkObjects(payload);
-  const candidates = objects.map((object) => {
-    const floorTon = xgiftTonValue(
-      object?.floorPriceTon,
-      object?.floor_price_ton,
-      object?.estimatedPriceTon,
-      object?.simpleEstimation?.price,
-      object?.floorPrice,
-      object?.floor_price,
-      object?.priceTon,
-      object?.price_ton,
-      object?.floor?.ton,
-      object?.floor?.priceTon,
-      object?.floor?.price,
-      object?.stats?.floorPrice,
-      object?.stats?.floor_price,
-    );
-    const floorUsd = pickPositive(
-      Number(object?.estimatedPriceUsd || 0),
-      Number(object?.priceUsd || 0),
-      Number(object?.price_usd || 0),
-      Number(object?.floorUsd || 0),
-      Number(object?.floor_usd || 0),
-      Number(object?.floor?.usd || 0),
-      floorTon > 0 && tonRate > 0 ? floorTon * tonRate : 0
-    );
-    if (!(floorTon > 0 || floorUsd > 0)) return null;
-    return {
-      floorTon: floorTon || (tonRate > 0 ? floorUsd / tonRate : 0),
-      floorUsd: floorUsd || (floorTon * tonRate),
-      volume24hTon: xgiftTonValue(object?.volume24hTon, object?.volume_24h_ton, object?.stats?.volume24h, object?.stats?.volume_24h, object?.volume24h, object?.volume_24h),
-      volume24hUsd: pickPositive(
-        Number(object?.volume24hUsd || 0),
-        Number(object?.volume_24h_usd || 0),
-        Number(object?.stats?.volume24hUsd || 0),
-        0
-      ),
-      change24hPct: Number(object?.change24hPct ?? object?.change_24h_pct ?? object?.change24h ?? object?.change_24h ?? object?.stats?.change24h ?? 0),
-      sales24h: Math.max(0, Number(object?.sales24h || object?.sales_24h || object?.stats?.sales24h || object?.stats?.sales_24h || 0)),
-      totalSupply: Math.max(0, Number(object?.totalSupply || object?.supply || object?.itemsCount || object?.stats?.count || 0)),
-      holders: Math.max(0, Number(object?.holders || object?.ownersCount || 0)),
-      listedCount: Math.max(0, Number(object?.listedCount || object?.listed_count || object?.count || 0)),
-      athFloorUsd: pickPositive(
-        Number(object?.athFloorUsd || 0),
-        Number(object?.allTimeHighUsd || 0),
-        Number(object?.estimatedPriceUsd || 0)
-      ),
-      marketPlatform: marketSourceLabel(object?.market || object?.marketplace || object?.source || "xgift"),
-      marketUrl: String(object?.url || object?.marketUrl || "").trim(),
-    };
-  }).filter(Boolean);
-  return candidates.sort((a, b) => Number(a.floorTon || 0) - Number(b.floorTon || 0))[0] || null;
-}
-
-function xgiftFloorHistoryPoints(payload, tonRate = 0) {
-  const arrays = walkObjects(payload).filter(Array.isArray);
-  for (const array of arrays) {
-    const points = array.map((item) => {
-      if (!item || typeof item !== "object") return null;
-      const timestamp = Number(item.timestamp || item.time || item.date || item.createdAt || item.created_at || item.at);
-      const ton = xgiftTonValue(
-        item?.floorPriceTon,
-        item?.floor_price_ton,
-        item?.floorPrice,
-        item?.floor_price,
-        item?.priceTon,
-        item?.price_ton,
-        item?.price,
-        item?.ton
-      );
-      const usd = pickPositive(
-        Number(item?.floorPriceUsd || 0),
-        Number(item?.floor_price_usd || 0),
-        Number(item?.priceUsd || 0),
-        Number(item?.price_usd || 0),
-        ton > 0 && tonRate > 0 ? ton * tonRate : 0
-      );
-      if (!Number.isFinite(timestamp) || !(usd > 0 || ton > 0)) return null;
-      return {
-        timestamp: timestamp > 1e12 ? timestamp : timestamp * 1000,
-        priceTon: ton || (tonRate > 0 ? usd / tonRate : 0),
-        priceUsd: usd || (ton * tonRate),
-      };
-    }).filter(Boolean);
-    if (points.length >= 2) return points.sort((a, b) => a.timestamp - b.timestamp);
-  }
-  return [];
-}
-
-function xgiftSalesRows(payload, tonRate = 0, traitFilter = null) {
-  const matchesTraits = (row = {}) => {
-    if (!traitFilter) return true;
-    const modelOk = !traitFilter.model || normalizeCollectibleAlias(row?.modelName || row?.model_name) === normalizeCollectibleAlias(traitFilter.model);
-    const backdropOk = !traitFilter.backdrop || normalizeCollectibleAlias(row?.backdropName || row?.backdrop_name) === normalizeCollectibleAlias(traitFilter.backdrop);
-    const symbolOk = !traitFilter.symbol || normalizeCollectibleAlias(row?.symbolName || row?.symbol_name || row?.pattern_name) === normalizeCollectibleAlias(traitFilter.symbol);
-    return modelOk && backdropOk && symbolOk;
-  };
-  return walkObjects(payload)
-    .filter((item) => item && typeof item === "object")
-    .filter((item) => matchesTraits(item))
-    .map((item) => {
-      const priceTon = xgiftTonValue(
-        item?.salePriceTon,
-        item?.sale_price_ton,
-        item?.priceTon,
-        item?.price_ton,
-        item?.price,
-        item?.salePrice,
-        item?.sale_price
-      );
-      const priceUsd = pickPositive(
-        Number(item?.salePriceUsd || 0),
-        Number(item?.sale_price_usd || 0),
-        Number(item?.priceUsd || 0),
-        Number(item?.price_usd || 0),
-        priceTon > 0 && tonRate > 0 ? priceTon * tonRate : 0
-      );
-      const timestamp = item?.soldAt || item?.saleDate || item?.date || item?.createdAt || item?.created_at || item?.timestamp;
-      if (!(priceTon > 0 || priceUsd > 0) || !timestamp) return null;
-      return {
-        priceTon: priceTon || (tonRate > 0 ? priceUsd / tonRate : 0),
-        priceUsd: priceUsd || (priceTon * tonRate),
-        date: timestamp,
-        marketplace: marketSourceLabel(item?.market || item?.marketplace || item?.source || "xgift"),
-        buyer: item?.buyer || item?.buyerAddress || "",
-        seller: item?.seller || item?.sellerAddress || "",
-        mint: Number(item?.number || item?.mint || item?.giftNumber || 0),
-        model: item?.modelName || item?.model_name || "",
-        backdrop: item?.backdropName || item?.backdrop_name || "",
-        symbol: item?.symbolName || item?.symbol_name || item?.pattern_name || "",
-      };
-    })
-    .filter(Boolean)
-    .sort((a, b) => new Date(b.date || 0).getTime() - new Date(a.date || 0).getTime())
-    .slice(0, 5);
 }
 
 function seeHistorySales(payload, tonRate = 0, traits = {}) {
@@ -7818,7 +8390,7 @@ async function collectibleSales(collection, traits = "") {
   const collectionKey = typeof collection === "object"
     ? [collection.address, collection.name, collection.item, collection.title].filter(Boolean).join("|")
     : String(collection || "");
-  const key = `${collectionKey}:${traits}`;
+  const key = `kind:${String(collectionObject.kind || "collectible").toLowerCase()}:${collectionKey}:${traits}`;
   const cached = cachedMapValue(collectibleSalesCache, key);
   if (cached) return cached;
   const tonRate = await tonUsdRate();
@@ -7839,6 +8411,19 @@ async function collectibleSales(collection, traits = "") {
     return modelOk && backdropOk && symbolOk;
   };
   const exactCollectionNames = giftCollectionNameVariants(collectionObject, aliases);
+  if (collectionObject.kind === "gift" && rawTraitFilter?.model && rawTraitFilter?.backdrop) {
+    const registryRows = await d1GiftSales(
+      exactCollectionNames[0] || collectionObject.name || collectionObject.item || "",
+      rawTraitFilter.model,
+      rawTraitFilter.backdrop,
+      rawTraitFilter.symbol,
+      10,
+    );
+    registryRows.forEach((sale) => {
+      sale.priceUsd = Number(sale.priceTon || 0) * tonRate;
+    });
+    return setCachedMapValue(collectibleSalesCache, key, registryRows, registryRows.length ? 5 * 60 * 1000 : 60 * 1000);
+  }
   if (rawTraitFilter?.model && rawTraitFilter?.backdrop) {
     const settled = await Promise.allSettled([
       tonnelExactComboSales(exactCollectionNames, rawTraitFilter, tonRate),
@@ -7875,7 +8460,7 @@ async function collectibleSales(collection, traits = "") {
       }
     } catch {}
   }
-  try {
+  if (collectionObject.kind !== "sticker") try {
     const feed = await marketJson("https://api.tgmrkt.io/api/v1/feed", { method: "POST", body: { count: 40, cursor: "" } }, 7000);
     const rows = (feed.items || [])
       .filter((item) => String(item.type || "").toLowerCase() === "sale")
@@ -7929,6 +8514,59 @@ async function accountNftHistory(address) {
   } catch (error) {
     return setCachedMapValue(nftHistoryCache, key, [], 60 * 1000);
   }
+}
+
+function normalizeNftActivityRow(row = {}, walletAddress = "") {
+  const timestamp = Number(row.utime || row.timestamp || row.time || row.created_at || 0);
+  const source = row.source || row.from || row.sender || row.old_owner || row.prev_owner || row.previous_owner || {};
+  const destination = row.destination || row.to || row.recipient || row.new_owner || row.owner || {};
+  const sourceAddress = typeof source === "string" ? source : (source.address || source.account || source.wallet || "");
+  const destinationAddress = typeof destination === "string" ? destination : (destination.address || destination.account || destination.wallet || "");
+  const type = String(row.type || row.action || row.event_type || "transfer");
+  return {
+    type: /sale|purchase|auction/i.test(type) ? "sale" : "transfer",
+    timestamp: timestamp > 1000000000000 ? timestamp : (timestamp > 0 ? timestamp * 1000 : 0),
+    sourceAddress,
+    destinationAddress,
+    direction: sameAddress(destinationAddress, walletAddress) ? "in" : (sameAddress(sourceAddress, walletAddress) ? "out" : ""),
+    txHash: row.transaction_hash || row.tx_hash || row.hash || row.trace_id || "",
+  };
+}
+
+async function nftItemActivity(nftAddress = "", walletAddress = "") {
+  if (!nftAddress) return { source: "", transfers: [], transferCount: 0, lastActivityAt: "", firstSeenAt: "" };
+  const key = `item:${jettonAddressKey(nftAddress)}:${canonicalAddressKey(walletAddress)}:activity-v1`;
+  const cached = cachedMapValue(nftHistoryCache, key);
+  if (cached) return cached;
+  const rows = [];
+  try {
+    const params = new URLSearchParams({ address: nftAddress, limit: "100", offset: "0" });
+    const payload = await tonCenterJson(`/nft/transfers?${params}`, 4500);
+    const events = Array.isArray(payload?.nft_transfers) ? payload.nft_transfers
+      : Array.isArray(payload?.transfers) ? payload.transfers
+        : Array.isArray(payload) ? payload : [];
+    rows.push(...events.map((row) => normalizeNftActivityRow(row, walletAddress)));
+  } catch {
+    // Keep wallet-history fallback below.
+  }
+  if (!rows.length && walletAddress) {
+    const operations = await accountNftHistory(walletAddress);
+    rows.push(...operations
+      .filter((operation) => sameAddress(operation?.item?.address || operation?.nft?.address || operation?.address, nftAddress))
+      .map((operation) => normalizeNftActivityRow(operation, walletAddress)));
+  }
+  const transfers = rows
+    .filter((row) => row.timestamp > 0)
+    .sort((a, b) => b.timestamp - a.timestamp)
+    .slice(0, 10);
+  const value = {
+    source: rows.length ? "indexed-nft-events" : "",
+    transfers,
+    transferCount: transfers.length,
+    lastActivityAt: transfers[0]?.timestamp ? new Date(transfers[0].timestamp).toISOString() : "",
+    firstSeenAt: transfers[transfers.length - 1]?.timestamp ? new Date(transfers[transfers.length - 1].timestamp).toISOString() : "",
+  };
+  return setCachedMapValue(nftHistoryCache, key, value, rows.length ? 5 * 60 * 1000 : 60 * 1000);
 }
 
 function attrPercent(attr = {}) {
@@ -8024,7 +8662,7 @@ function lastSaleFloorFromSale(sale = {}, tonRate = 0) {
     floorTon: saleTon,
     floorUsd: saleUsd,
     floorStatus: "last-sale",
-    marketPlatform: sale.marketplace ? `Last Sale · ${sale.marketplace}` : "Last Sale",
+    marketPlatform: sale.marketplace ? `Last Sale Â· ${sale.marketplace}` : "Last Sale",
     marketUrl: "",
     source: "last-sale-exact",
     listedCount: 0,
@@ -8072,34 +8710,54 @@ async function fastExactLastSaleFloorForPair(pair = {}, tonRate = 0) {
   return lastSaleFloorFromSale(sale, tonRate);
 }
 
-async function giftDetailData({ walletAddress, nftAddress, collectionAddress = "", collectionName = "", itemName = "", attributes = [], tgauth = "", range = "7d" }) {
-  const traitPayload = JSON.stringify(Array.isArray(attributes) ? attributes : []);
-  const traits = giftTraitLookup(Array.isArray(attributes) ? attributes : []);
+async function giftDetailData({ walletAddress, nftAddress, collectionAddress = "", collectionName = "", itemName = "", attributes = [], model = "", backdrop = "", symbol = "", tgauth = "", range = "7d" }) {
+  const effectiveAttributes = Array.isArray(attributes) ? [...attributes] : [];
+  const suppliedTraits = { model, backdrop, symbol };
+  for (const [label, value] of Object.entries(suppliedTraits)) {
+    if (!String(value || "").trim()) continue;
+    const existing = effectiveAttributes.some((trait) => String(trait?.label || trait?.trait_type || "").toLowerCase() === label);
+    if (!existing) effectiveAttributes.push({ label: label[0].toUpperCase() + label.slice(1), value: String(value).trim() });
+  }
+  const traitPayload = JSON.stringify(effectiveAttributes);
+  const traits = giftTraitLookup(effectiveAttributes);
   const exactCollectionName = collectionName || itemName || "";
   const exactModelName = traits.model || "";
   const exactBackdropName = traits.backdrop || "";
-  const hasExactGiftCombo = Boolean(exactCollectionName && exactModelName && exactBackdropName);
+  const exactSymbolName = traits.symbol || "";
+  const hasExactGiftCombo = Boolean(exactCollectionName && exactModelName && exactBackdropName && exactSymbolName);
   const giftLookup = collectionAddress || collectionName || itemName
-    ? { address: collectionAddress || collectionName || itemName, name: collectionName, item: itemName, kind: "gift", attributes, tgauth, period: range }
+    ? { address: collectionAddress || collectionName || itemName, name: collectionName, item: itemName, kind: "gift", attributes: effectiveAttributes, tgauth, period: range }
     : collectionName || itemName;
   const extraTimeoutMs = hasExactGiftCombo ? 250 : 1200;
   const floorPromise = collectibleFloor(giftLookup).catch(() => ({}));
-  const salesPromise = settleWithin(collectibleSales(giftLookup, traitPayload), extraTimeoutMs, []);
+  const statsPromise = hasExactGiftCombo
+    ? Promise.all([
+      giftModelStatsForPairs([{ collection: exactCollectionName, model: exactModelName }]),
+      giftCollectionStatsForPairs([{ collection: exactCollectionName }]),
+    ]).catch(() => [[], []])
+    : Promise.resolve([[], []]);
+  const salesPromise = hasExactGiftCombo
+    ? collectibleSales(giftLookup, traitPayload).catch(() => [])
+    : settleWithin(collectibleSales(giftLookup, traitPayload), extraTimeoutMs, []);
   const operationsPromise = settleWithin(accountNftHistory(walletAddress), extraTimeoutMs, []);
+  const itemActivityPromise = settleWithin(nftItemActivity(nftAddress, walletAddress), extraTimeoutMs, {});
   let floor = await floorPromise;
-  const [sales, operations] = await Promise.all([
+  const [sales, operations, itemActivity, [modelStatsRows, collectionStatsRows]] = await Promise.all([
     salesPromise,
     operationsPromise,
+    itemActivityPromise,
+    statsPromise,
   ]);
+  const tonRate = Number(floor.tonUsdRate || 0) || await tonUsdRate();
   const lastExactSale = exactTraitSale(sales, traits);
-  if (!activeListingFloor(floor) && lastExactSale && (Number(lastExactSale.priceTon || 0) > 0 || Number(lastExactSale.priceUsd || 0) > 0)) {
+  if (process.env.GIFT_LAST_SALE_AS_FLOOR === "1" && !activeListingFloor(floor) && lastExactSale && (Number(lastExactSale.priceTon || 0) > 0 || Number(lastExactSale.priceUsd || 0) > 0)) {
     const saleTon = Number(lastExactSale.priceTon || 0) || (tonRate > 0 ? Number(lastExactSale.priceUsd || 0) / tonRate : 0);
     const saleUsd = Number(lastExactSale.priceUsd || 0) || (saleTon * tonRate);
     floor = {
       ...floor,
       floorTon: saleTon,
       floorUsd: saleUsd,
-      marketPlatform: lastExactSale.marketplace ? `Last Sale · ${lastExactSale.marketplace}` : "Last Sale",
+      marketPlatform: lastExactSale.marketplace ? `Last Sale Â· ${lastExactSale.marketplace}` : "Last Sale",
       marketUrl: "",
       source: "last-sale-exact",
       listedCount: 0,
@@ -8113,7 +8771,7 @@ async function giftDetailData({ walletAddress, nftAddress, collectionAddress = "
   const senderAddress = inbound?.source?.address || "";
   const senderName = inbound?.source?.name || (senderAddress ? await resolveTonName(senderAddress) : "");
   const receivedOn = inbound?.utime ? new Date(Number(inbound.utime) * 1000).toISOString() : "";
-  const combo = estimatedGiftCombo(attributes, Number(floor.totalSupply || 0));
+  const combo = estimatedGiftCombo(effectiveAttributes, Number(floor.totalSupply || 0));
   const fragmentUrl = firstMarketUrl(floor) && /fragment/i.test(String(floor.marketPlatform || "")) ? firstMarketUrl(floor) : "";
   const getgemsUrl = collectionAddress ? `https://getgems.io/collection/${encodeURIComponent(collectionAddress)}` : "";
   const xgiftUrl = collectionName ? `https://xgift.tg/?collection=${encodeURIComponent(collectionName)}` : "";
@@ -8125,7 +8783,7 @@ async function giftDetailData({ walletAddress, nftAddress, collectionAddress = "
   let floorHistorySource = floor.floorHistorySource || "";
   if (hasExactGiftCombo) {
     if (!(floorHistorySource === "tontrack-combo-registry" && floorHistory.length >= 2)) {
-      const exactHistory = await d1GiftComboHistory(exactCollectionName, exactModelName, exactBackdropName);
+      const exactHistory = await d1GiftComboHistory(exactCollectionName, exactModelName, exactBackdropName, exactSymbolName);
       floorHistory = exactHistory.length >= 2 ? exactHistory : [];
       floorHistorySource = exactHistory.length >= 2 ? "tontrack-combo-registry" : "";
     }
@@ -8146,6 +8804,9 @@ async function giftDetailData({ walletAddress, nftAddress, collectionAddress = "
       volume24hUsd: sales24hRows.reduce((sum, sale) => sum + Number(sale.priceUsd || 0), 0),
     },
     salesScope: sales.some((sale) => sale.exact) ? "same-traits" : "collection",
+    modelStats: modelStatsRows[0] || {},
+    collectionStats: collectionStatsRows[0] || {},
+    onchainActivity: itemActivity || {},
     floorHistory,
     floorHistorySource,
     origin: {
@@ -8170,15 +8831,57 @@ async function giftDetailData({ walletAddress, nftAddress, collectionAddress = "
 
 async function handleApi(req, res, url) {
   if (req.method === "OPTIONS") return json(res, 204, {});
-  if (url.pathname === "/api/gift-registry/history" && req.method === "GET") {
-    const registryUrl = d1GiftRegistryUrl || publicGiftRegistryUrl;
+  if (url.pathname === "/api/telegram/webapp/assets" && req.method === "POST") {
     try {
-      const params = new URLSearchParams({
-        collection: url.searchParams.get("collection") || "",
-        model: url.searchParams.get("model") || "",
-        backdrop: url.searchParams.get("backdrop") || "",
+      const { initData } = await readJsonBody(req, 64 * 1024);
+      const assets = await telegramMiniAppAssets(initData);
+      console.info(`[telegram-miniapp] import complete: gifts=${assets.gifts.length} stickers=${assets.stickers.length}`);
+      return json(res, 200, { ...assets, source: "telegram-mini-app" });
+    } catch (error) {
+      const message = String(error.message || error);
+      console.warn(`[telegram-miniapp] import rejected: ${message}`);
+      return json(res, 401, { error: message, gifts: [], stickers: [] });
+    }
+  }
+  if (url.pathname === "/api/telegram/webapp/file" && req.method === "GET") {
+    try {
+      const result = await telegramWebAppFile(
+        url.searchParams.get("ticket") || "",
+        url.searchParams.get("payload") || "",
+        url.searchParams.get("signature") || "",
+      );
+      res.writeHead(200, {
+        "content-type": result.contentType,
+        "cache-control": "private, max-age=3600",
       });
-      const payload = await marketJson(`${registryUrl}/history?${params}`, {}, 5000);
+      return res.end(result.bytes);
+    } catch (error) {
+      return json(res, 404, { error: String(error.message || error) });
+    }
+  }
+  if (url.pathname === "/api/gift-registry/sales" && req.method === "GET") {
+    try {
+      const sales = await d1GiftSales(
+        url.searchParams.get("collection") || "",
+        url.searchParams.get("model") || "",
+        url.searchParams.get("backdrop") || "",
+        url.searchParams.get("symbol") || "",
+        url.searchParams.get("limit") || 5,
+      );
+      return json(res, 200, { sales });
+    } catch {
+      return json(res, 502, { sales: [] });
+    }
+  }
+  if (url.pathname === "/api/gift-registry/history" && req.method === "GET") {
+    try {
+      const payload = await d1GiftComboHistory(
+        url.searchParams.get("collection") || "",
+        url.searchParams.get("model") || "",
+        url.searchParams.get("backdrop") || "",
+        url.searchParams.get("symbol") || "",
+        { preferDirect: true },
+      );
       return json(res, 200, Array.isArray(payload) ? payload : []);
     } catch {
       return json(res, 502, []);
@@ -8192,6 +8895,7 @@ async function handleApi(req, res, url) {
         collection: pair.collection,
         model: pair.model,
         backdrop: pair.backdrop,
+        symbol: pair.symbol,
       }));
       const combinations = [];
       const coverage = new Map();
@@ -8223,13 +8927,15 @@ async function handleApi(req, res, url) {
       const collections = [...new Set((Array.isArray(body.collections) ? body.collections : [])
         .map((collection) => String(collection || "").trim())
         .filter(Boolean))];
-      const collectionChunks = Array.from({ length: Math.ceil(collections.length / 50) }, (_, index) => collections.slice(index * 50, index * 50 + 50));
+      const collectionChunkSize = Math.max(5, Math.min(25, Number(process.env.GIFT_COLLECTION_COMBO_CHUNK_SIZE || 20)));
+      const collectionConcurrency = Math.max(1, Math.min(4, Number(process.env.GIFT_COLLECTION_COMBO_CONCURRENCY || 4)));
+      const collectionChunks = Array.from({ length: Math.ceil(collections.length / collectionChunkSize) }, (_, index) => collections.slice(index * collectionChunkSize, index * collectionChunkSize + collectionChunkSize));
       const responseCollections = [];
-      for (let index = 0; index < collectionChunks.length; index += 6) {
-        const responses = await Promise.all(collectionChunks.slice(index, index + 6).map((chunk) => marketJson(`${registryUrl}/collection-combos`, {
+      for (let index = 0; index < collectionChunks.length; index += collectionConcurrency) {
+        const responses = await Promise.all(collectionChunks.slice(index, index + collectionConcurrency).map((chunk) => marketJson(`${registryUrl}/collection-combos`, {
           method: "POST",
           body: { collections: chunk },
-        }, 15000).catch(() => null)));
+        }, 12000).catch(() => null)));
         responses.forEach((payload) => {
           if (Array.isArray(payload?.collections)) responseCollections.push(...payload.collections);
         });
@@ -8259,26 +8965,34 @@ async function handleApi(req, res, url) {
       ]);
       const comboFloors = comboLookup.combinations;
       const combosByKey = new Map(comboFloors.map((combo) => [
-        [combo.collection, combo.model, combo.backdrop].map(giftSnapshotKey).join(":"),
+    [combo.collection, combo.model, combo.backdrop].map(giftSnapshotKey).join(":"),
         combo,
       ]));
+      const attributesByKey = await storedGiftAttributesForPairs(pairs).catch(() => new Map());
       const missingHealingScheduled = scheduleGiftComboFloorHeal(pairs, combosByKey, rate);
       const staleHealingScheduled = scheduleStaleGiftComboFloorHeal(pairs, combosByKey, rate);
       const healingScheduled = missingHealingScheduled + staleHealingScheduled;
       const responseModels = pairs.map((pair) => {
         const stored = {};
         const combo = findGiftComboForPair(pair, combosByKey);
+        const storedTraitMetrics = giftTraitMetricsFromStoredAttributes(pair, attributesByKey);
+        const registryTraitMetrics = Object.keys(storedTraitMetrics).length
+          ? storedTraitMetrics
+          : giftTraitMetricsFromRegistry(pair, comboLookup.collections || []);
+        const registryTraitRarities = Object.fromEntries(
+          Object.entries(registryTraitMetrics).map(([label, value]) => [label, Number(value.rarity || 0)])
+        );
         const model = {
           ...stored,
-          requestKey: [pair.collectionKey, pair.modelKey, pair.backdropKey].join(":"),
+          requestKey: giftComboPairKey(pair),
           collection: pair.collection,
           collectionKey: pair.collectionKey,
           model: pair.model,
           modelKey: pair.modelKey,
           backdrop: pair.backdrop,
           symbol: pair.symbol,
-          traitMetrics: stored.traitMetrics || {},
-          traitRarities: stored.traitRarities || {},
+          traitMetrics: Object.keys(stored.traitMetrics || {}).length ? stored.traitMetrics : registryTraitMetrics,
+          traitRarities: Object.keys(stored.traitRarities || {}).length ? stored.traitRarities : registryTraitRarities,
         };
         if (!combo) {
           model.floorTon = 0;
@@ -8324,11 +9038,11 @@ async function handleApi(req, res, url) {
         return model;
       });
       const found = new Map(responseModels.map((model) => [
-        [model.collectionKey, model.modelKey, giftSnapshotKey(model.backdrop)].join(":"),
+        [model.collectionKey, model.modelKey, giftSnapshotKey(model.backdrop), giftSnapshotKey(model.symbol)].join(":"),
         model,
       ]));
       const pending = pairs.filter((pair) => {
-        const model = found.get([pair.collectionKey, pair.modelKey, pair.backdropKey].join(":"));
+        const model = found.get(giftComboPairKey(pair));
         if (!model) return true;
         return pair.backdropKey && model.source === "combo-floor-pending";
       });
@@ -8361,6 +9075,23 @@ async function handleApi(req, res, url) {
       return json(res, 200, responsePayload);
     } catch (error) {
       return json(res, 400, { error: error.message, models: [], pending: [] });
+    }
+  }
+  if (url.pathname === "/api/gift-model-stats" && req.method === "POST") {
+    try {
+      const body = await readJsonBody(req);
+      const pairs = requestedGiftModelPairs(body.pairs);
+      const [models, collections] = await Promise.all([
+        giftModelStatsForPairs(pairs),
+        giftCollectionStatsForPairs(pairs),
+      ]);
+      return json(res, 200, {
+        source: duneApiKey && duneGiftModelStatsQueryId ? "dune+gift-attributes" : "gift-attributes",
+        models,
+        collections,
+      });
+    } catch (error) {
+      return json(res, 502, { error: error.message, models: [], collections: [] });
     }
   }
   if (req.method !== "GET") return json(res, 405, { error: "Method not allowed" });
@@ -8485,6 +9216,36 @@ async function handleApi(req, res, url) {
       return json(res, 502, { error: error.message });
     }
   }
+  if (url.pathname === "/api/sticker-animation") {
+    const collectionId = url.searchParams.get("collection") || "";
+    const characterId = url.searchParams.get("character") || "";
+    const stickerId = url.searchParams.get("sticker") || "";
+    if (!collectionId || !characterId) return json(res, 400, { error: "Missing sticker animation identifiers" });
+    try {
+      const payload = await stickerAnimationPayload(collectionId, characterId, stickerId);
+      res.writeHead(200, {
+        "content-type": "application/json; charset=utf-8",
+        "cache-control": "public, max-age=86400, stale-while-revalidate=604800",
+        "access-control-allow-origin": "*",
+      });
+      return res.end(JSON.stringify(payload));
+    } catch (error) {
+      return json(res, 404, { error: error.message });
+    }
+  }
+  if (url.pathname === "/api/sticker-detail-intel") {
+    const collectionId = url.searchParams.get("collectionId") || "";
+    if (!collectionId) return json(res, 400, { error: "Missing sticker collection id" });
+    try {
+      return json(res, 200, await stickerDetailIntel({
+        collectionId,
+        characterId: url.searchParams.get("characterId") || "",
+        characterName: url.searchParams.get("characterName") || "",
+      }));
+    } catch (error) {
+      return json(res, 502, { error: error.message });
+    }
+  }
   if (url.pathname === "/api/gift-floor-snapshots") {
     try {
       if (url.searchParams.get("collect") === "1") {
@@ -8577,7 +9338,15 @@ async function handleApi(req, res, url) {
   if (url.pathname === "/api/gift-detail-data") {
     const wallet = url.searchParams.get("wallet");
     const nft = url.searchParams.get("nft");
-    if (!wallet || !nft) return json(res, 400, { error: "Missing wallet or nft query parameter" });
+    const tgauth = url.searchParams.get("tgauth") || "";
+    if (!nft || (!wallet && !tgauth)) return json(res, 400, { error: "Missing wallet or gift query parameter" });
+    if (!wallet) {
+      try {
+        verifyTelegramWebAppInitData(tgauth);
+      } catch (error) {
+        return json(res, 401, { error: error.message || "Invalid Telegram session" });
+      }
+    }
     const collection = url.searchParams.get("collection") || "";
     const item = url.searchParams.get("item") || "";
     let attributes = [];
@@ -8589,13 +9358,16 @@ async function handleApi(req, res, url) {
     }
     try {
       return json(res, 200, await giftDetailData({
-        walletAddress: parseTonAddress(wallet),
+        walletAddress: wallet ? parseTonAddress(wallet) : "",
         nftAddress: nft,
         collectionAddress: collection,
-        collectionName: collection,
+        collectionName: url.searchParams.get("collectionName") || item || collection,
         itemName: item,
         attributes,
-        tgauth: url.searchParams.get("tgauth") || "",
+        model: url.searchParams.get("model") || "",
+        backdrop: url.searchParams.get("backdrop") || "",
+        symbol: url.searchParams.get("symbol") || "",
+        tgauth,
         range: url.searchParams.get("range") || "7d",
       }));
     } catch (error) {
@@ -8688,11 +9460,6 @@ async function handleApi(req, res, url) {
       } catch (error) {
         console.warn(`Current Jettons unavailable for history; using cached Jettons if present: ${error.message}`);
       }
-      if (fastGraphHistoryOnly) {
-        const points = await approximateWalletHistory(normalizedAccount.address || address, normalizedAccount.balanceTon, range, jettons);
-        walletHistoryCache.set(historyCacheKey(normalizedAccount.address || address, range), { points, expiresAt: Date.now() + walletHistoryTtl, source: "fast-current-holdings" });
-        return json(res, 200, { address, range, status: "ready", source: "fast-current-holdings", points });
-      }
       const job = startHistoryJob(normalizedAccount.address || address, normalizedAccount.balanceTon, range, jettons);
       if (!job.approxPoints?.length) job.approxPoints = await approximateWalletHistory(normalizedAccount.address || address, normalizedAccount.balanceTon, range, jettons);
       if (job.approxPoints?.length) return json(res, 200, { address, range, status: "partial", source: "approx-current-holdings", points: job.approxPoints });
@@ -8709,6 +9476,17 @@ const server = http.createServer((req, res) => {
   if (url.pathname.startsWith("/api/")) {
     handleApi(req, res, url).catch((error) => json(res, 500, { error: error.message }));
     return;
+  }
+  // Telegram Desktop can block or delay third-party CDNs. Keep the Lottie
+  // player on the same origin as the Mini App so animated gift media is not
+  // dependent on an external script loading first.
+  if (url.pathname === "/assets/vendor/lottie.min.js") {
+    const player = path.join(root, "node_modules", "lottie-web", "build", "player", "lottie.min.js");
+    return fs.readFile(player, (error, data) => {
+      if (error) return json(res, 404, { error: "Lottie player not found" });
+      res.writeHead(200, { "content-type": "text/javascript; charset=utf-8", "cache-control": "public, max-age=86400" });
+      res.end(data);
+    });
   }
   if (url.pathname === "/tonconnect-manifest.json") {
     tonConnectManifest(req, res);
@@ -8748,6 +9526,93 @@ function startServer() {
 }
 
 let giftSnapshotWorkerRunning = false;
+let estimateHistoryWorkerRunning = false;
+
+async function refreshEstimatedGiftHistoryTargetsNow() {
+  const registryUrl = d1GiftRegistryUrl || publicGiftRegistryUrl;
+  if (!registryUrl || !d1GiftIngestSecret) {
+    throw new Error("D1 registry URL and ingest secret are required");
+  }
+  const dueBefore = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+  const payload = await marketJson(`${registryUrl}/estimate-history-targets?limit=100&dueBefore=${encodeURIComponent(dueBefore)}`, {
+    headers: { authorization: `Bearer ${d1GiftIngestSecret}` },
+  }, 15000);
+  const targets = Array.isArray(payload?.targets) ? payload.targets : [];
+  if (!targets.length) return { total: 0, refreshed: 0, unavailable: 0, failed: 0 };
+  const lookup = await d1GiftComboFloors(targets);
+  const rate = await tonUsdRate();
+  let refreshed = 0;
+  let unavailable = 0;
+  let failed = 0;
+  await mapLimit(targets, 4, async (target) => {
+    try {
+      const pair = giftFloorPairFromItem({
+        collection: target.collection,
+        attributes: [
+          { trait_type: "Model", value: target.model },
+          { trait_type: "Backdrop", value: target.backdrop },
+        ],
+      }) || {};
+      const estimate = estimatedGiftComboFloorFromRegistry({
+        ...pair,
+        collection: target.collection,
+        model: target.model,
+        backdrop: target.backdrop,
+        collectionKey: giftSnapshotKey(target.collection),
+        collectionKeys: giftCollectionAliasKeys(target.collection),
+      }, lookup.collections || [], rate);
+      if (estimate?.floorTon > 0) {
+        await ingestD1GiftEstimateHistory({
+          collectionName: target.collection,
+          modelName: target.model,
+          backdropName: target.backdrop,
+          floorTon: estimate.floorTon,
+          snapshotAt: new Date().toISOString(),
+        });
+        refreshed += 1;
+      } else {
+        unavailable += 1;
+      }
+      await marketJson(`${registryUrl}/ingest/estimate-history-target-result`, {
+        method: "POST",
+        headers: { authorization: `Bearer ${d1GiftIngestSecret}` },
+        body: {
+          collection: target.collection,
+          model: target.model,
+          backdrop: target.backdrop,
+          evaluatedAt: new Date().toISOString(),
+          status: estimate?.floorTon > 0 ? "refreshed" : "no-comparables",
+        },
+      }, 15000);
+    } catch (error) {
+      failed += 1;
+      console.warn(`[gift-estimate-history] ${target.collection} / ${target.model} / ${target.backdrop}: ${String(error.message || error).slice(0, 160)}`);
+    }
+  });
+  return { total: targets.length, refreshed, unavailable, failed };
+}
+
+async function runEstimateHistoryWorker(reason = "scheduled") {
+  if (estimateHistoryWorkerRunning) {
+    console.log(`[gift-estimate-history] skipped ${reason}; previous run still active`);
+    return;
+  }
+  estimateHistoryWorkerRunning = true;
+  try {
+    const state = await refreshEstimatedGiftHistoryTargetsNow();
+    console.log(`[gift-estimate-history] ${reason}: ${state.refreshed}/${state.total} refreshed, ${state.unavailable} unavailable, ${state.failed} failed`);
+  } finally {
+    estimateHistoryWorkerRunning = false;
+  }
+}
+
+function startEstimateHistoryWorker() {
+  console.log(`[gift-estimate-history] running every ${Math.round(estimateHistoryRefreshIntervalMs / 60000)} minutes`);
+  runEstimateHistoryWorker("startup").catch((error) => console.warn("[gift-estimate-history] startup failed", error.message));
+  setInterval(() => {
+    runEstimateHistoryWorker("scheduled").catch((error) => console.warn("[gift-estimate-history] scheduled failed", error.message));
+  }, estimateHistoryRefreshIntervalMs);
+}
 
 async function runGiftSnapshotWorker(reason = "scheduled") {
   if (giftSnapshotWorkerRunning) {
@@ -8779,6 +9644,8 @@ function startGiftSnapshotWorker() {
 if (require.main === module) {
   if (process.env.TONTRACK_MODE === "gift-snapshot-worker") {
     startGiftSnapshotWorker();
+  } else if (process.env.TONTRACK_MODE === "estimate-history-worker") {
+    startEstimateHistoryWorker();
   } else {
     startServer();
   }
@@ -8789,5 +9656,7 @@ module.exports = {
   giftSnapshotHistory,
   getGiftSnapshotCollectorState: () => ({ ...giftSnapshotCollectorState }),
   startGiftSnapshotWorker,
+  refreshEstimatedGiftHistoryTargetsNow,
+  startEstimateHistoryWorker,
   startServer
 };

@@ -1,4 +1,5 @@
-﻿const screens = document.querySelectorAll("[data-screen]");
+const screens = document.querySelectorAll("[data-screen]");
+const Charts = window.TonTrackCharts;
 const navButtons = document.querySelectorAll(".dock button");
 const walletButtons = document.querySelectorAll(".js-connect-wallet");
 const homeWalletCard = document.querySelector(".home-wallet-card");
@@ -6,6 +7,23 @@ const homeWalletTitle = document.querySelector("#homeWalletTitle");
 const homeWalletText = document.querySelector("#homeWalletText");
 const homeWalletButton = document.querySelector("#homeWalletButton");
 let walletConnected = false;
+let telegramConnected = false;
+let telegramProfile = null;
+let telegramImportInFlight = false;
+let telegramPortfolioValue = 0;
+// Connected sources are retained independently and merged through the same
+// gift/sticker grouping pipeline used by wallet imports.
+let telegramGiftGroups = [];
+let telegramStickerGroups = [];
+let walletGiftGroups = [];
+let walletStickerGroups = [];
+// Wallet and Telegram imports share visible asset arrays. Keep the active
+// source explicit so a delayed wallet refresh can never replace Telegram data.
+let activePortfolioSource = "none";
+
+function hasTonWalletPortfolio() {
+  return activePortfolioSource === "wallet" || activePortfolioSource === "combined";
+}
 let priceMode = "USD";
 let displayCurrency = "USD";
 let selectedAllocation = null;
@@ -18,8 +36,12 @@ const STICKER_SOURCE_IMAGES = {
 const TON_LOGO_URL = "https://raw.githubusercontent.com/tonkeeper/opentonapi/master/pkg/references/media/ton_symbol.png";
 let detailReturnScreen = "assets";
 const navigationStack = [];
+const forwardNavigationStack = [];
 let homePortfolioValue = 0;
 let homePortfolioDelta = 0;
+
+window.Telegram?.WebApp?.ready();
+window.Telegram?.WebApp?.expand();
 let homePortfolioChange = "+0.00%";
 let liveWalletData = null;
 let liveWalletAddress = "";
@@ -30,7 +52,6 @@ const loadingPortfolioRanges = new Set();
 const historyRangeState = new Map();
 const historyRanges = ["1D", "7D", "1M"];
 const HOME_GRAPH_PRELOAD_DELAY_MS = 5000;
-let historyPreloadToken = 0;
 let historyStatusTimer = 0;
 let graphHistoryLoadingPaused = true;
 let tonConnectUI = null;
@@ -52,7 +73,12 @@ const tokenDetailMetricsCache = new Map();
 const tokenDetailPrefetchRequests = new Map();
 const giftDetailCache = new Map();
 const giftDetailRequests = new Map();
-const giftDetailPayloadVersion = "exact-combo-history-v2";
+const giftComboHistoryCache = new Map();
+const giftComboHistoryRequests = new Map();
+const giftModelStatsCache = new Map();
+const giftModelStatsRequests = new Map();
+const giftCollectionStatsCache = new Map();
+const giftDetailPayloadVersion = "exact-combo-history-v4-explicit-traits";
 const stickerDetailCache = new Map();
 const stickerDetailRequests = new Map();
 let activeTokenDetailRequest = 0;
@@ -64,17 +90,16 @@ let latestCollectibleStatus = "";
 const allocationState = { gifts: 0, tokens: 0, stickers: 0 };
 let detailWarmupQueue = Promise.resolve();
 let activeImportSessionId = 0;
+let importLoaderPulseTimer = 0;
 let allocationUiLocked = false;
-let loaderStatusCycleTimer = 0;
-let loaderStatusCycleIndex = 0;
-let loaderPhaseKey = "";
 const sectionLoadState = new Map();
 let sectionToastTimer = 0;
-const LOADER_FETCH_MESSAGES = [
-  "Reading TON balances...",
-  "Loading collectibles...",
-  "Fetching gift collections...",
-  "Calculating portfolio value...",
+const IMPORT_LOADER_STAGES = [
+  { min: 0, step: 1, key: "connect", note: "Opening a secure, read-only view." },
+  { min: 40, step: 2, key: "holdings", note: "Tokens, Gifts and stickers are reporting in." },
+  { min: 65, step: 3, key: "values", note: "Matching holdings with verified market data." },
+  { min: 85, step: 4, key: "dashboard", note: "Building your dashboard and first chart." },
+  { min: 100, step: 5, key: "complete", note: "Your portfolio is ready to explore." },
 ];
 const SECTION_LABELS = {
   tokens: "Tokens",
@@ -104,9 +129,9 @@ const giftAssets = [
     icon: "gem",
     tag: 4821,
     traits: [
-      { label: "Model", value: "Hypnotoad", rarity: "1.2% — Very Rare" },
-      { label: "Backdrop", value: "Electric Indigo", rarity: "1.5% — Rare" },
-      { label: "Symbol", value: "Coin", rarity: "0.2% — Ultra Rare" },
+      { label: "Model", value: "Hypnotoad", rarity: "1.2% â€” Very Rare" },
+      { label: "Backdrop", value: "Electric Indigo", rarity: "1.5% â€” Rare" },
+      { label: "Symbol", value: "Coin", rarity: "0.2% â€” Ultra Rare" },
     ],
     mint: { current: 1240, total: 6962 },
     floorUsd: 2840,
@@ -119,27 +144,27 @@ const giftAssets = [
     acquired: "May 15, 2026",
     acquiredSort: 20260515,
     costBasis: 2000,
-    upgraded: "Upgraded · 2,500 Stars · ~$25",
-    provenance: 'Gifted by @alex to you · May 15 · "Happy birthday!"',
+    upgraded: "Upgraded Â· 2,500 Stars Â· ~$25",
+    provenance: 'Gifted by @alex to you Â· May 15 Â· "Happy birthday!"',
     comboRank: "Top 0.03% rarest trait combo in this collection",
     exactCount: "Only 9 gifts share this exact Model + Backdrop + Symbol",
     quickSellTon: 135.8,
     quickSellUsd: 2698,
     sales: [
-      ["148 TON · $2,938", "May 15", "Hypnotoad", "Electric Indigo", "Coin", "Getgems"],
-      ["143 TON · $2,840", "May 14", "Hypnotoad", "Electric Indigo", "Coin", "Fragment"],
-      ["139 TON · $2,761", "May 12", "Hypnotoad", "Electric Indigo", "Coin", "Getgems"],
+      ["148 TON Â· $2,938", "May 15", "Hypnotoad", "Electric Indigo", "Coin", "Getgems"],
+      ["143 TON Â· $2,840", "May 14", "Hypnotoad", "Electric Indigo", "Coin", "Fragment"],
+      ["139 TON Â· $2,761", "May 12", "Hypnotoad", "Electric Indigo", "Coin", "Getgems"],
     ],
     intel: {
-      trend: "▂▃▅▆▇",
+      trend: "â–‚â–ƒâ–…â–†â–‡",
       badge: "Trending Up",
       sales24h: "3 exact variant sales",
-      volume24h: "430 TON · $8,539",
-      prior: "+34% volume · +12% sales count",
+      volume24h: "430 TON Â· $8,539",
+      prior: "+34% volume Â· +12% sales count",
       daysToSell: "~2.4 days",
       listedSupply: "12 listed across Getgems + Fragment",
-      listingRate: "Listed: 8% of supply — low supply supports price",
-      bestTime: "Thursdays 6–9 PM UTC",
+      listingRate: "Listed: 8% of supply â€” low supply supports price",
+      bestTime: "Thursdays 6â€“9 PM UTC",
     },
     chart: [2000, 2140, 2260, 2190, 2420, 2680, 2840],
   },
@@ -151,9 +176,9 @@ const giftAssets = [
     icon: "crown",
     tag: 1088,
     traits: [
-      { label: "Model", value: "Goldcrest", rarity: "2.4% — Rare" },
-      { label: "Backdrop", value: "Velvet Night", rarity: "3.1% — Scarce" },
-      { label: "Symbol", value: "Star", rarity: "0.8% — Very Rare" },
+      { label: "Model", value: "Goldcrest", rarity: "2.4% â€” Rare" },
+      { label: "Backdrop", value: "Velvet Night", rarity: "3.1% â€” Scarce" },
+      { label: "Symbol", value: "Star", rarity: "0.8% â€” Very Rare" },
     ],
     mint: { current: 886, total: 5000 },
     floorUsd: 1960,
@@ -166,26 +191,26 @@ const giftAssets = [
     acquired: "Apr 28, 2026",
     acquiredSort: 20260428,
     costBasis: 1640,
-    upgraded: "Upgraded · 1,200 Stars · ~$12",
-    provenance: 'Gifted by @mira to you · Apr 28 · "For the vault"',
+    upgraded: "Upgraded Â· 1,200 Stars Â· ~$12",
+    provenance: 'Gifted by @mira to you Â· Apr 28 Â· "For the vault"',
     comboRank: "Top 0.12% rarest trait combo in this collection",
     exactCount: "Only 21 gifts share this exact Model + Backdrop + Symbol",
     quickSellTon: 93.1,
     quickSellUsd: 1862,
     sales: [
-      ["101 TON · $2,018", "May 14", "Goldcrest", "Velvet Night", "Star", "Fragment"],
-      ["97 TON · $1,931", "May 11", "Goldcrest", "Velvet Night", "Star", "Getgems"],
+      ["101 TON Â· $2,018", "May 14", "Goldcrest", "Velvet Night", "Star", "Fragment"],
+      ["97 TON Â· $1,931", "May 11", "Goldcrest", "Velvet Night", "Star", "Getgems"],
     ],
     intel: {
-      trend: "▂▃▄▅▅",
+      trend: "â–‚â–ƒâ–„â–…â–…",
       badge: "Stable",
       sales24h: "2 exact variant sales",
-      volume24h: "198 TON · $3,949",
-      prior: "+9% volume · +4% sales count",
+      volume24h: "198 TON Â· $3,949",
+      prior: "+9% volume Â· +4% sales count",
       daysToSell: "~3.1 days",
       listedSupply: "18 listed across Getgems + Fragment",
       listingRate: "Listed: 11% of supply",
-      bestTime: "Sundays 4–7 PM UTC",
+      bestTime: "Sundays 4â€“7 PM UTC",
     },
     chart: [1640, 1705, 1810, 1760, 1880, 1920, 1960],
   },
@@ -197,9 +222,9 @@ const giftAssets = [
     icon: "sparkles",
     tag: 7812,
     traits: [
-      { label: "Model", value: "Soft Flare", rarity: "8.2% — Notable" },
-      { label: "Backdrop", value: "Mint Haze", rarity: "4.5% — Scarce" },
-      { label: "Symbol", value: "Moon", rarity: "2.1% — Rare" },
+      { label: "Model", value: "Soft Flare", rarity: "8.2% â€” Notable" },
+      { label: "Backdrop", value: "Mint Haze", rarity: "4.5% â€” Scarce" },
+      { label: "Symbol", value: "Moon", rarity: "2.1% â€” Rare" },
     ],
     mint: { current: 4210, total: 9000 },
     floorUsd: 420,
@@ -212,26 +237,26 @@ const giftAssets = [
     acquired: "Mar 12, 2026",
     acquiredSort: 20260312,
     costBasis: 372,
-    upgraded: "Not upgraded · 0 Stars · $0",
-    provenance: 'Gifted by @dani to you · Mar 12 · "Tiny star"',
+    upgraded: "Not upgraded Â· 0 Stars Â· $0",
+    provenance: 'Gifted by @dani to you Â· Mar 12 Â· "Tiny star"',
     comboRank: "Top 1.6% rarest trait combo in this collection",
     exactCount: "Only 144 gifts share this exact Model + Backdrop + Symbol",
     quickSellTon: 19.95,
     quickSellUsd: 399,
     sales: [
-      ["22 TON · $438", "May 13", "Soft Flare", "Mint Haze", "Moon", "Getgems"],
-      ["21 TON · $420", "May 10", "Soft Flare", "Mint Haze", "Moon", "Fragment"],
+      ["22 TON Â· $438", "May 13", "Soft Flare", "Mint Haze", "Moon", "Getgems"],
+      ["21 TON Â· $420", "May 10", "Soft Flare", "Mint Haze", "Moon", "Fragment"],
     ],
     intel: {
-      trend: "▅▄▃▃▂",
+      trend: "â–…â–„â–ƒâ–ƒâ–‚",
       badge: "Cooling",
       sales24h: "1 exact variant sale",
-      volume24h: "21 TON · $420",
-      prior: "-12% volume · -18% sales count",
+      volume24h: "21 TON Â· $420",
+      prior: "-12% volume Â· -18% sales count",
       daysToSell: "~5.8 days",
       listedSupply: "64 listed across Getgems + Fragment",
       listingRate: "Listed: 19% of supply",
-      bestTime: "Fridays 5–8 PM UTC",
+      bestTime: "Fridays 5â€“8 PM UTC",
     },
     chart: [372, 405, 444, 462, 438, 426, 420],
   },
@@ -243,9 +268,9 @@ const giftAssets = [
     icon: "medal",
     tag: 2260,
     traits: [
-      { label: "Model", value: "Champion", rarity: "1.8% — Very Rare" },
-      { label: "Backdrop", value: "Carbon Black", rarity: "2.7% — Rare" },
-      { label: "Symbol", value: "Laurel", rarity: "0.9% — Very Rare" },
+      { label: "Model", value: "Champion", rarity: "1.8% â€” Very Rare" },
+      { label: "Backdrop", value: "Carbon Black", rarity: "2.7% â€” Rare" },
+      { label: "Symbol", value: "Laurel", rarity: "0.9% â€” Very Rare" },
     ],
     mint: { current: 612, total: 4200 },
     floorUsd: 1380,
@@ -258,26 +283,26 @@ const giftAssets = [
     acquired: "Feb 09, 2026",
     acquiredSort: 20260209,
     costBasis: 970,
-    upgraded: "Upgraded · 900 Stars · ~$9",
-    provenance: 'Gifted by @tonfan to you · Feb 09 · "Winner"',
+    upgraded: "Upgraded Â· 900 Stars Â· ~$9",
+    provenance: 'Gifted by @tonfan to you Â· Feb 09 Â· "Winner"',
     comboRank: "Top 0.18% rarest trait combo in this collection",
     exactCount: "Only 15 gifts share this exact Model + Backdrop + Symbol",
     quickSellTon: 65.55,
     quickSellUsd: 1311,
     sales: [
-      ["70 TON · $1,398", "May 15", "Champion", "Carbon Black", "Laurel", "Getgems"],
-      ["67 TON · $1,337", "May 12", "Champion", "Carbon Black", "Laurel", "Fragment"],
+      ["70 TON Â· $1,398", "May 15", "Champion", "Carbon Black", "Laurel", "Getgems"],
+      ["67 TON Â· $1,337", "May 12", "Champion", "Carbon Black", "Laurel", "Fragment"],
     ],
     intel: {
-      trend: "▂▄▅▆▇",
+      trend: "â–‚â–„â–…â–†â–‡",
       badge: "Trending Up",
       sales24h: "2 exact variant sales",
-      volume24h: "137 TON · $2,735",
-      prior: "+22% volume · +9% sales count",
+      volume24h: "137 TON Â· $2,735",
+      prior: "+22% volume Â· +9% sales count",
       daysToSell: "~2.9 days",
       listedSupply: "15 listed across Getgems + Fragment",
-      listingRate: "Listed: 7% of supply — tight inventory",
-      bestTime: "Thursdays 6–9 PM UTC",
+      listingRate: "Listed: 7% of supply â€” tight inventory",
+      bestTime: "Thursdays 6â€“9 PM UTC",
     },
     chart: [970, 1040, 1115, 1190, 1260, 1328, 1380],
   },
@@ -306,7 +331,7 @@ const stickerAssets = [
     costBasis: 648,
     attributes: [
       ["Pack Name", "Neon Cat Set"],
-      ["Emoji Trigger", "🐱"],
+      ["Emoji Trigger", "ðŸ±"],
       ["Format", "Animated"],
       ["Sticker Count", "24"],
       ["Set ID", "ton://sticker/neon-cat"],
@@ -318,19 +343,19 @@ const stickerAssets = [
     quickSellTon: 29.45,
     quickSellUsd: 589,
     sales: [
-      ["32 TON · $638", "May 14", "Animated", "NeonCatLab", "Getgems"],
-      ["31 TON · $620", "May 12", "Animated", "NeonCatLab", "Getgems"],
+      ["32 TON Â· $638", "May 14", "Animated", "NeonCatLab", "Getgems"],
+      ["31 TON Â· $620", "May 12", "Animated", "NeonCatLab", "Getgems"],
     ],
     intel: {
-      trend: "▅▄▃▃▂",
+      trend: "â–…â–„â–ƒâ–ƒâ–‚",
       badge: "Cooling",
       sales24h: "4 pack sales",
-      volume24h: "124 TON · $2,476",
-      prior: "-8% volume · -11% sales",
+      volume24h: "124 TON Â· $2,476",
+      prior: "-8% volume Â· -11% sales",
       daysToSell: "~4.1 days",
       listedSupply: "41 listed across Getgems",
       listingRate: "Listed: 14% of total supply",
-      bestTime: "Mondays 7–9 PM UTC",
+      bestTime: "Mondays 7â€“9 PM UTC",
     },
     chart: [648, 676, 690, 671, 650, 632, 620],
   },
@@ -356,31 +381,31 @@ const stickerAssets = [
     costBasis: 740,
     attributes: [
       ["Pack Name", "Pixel Faces"],
-      ["Emoji Trigger", "🙂"],
+      ["Emoji Trigger", "ðŸ™‚"],
       ["Format", "Static"],
       ["Sticker Count", "18"],
       ["Set ID", "ton://sticker/pixel-faces"],
       ["Creator", "PixelForge"],
       ["Release Type", "Limited Drop"],
-      ["Collaboration", "PixelForge Ã— Telegram"],
+      ["Collaboration", "PixelForge Ãƒâ€” Telegram"],
       ["Drop Date", "March 22, 2026"],
     ],
     quickSellTon: 41.8,
     quickSellUsd: 836,
     sales: [
-      ["45 TON · $898", "May 15", "Static", "PixelForge", "Getgems"],
-      ["43 TON · $858", "May 13", "Static", "PixelForge", "Getgems"],
+      ["45 TON Â· $898", "May 15", "Static", "PixelForge", "Getgems"],
+      ["43 TON Â· $858", "May 13", "Static", "PixelForge", "Getgems"],
     ],
     intel: {
-      trend: "▂▃▅▆▇",
+      trend: "â–‚â–ƒâ–…â–†â–‡",
       badge: "Trending Up",
       sales24h: "7 pack sales",
-      volume24h: "306 TON · $6,109",
-      prior: "+28% volume · +18% sales",
+      volume24h: "306 TON Â· $6,109",
+      prior: "+28% volume Â· +18% sales",
       daysToSell: "~1.9 days",
       listedSupply: "23 listed across Getgems",
-      listingRate: "Listed: 6% of total supply — price support",
-      bestTime: "Thursdays 6–9 PM UTC",
+      listingRate: "Listed: 6% of total supply â€” price support",
+      bestTime: "Thursdays 6â€“9 PM UTC",
     },
     chart: [740, 762, 790, 812, 850, 862, 880],
   },
@@ -406,7 +431,7 @@ const stickerAssets = [
     costBasis: 378,
     attributes: [
       ["Pack Name", "Moon Moods"],
-      ["Emoji Trigger", "🌙"],
+      ["Emoji Trigger", "ðŸŒ™"],
       ["Format", "Video"],
       ["Sticker Count", "32"],
       ["Set ID", "ton://sticker/moon-moods"],
@@ -418,32 +443,30 @@ const stickerAssets = [
     quickSellTon: 19.48,
     quickSellUsd: 390,
     sales: [
-      ["21 TON · $420", "May 13", "Video", "MoonStudio", "Getgems"],
-      ["20 TON · $399", "May 11", "Video", "MoonStudio", "Getgems"],
+      ["21 TON Â· $420", "May 13", "Video", "MoonStudio", "Getgems"],
+      ["20 TON Â· $399", "May 11", "Video", "MoonStudio", "Getgems"],
     ],
     intel: {
-      trend: "▃▄▃▄▅",
+      trend: "â–ƒâ–„â–ƒâ–„â–…",
       badge: "Stable",
       sales24h: "5 pack sales",
-      volume24h: "102 TON · $2,041",
-      prior: "+4% volume · +2% sales",
+      volume24h: "102 TON Â· $2,041",
+      prior: "+4% volume Â· +2% sales",
       daysToSell: "~3.5 days",
       listedSupply: "78 listed across Getgems",
       listingRate: "Listed: 18% of total supply",
-      bestTime: "Saturdays 3–6 PM UTC",
+      bestTime: "Saturdays 3â€“6 PM UTC",
     },
     chart: [378, 390, 402, 398, 407, 414, 410],
   },
 ];
-const demoStickerAssets = stickerAssets.map((asset) => structuredClone(asset));
-
 const tokenDetails = {
   toncoin: {
     id: "toncoin",
     type: "token",
     name: "Toncoin",
     category: "TON Token",
-    value: "$4,180 · +2.4%",
+    value: "$4,180 Â· +2.4%",
     icon: "coins",
     tone: "token-bg",
     statOneLabel: "Balance",
@@ -453,7 +476,7 @@ const tokenDetails = {
     statThreeLabel: "Wallet",
     statThree: "Main",
     pnl: "+$610",
-    history: "Received 30 TON · 3m ago",
+    history: "Received 30 TON Â· 3m ago",
     link: "Explorer",
   },
   notcoin: {
@@ -461,7 +484,7 @@ const tokenDetails = {
     type: "token",
     name: "Notcoin",
     category: "TON Token",
-    value: "$1,120 · -1.1%",
+    value: "$1,120 Â· -1.1%",
     icon: "circle-dollar-sign",
     tone: "token-bg",
     statOneLabel: "Balance",
@@ -471,7 +494,7 @@ const tokenDetails = {
     statThreeLabel: "Wallet",
     statThree: "Trading",
     pnl: "-$42",
-    history: "Bought 4,200 NOT · May 10",
+    history: "Bought 4,200 NOT Â· May 10",
     link: "Explorer",
   },
   "jetton-basket": {
@@ -479,7 +502,7 @@ const tokenDetails = {
     type: "token",
     name: "Jetton Basket",
     category: "TON Token",
-    value: "$440 · +0.8%",
+    value: "$440 Â· +0.8%",
     icon: "landmark",
     tone: "token-bg",
     statOneLabel: "Assets",
@@ -489,7 +512,7 @@ const tokenDetails = {
     statThreeLabel: "Wallet",
     statThree: "Main",
     pnl: "+$36",
-    history: "Portfolio refreshed · Today",
+    history: "Portfolio refreshed Â· Today",
     link: "Explorer",
   },
 };
@@ -570,22 +593,14 @@ function compactNumber(value, options = {}) {
   });
 }
 
-function tokenAddressForApi(detail = {}) {
-  return detail.address && detail.address !== "Native TON" ? detail.address : "";
-}
 
-function tokenStonAddress(detail = {}) {
-  if (detail.address) return detail.address;
-  return String(detail.symbol || "").toUpperCase() === "TON"
-    ? "EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c"
-    : "";
-}
 
 function showScreen(name) {
   const previousScreen = document.querySelector(".screen.is-active")?.dataset.screen;
   screens.forEach((screen) => {
     screen.classList.toggle("is-active", screen.dataset.screen === name);
   });
+  document.querySelector(".app-frame")?.classList.toggle("is-home-screen", name === "home");
   const group = navGroup[name] || name;
   navButtons.forEach((button) => {
     button.classList.toggle("is-active", button.dataset.screenTarget === group);
@@ -643,7 +658,7 @@ function restoreRouteScroll(route) {
 function applyNavigationRoute(route, { restoreScroll = false } = {}) {
   if (!route?.screen) return;
   if (route.screen === "detail") {
-    if (route.asset) renderAssetDetail(route.asset);
+    if (!route.asset || !renderAssetDetail(route.asset)) return;
   } else if (route.screen === "gift-brand") {
     if (route.mode === "gift-model-group") renderGiftModelGroup(route.asset);
     else renderGiftBrand(route.asset);
@@ -657,17 +672,91 @@ function applyNavigationRoute(route, { restoreScroll = false } = {}) {
   else window.scrollTo({ top: 0, behavior: "auto" });
 }
 
-function navigateToRoute(route, { back = false } = {}) {
+function navigateToRoute(route, { back = false, forward = false } = {}) {
   const currentRoute = currentNavigationRoute();
   if (back && navigationStack.length) {
     const previousRoute = navigationStack.pop();
+    forwardNavigationStack.push(currentRoute);
     applyNavigationRoute(previousRoute, { restoreScroll: true });
     return;
   }
-  if (!back && navigationRouteKey(currentRoute) !== navigationRouteKey(route)) {
+  if (back) return;
+  if (forward && forwardNavigationStack.length) {
+    const nextRoute = forwardNavigationStack.pop();
     navigationStack.push(currentRoute);
+    applyNavigationRoute(nextRoute, { restoreScroll: true });
+    return;
+  }
+  if (forward) return;
+  if (navigationRouteKey(currentRoute) !== navigationRouteKey(route)) {
+    navigationStack.push(currentRoute);
+    forwardNavigationStack.length = 0;
   }
   applyNavigationRoute(route, { restoreScroll: false });
+}
+
+function shouldIgnoreNavigationSwipe(target) {
+  return Boolean(target?.closest?.([
+    "button",
+    "a",
+    "input",
+    "textarea",
+    "select",
+    "[contenteditable]",
+    "[data-external-url]",
+    ".wallet-sheet",
+    ".wallet-sheet-backdrop",
+    ".wallet-action-sheet",
+    ".wallet-action-backdrop",
+    ".token-sort-sheet",
+    ".tx-sheet",
+    ".tx-sheet-backdrop",
+    ".sticker-thumb-overlay",
+    ".gift-pfp-tray",
+    ".gift-pfp-tray-backdrop",
+    ".floor-chart",
+    ".donut-chart",
+  ].join(",")));
+}
+
+function installNavigationSwipeGestures() {
+  let startX = 0;
+  let startY = 0;
+  let startTime = 0;
+  let swipeTarget = null;
+  const threshold = 72;
+  const verticalTolerance = 1.25;
+  const maxDurationMs = 900;
+
+  document.addEventListener("touchstart", (event) => {
+    if (event.touches.length !== 1 || shouldIgnoreNavigationSwipe(event.target)) {
+      swipeTarget = null;
+      return;
+    }
+    const touch = event.touches[0];
+    startX = touch.clientX;
+    startY = touch.clientY;
+    startTime = Date.now();
+    swipeTarget = event.target;
+  }, { passive: true });
+
+  document.addEventListener("touchend", (event) => {
+    if (!swipeTarget || event.changedTouches.length !== 1) return;
+    const touch = event.changedTouches[0];
+    const deltaX = touch.clientX - startX;
+    const deltaY = touch.clientY - startY;
+    const duration = Date.now() - startTime;
+    swipeTarget = null;
+    if (duration > maxDurationMs) return;
+    if (Math.abs(deltaX) < threshold) return;
+    if (Math.abs(deltaX) < Math.abs(deltaY) * verticalTolerance) return;
+    if (deltaX > 0) navigateToRoute({}, { back: true });
+    else navigateToRoute({}, { forward: true });
+  }, { passive: true });
+
+  document.addEventListener("touchcancel", () => {
+    swipeTarget = null;
+  }, { passive: true });
 }
 
 function setText(selector, value) {
@@ -713,7 +802,7 @@ function updateCollectibleSummaryBanner(kind) {
   const pnlPct = pnlBase ? (pnl / pnlBase) * 100 : 0;
   const dailyClass = daily < 0 ? "negative" : "positive";
   const pnlClass = pnl < 0 ? "negative" : "positive";
-  banner.innerHTML = `<small>${label}</small><div><h2>${money(total)}</h2><span>${compactNumber(totalTon)} TON</span></div><strong class="${dailyClass}">${signedMoney(daily)} · ${signedPct(dailyPct)} 24h</strong><p>${kind === "gifts" ? "Gift" : "Sticker"} unrealized PnL: <b class="${pnlClass}">${signedMoney(pnl)} · ${signedPct(pnlPct)}</b></p>`;
+  banner.innerHTML = `<small>${label}</small><div><h2>${money(total)}</h2><span>${compactNumber(totalTon)} TON</span></div><strong class="${dailyClass}">${signedMoney(daily)} Â· ${signedPct(dailyPct)} 24h</strong><p>${kind === "gifts" ? "Gift" : "Sticker"} unrealized PnL: <b class="${pnlClass}">${signedMoney(pnl)} Â· ${signedPct(pnlPct)}</b></p>`;
 }
 
 function renderGiftGrid() {
@@ -751,7 +840,7 @@ function renderGiftGrid() {
     const holdings = giftAssets.flatMap((asset) => asset.children?.length ? asset.children : [asset]);
     const fetched = holdings.filter((asset) => asset.floorSource === "backdrop" && Number(asset.floorUsd || 0) > 0).length;
     const estimated = holdings.filter(isEstimatedAsset).length;
-    coverageLabel.textContent = `${fetched} fetched · ${estimated} estimated`;
+    coverageLabel.textContent = `${fetched} fetched Â· ${estimated} valued`;
     coverageLabel.classList.toggle("is-complete", Boolean(holdings.length) && fetched + estimated >= holdings.length);
   }
   grid.innerHTML = items.length ? items.map(renderGiftCard).join("") : `<article class="collectible-card"><div class="value-stack"><strong>No gifts found</strong><small>Try a different search.</small></div></article>`;
@@ -782,7 +871,7 @@ function renderStickerGrid() {
   const items = sortAssets(filterAssets(searched, filter), sort);
   const countLabel = document.querySelector("#stickerCountLabel");
   if (countLabel) {
-    const count = items.reduce((sum, asset) => sum + Number(asset.count || 1), 0);
+    const count = items.reduce((sum, asset) => sum + stickerOwnedCount(asset), 0);
     countLabel.textContent = `${count} sticker${count === 1 ? "" : "s"}`;
   }
   grid.innerHTML = items.length ? items.map(renderStickerCard).join("") : `<article class="collectible-card"><div class="value-stack"><strong>No stickers found</strong><small>Try a different search.</small></div></article>`;
@@ -793,29 +882,34 @@ function renderStickerGrid() {
 
 function filterAssets(items, filter) {
   if (filter === "all") return [...items];
-  if (filter === "listed") return items.filter((item) => item.status !== "Unlisted");
-  if (filter === "unlisted") return items.filter((item) => item.status === "Unlisted");
+  const members = (item) => item.children?.length ? item.children : [item];
+  if (filter === "listed") return items.filter((item) => members(item).some((member) => member.status !== "Unlisted"));
+  if (filter === "unlisted") return items.filter((item) => members(item).every((member) => member.status === "Unlisted"));
   const [field, value] = filter.split(":");
   if (field === "collection") return items.filter((item) => item.collection === value);
   if (field === "model" || field === "backdrop" || field === "symbol") {
     const label = field[0].toUpperCase() + field.slice(1);
     return items.filter((item) => item.traits?.some((trait) => trait.label === label && trait.value === value));
   }
-  if (field === "format") return items.filter((item) => item.format === value);
-  if (field === "creator") return items.filter((item) => item.creator === value);
-  if (field === "edition") return items.filter((item) => item.edition === value);
+  if (field === "format") return items.filter((item) => members(item).some((member) => member.format === value));
+  if (field === "creator") return items.filter((item) => members(item).some((member) => item.creator === value || member.creator === value));
+  if (field === "edition") return items.filter((item) => members(item).some((member) => member.edition === value));
   return [...items];
 }
 
 function sortAssets(items, sort) {
   const sorted = [...items];
+  const numericMetric = (value) => {
+    const numeric = Number(value);
+    return Number.isFinite(numeric) ? numeric : 0;
+  };
   const firstTraitPct = (item) => Number.parseFloat(item.traits?.[0]?.rarity || "99");
   const mintNumber = (item) => item.mint?.current || 999999;
   const sorters = {
-    "floor-desc": (a, b) => b.floorUsd - a.floorUsd,
-    "floor-asc": (a, b) => a.floorUsd - b.floorUsd,
-    "pnl-desc": (a, b) => b.pnlPct - a.pnlPct,
-    "daily-desc": (a, b) => b.dailyPct - a.dailyPct,
+    "floor-desc": (a, b) => numericMetric(b.floorUsd) - numericMetric(a.floorUsd) || String(a.name || "").localeCompare(String(b.name || "")),
+    "floor-asc": (a, b) => numericMetric(a.floorUsd) - numericMetric(b.floorUsd) || String(a.name || "").localeCompare(String(b.name || "")),
+    "pnl-desc": (a, b) => numericMetric(b.pnlPct) - numericMetric(a.pnlPct),
+    "daily-desc": (a, b) => numericMetric(b.dailyPct) - numericMetric(a.dailyPct),
     "date-desc": (a, b) => b.acquiredSort - a.acquiredSort,
     "tag-asc": (a, b) => (a.tag || 0) - (b.tag || 0),
     "model-rarity": (a, b) => firstTraitPct(a) - firstTraitPct(b),
@@ -828,20 +922,18 @@ function sortAssets(items, sort) {
 function floorSourceLine(asset = {}) {
   if (Number(asset.estimatedCount || 0) > 0) {
     const base = Number(asset.floorTon || 0) > 0 ? `${Number(asset.floorTon).toFixed(2)} TON` : "";
-    const estimated = `${Number(asset.estimatedCount || 0)} estimated`;
-    return ["Floor", base, estimated].filter(Boolean).map((part) => escapeHtml(String(part))).join(" · ");
+    return ["Floor", base].filter(Boolean).map((part) => escapeHtml(String(part))).join(" Â· ");
   }
   const isEstimate = asset.floorStatus === "estimated" || asset.floorSource === "estimate" || asset.source === "estimated-combo-value";
   const isLastSale = asset.floorSource === "last-sale" || asset.source === "last-sale-exact" || /last sale/i.test(String(asset.marketPlatform || ""));
-  const parts = [isLastSale ? "Last sale" : (isEstimate ? "Estimated value" : "Floor")];
+  const parts = [isLastSale ? "Last sale" : "Floor"];
   if (asset.floorSource === "model") parts.push("Model");
-  if (asset.floorSource === "estimate" && asset.estimateConfidence) parts.push(`${asset.estimateConfidence} confidence`);
   if (Number(asset.floorTon || 0) > 0) parts.push(`${Number(asset.floorTon).toFixed(2)} TON`);
   const platform = marketSourceLabel(asset.marketPlatform);
-  if (platform && platform !== "xGift Model" && platform !== "Model Floor") parts.push(platform);
+  if (!isEstimate && platform && platform !== "xGift Model" && platform !== "Model Floor") parts.push(platform);
   if (Number(asset.initTon || 0) > 0) parts.push(`Init ${Number(asset.initTon).toFixed(2)} TON`);
   else if (Number(asset.initUsd || 0) > 0) parts.push(`Init ${money(asset.initUsd)}`);
-  return parts.map((part) => escapeHtml(String(part))).join(" · ");
+  return parts.map((part) => escapeHtml(String(part))).join(" Â· ");
 }
 
 function isEstimatedAsset(asset = {}) {
@@ -852,15 +944,6 @@ function estimatedPillHtml(asset = {}) {
   return isEstimatedAsset(asset) ? `<span class="status-badge is-estimated">Estimated</span>` : "";
 }
 
-function estimateSignalLine(asset = {}) {
-  const signals = asset.estimateSignals || {};
-  if (!(asset.floorSource === "estimate" || asset.floorStatus === "estimated" || asset.source === "estimated-combo-value")) return "";
-  const parts = [];
-  if (Number(signals.modelSamples || 0) > 0) parts.push(`${Number(signals.modelSamples)} model comps`);
-  if (Number(signals.backdropSamples || 0) > 0) parts.push(`${Number(signals.backdropSamples)} backdrop comps`);
-  if (Number(signals.backdropRarityPct || 0) > 0) parts.push(`${Number(signals.backdropRarityPct).toFixed(1)}% backdrop`);
-  return parts.slice(0, 3).join(" · ");
-}
 
 function renderGiftCard(asset) {
   if (asset.priceLoading && !(Number(asset.floorUsd || 0) > 0)) return renderCollectiblePriceSkeletonCard(asset, "gift");
@@ -868,13 +951,16 @@ function renderGiftCard(asset) {
   const pnlClass = asset.pnlUsd >= 0 ? "positive" : "negative";
   const listed = asset.status && asset.status !== "Unlisted";
   const title = asset.name || asset.collection || "Gift";
-  const subtitle = [asset.creator, asset.collection].find((value) => value && collectibleKey(value) !== collectibleKey(title)) || "";
+  const model = giftModelTrait(asset);
+  const backdrop = giftBackdropTrait(asset);
+  const subtitle = [model, backdrop].filter(Boolean).join(" Â· ")
+    || [asset.creator, asset.collection].find((value) => value && collectibleKey(value) !== collectibleKey(title)) || "";
   const provenance = asset.provenance && collectibleKey(asset.provenance) !== collectibleKey(title)
     && collectibleKey(asset.provenance) !== collectibleKey(subtitle) ? asset.provenance : "";
   const hasPrice = Number(asset.floorUsd) > 0;
   const floorNote = hasPrice
     ? floorSourceLine(asset)
-    : (Number(asset.estimatedCount || 0) > 0 ? `${Number(asset.estimatedCount || 0)} estimated` : "No market price available");
+    : "No market price available";
   return `
     <article class="collectible-card is-gift-card" data-screen-target="gift-brand" data-asset="${asset.id}">
       <div class="collectible-top">
@@ -885,8 +971,8 @@ function renderGiftCard(asset) {
       ${provenance || listed ? `<div class="card-meta-line ${provenance ? "" : "is-status-only"}">${provenance ? `<span>${escapeHtml(provenance)}</span>` : ""}${listed ? `<b class="status-badge is-listed">${escapeHtml(asset.status)}</b>` : ""}</div>` : ""}
       <div class="value-stack"><strong>${hasPrice ? money(asset.floorUsd) : "Price unavailable"}</strong><small>${floorNote}</small></div>
       <div class="pnl-row">
-        <span class="pnl-box"><small>Daily PnL</small><b class="${dailyClass}">${hasPrice ? `${signedMoney(asset.dailyUsd)} · ${signedPct(asset.dailyPct)}` : "—"}</b></span>
-        <span class="pnl-box"><small>Total PnL</small><b class="${pnlClass}">${hasPrice ? `${signedMoney(asset.pnlUsd)} · ${signedPct(asset.pnlPct)}` : "—"}</b></span>
+        <span class="pnl-box"><small>Daily PnL</small><b class="${dailyClass}">${hasPrice ? `${signedMoney(asset.dailyUsd)} Â· ${signedPct(asset.dailyPct)}` : "â€”"}</b></span>
+        <span class="pnl-box"><small>Total PnL</small><b class="${pnlClass}">${hasPrice ? `${signedMoney(asset.pnlUsd)} Â· ${signedPct(asset.pnlPct)}` : "â€”"}</b></span>
       </div>
     </article>`;
 }
@@ -909,10 +995,9 @@ function renderGiftBrand(assetId) {
     const totalValue = children.reduce((sum, item) => sum + Number(item.floorUsd || 0), 0);
     const init = children.reduce((sum, item) => sum + Number(item.initUsd || 0), 0);
     const pnl = init ? totalValue - init : 0;
-    const estimated = Number(brand.estimatedCount || 0);
     const valueLabel = totalValue > 0 ? money(totalValue) : "Price unavailable";
-    const countLabel = `${count} gift${count === 1 ? "" : "s"}${estimated ? ` · ${estimated} estimated` : ""}`;
-    summary.innerHTML = `<small>${escapeHtml(brand.creator || brand.collection || "Gift collection")}</small><div><h2>${valueLabel}</h2><span>${escapeHtml(countLabel)}</span></div><strong class="${pnl < 0 ? "negative" : "positive"}">${init && totalValue > 0 ? `${signedMoney(pnl)} · ${signedPct((pnl / init) * 100)}` : "Tap a gift to open details"}</strong>`;
+    const countLabel = `${count} gift${count === 1 ? "" : "s"}`;
+    summary.innerHTML = `<small>${escapeHtml(brand.creator || brand.collection || "Gift collection")}</small><div><h2>${valueLabel}</h2><span>${escapeHtml(countLabel)}</span></div><strong class="${pnl < 0 ? "negative" : "positive"}">${init && totalValue > 0 ? `${signedMoney(pnl)} Â· ${signedPct((pnl / init) * 100)}` : "Tap a gift to open details"}</strong>`;
   }
   const grid = document.querySelector("#giftBrandGrid");
   groupedChildren.forEach((item) => { assetDetails[item.id] = item; });
@@ -936,8 +1021,8 @@ function giftDetailHeroMeta(detail = {}) {
     detail.creator || detail.collection || "Gift collection",
     `${count} gift${count === 1 ? "" : "s"}`,
   ].filter(Boolean);
-  if (!numbers.length) return escapeHtml(parts.join(" · "));
-  return escapeHtml(parts.join(" · "));
+  if (!numbers.length) return escapeHtml(parts.join(" Â· "));
+  return escapeHtml(parts.join(" Â· "));
 }
 
 function giftBrandModelLabel(asset = {}) {
@@ -958,9 +1043,6 @@ function giftBrandMintLabel(asset = {}) {
   return `#${cleaned}`;
 }
 
-function giftBrandImageKey(asset = {}) {
-  return collectibleKey(asset.animatedImage || asset.animationUrl || asset.image || asset.iconUrl || asset.previewUrl || "");
-}
 
 function groupGiftBrandChildren(children = []) {
   const groups = new Map();
@@ -1020,12 +1102,13 @@ function groupGiftBrandChildren(children = []) {
 function renderGiftBrandItem(asset) {
   if (asset.priceLoading && !(Number(asset.floorUsd || 0) > 0)) return renderCollectiblePriceSkeletonCard(asset, "gift");
   const hasPrice = Number(asset.floorUsd) > 0;
-  const floorNote = hasPrice ? floorSourceLine(asset) : (asset.marketPlatform ? `Floor · ${escapeHtml(asset.marketPlatform)}` : "Open details");
+  const floorNote = hasPrice ? floorSourceLine(asset) : (asset.marketPlatform ? `Floor Â· ${escapeHtml(asset.marketPlatform)}` : "Open details");
   const count = Number(asset.count || asset.children?.length || 1);
   const imageStack = count > 1 ? giftBrandImageStack(asset) : "";
   const modelLabel = giftBrandModelLabel(asset);
   const modelCount = giftBrandModelNumber(asset);
-  const modelMeta = modelCount > 0 ? `${modelLabel} · model ${modelCount.toLocaleString()}` : modelLabel;
+  const backdropLabel = giftBackdropTrait(asset);
+  const modelMeta = [modelLabel, backdropLabel].filter(Boolean).join(" Â· ") || modelLabel;
   const target = count > 1 ? "gift-model-group" : "detail";
   return `
     <article class="collectible-card is-gift-card ${imageStack ? "has-gift-stack" : ""} ${count > 1 ? "is-grouped-gift" : ""}" data-screen-target="${target}" data-asset="${asset.id}">
@@ -1034,7 +1117,6 @@ function renderGiftBrandItem(asset) {
         <div><h3>${escapeHtml(asset.collection || asset.name)}</h3><small>${escapeHtml(modelMeta)}</small></div>
         <span class="gift-model-badges">
           <b>${count} gift${count === 1 ? "" : "s"}</b>
-          ${modelCount > 0 ? `<small>${modelCount.toLocaleString()} model</small>` : ""}
         </span>${estimatedPillHtml(asset)}
       </div>
       <div class="value-stack"><strong>${hasPrice ? money(asset.floorUsd) : "Price unavailable"}</strong><small>${floorNote}</small></div>
@@ -1062,22 +1144,11 @@ function renderGiftModelGroup(assetId) {
   applyCurrencyDisplay();
 }
 
-function refreshActiveGiftViews() {
-  const activeGiftScreen = document.querySelector('[data-screen="gift-brand"].is-active');
-  const modelGroupAsset = activeGiftScreen?.dataset.modelGroupAsset;
-  if (modelGroupAsset && assetDetails[modelGroupAsset]) {
-    renderGiftModelGroup(modelGroupAsset);
-  } else if (activeGiftScreen?.dataset.asset) {
-    renderGiftBrand(activeGiftScreen.dataset.asset);
-  }
-  const activeDetail = assetDetails[currentDetailAssetId()];
-  if (activeDetail?.type === "gift") renderGiftDetailPage(activeDetail, { loading: false });
-}
-
 function renderGiftIndividualItem(asset) {
   const hasPrice = Number(asset.floorUsd) > 0;
   const number = giftBrandMintLabel(asset);
   const modelLabel = giftBrandModelLabel(asset);
+  const backdropLabel = giftBackdropTrait(asset);
   const title = giftDetailTitle(asset);
   return `
     <article class="collectible-card is-gift-card is-individual-gift" data-screen-target="detail" data-asset="${asset.id}">
@@ -1085,7 +1156,7 @@ function renderGiftIndividualItem(asset) {
         ${collectibleArtHtml(asset, "gift")}
         <div>
           <h3>${escapeHtml(title)}</h3>
-          <small>${escapeHtml(modelLabel)}</small>
+          <small>${escapeHtml([modelLabel, backdropLabel].filter(Boolean).join(" Â· "))}</small>
         </div>
         ${number ? `<span class="tag-number">${escapeHtml(number)}</span>` : ""}${estimatedPillHtml(asset)}
       </div>
@@ -1112,14 +1183,42 @@ function giftMediaDescriptor(asset = {}) {
   const fallback = asset.image || asset.iconUrl || asset.previewUrl || "";
   const animatedUrl = resolveAnimationMediaUrl(animated || "");
   const fallbackUrl = resolveTokenImage(fallback || "");
+  const declaredType = String(asset.mediaType || "").toLowerCase();
   const inferredType = /\.(?:lottie\.)?json(?:[?#].*)?$/i.test(String(animatedUrl))
     ? "lottie"
-    : (asset.mediaType || (/(\.webm|\.mp4|\.mov)(?:[?#].*)?$/i.test(String(animatedUrl)) ? "video" : "image"));
+    // Telegram files use a signed route without a filename extension. Prefer
+    // the explicit backend type before attempting URL-based inference.
+    : (["lottie", "video"].includes(declaredType)
+      ? declaredType
+      : (/(\.webm|\.mp4|\.mov)(?:[?#].*)?$/i.test(String(animatedUrl)) ? "video" : "image"));
   if (inferredType === "lottie") {
     return { url: animatedUrl || fallbackUrl || "", type: "lottie", fallback: fallbackUrl, animationUrl: animatedUrl, mediaType: "lottie" };
   }
   const url = animatedUrl || fallbackUrl || "";
   return { url, type: inferredType, fallback: fallbackUrl };
+}
+
+function stickerMediaDescriptor(asset = {}) {
+  const animated = asset.animatedImage || asset.animationUrl || asset.animatedUrl || asset.mediaUrl || "";
+  const fallback = asset.image || asset.iconUrl || asset.previewUrl || asset.preview || "";
+  const animatedUrl = resolveAnimationMediaUrl(animated || "");
+  const fallbackUrl = resolveTokenImage(fallback || "");
+  const type = /\.(?:lottie\.)?json(?:[?#].*)?$/i.test(String(animatedUrl)) || /\/lottie(?:\/|$)/i.test(String(animatedUrl))
+    ? "lottie"
+    : (asset.mediaType || (/(\.webm|\.mp4|\.mov)(?:[?#].*)?$/i.test(String(animatedUrl)) ? "video" : "image"));
+  return {
+    url: animatedUrl || fallbackUrl || "",
+    type: animatedUrl ? type : "image",
+    fallback: fallbackUrl,
+  };
+}
+
+function giftCardMediaDescriptor(asset = {}) {
+  // Gift cards deliberately use the verified static preview. Animated/layered
+  // media belongs to the detail hero only; using it in lists made cards flicker
+  // and exposed Telegram's empty thumbnail placeholder.
+  const staticPreview = asset.image || asset.previewUrl || asset.iconUrl || asset.thumbnailUrl || "";
+  return { url: resolveTokenImage(staticPreview), type: "image", fallback: "" };
 }
 
 function giftCollectionLabel(asset = {}) {
@@ -1198,10 +1297,18 @@ function giftPatternLayerHtml(layer = {}) {
   return `<span class="gift-layer-pattern" aria-hidden="true">${giftPatternPositions.map(([top, left, size, opacity]) => `<span style="top:${top};left:${left};width:${size};height:${size};opacity:${opacity / 100};--gift-pattern-image:url('${escapeHtml(layer.patternImageUrl)}')"></span>`).join("")}</span>`;
 }
 
-function giftLayeredArtHtml(asset = {}, wrapperClass = "animated-art") {
+function giftLayeredArtHtml(asset = {}, wrapperClass = "animated-art", { staticOnly = false } = {}) {
   const layer = giftLayerDescriptor(asset);
-  if (!layer?.modelAnimationUrl) return "";
-  const media = { url: layer.modelAnimationUrl, type: layer.mediaType || "lottie", fallback: "" };
+  const mediaUrl = staticOnly
+    ? (layer?.modelAnimationUrl || layer?.modelImageUrl || "")
+    : (layer?.modelAnimationUrl || layer?.modelImageUrl || "");
+  if (!mediaUrl) return "";
+  const media = {
+    url: mediaUrl,
+    type: layer.modelAnimationUrl ? (layer.mediaType || "lottie") : "image",
+    fallback: "",
+    staticFrame: staticOnly && Boolean(layer.modelAnimationUrl),
+  };
   const palette = layer.backdropPalette;
   const className = `${wrapperClass} gift-layer-art`.trim();
   return `<span class="${escapeHtml(className)}">
@@ -1214,25 +1321,29 @@ function giftLayeredArtHtml(asset = {}, wrapperClass = "animated-art") {
 function giftDetailAnimationHtml(asset = {}) {
   const media = giftMediaDescriptor(asset);
   if (!media.url || !["lottie", "video"].includes(media.type)) return "";
-  return collectibleMediaHtml({ ...media, fallback: "" }, asset.name || "Gift");
+  return collectibleMediaHtml(media, asset.name || "Gift");
 }
 
 function collectibleMediaHtml(media = {}, alt = "Collectible", className = "") {
   const url = resolveTokenImage(media.url || "");
-  if (!url) return "";
   const fallback = resolveTokenImage(media.fallback || "");
   const classList = className ? ` ${escapeHtml(className)}` : "";
+  if (!url) return "";
   if (media.type === "video") {
-    return `<video class="${classList.trim()}" src="${escapeHtml(url)}" autoplay muted loop playsinline preload="metadata" ${fallback ? `poster="${escapeHtml(fallback)}"` : ""}></video>`;
+    return `<video class="collectible-video${classList}" src="${escapeHtml(url)}" muted loop playsinline preload="metadata" data-collectible-video="1" ${fallback ? `poster="${escapeHtml(fallback)}"` : ""}></video>`;
   }
   if (media.type === "lottie") {
-    return `<span class="lottie-host${classList}" data-lottie-src="${escapeHtml(url)}" ${fallback ? `data-lottie-fallback="${escapeHtml(fallback)}"` : ""}>${fallback ? `<img class="lottie-fallback" src="${escapeHtml(fallback)}" alt="${escapeHtml(alt)}" loading="eager" decoding="async">` : ""}</span>`;
+    return `<span class="lottie-host${classList}" data-lottie-src="${escapeHtml(url)}" ${media.staticFrame ? 'data-lottie-static="1"' : ""} ${fallback ? `data-lottie-fallback="${escapeHtml(fallback)}"` : ""}>${fallback ? `<img class="lottie-fallback" src="${escapeHtml(fallback)}" alt="${escapeHtml(alt)}" loading="eager" decoding="async">` : ""}</span>`;
   }
   return `<img class="${classList.trim()}" src="${escapeHtml(url)}" alt="${escapeHtml(alt)}" loading="eager" decoding="async">`;
 }
 
 let collectibleLottieLibraryPromise = null;
 const collectibleLottieDataCache = new Map();
+const collectibleMediaElements = new Set();
+let collectibleMediaObserver = null;
+let collectibleViewportSyncFrame = 0;
+let collectibleViewportListenersInstalled = false;
 
 function ensureCollectibleLottieLibrary() {
   if (window.lottie?.loadAnimation) return Promise.resolve(window.lottie);
@@ -1245,7 +1356,7 @@ function ensureCollectibleLottieLibrary() {
       return;
     }
     const script = document.createElement("script");
-    script.src = "https://cdnjs.cloudflare.com/ajax/libs/bodymovin/5.12.2/lottie.min.js";
+    script.src = "/assets/vendor/lottie.min.js";
     script.async = true;
     script.dataset.lottieRuntime = "1";
     script.onload = () => resolve(window.lottie);
@@ -1274,57 +1385,160 @@ function loadCollectibleLottieData(src = "") {
   return request;
 }
 
-function initCollectibleAnimations(scope = document) {
-  const hosts = [...scope.querySelectorAll("[data-lottie-src]:not([data-lottie-bound])")];
-  if (!hosts.length) return;
-  hosts.forEach((host) => { host.dataset.lottieBound = "1"; });
-  ensureCollectibleLottieLibrary()
-    .then((lottie) => {
-      hosts.forEach((host) => {
-        const src = host.dataset.lottieSrc;
-        if (!src || host.__lottieAnimation) return;
-        host.classList.add("is-lottie-loading");
-        loadCollectibleLottieData(src).then((animationData) => {
-          if (!host.isConnected || host.__lottieAnimation) return;
-          const animation = lottie.loadAnimation({
-            container: host,
-            renderer: "svg",
-            loop: true,
-            autoplay: true,
-            animationData,
-            rendererSettings: {
-              progressiveLoad: true,
-              preserveAspectRatio: "xMidYMid meet",
-            },
-          });
-          host.__lottieAnimation = animation;
-          const markReady = () => {
-            host.classList.remove("is-lottie-loading");
-            host.classList.add("is-lottie-ready");
-          };
-          const markFailed = () => {
-            host.classList.remove("is-lottie-loading");
-            host.classList.add("is-lottie-failed");
-          };
-          animation.addEventListener?.("DOMLoaded", markReady);
-          animation.addEventListener?.("data_failed", markFailed);
-          animation.addEventListener?.("error", markFailed);
-        }).catch(() => {
-          host.classList.remove("is-lottie-loading");
-          host.classList.add("is-lottie-failed");
-        });
-      });
-    })
-    .catch(() => {
-      hosts.forEach((host) => host.classList.add("is-lottie-failed"));
-    });
+function playCollectibleLottie(host) {
+  const animation = host?.__lottieAnimation;
+  if (!animation || !host.__collectibleVisible || host.dataset.lottieStatic === "1") return;
+  animation.play();
+  host.dataset.animationPlaying = "1";
 }
 
-function openGiftPfpTray(assetId, trigger = null) {
+function pauseCollectibleLottie(host) {
+  const animation = host?.__lottieAnimation;
+  if (!animation) return;
+  animation.pause();
+  host.dataset.animationPlaying = "0";
+}
+
+function activateCollectibleLottie(host) {
+  const src = host.dataset.lottieSrc;
+  if (!src || host.__lottieAnimation || host.dataset.lottieLoading === "1") return;
+  host.dataset.lottieLoading = "1";
+  host.classList.add("is-lottie-loading");
+  Promise.all([ensureCollectibleLottieLibrary(), loadCollectibleLottieData(src)])
+    .then(([lottie, animationData]) => {
+      if (!host.isConnected || host.__lottieAnimation) return;
+      const animation = lottie.loadAnimation({
+        container: host,
+        renderer: "canvas",
+        loop: true,
+        autoplay: false,
+        animationData,
+        rendererSettings: { preserveAspectRatio: "xMidYMid meet" },
+      });
+      host.__lottieAnimation = animation;
+      if (host.dataset.lottieStatic === "1") animation.goToAndStop?.(0, true);
+      else if (host.__collectibleVisible) playCollectibleLottie(host);
+      animation.addEventListener?.("DOMLoaded", () => {
+        host.classList.remove("is-lottie-loading");
+        host.classList.add("is-lottie-ready");
+        host.dataset.animationReady = "1";
+        if (host.dataset.lottieStatic === "1") animation.goToAndStop?.(0, true);
+        else if (host.__collectibleVisible) playCollectibleLottie(host);
+        else pauseCollectibleLottie(host);
+      });
+      const markFailed = () => {
+        host.classList.remove("is-lottie-loading");
+        host.classList.add("is-lottie-failed");
+        host.dataset.animationFailed = "1";
+        host.dataset.animationPlaying = "0";
+        host.querySelector(".collectible-media-fallback")?.removeAttribute("hidden");
+      };
+      animation.addEventListener?.("data_failed", markFailed);
+      animation.addEventListener?.("error", markFailed);
+    })
+    .catch(() => {
+      host.classList.remove("is-lottie-loading");
+      host.classList.add("is-lottie-failed");
+      host.dataset.animationFailed = "1";
+      host.dataset.animationPlaying = "0";
+      host.querySelector(".collectible-media-fallback")?.removeAttribute("hidden");
+    })
+    .finally(() => { delete host.dataset.lottieLoading; });
+}
+
+function setCollectibleMediaVisibility(element, visible) {
+  element.__collectibleVisible = visible;
+  if (visible) {
+    if (element.matches("[data-lottie-src]")) {
+      if (element.__lottieAnimation) playCollectibleLottie(element);
+      else activateCollectibleLottie(element);
+    } else if (element.matches("[data-collectible-video]")) {
+      element.play()
+        .then(() => { element.dataset.animationPlaying = "1"; })
+        .catch(() => { element.dataset.animationPlaying = "0"; });
+    }
+  } else if (element.__lottieAnimation) {
+    pauseCollectibleLottie(element);
+  } else if (element.matches("[data-collectible-video]")) {
+    element.pause();
+    element.dataset.animationPlaying = "0";
+  }
+}
+
+function collectibleMediaIsNearViewport(element) {
+  const rect = element.getBoundingClientRect();
+  return rect.width > 0 && rect.height > 0 && rect.bottom >= -160 && rect.top <= window.innerHeight + 160;
+}
+
+function syncCollectibleMediaViewport() {
+  collectibleViewportSyncFrame = 0;
+  collectibleMediaElements.forEach((element) => {
+    if (!element.isConnected) return;
+    setCollectibleMediaVisibility(element, collectibleMediaIsNearViewport(element));
+  });
+}
+
+function scheduleCollectibleMediaViewportSync() {
+  if (collectibleViewportSyncFrame) return;
+  collectibleViewportSyncFrame = requestAnimationFrame(syncCollectibleMediaViewport);
+}
+
+function installCollectibleViewportListeners() {
+  if (collectibleViewportListenersInstalled) return;
+  collectibleViewportListenersInstalled = true;
+  window.addEventListener("scroll", scheduleCollectibleMediaViewportSync, { passive: true });
+  window.addEventListener("resize", scheduleCollectibleMediaViewportSync, { passive: true });
+}
+
+function collectibleAnimationObserver() {
+  if (collectibleMediaObserver) return collectibleMediaObserver;
+  collectibleMediaObserver = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      const element = entry.target;
+      if (!element.isConnected) {
+        collectibleMediaObserver.unobserve(element);
+        element.__lottieAnimation?.destroy?.();
+        collectibleMediaElements.delete(element);
+        return;
+      }
+      setCollectibleMediaVisibility(element, entry.isIntersecting || collectibleMediaIsNearViewport(element));
+    });
+  }, { rootMargin: "160px 0px", threshold: 0.05 });
+  return collectibleMediaObserver;
+}
+
+function cleanupDetachedCollectibleAnimations() {
+  collectibleMediaElements.forEach((element) => {
+    if (element.isConnected) return;
+    collectibleMediaObserver?.unobserve(element);
+    element.__lottieAnimation?.destroy?.();
+    collectibleMediaElements.delete(element);
+  });
+}
+
+function initCollectibleAnimations(scope = document) {
+  cleanupDetachedCollectibleAnimations();
+  const selector = "[data-lottie-src]:not([data-animation-bound]), [data-collectible-video]:not([data-animation-bound])";
+  const elements = [
+    ...(scope.matches?.(selector) ? [scope] : []),
+    ...scope.querySelectorAll(selector),
+  ];
+  const observer = collectibleAnimationObserver();
+  installCollectibleViewportListeners();
+  elements.forEach((element) => {
+    element.dataset.animationBound = "1";
+    collectibleMediaElements.add(element);
+    observer.observe(element);
+    setCollectibleMediaVisibility(element, collectibleMediaIsNearViewport(element));
+  });
+}
+
+function openGiftPfpTray(assetId, trigger = null, kind = "gift") {
   const asset = assetDetails[assetId];
   if (!asset) return;
   closeGiftPfpTray();
   const children = asset.children?.length ? asset.children : [asset];
+  const isSticker = kind === "sticker";
   const tray = document.createElement("div");
   tray.className = "gift-pfp-tray-backdrop";
   tray.innerHTML = `
@@ -1335,11 +1549,12 @@ function openGiftPfpTray(assetId, trigger = null) {
       </div>
       <div class="gift-pfp-tray-grid">
         ${children.map((item) => {
-          const number = giftBrandMintLabel(item);
+          const number = isSticker ? stickerEditionLabel(item) : giftBrandMintLabel(item);
+          const label = isSticker ? stickerPackLabel(item) : giftBrandModelLabel(item);
           return `<button type="button" data-screen-target="detail" data-asset="${escapeHtml(item.id)}">
-            ${collectibleArtHtml(item, "gift")}
-            <span>${escapeHtml(giftBrandModelLabel(item))}</span>
-            <small>${number ? escapeHtml(number) : "Gift"}</small>
+            ${collectibleArtHtml(item, isSticker ? "sticker" : "gift")}
+            <span>${escapeHtml(label)}</span>
+            <small>${number ? escapeHtml(number) : (isSticker ? "Sticker" : "Gift")}</small>
           </button>`;
         }).join("")}
       </div>
@@ -1364,324 +1579,52 @@ function collectibleKey(value) {
   return String(value || "").toLowerCase().replace(/[^a-z0-9]+/g, "");
 }
 
-function giftFloorRequestKey(collection = "", model = "", backdrop = "") {
-  return [collection, model, backdrop].map(collectibleKey).join(":");
-}
-
-function giftAssetFloorKey(asset = {}, group = {}) {
-  return giftFloorRequestKey(
-    asset.collection || group.collection || group.name,
-    giftModelTrait(asset),
-    giftTraitValue(asset, "Backdrop"),
-  );
-}
-
-function giftFloorResponseKeys(model = {}) {
-  return [...new Set([
-    model.requestKey,
-    giftFloorRequestKey(model.collection, model.model || model.modelKey, model.backdrop),
-    giftFloorRequestKey(model.collectionKey, model.modelKey, model.backdrop),
-    giftFloorRequestKey(model.collectionKey, model.modelKey, model.backdropKey),
-  ].filter(Boolean))];
-}
-
-const giftComboFloorState = new Map();
-const giftFloorPendingRetryCounts = new Map();
-
 function giftModelTrait(asset = {}) {
   return (asset.traits || []).find((trait) => /model/i.test(String(trait.label || "")))?.value || "";
+}
+
+function giftBackdropTrait(asset = {}) {
+  return (asset.traits || []).find((trait) => /backdrop|background/i.test(String(trait.label || "")))?.value || "";
 }
 
 function giftTraitValue(asset = {}, label = "") {
   return (asset.traits || []).find((trait) => String(trait.label || "").toLowerCase() === label.toLowerCase())?.value || "";
 }
 
-function giftComboStateKey(asset = {}, group = {}) {
-  return giftFloorRequestKey(
-    asset.collection || group.collection || group.name,
-    giftModelTrait(asset),
-    giftTraitValue(asset, "Backdrop"),
-  );
-}
-
-function setGiftComboState(asset = {}, group = {}, state = {}) {
-  const key = giftComboStateKey(asset, group);
-  if (key && !key.endsWith("::")) giftComboFloorState.set(key, state);
-}
-
-function giftComboState(asset = {}) {
-  return giftComboFloorState.get(giftComboStateKey(asset)) || null;
-}
-
-function clearGiftComboState(asset = {}, group = {}) {
-  giftComboFloorState.delete(giftComboStateKey(asset, group));
-}
-
-function applyGiftModelFloor(asset, model = {}) {
-  const floorUsd = Number(model.floorUsd || 0);
-  const floorTon = Number(model.floorTon || 0);
-  if (!(floorUsd > 0 || floorTon > 0)) return false;
-  asset.floorUsd = floorUsd;
-  asset.floorTon = floorTon;
-  asset.marketVerified = true;
-  asset.priceLoading = false;
-  const isBackdropFloor = model.source === "d1-backdrop-floor";
-  const isEstimatedFloor = model.source === "estimated-combo-value";
-  asset.marketPlatform = isEstimatedFloor ? "Estimated Value" : (isBackdropFloor ? "Backdrop Floor" : "Model Floor");
-  asset.floorSource = isEstimatedFloor ? "estimate" : (isBackdropFloor ? "backdrop" : "model");
-  asset.floorStatus = isEstimatedFloor ? "estimated" : "priced";
-  asset.source = model.source || asset.source;
-  asset.estimateConfidence = model.estimateConfidence || asset.estimateConfidence || "";
-  asset.estimateSignals = model.estimateSignals || asset.estimateSignals || null;
-  if (isBackdropFloor) setGiftComboState(asset, {}, { status: "found", source: model.source });
-  else clearGiftComboState(asset);
-  if (model.iconUrl || model.animationUrl) {
-    if (model.iconUrl) {
-      asset.iconUrl = model.iconUrl || asset.iconUrl || "";
-    }
-    if (model.animationUrl) {
-      asset.animatedImage = model.animationUrl || asset.animatedImage || "";
-      asset.animationUrl = model.animationUrl || asset.animationUrl || "";
-    }
-    asset.mediaType = model.mediaType
-      || asset.mediaType
-      || (/\.(?:lottie\.)?json(?:[?#].*)?$/i.test(String(model.animationUrl || model.iconUrl || "")) ? "lottie" : (/(\.webm|\.mp4|\.mov)(?:[?#].*)?$/i.test(String(model.animationUrl || model.iconUrl || "")) ? "video" : "image"));
-  }
-  asset.modelFloor = {
-    model: model.model || giftModelTrait(asset),
-    listedCount: Number(model.listedCount || 0),
-    deals30d: Number(model.deals30d || 0),
-    avg30dTon: Number(model.avg30dTon || 0),
-    rarity: Number(model.rarity || 0),
-    updatedAt: model.marketUpdatedAt || "",
-    iconUrl: model.iconUrl || "",
-    animationUrl: model.animationUrl || "",
-    mediaType: model.mediaType || "",
-    source: model.source || "",
-  };
+function applyGiftTraitRarities(asset, model = {}) {
   const traitRarities = new Map(
     Object.entries(model.traitRarities || {})
       .map(([label, rarity]) => [collectibleKey(label), Number(rarity || 0)])
   );
+  if (!traitRarities.size) return;
   asset.traits = (asset.traits || []).map((trait) => {
     const rarity = traitRarities.get(collectibleKey(trait.label)) || 0;
     return rarity > 0 ? { ...trait, rarity: `${rarity}%` } : trait;
   });
-  asset.quickSellTon = floorTon * 0.95;
-  asset.quickSellUsd = floorUsd * 0.95;
-  const costBasis = Number(asset.costBasis || asset.initUsd || 0);
-  asset.pnlUsd = costBasis ? floorUsd - costBasis : 0;
-  asset.pnlPct = costBasis ? ((floorUsd - costBasis) / costBasis) * 100 : 0;
-  return true;
-}
-
-function syncGiftFloorAcrossAssets(detail = {}) {
-  if (detail?.type !== "gift" || detail.floorSource !== "backdrop") return;
-  const collectionKey = collectibleKey(detail.collection || detail.name);
-  const modelKey = collectibleKey(giftModelTrait(detail));
-  const backdropKey = collectibleKey(giftTraitValue(detail, "Backdrop"));
-  if (!collectionKey || !modelKey || !backdropKey || !(Number(detail.floorUsd || 0) > 0 || Number(detail.floorTon || 0) > 0)) return;
-  const floorPayload = {
-    collection: detail.collection || detail.name,
-    model: giftModelTrait(detail),
-    backdrop: giftTraitValue(detail, "Backdrop"),
-    floorUsd: Number(detail.floorUsd || 0),
-    floorTon: Number(detail.floorTon || 0),
-    listedCount: Number(detail.intel?.listedCount || detail.modelFloor?.listedCount || 0),
-    marketUpdatedAt: detail.modelFloor?.updatedAt || "",
-    marketPlatform: detail.marketPlatform || "Backdrop Floor",
-    marketUrl: detail.marketUrl || "",
-    source: "d1-backdrop-floor",
-  };
-  giftAssets.forEach((group) => {
-    let touched = false;
-    (group.children || []).forEach((child) => {
-      const sameCombo = collectibleKey(child.collection || child.name) === collectionKey
-        && collectibleKey(giftModelTrait(child)) === modelKey
-        && collectibleKey(giftTraitValue(child, "Backdrop")) === backdropKey;
-      if (!sameCombo) return;
-      if (applyGiftModelFloor(child, floorPayload)) {
-        assetDetails[child.id] = child;
-        touched = true;
-      }
-    });
-    if (touched) {
-      recomputeGiftGroup(group);
-      assetDetails[group.id] = group;
-    }
-  });
-  renderCollectibleGrids();
-  const activeGiftScreen = document.querySelector('[data-screen="gift-brand"].is-active');
-  const modelGroupAsset = activeGiftScreen?.dataset.modelGroupAsset;
-  if (modelGroupAsset && assetDetails[modelGroupAsset]) renderGiftModelGroup(modelGroupAsset);
-  else if (activeGiftScreen?.dataset.asset) renderGiftBrand(activeGiftScreen.dataset.asset);
-  updateAllocationUi();
-  syncAssetsSummary();
-  updateCategoryAndTopAsset();
-}
-
-function resetGiftCollectionFloorPlaceholder(asset = {}) {
-  if (asset.floorSource === "model" && !giftTraitValue(asset, "Backdrop")) return;
-  asset.floorUsd = 0;
-  asset.floorTon = 0;
-  asset.marketVerified = false;
-  asset.priceLoading = true;
-  asset.marketPlatform = "";
-  asset.floorSource = "";
-  asset.quickSellTon = 0;
-  asset.quickSellUsd = 0;
-  asset.pnlUsd = 0;
-  asset.pnlPct = 0;
-}
-
-function markGiftFloorUnavailable(asset = {}) {
-  asset.floorUsd = 0;
-  asset.floorTon = 0;
-  asset.marketVerified = false;
-  asset.priceLoading = false;
-  asset.marketPlatform = "";
-  asset.floorSource = "";
-  asset.quickSellTon = 0;
-  asset.quickSellUsd = 0;
-  asset.pnlUsd = 0;
-  asset.pnlPct = 0;
-  setGiftComboState(asset, {}, { status: "missing", source: "d1-combo-missing" });
-  if (typeof giftDetailCache !== "undefined") giftDetailCache.delete(giftDetailCacheKey(asset));
-}
-
-function markGiftFloorPending(asset = {}) {
-  asset.floorUsd = 0;
-  asset.floorTon = 0;
-  asset.marketVerified = false;
-  asset.priceLoading = true;
-  asset.marketPlatform = "";
-  asset.floorSource = "";
-  asset.quickSellTon = 0;
-  asset.quickSellUsd = 0;
-  asset.pnlUsd = 0;
-  asset.pnlPct = 0;
-}
-
-function recomputeGiftGroup(group) {
-  const children = group.children || [];
-  group.floorUsd = children.reduce((sum, child) => sum + Number(child.floorUsd || 0), 0);
-  group.floorTon = children.reduce((sum, child) => sum + Number(child.floorTon || 0), 0);
-  group.initUsd = children.reduce((sum, child) => sum + Number(child.initUsd || child.costBasis || 0), 0);
-  group.initTon = children.reduce((sum, child) => sum + Number(child.initTon || 0), 0);
-  group.priceLoading = children.some((child) => child.priceLoading && !(Number(child.floorUsd || 0) > 0));
-  group.unpricedCount = children.filter((child) => child.floorStatus !== "priced" && !(Number(child.floorUsd || 0) > 0)).length;
-  group.estimatedCount = children.filter((child) => child.floorStatus === "estimated" || child.floorSource === "estimate" || child.source === "estimated-combo-value").length;
-  group.floorStatus = group.unpricedCount >= children.length ? "unavailable" : "priced";
-  if (children.some((child) => child.floorSource === "model")) group.marketPlatform = "Model Floor";
-  else if (children.some((child) => child.floorSource === "backdrop")) group.marketPlatform = "Backdrop Floor";
-  group.marketVerified = group.floorUsd > 0 || group.floorTon > 0;
-  group.quickSellUsd = group.floorUsd * 0.95;
-  group.quickSellTon = group.floorTon * 0.95;
-  group.pnlUsd = group.initUsd ? group.floorUsd - group.initUsd : 0;
-  group.pnlPct = group.initUsd ? (group.pnlUsd / group.initUsd) * 100 : 0;
-}
-
-async function hydrateGiftModelFloors(groups = []) {
-  const giftGroups = groups.filter((group) => group?.type === "gift");
-  if (!giftGroups.length) return;
-  const pairMap = new Map();
-  giftGroups.forEach((group) => {
-    (group.children || []).forEach((child) => {
-      resetGiftCollectionFloorPlaceholder(child);
-      const collection = child.collection || group.collection || group.name;
-      const model = giftModelTrait(child);
-      const backdrop = giftTraitValue(child, "Backdrop");
-      const symbol = giftTraitValue(child, "Symbol");
-      if (collection && model) {
-        const key = giftFloorRequestKey(collection, model, backdrop);
-        pairMap.set(key, { collection, model, backdrop, symbol });
-      }
-    });
-    recomputeGiftGroup(group);
-  });
-  const pending = [...pairMap.values()];
-  const applyPayload = (payload = {}) => {
-    const models = new Map();
-    (payload.models || []).forEach((model) => {
-      giftFloorResponseKeys(model).forEach((key) => models.set(key, model));
-    });
-    giftGroups.forEach((group) => {
-      (group.children || []).forEach((child) => {
-        const model = models.get(giftAssetFloorKey(child, group));
-        if (model && !applyGiftModelFloor(child, model) && model.source === "d1-combo-missing") {
-          markGiftFloorUnavailable(child);
-        }
-        if (model && model.source !== "combo-floor-pending") {
-          giftFloorPendingRetryCounts.delete(giftAssetFloorKey(child, group));
-        }
-        assetDetails[child.id] = child;
-      });
-      recomputeGiftGroup(group);
-      assetDetails[group.id] = group;
-    });
-    renderCollectibleGrids();
-    refreshActiveGiftViews();
-    updateAllocationUi();
-    syncAssetsSummary();
-    updateCategoryAndTopAsset();
-  };
-  if (pending.length) {
-    const payload = await requestJson("/api/gift-model-floors/bulk", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ pairs: pending }),
-    }, "Gift model floors failed");
-    applyPayload(payload);
-    const unresolved = Array.isArray(payload.pending) ? payload.pending : [];
-    const pendingKeys = new Set(unresolved.map((pair) => giftFloorRequestKey(pair.collection, pair.model, pair.backdrop)));
-    giftGroups.forEach((group) => {
-      (group.children || []).forEach((child) => {
-        const key = giftAssetFloorKey(child, group);
-        if (pendingKeys.has(key)) markGiftFloorUnavailable(child);
-        assetDetails[child.id] = child;
-      });
-      recomputeGiftGroup(group);
-      assetDetails[group.id] = group;
-    });
-    renderCollectibleGrids();
-    refreshActiveGiftViews();
-    updateAllocationUi();
-    syncAssetsSummary();
-    updateCategoryAndTopAsset();
-  }
 }
 
 function renderStickerCard(asset) {
   if (asset.priceLoading && !(Number(asset.floorUsd || 0) > 0)) return renderCollectiblePriceSkeletonCard(asset, "sticker");
-  const dailyClass = asset.dailyUsd >= 0 ? "positive" : "negative";
-  const pnlClass = asset.pnlUsd >= 0 ? "positive" : "negative";
-  const statusClass = asset.status === "Unlisted" ? "is-unlisted" : "is-listed";
-  const statusBadge = asset.status && asset.status !== "Unlisted" ? `<span class="status-badge ${statusClass}">${escapeHtml(asset.status)}</span>` : "";
-  const editionClass = asset.edition === "Limited Drop" ? "is-limited" : "is-open";
   const hasPrice = Number(asset.floorUsd) > 0;
-  const floorNote = hasPrice
-    ? floorSourceLine(asset)
-    : "No market price available";
+  const packCount = Number(asset.packCount || asset.children?.length || 1);
+  const count = stickerOwnedCount(asset);
+  const floorNote = hasPrice ? `Across ${packCount} pack${packCount === 1 ? "" : "s"}` : "No verified pack prices yet";
   return `
-    <article class="collectible-card" data-screen-target="sticker-brand" data-asset="${asset.id}">
+    <article class="collectible-card sticker-brand-card" data-screen-target="sticker-brand" data-asset="${asset.id}">
       <div class="collectible-top">
         ${collectibleArtHtml(asset, "sticker")}
-        <div><h3>${asset.name}</h3><small>${escapeHtml(asset.subtitle || asset.creator || asset.collection || "Sticker Brand")}</small></div>
-        <span class="tag-number">${asset.count} sticker${asset.count === 1 ? "" : "s"}</span>
+        <div><h3>${escapeHtml(asset.name || "Sticker Brand")}</h3><small>${packCount} pack${packCount === 1 ? "" : "s"}</small></div>
+        <span class="tag-number">${count} sticker${count === 1 ? "" : "s"}</span>
       </div>
-      <div class="sticker-badge-row"><span class="format-badge">${asset.format}</span><span class="edition-badge ${editionClass}">${asset.edition}</span>${statusBadge}</div>
       <div class="value-stack"><strong>${hasPrice ? money(asset.floorUsd) : "Price unavailable"}</strong><small>${floorNote}</small></div>
-      <div class="pnl-row">
-        <span class="pnl-box"><small>Daily PnL</small><b class="${dailyClass}">${hasPrice ? `${signedMoney(asset.dailyUsd)} · ${signedPct(asset.dailyPct)}` : "—"}</b></span>
-        <span class="pnl-box"><small>Total PnL</small><b class="${pnlClass}">${hasPrice ? `${signedMoney(asset.pnlUsd)} · ${signedPct(asset.pnlPct)}` : "—"}</b></span>
-      </div>
     </article>`;
 }
 
 function renderCollectiblePriceSkeletonCard(asset, kind = "gift") {
-  const count = Number(asset.count || 1);
+  const count = kind === "sticker" ? stickerOwnedCount(asset) : Number(asset.count || 1);
+  const target = kind === "sticker" ? "sticker-brand" : "gift-brand";
   return `
-    <article class="collectible-card ${kind === "gift" ? "is-gift-card" : ""}">
+    <article class="collectible-card ${kind === "gift" ? "is-gift-card" : ""}" data-screen-target="${target}" data-asset="${escapeHtml(asset.id || "")}">
       <div class="collectible-top">
         ${collectibleArtHtml(asset, kind)}
         <div><h3>${escapeHtml(asset.name || (kind === "gift" ? "Gift" : "Sticker"))}</h3><small>${escapeHtml(asset.creator || asset.collection || "Loading market data")}</small></div>
@@ -1696,11 +1639,17 @@ function renderCollectiblePriceSkeletonCard(asset, kind = "gift") {
 }
 
 function collectibleArtHtml(asset, fallback = "gift") {
-  const image = resolveTokenImage(asset.image || asset.iconUrl || asset.previewUrl || "");
   const icon = asset.icon || (fallback === "sticker" ? "sticker" : "gift");
-  const artClass = fallback === "gift" ? "animated-art is-gift-art" : "animated-art";
-  return image
-    ? `<span class="${artClass}"><img src="${escapeHtml(image)}" alt="${escapeHtml(asset.name || "Collectible")}" loading="lazy" decoding="async"></span>`
+  const artClass = fallback === "gift" ? "animated-art is-gift-art" : "animated-art is-sticker-art";
+  const media = fallback === "sticker"
+    ? stickerMediaDescriptor(asset)
+    : giftCardMediaDescriptor(asset);
+  if (fallback === "gift") {
+    const layered = giftLayeredArtHtml(asset, artClass, { staticOnly: true });
+    if (layered) return layered;
+  }
+  return media.url
+    ? `<span class="${artClass}">${collectibleMediaHtml(media, asset.name || "Collectible")}</span>`
     : `<span class="${artClass}"><i data-lucide="${icon}"></i></span>`;
 }
 
@@ -1711,29 +1660,34 @@ function renderStickerBrand(assetId) {
   if (screen) screen.dataset.asset = brand.id;
   const children = brand.children?.length ? brand.children : [brand];
   children.forEach((child) => { assetDetails[child.id] = child; });
+  const groupedChildren = groupStickerBrandChildren(children);
   setText("#stickerBrandTitle", brand.name || "Sticker Brand");
   const summary = document.querySelector("#stickerBrandSummary");
   if (summary) {
-    const count = children.reduce((sum, item) => sum + Number(item.count || 1), 0);
-    const init = children.reduce((sum, item) => sum + Number(item.initUsd || 0), 0);
-    const pnl = init ? Number(brand.floorUsd || 0) - init : 0;
-    summary.innerHTML = `<small>${escapeHtml(brand.creator || brand.source || "Sticker brand")}</small><div><h2>${money(brand.floorUsd || 0)}</h2><span>${count} sticker${count === 1 ? "" : "s"}</span></div><strong class="${pnl < 0 ? "negative" : "positive"}">${init ? `${signedMoney(pnl)} · ${signedPct((pnl / init) * 100)}` : "Open a sticker to see details"}</strong>`;
+    const count = children.reduce((sum, item) => sum + stickerOwnedCount(item), 0);
+    const packCount = groupedChildren.length;
+    const total = Number(brand.floorUsd || 0);
+    summary.innerHTML = `<small>Sticker brand</small><div><h2>${total > 0 ? money(total) : "Price unavailable"}</h2><span>${count} sticker${count === 1 ? "" : "s"}</span></div><strong>${packCount} pack${packCount === 1 ? "" : "s"} in this brand</strong>`;
   }
   const grid = document.querySelector("#stickerBrandGrid");
-  if (grid) grid.innerHTML = children.map(renderStickerBrandItem).join("");
+  groupedChildren.forEach((item) => { assetDetails[item.id] = item; });
+  if (grid) grid.innerHTML = groupedChildren.map(renderStickerBrandItem).join("");
+  if (grid) initCollectibleAnimations(grid);
   window.lucide?.createIcons();
   applyCurrencyDisplay();
 }
 
 function renderStickerBrandItem(asset) {
   const hasPrice = Number(asset.floorUsd) > 0;
-  const floorNote = hasPrice ? floorSourceLine(asset) : (asset.marketPlatform ? `Floor · ${escapeHtml(asset.marketPlatform)}` : "Open details");
+  const floorNote = hasPrice ? floorSourceLine(asset) : (asset.marketPlatform ? `Floor Â· ${escapeHtml(asset.marketPlatform)}` : "Open details");
+  const count = stickerOwnedCount(asset);
+  const imageStack = count > 1 ? stickerPackImageStack(asset) : "";
   return `
-    <article class="collectible-card" data-screen-target="detail" data-asset="${asset.id}">
+    <article class="collectible-card sticker-pack-card ${imageStack ? "has-gift-stack" : ""}" data-screen-target="detail" data-asset="${asset.id}">
       <div class="collectible-top">
-        ${collectibleArtHtml(asset, "sticker")}
-        <div><h3>${escapeHtml(asset.collection || asset.name)}</h3><small>${escapeHtml(asset.name || asset.packId || "Sticker")}</small></div>
-        <span class="tag-number">#${escapeHtml(String(asset.tag || asset.mint?.current || ""))}</span>
+        ${imageStack || collectibleArtHtml(asset, "sticker")}
+        <div><h3>${escapeHtml(stickerPackLabel(asset))}</h3><small>${escapeHtml(stickerPackMeta(asset))}</small></div>
+        <span class="tag-number">${count} sticker${count === 1 ? "" : "s"}</span>
       </div>
       <div class="value-stack"><strong>${hasPrice ? money(asset.floorUsd) : "Price unavailable"}</strong><small>${floorNote}</small></div>
     </article>`;
@@ -1741,7 +1695,7 @@ function renderStickerBrandItem(asset) {
 
 function marketSourceLabel(value = "") {
   const source = String(value || "").toLowerCase();
-  if (!source) return "";
+  if (!source || source.includes("estimated")) return "";
   if (source.includes("stickers tools")) return "Stickers Tools";
   if (source.includes("getgems")) return "Getgems";
   if (source.includes("thermos")) return "Verified Market";
@@ -1752,25 +1706,47 @@ function marketSourceLabel(value = "") {
 }
 
 function renderAssetDetail(assetId) {
-  const detail = assetDetails[assetId] || assetDetails["diamond-ring"];
+  const detail = assetDetails[assetId];
+  if (!detail) {
+    console.warn(`Asset detail was not found for ${assetId}`);
+    return false;
+  }
   const detailScreen = document.querySelector('[data-screen="detail"]');
   if (detailScreen) detailScreen.dataset.asset = detail.id;
   detailScreen?.classList.toggle("is-token-detail", detail.type === "token");
-  toggleGiftDetailLayout(detail.type === "gift");
+  detailScreen?.classList.toggle("is-gift-detail", detail.type === "gift");
+  detailScreen?.classList.toggle("is-sticker-detail", detail.type === "sticker");
+  toggleGiftDetailLayout(detail.type === "gift" || detail.type === "sticker");
   if (detail.type === "gift") {
     const cachedGift = getGiftDetailCachedPayload(detail);
     if (cachedGift) {
       applyGiftDetailPayload(detail, cachedGift, { applyFloor: false });
       renderGiftDetailPage(detail, { loading: !detail.floorHistoryAvailable });
+      if (!detail.floorHistoryAvailable) {
+        detail.floorHistoryLoading = true;
+        setTimeout(() => {
+          if (currentDetailAssetId() === detail.id) loadGiftDetail(detail);
+        }, 0);
+      }
     } else {
-      renderGiftDetailPage(detail, { loading: true });
+      detail.floorHistoryLoading = true;
+      renderGiftDetailPage(detail, { loading: false });
       setTimeout(() => {
         if (currentDetailAssetId() === detail.id) loadGiftDetail(detail);
       }, 0);
     }
     window.lucide?.createIcons();
     applyCurrencyDisplay();
-    return;
+    return true;
+  }
+  if (detail.type === "sticker") {
+    const cachedSticker = getStickerDetailCachedPayload(detail);
+    if (cachedSticker) applyStickerDetailPayload(detail, cachedSticker);
+    renderStickerDetailPage(detail, { loading: !cachedSticker });
+    loadStickerDetail(detail, { forceRefresh: !cachedSticker });
+    window.lucide?.createIcons();
+    applyCurrencyDisplay();
+    return true;
   }
   if (detail.type !== "token") ensureCollectibleDetailHero();
   const detailName = document.querySelector("#detailName");
@@ -1780,8 +1756,8 @@ function renderAssetDetail(assetId) {
 
   setText("#detailCategory", category);
   setText("#detailName", detail.name);
-  setText("#detailValue", detail.type === "token" ? detail.value : `${money(detail.floorUsd)} · ${signedPct(detail.dailyPct)}`);
-  setText("#detailMintLine", detail.type === "gift" ? `#${detail.tag} · ${detail.collection} · ${detail.mint.current.toLocaleString()} of ${detail.mint.total.toLocaleString()} issued` : detail.type === "sticker" ? `${detail.packId} · ${detail.creator}` : "Held in Main wallet");
+  setText("#detailValue", detail.type === "token" ? detail.value : `${money(detail.floorUsd)} Â· ${signedPct(detail.dailyPct)}`);
+  setText("#detailMintLine", detail.type === "gift" ? `#${detail.tag} Â· ${detail.collection} Â· ${detail.mint.current.toLocaleString()} of ${detail.mint.total.toLocaleString()} issued` : detail.type === "sticker" ? `${detail.packId} Â· ${detail.creator}` : "Held in Main wallet");
   if (detail.type === "token") {
     setIcon(document.querySelector("#detailIcon"), detail.icon || "coins", tone);
     const ghost = document.querySelector("#detailGhost");
@@ -1798,13 +1774,14 @@ function renderAssetDetail(assetId) {
   drawDetailPriceChart(detail);
   window.lucide?.createIcons();
   applyCurrencyDisplay();
+  return true;
 }
 
 function currentDetailAssetId() {
   return document.querySelector('[data-screen="detail"]')?.dataset.asset || document.querySelector("#detailName")?.dataset.asset || "";
 }
 
-function toggleGiftDetailLayout(showGift) {
+function toggleGiftDetailLayout(showCustomDetail) {
   const mount = document.getElementById("giftDetailMount");
   const sections = [
     document.getElementById("detailHero"),
@@ -1816,9 +1793,9 @@ function toggleGiftDetailLayout(showGift) {
     document.querySelector(".sales-panel"),
     document.querySelector(".market-intel"),
   ];
-  if (mount) mount.style.display = showGift ? "" : "none";
+  if (mount) mount.style.display = showCustomDetail ? "" : "none";
   sections.forEach((section) => {
-    if (section) section.style.display = showGift ? "none" : "";
+    if (section) section.style.display = showCustomDetail ? "none" : "";
   });
 }
 
@@ -1838,7 +1815,10 @@ function setCollectibleDetailHero(detail, tone) {
   const icon = document.querySelector("#detailIcon");
   const ghost = document.querySelector("#detailGhost");
   const hero = document.querySelector("#detailHero");
-  const image = resolveTokenImage(detail.image || "");
+  const media = detail.type === "sticker"
+    ? stickerMediaDescriptor(detail)
+    : { url: resolveTokenImage(detail.image || ""), type: "image", fallback: "" };
+  const image = resolveTokenImage(detail.image || media.fallback || "");
   if (hero) {
     hero.style.textAlign = "center";
     hero.style.alignItems = "center";
@@ -1850,9 +1830,10 @@ function setCollectibleDetailHero(detail, tone) {
     icon.style.height = "80px";
     icon.style.borderRadius = "18px";
     icon.style.overflow = "hidden";
-    icon.innerHTML = image
-      ? `<img src="${escapeHtml(image)}" alt="${escapeHtml(detail.name)}" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.innerHTML='<i data-lucide=&quot;${detail.icon || "gift"}&quot;></i>'">`
+    icon.innerHTML = media.url
+      ? collectibleMediaHtml(media, detail.name || "Collectible")
       : `<i data-lucide="${detail.icon || "gift"}"></i>`;
+    initCollectibleAnimations(icon);
   }
   if (ghost) {
     ghost.innerHTML = image
@@ -1876,17 +1857,20 @@ function renderCollectibleDetail(detail, tone) {
   }
   document.querySelector(".token-chart-ranges")?.remove();
   document.querySelector("#tokenPressurePanel")?.remove();
-  renderStickerChartControls();
+  Charts.mountRangeControls("collectibleFloor", stickerDetailRange, {
+    element: document.querySelector(".price-panel"),
+    attribute: "data-sticker-detail-range",
+  });
   setDetailHeading(".price-panel", isGift ? "Price Movement" : "Floor Price", "USD");
   setDetailHeading(".sales-panel", "Recent Sales", isGift ? "Exact Variant" : "This Pack");
   setDetailHeading(".market-intel", "Market Intel", "Live");
   setText("#detailStatOneLabel", "Current Floor");
   setText("#detailStatOne", collectibleValueLabel(detail.floorUsd, detail.floorTon));
   setText("#detailStatTwoLabel", "Cost Basis");
-  setText("#detailStatTwo", detail.costBasis ? `${money(detail.costBasis)} · purchased ${String(detail.acquired || "").replace(", 2026", "")}` : "Set cost");
+  setText("#detailStatTwo", detail.costBasis ? `${money(detail.costBasis)} Â· purchased ${String(detail.acquired || "").replace(", 2026", "")}` : "Set cost");
   setText("#detailStatThreeLabel", "Quick Sell Estimate");
   setText("#detailStatThree", detail.quickSellTon ? collectibleValueLabel(detail.quickSellUsd, detail.quickSellTon) : quickSell);
-  setText("#detailPnl", `${signedMoney(detail.pnlUsd)} · ${signedPct(detail.pnlPct)}`);
+  setText("#detailPnl", `${signedMoney(detail.pnlUsd)} Â· ${signedPct(detail.pnlPct)}`);
   document.querySelector("#detailPnl")?.classList.toggle("positive", detail.pnlUsd >= 0);
   document.querySelector("#detailPnl")?.classList.toggle("negative", detail.pnlUsd < 0);
   setText("#detailAcquiredLabel", detail.acquired ? `Acquired ${detail.acquired}` : "");
@@ -1902,7 +1886,7 @@ function renderCollectibleDetail(detail, tone) {
   if (meta) {
     meta.innerHTML = isGift
       ? `<article class="detail-note"><b>${detail.comboRank || "Live collectible"}</b></article><article class="detail-note">${detail.exactCount || ""}</article><article class="detail-note">${detail.upgraded || ""}</article><article class="detail-note">${detail.provenance || ""}</article>`
-      : `<article class="detail-note">${(detail.attributes || []).map(([label, value]) => `<b>${label}</b>: ${value}`).join(" · ")}</article>`;
+      : `<article class="detail-note">${(detail.attributes || []).map(([label, value]) => `<b>${label}</b>: ${value}`).join(" Â· ")}</article>`;
   }
 
   renderSales(detail);
@@ -1931,32 +1915,30 @@ function renderCollectibleDetail(detail, tone) {
     loadStickerDetail(detail, { forceRefresh: !cachedSticker });
   }
   setIcon(document.querySelector("#detailHistoryIcon"), "clock", tone);
-  setText("#detailHistoryText", isGift ? (detail.marketPlatform ? `Floor source · ${detail.marketPlatform}` : detail.provenance) : `Pack acquired · ${detail.acquired}`);
-  setText("#detailLinkLabel", isGift ? (detail.marketPlatform || "Marketplace") : "Marketplace");
+  const detailMarketLabel = isEstimatedAsset(detail) ? "" : marketSourceLabel(detail.marketPlatform);
+  setText("#detailHistoryText", isGift ? (detailMarketLabel ? `Floor source Â· ${detailMarketLabel}` : detail.provenance) : `Pack acquired Â· ${detail.acquired}`);
+  setText("#detailLinkLabel", isGift ? (detailMarketLabel || "Marketplace") : "Marketplace");
 }
 
 function collectibleValueLabel(usdValue, tonValue) {
   const usd = Number(usdValue || 0);
   const ton = Number(tonValue || 0);
-  if (usd > 0 && ton > 0) return `${money(usd)} · ${ton.toFixed(2)} TON`;
+  if (usd > 0 && ton > 0) return `${money(usd)} Â· ${ton.toFixed(2)} TON`;
   if (usd > 0) return money(usd);
   if (ton > 0) return `${ton.toFixed(2)} TON`;
-  return "—";
+  return "â€”";
 }
 
 function renderStickerDetailSkeleton() {
   setDetailHeading(".market-intel", "Pack Stats", "");
   document.querySelector("#detailMarketIntel").innerHTML = `${renderDetailLoadingMetrics()}<div class="mini-thumb-row"><span class="sticker-mini skeleton"></span><span class="sticker-mini skeleton"></span><span class="sticker-mini skeleton"></span></div>`;
-  document.querySelector("#detailSalesTable").innerHTML = `<div class="sales-row"><b>Loading trades<span>Sticker pack</span></b><span>—</span><span>—</span></div>`;
-  renderStickerChartControls();
+  document.querySelector("#detailSalesTable").innerHTML = `<div class="sales-row"><b>Loading trades<span>Sticker pack</span></b><span>â€”</span><span>â€”</span></div>`;
+  Charts.mountRangeControls("collectibleFloor", stickerDetailRange, {
+    element: document.querySelector(".price-panel"),
+    attribute: "data-sticker-detail-range",
+  });
 }
 
-function renderGiftDetailSkeleton() {
-  setDetailHeading(".market-intel", "Market Intel", "Live");
-  document.querySelector("#detailMarketIntel").innerHTML = renderDetailLoadingMetrics();
-  document.querySelector("#detailSalesTable").innerHTML = `<div class="sales-row"><b>Loading sales<span>Gift collection</span></b><span>—</span><span>—</span></div>`;
-  renderStickerChartControls();
-}
 
 function giftGlowFromBackdrop(detail) {
   const backdrop = String(detail.traits?.find((trait) => /backdrop/i.test(trait.label))?.value || "").toLowerCase();
@@ -1966,9 +1948,25 @@ function giftGlowFromBackdrop(detail) {
 }
 
 function giftTraitPercent(trait = {}) {
-  const text = String(trait.rarity || "");
-  const match = text.match(/([\d.]+)\s*%/);
-  return match ? Number(match[1]) : null;
+  const perMille = Number(trait.rarityPerMille ?? trait.rarity_per_mille);
+  if (Number.isFinite(perMille) && perMille > 0) return perMille / 10;
+  const values = [
+    trait.rarity,
+    trait.rarityPct,
+    trait.rarityPercent,
+    trait.rarity_percent,
+    trait.percent,
+    trait.probability,
+  ];
+  for (const value of values) {
+    if (value === undefined || value === null || value === "") continue;
+    const text = String(value);
+    const match = text.match(/([\d.]+)\s*%/);
+    if (match) return Number(match[1]);
+    const numeric = Number(value);
+    if (Number.isFinite(numeric) && numeric > 0) return numeric <= 1 ? numeric * 100 : numeric;
+  }
+  return null;
 }
 
 function giftTraitTone(percent) {
@@ -1981,21 +1979,21 @@ function giftTraitPills(detail) {
   return (detail.traits || []).slice(0, 3).map((trait) => {
     const percent = giftTraitPercent(trait);
     const tone = giftTraitTone(percent);
-    return `<span class="gift-trait-pill" style="border-color:${tone.border};">${escapeHtml(trait.value || "—")}</span>`;
+    return `<span class="gift-trait-pill" style="border-color:${tone.border};">${escapeHtml(trait.value || "â€”")}</span>`;
   }).join("");
 }
 
 function giftUpgradeState(detail) {
   const onChain = Boolean(detail.tokenAddress || detail.collectionAddress) && !/not yet upgraded|held in telegram/i.test(String(detail.upgraded || ""));
-  if (onChain) return { upgraded: true, label: "Upgraded · On-chain collectible" };
-  return { upgraded: false, label: "Not yet upgraded · Held in Telegram" };
+  if (onChain) return { upgraded: true, label: "Upgraded Â· On-chain collectible" };
+  return { upgraded: false, label: "Not yet upgraded Â· Held in Telegram" };
 }
 
 function giftEligibility(detail) {
   const state = giftUpgradeState(detail);
   if (state.upgraded) return null;
   const acquiredTs = new Date(detail.origin?.receivedOn || detail.acquired || "").getTime();
-  if (!Number.isFinite(acquiredTs)) return { text: "—", eligible: false };
+  if (!Number.isFinite(acquiredTs)) return { text: "â€”", eligible: false };
   const readyTs = acquiredTs + 21 * 24 * 60 * 60 * 1000;
   const diffDays = Math.ceil((readyTs - Date.now()) / (24 * 60 * 60 * 1000));
   return diffDays <= 0
@@ -2009,33 +2007,23 @@ function giftOriginSender(detail) {
   const senderAddress = detail.origin?.senderAddress || "";
   if (senderAddress) return truncateWalletAddress(senderAddress);
   const provenance = String(detail.provenance || "");
-  const match = provenance.match(/gifted by\s+([^·]+?)(?:\s+to|\s+·|$)/i);
-  return match ? match[1].trim() : "—";
+  const match = provenance.match(/gifted by\s+([^Â·]+?)(?:\s+to|\s+Â·|$)/i);
+  return match ? match[1].trim() : "â€”";
 }
 
-function giftComboRank(detail) {
-  if (Number(detail.rarity?.expectedComboCount || 0) > 0 && Number(detail.rarity?.totalSupply || 0) > 0) {
-    return `~${Number(detail.rarity.expectedComboCount).toLocaleString()} of ${Number(detail.rarity.totalSupply).toLocaleString()}`;
-  }
-  const total = Number(detail.mint?.total || 0);
-  const rankMatch = String(detail.comboRank || "").match(/#?([\d,]+)\s+of\s+([\d,]+)/i);
-  if (rankMatch) return `#${rankMatch[1]} of ${rankMatch[2]}`;
-  if (detail.tag && total) return `#${Number(detail.tag).toLocaleString()} of ${total.toLocaleString()}`;
-  return "—";
-}
 
 function giftDemandBadge(intel) {
   if (!giftDemandHasData(intel)) return "";
   const change = Number(intel?.change24hPct ?? intel?.change ?? 0);
-  if (!Number.isFinite(change)) return `<span class="status-badge is-unlisted">— Stable</span>`;
+  if (!Number.isFinite(change)) return `<span class="status-badge is-unlisted">â€” Stable</span>`;
   if (change > 20) return `<span class="status-badge is-listed">Heating Up</span>`;
   if (change < -20) return `<span class="status-badge is-unlisted">Cooling Down</span>`;
-  return `<span class="status-badge is-unlisted">— Stable</span>`;
+  return `<span class="status-badge is-unlisted">â€” Stable</span>`;
 }
 
 function giftDemandHasData(intel) {
   if (!intel) return false;
-  return [intel.sales24h, intel.volume24h, intel.listedCount, intel.listedSupply, intel.change24hPct].some((value) => value && value !== "—" && value !== 0);
+  return [intel.sales24h, intel.volume24h, intel.listedCount, intel.listedSupply, intel.change24hPct].some((value) => value && value !== "â€”" && value !== 0);
 }
 
 function giftMarketLinks(detail) {
@@ -2055,18 +2043,20 @@ function renderGiftDetailPage(detail, { loading = false } = {}) {
   const traits = (detail.traits || []).slice(0, 3);
   const isListed = /listed/i.test(String(detail.status || "")) && !/unlisted/i.test(String(detail.status || ""));
   const glow = giftGlowFromBackdrop(detail);
-  const sourceLabel = detail.marketPlatform ? `Floor · ${escapeHtml(detail.marketPlatform)}` : "Price source unavailable";
+  const detailMarketSource = isEstimatedAsset(detail) ? "" : marketSourceLabel(detail.marketPlatform);
+  const sourceLabel = detailMarketSource ? `Floor Â· ${escapeHtml(detailMarketSource)}` : "Price source unavailable";
   const upgradeState = giftUpgradeState(detail);
   const eligibility = giftEligibility(detail);
   const links = giftMarketLinks(detail);
   const priceChangeClass = Number(detail.dailyPct || 0) < 0 ? "negative" : "positive";
-  const floorLabel = Number(detail.floorUsd || 0) > 0 ? money(detail.floorUsd) : "—";
-  const floorSubLabel = Number(detail.floorTon || 0) > 0 ? `${detail.floorTon.toFixed(2)} TON` : "—";
+  const floorLabel = Number(detail.floorUsd || 0) > 0 ? money(detail.floorUsd) : "â€”";
+  const floorSubLabel = Number(detail.floorTon || 0) > 0 ? `${detail.floorTon.toFixed(2)} TON` : "â€”";
   const chartIsLoading = loading || detail.floorHistoryLoading || detail.priceLoading;
   const chartSourceLabel = detail.floorHistoryAvailable
     ? detail.floorHistorySource === "sales-derived" ? "Sales-derived floor"
       : detail.floorHistorySource === "see.tg-graphics" ? "see.tg floor history"
       : detail.floorHistorySource === "tontrack-combo-registry" ? "Exact floor history"
+      : detail.floorHistorySource === "tontrack-estimate-history" ? "Estimated floor history"
       : detail.floorHistorySource === "tontrack-snapshots" ? "TonTrack snapshots"
       : "Live floor history"
     : chartIsLoading ? "Loading floor history..." : "Floor history unavailable";
@@ -2076,10 +2066,10 @@ function renderGiftDetailPage(detail, { loading = false } = {}) {
     const width = percent === null ? 12 : Math.max(10, Math.min(80, (100 - percent) * 0.8));
     return `<div class="gift-rarity-row">
       <span class="gift-rarity-label">${escapeHtml(trait.label)}</span>
-      <b class="gift-rarity-value">${escapeHtml(trait.value || "—")}</b>
+      <b class="gift-rarity-value">${escapeHtml(trait.value || "â€”")}</b>
       <div class="gift-rarity-meter">
         <span class="gift-rarity-bar"><span style="width:${width}px;background:${tone.fill};"></span></span>
-        <small>${percent === null ? "—" : `${percent}%`}</small>
+        <small>${percent === null ? "â€”" : `${percent}%`}</small>
       </div>
     </div>`;
   }).join("");
@@ -2089,53 +2079,51 @@ function renderGiftDetailPage(detail, { loading = false } = {}) {
   const intelBlock = loading
     ? renderDetailLoadingMetrics()
     : renderGiftDemandBlock(detail);
-  const marketRows = [
-    ["xGift", links.xgift, "#0EA5E9"],
-    ["Fragment", links.fragment, "#7C3AED"],
-    ["Getgems", links.getgems, "#2563EB"],
-  ].filter(([, url]) => url).map(([label, url, bg]) => `<button type="button" class="profile-row gift-market-row" data-external-url="${escapeHtml(url)}">
-      <span class="gift-market-icon" style="background:${bg};">${escapeHtml(label.slice(0, 1))}</span>
-      <span class="gift-market-label">View on ${escapeHtml(label)}</span>
-      <i data-lucide="external-link"></i>
-    </button>`).join(`<div style="height:.5px;background:var(--border);"></div>`);
   mount.innerHTML = `
     <section class="gift-detail-layout">
-      <article class="gift-detail-hero-card">
-        ${isListed ? `<span class="status-badge is-listed" style="position:absolute;top:14px;right:14px;">Listed</span>` : estimatedPillHtml(detail) ? `<span class="status-badge is-estimated" style="position:absolute;top:14px;right:14px;">Estimated</span>` : ""}
+      <article class="gift-detail-hero-card gift-detail-stage">
+        ${isListed ? `<span class="status-badge is-listed">Listed</span>` : estimatedPillHtml(detail) ? `<span class="status-badge is-estimated">Estimated</span>` : ""}
         <div class="gift-detail-glow" style="background:radial-gradient(circle, ${glow} 0%, rgba(0,0,0,0) 68%);"></div>
         <div class="gift-detail-hero-inner">
-          ${giftLayeredArtHtml(detail, "gift-detail-hero-art") || `<span class="gift-detail-hero-art">${giftDetailAnimationHtml(detail) || `<span class="detail-skeleton-line"></span>`}</span>`}
+          <div class="gift-detail-art-stage">
+            ${giftLayeredArtHtml(detail, "gift-detail-hero-art") || `<span class="gift-detail-hero-art">${giftDetailAnimationHtml(detail) || collectibleArtHtml(detail, "gift")}</span>`}
+          </div>
           <div class="gift-detail-title-block">
             <h2>${escapeHtml(giftDetailTitle(detail))}</h2>
             <small>${giftDetailHeroMeta(detail)}</small>
           </div>
           <div class="gift-detail-pill-row">${giftTraitPills(detail)}</div>
-          <div class="gift-detail-floor-row">
-            <strong>${floorLabel}</strong>
-            <span class="status-badge ${priceChangeClass === "negative" ? "is-unlisted" : "is-listed"}">${signedPct(detail.dailyPct || 0)}</span>
+          <div class="gift-detail-price-lockup">
+            <span>Current Floor</span>
+            <div class="gift-detail-floor-row">
+              <strong>${floorLabel}</strong>
+              <span class="status-badge ${priceChangeClass === "negative" ? "is-unlisted" : "is-listed"}">${signedPct(detail.dailyPct || 0)}</span>
+            </div>
+            <small class="gift-detail-floor-sub">${floorSubLabel} Â· ${sourceLabel}</small>
           </div>
-          <small class="gift-detail-floor-sub">${floorSubLabel} · ${sourceLabel}</small>
         </div>
       </article>
 
-      <article class="card gift-detail-card">
-        <div class="section-heading"><h2>Traits & Rarity</h2></div>
-        ${rows || `<p class="detail-empty-state">—</p>`}
+      <article class="card gift-detail-card gift-collection-stats-card">
+        ${giftCollectionStatsRows(detail)}
       </article>
 
-      <article class="card gift-detail-card">
-        <div class="section-heading"><h2>Origin</h2></div>
-        ${giftOriginRows(detail, upgradeState, eligibility)}
-      </article>
-
-      <article class="card gift-detail-card">
-        <div class="section-heading"><h2>Your Position</h2></div>
-        ${giftPositionRows(detail)}
-      </article>
-
-      <article class="card gift-detail-card">
+      <article class="card gift-detail-card gift-traits-card">
         <div class="section-heading">
-          <h2>Floor Price</h2>
+          <div class="gift-detail-heading-lockup">
+            <span class="gift-detail-section-icon"><i data-lucide="fingerprint"></i></span>
+            <div><h2>Traits & Rarity</h2><small>Exact attributes</small></div>
+          </div>
+        </div>
+        <div class="gift-traits-list">${rows || `<p class="detail-empty-state">â€”</p>`}</div>
+      </article>
+
+      <article class="card gift-detail-card gift-floor-card">
+        <div class="section-heading">
+          <div class="gift-detail-heading-lockup">
+            <span class="gift-detail-section-icon"><i data-lucide="chart-no-axes-combined"></i></span>
+            <div><h2>Floor Price</h2><small>${chartSourceLabel}</small></div>
+          </div>
           <div class="gift-detail-toggle-row">
             <button type="button" class="mini-button ${priceMode === "USD" ? "active" : ""}" data-gift-price-mode="USD">USD</button>
             <button type="button" class="mini-button ${priceMode === "TON" ? "active" : ""}" data-gift-price-mode="TON">TON</button>
@@ -2151,42 +2139,54 @@ function renderGiftDetailPage(detail, { loading = false } = {}) {
           <span class="gift-chart-loader-dot is-two"></span>
           <span class="gift-chart-loader-dot is-three"></span>
           <span class="gift-chart-loading-label">Fetching live floor history</span>
-        </div>` : `<svg id="giftDetailPriceChart" viewBox="0 0 340 140" role="img" aria-label="Gift floor price chart" class="gift-detail-chart"></svg>
+        </div>` : `<canvas id="giftDetailPriceChart" role="img" aria-label="Gift floor price chart" class="gift-detail-chart"></canvas>
         <div id="giftDetailChartTooltip" class="chart-tooltip">${detail.floorHistoryAvailable ? `Latest: ${money(detail.floorUsd || 0)}` : "Floor history unavailable"}</div>`}
         <div class="gift-detail-chart-footer">
           <div class="gift-detail-toggle-row">
-            <button class="mini-button ${giftDetailRange === "7d" ? "active" : ""}" type="button" data-gift-detail-range="7d">7D</button>
-            <button class="mini-button ${giftDetailRange === "30d" ? "active" : ""}" type="button" data-gift-detail-range="30d">30D</button>
+            ${Charts.rangeButtons("collectibleFloor", giftDetailRange, { attribute: "data-gift-detail-range" })}
           </div>
-          <small>${chartSourceLabel}</small>
         </div>
       </article>
 
-      <article class="card gift-detail-card">
-        <div class="section-heading"><h2>Demand Intel</h2>${loading ? "" : giftDemandBadge(detail.intel)}</div>
-        ${intelBlock}
-      </article>
-
-      <article class="card gift-detail-card">
-        <div class="section-heading"><h2>Recent Sales · This Gift Type</h2><button class="text-action" type="button" style="display:block;">${detail.salesScope === "same-traits" ? "Same traits" : "Collection-wide"}</button></div>
+      <article class="card gift-detail-card gift-sales-card">
+        <div class="section-heading">
+          <div class="gift-detail-heading-lockup">
+            <span class="gift-detail-section-icon"><i data-lucide="receipt-text"></i></span>
+            <div><h2>Last Sales</h2><small>Recent market evidence</small></div>
+          </div>
+          <button class="text-action" type="button">${detail.salesScope === "same-traits" ? "Exact variant Â· 365D" : "Collection-wide Â· 365D"}</button>
+        </div>
         <div class="sales-table">${salesRows}</div>
       </article>
 
-      <article class="card gift-detail-card">
-        <div class="section-heading"><h2>View on Markets</h2></div>
-        <div>${marketRows || `<p class="detail-empty-state">No market links available</p>`}</div>
+      <article class="card gift-detail-card gift-demand-card">
+        <div class="section-heading">
+          <div class="gift-detail-heading-lockup">
+            <span class="gift-detail-section-icon"><i data-lucide="activity"></i></span>
+            <div><h2>Demand Intel</h2><small>Model-level signals</small></div>
+          </div>
+          ${loading ? "" : giftDemandBadge(detail.intel)}
+        </div>
+        <div class="gift-demand-grid">${intelBlock}</div>
       </article>
-    </section>`;
-  if (!chartIsLoading) {
+
+      <article class="card gift-detail-card gift-origin-card">
+        <div class="section-heading">
+          <div class="gift-detail-heading-lockup">
+            <span class="gift-detail-section-icon"><i data-lucide="route"></i></span>
+            <div><h2>Origin</h2><small>Ownership provenance</small></div>
+          </div>
+        </div>
+        <div class="gift-origin-list">${giftOriginRows(detail, upgradeState, eligibility)}</div>
+      </article>
+    </section>`;  if (!chartIsLoading) {
     drawDetailPriceChart(detail, {
       svgSelector: "#giftDetailPriceChart",
       tooltipSelector: "#giftDetailChartTooltip",
       height: 190,
       referenceText: "Your cost",
-      collectibleRange: giftDetailRange,
       emptyTooltip: "Floor history unavailable",
       hideReferenceWhenMissing: true,
-      requireHistory: true,
       showAxes: true,
       showArea: true,
       interactive: true,
@@ -2196,9 +2196,170 @@ function renderGiftDetailPage(detail, { loading = false } = {}) {
   initCollectibleAnimations(mount);
   const externalButton = document.querySelector('[data-screen="detail"] .page-header .icon-button:last-child');
   if (externalButton) {
+    const url = detail.marketUrl || links.fragment || links.getgems;
+    externalButton.hidden = !url;
+    externalButton.setAttribute("aria-label", "Open market listing");
+    externalButton.title = "Open market listing";
     externalButton.onclick = () => {
-      const url = links.xgift || links.fragment || links.getgems;
       if (url) window.open(url, "_blank", "noopener,noreferrer");
+    };
+  }
+}
+
+function stickerDetailPackRows(detail) {
+  const count = stickerOwnedCount(detail);
+  const rows = [
+    ["Format", detail.format || "â€”"],
+    ["Edition", detail.edition || "â€”"],
+    ["Owned", `${count} sticker${count === 1 ? "" : "s"}`],
+  ];
+  return rows.map(([label, value], index) => `${index ? `<div class="gift-detail-divider"></div>` : ""}<div class="gift-detail-data-row"><span>${escapeHtml(label)}</span><span>${escapeHtml(value)}</span></div>`).join("");
+}
+
+function stickerDetailStatsRows(detail) {
+  const floor = detail.stickerFloor || {};
+  const rows = [
+    ["24h volume", Number(floor.volume24hUsd || 0) > 0 ? collectibleValueLabel(floor.volume24hUsd, floor.volume24hTon) : "â€”"],
+    ["Total supply", formatMetricCount(floor.totalSupply)],
+    ["Holders", formatMetricCount(floor.holders)],
+  ].filter(([, value]) => value && value !== "â€”");
+  if (!rows.length) return `<p class="detail-empty-state">Pack stats unavailable</p>`;
+  return rows.map(([label, value], index) => `${index ? `<div class="gift-detail-divider"></div>` : ""}<div class="gift-detail-data-row"><span>${escapeHtml(label)}</span><span>${escapeHtml(value)}</span></div>`).join("");
+}
+
+function stickerDetailRows(rows = []) {
+  const available = rows.filter(([, value]) => value && value !== "â€”");
+  if (!available.length) return "";
+  return available.map(([label, value], index) => `${index ? `<div class="gift-detail-divider"></div>` : ""}<div class="gift-detail-data-row"><span>${escapeHtml(label)}</span><span>${escapeHtml(value)}</span></div>`).join("");
+}
+
+function stickerDetailIntelSections(detail) {
+  const intel = detail.stickerIntel || {};
+  const about = intel.about || {};
+  const supply = intel.supply || {};
+  const market = intel.market || {};
+  const ton = (value) => Number(value || 0) > 0 ? `${Number(value).toLocaleString(undefined, { maximumFractionDigits: 2 })} TON` : "â€”";
+  const date = market.releaseAt ? new Date(market.releaseAt).toLocaleDateString(undefined, { month: "short", year: "numeric" }) : "â€”";
+  const aboutRows = stickerDetailRows([
+    ["Creator", about.creator || "â€”"],
+    ["Status", about.official ? "Official collection" : "â€”"],
+    ["Released", date],
+    ["Sticker set", Number(about.stickerCount || 0) ? `${about.stickerCount} designs` : "â€”"],
+  ]);
+  const supplyRows = stickerDetailRows([
+    ["Issued", formatMetricCount(supply.initial)],
+    ["Circulating", formatMetricCount(supply.current)],
+    ["Burned", formatMetricCount(supply.burned)],
+    ["Primary remaining", formatMetricCount(supply.remaining)],
+  ]);
+  const marketRows = stickerDetailRows([
+    ["Median price", Number(market.medianUsd || 0) ? `${money(market.medianUsd)} Â· ${ton(market.medianTon)}` : "â€”"],
+    ["24h activity", Number(market.volume24hTon || 0) || Number(market.trades24h || 0) ? `${ton(market.volume24hTon)} Â· ${formatMetricCount(market.trades24h)} trades` : "â€”"],
+    ["7d volume", ton(market.volume7dTon)],
+    ["30d volume", ton(market.volume30dTon)],
+    ["All-time trades", formatMetricCount(market.totalTrades)],
+    ["Unique traders", formatMetricCount(market.uniqueTraders)],
+    ["Initial price", Number(market.initialPriceUsd || 0) ? money(market.initialPriceUsd) : ton(market.initialPriceTon)],
+  ]);
+  const description = String(about.description || "").trim();
+  const emojis = Array.isArray(about.emojiSet) ? about.emojiSet : [];
+  return `
+    ${aboutRows || description || emojis.length ? `<article class="card gift-detail-card sticker-intel-card"><div class="section-heading"><h2>About</h2>${about.official ? `<span class="text-action">Official</span>` : ""}</div>${description ? `<p class="sticker-detail-description">${escapeHtml(description)}</p>` : ""}${aboutRows}${emojis.length ? `<div class="sticker-emoji-row" aria-label="Sticker emoji set">${emojis.map((emoji) => `<span>${escapeHtml(emoji)}</span>`).join("")}</div>` : ""}</article>` : ""}
+    ${supplyRows ? `<article class="card gift-detail-card"><div class="section-heading"><h2>Supply</h2></div>${supplyRows}</article>` : ""}
+    ${marketRows ? `<article class="card gift-detail-card"><div class="section-heading"><h2>Market Activity</h2><span class="text-action">Pack-wide</span></div>${marketRows}</article>` : ""}`;
+}
+
+function renderStickerDetailSalesRows(detail, loading = false) {
+  if (loading) return `<div class="gift-sales-loading" aria-label="Loading recent sticker sales"><span></span><span></span><span></span></div>`;
+  const rows = detail.sales || [];
+  if (!rows.length) return `<p class="detail-empty-state">No recent pack sales</p>`;
+  return `<div class="gift-sales-list" role="table" aria-label="Recent sticker pack sales">${rows.slice(0, 8).map((sale) => `
+    <div class="gift-sale-row" role="row">
+      <span class="gift-sale-copy" role="cell"><b>${escapeHtml(sale[4] || "Market")}</b><small>${escapeHtml(sale[1] || "â€”")}</small></span>
+      <span class="gift-sale-value" role="cell"><b>${escapeHtml(sale[0] || "â€”")}</b><small>${escapeHtml(sale[2] || detail.format || "Sticker")}</small></span>
+    </div>`).join("")}</div>`;
+}
+
+function renderStickerDetailPage(detail, { loading = false } = {}) {
+  const mount = document.getElementById("giftDetailMount");
+  if (!mount) return;
+  const media = stickerMediaDescriptor(detail);
+  const floorLabel = Number(detail.floorUsd || 0) > 0 ? money(detail.floorUsd) : "â€”";
+  const floorSubLabel = Number(detail.floorTon || 0) > 0 ? `${Number(detail.floorTon).toFixed(2)} TON` : "Price unavailable";
+  const priceChangeClass = Number(detail.dailyPct || 0) < 0 ? "negative" : "positive";
+  const hasChart = Array.isArray(detail.floorHistoryPoints) && detail.floorHistoryPoints.length >= 2;
+  const source = marketSourceLabel(detail.marketPlatform || detail.stickerFloor?.source) || "Market data";
+  const externalButton = document.querySelector('[data-screen="detail"] .page-header .icon-button:last-child');
+
+  mount.innerHTML = `
+    <section class="gift-detail-layout sticker-detail-layout">
+      <article class="gift-detail-hero-card sticker-detail-hero-card">
+        <div class="gift-detail-glow sticker-detail-glow"></div>
+        <div class="gift-detail-hero-inner">
+          <span class="gift-detail-hero-art sticker-detail-hero-art">${media.url ? collectibleMediaHtml(media, detail.name || "Sticker") : `<i data-lucide="sticker"></i>`}</span>
+          <div class="gift-detail-title-block">
+            <h2>${escapeHtml(detail.name || "Sticker Pack")}</h2>
+            <small>${escapeHtml(detail.creator || detail.collection || "Telegram sticker")}</small>
+          </div>
+          <div class="gift-detail-pill-row">
+            ${detail.format ? `<span class="gift-trait-pill">${escapeHtml(detail.format)}</span>` : ""}
+            ${detail.edition ? `<span class="gift-trait-pill">${escapeHtml(detail.edition)}</span>` : ""}
+          </div>
+          <div class="gift-detail-floor-row">
+            <strong>${floorLabel}</strong>
+            ${Number(detail.floorUsd || 0) > 0 ? `<span class="status-badge ${priceChangeClass === "negative" ? "is-unlisted" : "is-listed"}">${signedPct(detail.dailyPct || 0)}</span>` : ""}
+          </div>
+          <small class="gift-detail-floor-sub">${floorSubLabel} Â· ${escapeHtml(source)}</small>
+        </div>
+      </article>
+
+      <article class="card gift-detail-card">
+        <div class="section-heading"><h2>Pack Details</h2></div>
+        ${stickerDetailPackRows(detail)}
+      </article>
+
+      <article class="card gift-detail-card">
+        <div class="section-heading">
+          <h2>Floor Price</h2>
+          <div class="gift-detail-toggle-row">
+            <button type="button" class="mini-button ${priceMode === "USD" ? "active" : ""}" data-gift-price-mode="USD">USD</button>
+            <button type="button" class="mini-button ${priceMode === "TON" ? "active" : ""}" data-gift-price-mode="TON">TON</button>
+          </div>
+        </div>
+        ${loading ? `<div class="gift-chart-loading" aria-label="Loading sticker floor chart"><span class="gift-chart-gridline is-top"></span><span class="gift-chart-gridline is-mid"></span><span class="gift-chart-gridline is-low"></span><span class="gift-chart-scan"></span><span class="gift-chart-loader-line"></span><span class="gift-chart-loader-dot is-one"></span><span class="gift-chart-loader-dot is-two"></span><span class="gift-chart-loader-dot is-three"></span><span class="gift-chart-loading-label">Loading pack history</span></div>` : `<canvas id="giftDetailPriceChart" role="img" aria-label="Sticker floor price chart" class="gift-detail-chart"></canvas><div id="giftDetailChartTooltip" class="chart-tooltip">${hasChart ? `Latest: ${floorLabel}` : "Floor history unavailable"}</div>`}
+        <div class="gift-detail-chart-footer"><div class="gift-detail-toggle-row">${Charts.rangeButtons("collectibleFloor", stickerDetailRange, { attribute: "data-sticker-detail-range" })}</div><small>${hasChart ? "Recent sales history" : "History builds from verified sales"}</small></div>
+      </article>
+
+      <article class="card gift-detail-card">
+        <div class="section-heading"><h2>Pack Stats</h2><span class="text-action">Live</span></div>
+        ${stickerDetailStatsRows(detail)}
+      </article>
+
+      ${stickerDetailIntelSections(detail)}
+
+      <article class="card gift-detail-card">
+        <div class="section-heading"><h2>Recent Sales</h2><span class="text-action">This pack</span></div>
+        ${renderStickerDetailSalesRows(detail, loading)}
+      </article>
+    </section>`;
+
+  if (!loading) {
+    drawDetailPriceChart(detail, {
+      svgSelector: "#giftDetailPriceChart",
+      tooltipSelector: "#giftDetailChartTooltip",
+      height: 190,
+      emptyTooltip: "Floor history unavailable",
+      hideReferenceWhenMissing: true,
+      showAxes: true,
+      showArea: true,
+      interactive: true,
+    });
+  }
+  initCollectibleAnimations(mount);
+  if (externalButton) {
+    externalButton.hidden = !detail.marketUrl;
+    externalButton.onclick = () => {
+      if (detail.marketUrl) window.open(detail.marketUrl, "_blank", "noopener,noreferrer");
     };
   }
 }
@@ -2206,115 +2367,283 @@ function renderGiftDetailPage(detail, { loading = false } = {}) {
 function giftOriginRows(detail, upgradeState, eligibility) {
   const rows = [
     ["Received From", giftOriginSender(detail)],
-    ["Received On", detail.origin?.receivedOn ? formatActivityDate(detail.origin.receivedOn) : (detail.acquired || "—")],
+    ["Received On", detail.origin?.receivedOn ? formatActivityDate(detail.origin.receivedOn) : (detail.acquired || "â€”")],
     ["Upgrade Status", upgradeState.label],
   ];
-  if (!upgradeState.upgraded) rows.push(["Upgrade Eligibility", eligibility?.text || "—"]);
+  if (!upgradeState.upgraded) rows.push(["Upgrade Eligibility", eligibility?.text || "â€”"]);
   const body = rows.map(([label, value], index) => `${index ? `<div class="gift-detail-divider"></div>` : ""}<div class="gift-detail-data-row"><span>${escapeHtml(label)}</span><span class="${/Eligible now|Upgraded/i.test(String(value)) ? "is-positive" : ""}">${escapeHtml(value)}</span></div>`).join("");
   const upgradeLink = !upgradeState.upgraded && eligibility?.eligible
-    ? `<div class="gift-detail-divider"></div><button type="button" data-external-url="https://t.me/nft" class="gift-detail-link-button">Upgrade on Telegram →</button>`
+    ? `<div class="gift-detail-divider"></div><button type="button" data-external-url="https://t.me/nft" class="gift-detail-link-button">Upgrade on Telegram â†’</button>`
     : "";
   return `${body}${upgradeLink}`;
 }
 
-function giftPositionRows(detail) {
-  const rows = [
-    ["Floor Value", collectibleValueLabel(detail.floorUsd, detail.floorTon)],
-    ["Cost Basis", detail.costBasis ? money(detail.costBasis) : "Set cost"],
-    ["Unrealized PnL", `${signedMoney(detail.pnlUsd)} · ${signedPct(detail.pnlPct)}`],
-    ["Quick Sell Estimate", collectibleValueLabel(detail.quickSellUsd, detail.quickSellTon)],
+function formatMintPrice(stats = {}) {
+  if (Number(stats.mintPriceTon || 0) > 0) return `${Number(stats.mintPriceTon).toLocaleString(undefined, { maximumFractionDigits: 2 })} TON`;
+  if (Number(stats.mintPriceStars || 0) > 0) return `${Number(stats.mintPriceStars).toLocaleString()} Stars`;
+  if (Number(stats.mintPriceUsd || 0) > 0) return money(stats.mintPriceUsd);
+  return "â€”";
+}
+
+function formatGiftStatPercent(value) {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric)) return "â€”";
+  return `${numeric.toFixed(numeric > 0 && numeric < 1 ? 2 : 0)}%`;
+}
+
+function giftCollectionSupplyPercent(value, total) {
+  const numeric = Number(value);
+  const denominator = Number(total);
+  if (!Number.isFinite(numeric) || !Number.isFinite(denominator) || denominator <= 0) return null;
+  return Math.max(0, Math.min(100, (numeric / denominator) * 100));
+}
+
+function giftCollectionPercentLabel(value) {
+  if (!Number.isFinite(value)) return "â€”";
+  return `${value.toFixed(value > 0 && value < 1 ? 2 : 0)}%`;
+}
+
+function giftCollectionStatsRows(detail) {
+  const stats = detail.collectionStats || {};
+  const hasStats = [
+    stats.mintPriceStars,
+    stats.mintPriceTon,
+    stats.mintPriceUsd,
+    stats.upgradedSupply,
+    stats.unupgradedSupply,
+    stats.burnedCount,
+    stats.holdOnchainPct,
+    stats.holdTelegramPct,
+    stats.onchainHolders,
+    stats.tgHolders,
+    stats.totalMinted,
+  ].some((value) => Number(value || 0) > 0);
+  if (!hasStats) return `
+    <div class="collection-stats-heading">
+      <span class="collection-stats-heading-icon"><i data-lucide="bar-chart-3"></i></span>
+      <h2>Collection Stats</h2>
+    </div>
+    <p class="detail-empty-state">Collection stats unavailable</p>`;
+
+  const upgradedSupply = Number(stats.upgradedSupply || 0);
+  const unupgradedSupply = Number(stats.unupgradedSupply || 0);
+  const burnedCount = Number(stats.burnedCount || 0);
+  const reportedTotal = Number(stats.totalMinted || 0);
+  const derivedTotal = upgradedSupply + unupgradedSupply + burnedCount;
+  const supplyTotal = reportedTotal > 0 ? reportedTotal : derivedTotal;
+  const upgradedPct = giftCollectionSupplyPercent(upgradedSupply, supplyTotal);
+  const unupgradedPct = giftCollectionSupplyPercent(unupgradedSupply, supplyTotal);
+  const burnedPct = giftCollectionSupplyPercent(burnedCount, supplyTotal);
+  const onchainPct = Number.isFinite(Number(stats.holdOnchainPct)) ? Math.max(0, Math.min(100, Number(stats.holdOnchainPct))) : null;
+  const telegramPct = Number.isFinite(Number(stats.holdTelegramPct)) ? Math.max(0, Math.min(100, Number(stats.holdTelegramPct))) : null;
+  const supplyMetrics = [
+    { label: "Total Minted", value: formatMetricCount(stats.totalMinted), icon: "layers-3", tone: "neutral", pct: null },
+    { label: "Upgraded Supply", value: formatMetricCount(stats.upgradedSupply), icon: "trending-up", tone: "upgraded", pct: upgradedPct },
+    { label: "Unupgraded Supply", value: formatMetricCount(stats.unupgradedSupply), icon: "hexagon", tone: "unupgraded", pct: unupgradedPct },
+    { label: "Total Burned", value: formatMetricCount(stats.burnedCount), icon: "flame", tone: "burned", pct: burnedPct },
   ];
-  return rows.map(([label, value], index) => `${index ? `<div class="gift-detail-divider"></div>` : ""}<div class="gift-detail-data-row"><span>${escapeHtml(label)}</span><span class="${label === "Unrealized PnL" ? (detail.pnlUsd < 0 ? "is-negative" : "is-positive") : ""}">${escapeHtml(value)}</span></div>`).join("");
+  const metricMarkup = supplyMetrics.map((metric) => `
+    <div class="collection-supply-metric is-${metric.tone}">
+      <div class="collection-supply-percent">${metric.pct === null ? "" : `<span></span>${giftCollectionPercentLabel(metric.pct)}`}</div>
+      <span class="collection-stats-icon-tile"><i data-lucide="${metric.icon}"></i></span>
+      <strong>${escapeHtml(metric.value)}</strong>
+      <small>${escapeHtml(metric.label)}</small>
+    </div>`).join("");
+  const ownershipRows = [
+    { label: "Hold Onchain", icon: "globe-2", tone: "onchain", pct: onchainPct },
+    { label: "Hold in TG", icon: "send", tone: "telegram", pct: telegramPct },
+  ].map((item) => {
+    const pct = Number.isFinite(item.pct) ? item.pct : 0;
+    return `
+      <div class="collection-ownership-row is-${item.tone}">
+        <span class="collection-stats-icon-tile"><i data-lucide="${item.icon}"></i></span>
+        <div class="collection-ownership-copy">
+          <div><span>${item.label}</span><strong>${Number.isFinite(item.pct) ? formatGiftStatPercent(item.pct) : "â€”"}</strong></div>
+          <span class="collection-ownership-track" role="img" aria-label="${item.label}: ${Number.isFinite(item.pct) ? formatGiftStatPercent(item.pct) : "unavailable"}">
+            <span style="width:${pct}%"></span>
+          </span>
+        </div>
+      </div>`;
+  }).join("");
+
+  return `
+    <div class="collection-stats-heading">
+      <span class="collection-stats-heading-icon"><i data-lucide="bar-chart-3"></i></span>
+      <h2>Collection Stats</h2>
+    </div>
+    <div class="collection-mint-price">
+      <div><span>Mint Price</span><strong>${escapeHtml(formatMintPrice(stats))}</strong></div>
+      <span class="collection-mint-spark"><i data-lucide="sparkles"></i></span>
+    </div>
+    <div class="collection-stats-divider"></div>
+    <section class="collection-supply-overview" aria-labelledby="collectionSupplyTitle">
+      <h3 id="collectionSupplyTitle">Supply Overview</h3>
+      <div class="collection-supply-grid">${metricMarkup}</div>
+      <div class="collection-supply-track" aria-hidden="true">
+        <span class="is-upgraded" style="width:${upgradedPct || 0}%"></span>
+        <span class="is-unupgraded" style="width:${unupgradedPct || 0}%"></span>
+        <span class="is-burned" style="width:${burnedPct || 0}%"></span>
+      </div>
+    </section>
+    <div class="collection-stats-divider"></div>
+    <section class="collection-ownership" aria-labelledby="collectionOwnershipTitle">
+      <h3 id="collectionOwnershipTitle">Ownership</h3>
+      <div class="collection-ownership-panel">${ownershipRows}</div>
+    </section>`;
 }
 
 function renderGiftDemandBlock(detail) {
-  const intel = detail.intel;
-  if (!intel || [intel.sales24h, intel.volume24h, intel.listedCount, intel.totalSupply].every((value) => !value || value === "—" || value === 0)) {
-    return `<p class="detail-empty-state" style="text-align:center;color:var(--text-2);">— Insufficient data</p>`;
+  const intel = detail.intel || {};
+  const modelStats = detail.modelStats || {};
+  const hasModelStats = [modelStats.modelCount, modelStats.supplyPct, modelStats.holderCount, modelStats.transferCount7d, modelStats.transferCount30d, modelStats.upgradedCount]
+    .some((value) => Number(value || 0) > 0);
+  if (!hasModelStats && (!intel || [intel.sales24h, intel.volume24h, intel.listedCount, intel.totalSupply].every((value) => !value || value === "â€”" || value === 0))) {
+    return `<p class="detail-empty-state" style="text-align:center;color:var(--text-2);">â€” Insufficient data</p>`;
   }
-  const velocity = Number(intel.velocityHours || 0) > 0 ? `Avg 1 sale every ${Number(intel.velocityHours).toFixed(1)} hours` : "—";
-  const activeListingsValue = Number(intel.listedCount || intel.listedSupply || 0) > 0 ? String(intel.listedCount || intel.listedSupply) : "—";
+  const velocity = Number(intel.velocityHours || 0) > 0 ? `Avg 1 sale every ${Number(intel.velocityHours).toFixed(1)} hours` : "â€”";
+  const activeListingsValue = Number(intel.listedCount || intel.listedSupply || 0) > 0 ? String(intel.listedCount || intel.listedSupply) : "â€”";
   const rows = [
-    ["Sales last 24h", intel.sales24h || "—", ""],
-    ["Volume last 24h", intel.volume24h || "—", ""],
-    ["Active Listings", activeListingsValue, activeListingsValue !== "—" && intel.totalSupply ? `of ${formatMetricCount(intel.totalSupply)} total supply` : ""],
+    ["Model supply", formatMetricCount(modelStats.modelCount), modelStats.supplyPct ? `${Number(modelStats.supplyPct).toFixed(Number(modelStats.supplyPct) < 1 ? 2 : 1)}% of collection` : ""],
+    ["Model holders", formatMetricCount(modelStats.holderCount), ""],
+    ["Model activity", formatMetricCount(modelStats.transferCount30d || modelStats.transferCount7d), modelStats.transferCount30d ? "30D transfers" : (modelStats.transferCount7d ? "7D transfers" : "")],
+    ["Upgraded on-chain", formatMetricCount(modelStats.upgradedCount), ""],
+    ["Sales last 24h", intel.sales24h || "â€”", ""],
+    ["Volume last 24h", intel.volume24h || "â€”", ""],
+    ["Active Listings", activeListingsValue, activeListingsValue !== "â€”" && intel.totalSupply ? `of ${formatMetricCount(intel.totalSupply)} total supply` : ""],
     ["Sales velocity", velocity, ""],
-  ];
+  ].filter(([, value]) => value !== "â€”");
   return rows.map(([label, value, secondary], index) => `${index ? `<div class="gift-detail-divider"></div>` : ""}<div class="gift-detail-data-row"><span>${escapeHtml(label)}</span><span class="gift-detail-data-stack"><b>${escapeHtml(value)}</b>${secondary ? `<small>${escapeHtml(secondary)}</small>` : ""}</span></div>`).join("");
 }
 
 function renderGiftSalesRows(detail) {
   const rows = detail.sales || [];
+  if (!rows.length && detail.salesLoading) {
+    return `<div class="gift-sales-loading" aria-label="Loading recent sales"><span></span><span></span><span></span></div>`;
+  }
   if (!rows.length) return `<p class="detail-empty-state">No recent sales</p>`;
-  return rows.slice(0, 5).map((sale, index) => {
-    const saleMint = Number(sale.mint || 0) > 0 ? `#${Number(sale.mint).toLocaleString()}` : `#${escapeHtml(String(detail.tag || detail.mint?.current || "—"))}`;
-    const saleTraitSummary = [sale.model, sale.backdrop, sale.symbol].filter(Boolean).join(" · ");
-    const traitSummary = saleTraitSummary || `${(detail.traits || []).map((trait) => trait.value).filter(Boolean).join(" · ") || "Collection sale"}`;
-    const timeAgo = sale.dateLabel || sale[1] || "Recent";
-    const marketplace = sale.marketplace || sale[5] || sale[2] || "Market";
-    const priceLabel = sale.priceLabel || sale[0] || "—";
-    return `${index ? `<div class="gift-detail-divider"></div>` : ""}<div class="gift-sale-row">
-      <div class="gift-sale-copy">
-        <small>${saleMint} · ${escapeHtml(traitSummary)}</small>
-        <small class="is-secondary">${escapeHtml(timeAgo)}</small>
-      </div>
-      <div class="gift-sale-value">
-        <b>${escapeHtml(priceLabel)}</b>
-        <small>${escapeHtml(marketplace)}</small>
-      </div>
+  const image = resolveTokenImage(detail.image || "");
+  const marketLogo = (marketplace = "") => {
+    const value = String(marketplace).toLowerCase();
+    if (value.includes("mrkt")) return "assets/marketplaces/mrkt.jpg";
+    if (value.includes("portal")) return "assets/marketplaces/portals.jpg";
+    if (value.includes("tonnel")) return "assets/marketplaces/tonnel.jpg";
+    return "";
+  };
+  const dateParts = (value = "") => {
+    const date = new Date(value);
+    if (!Number.isFinite(date.getTime())) return { time: "â€”", day: "â€”" };
+    return {
+      time: date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false }),
+      day: `${String(date.getDate()).padStart(2, "0")}.${String(date.getMonth() + 1).padStart(2, "0")}`,
+    };
+  };
+  const body = rows.slice(0, 10).map((sale) => {
+    const saleMint = Number(sale.mint || 0) > 0 ? `#${Number(sale.mint).toLocaleString()}` : "";
+    const marketplace = sale.marketplace || "Market";
+    const logo = marketLogo(marketplace);
+    const priceTon = Number(sale.priceTon || 0);
+    const sold = dateParts(sale.soldAt || sale.date || "");
+    const linkAttributes = sale.giftUrl
+      ? ` data-external-url="${escapeHtml(sale.giftUrl)}" role="link" tabindex="0"`
+      : "";
+    return `<div class="gift-sale-table-row" role="row"${linkAttributes}>
+      <span class="gift-sale-thumb" role="cell">${image ? `<img src="${escapeHtml(image)}" alt="" loading="lazy" decoding="async">` : `<i data-lucide="gift"></i>`}</span>
+      <span class="gift-sale-identity" role="cell"><b>${escapeHtml(sale.model || "Gift")}${saleMint ? ` <small>${escapeHtml(saleMint)}</small>` : ""}</b></span>
+      <span class="gift-sale-price" role="cell"><b>${priceTon > 0 ? `${priceTon.toLocaleString(undefined, { maximumFractionDigits: 4 })} TON` : "â€”"}</b><time datetime="${escapeHtml(sale.soldAt || sale.date || "")}">${escapeHtml(sold.day)} Â· ${escapeHtml(sold.time)}</time></span>
+      <span class="gift-sale-market" role="cell" title="${escapeHtml(marketplace)}" aria-label="${escapeHtml(marketplace)}">${logo ? `<img src="${logo}" alt="${escapeHtml(marketplace)}">` : `<b>${escapeHtml(marketplace.slice(0, 2).toUpperCase())}</b>`}</span>
     </div>`;
   }).join("");
+  return `<div class="gift-sales-list" role="table" aria-label="Last sales for this exact gift variant">${body}</div>`;
 }
 
-function renderStickerChartControls() {
-  const panel = document.querySelector(".price-panel");
-  if (!panel) return;
-  let controls = panel.querySelector(".token-chart-ranges");
-  if (!controls) {
-    controls = document.createElement("div");
-    controls.className = "token-chart-ranges";
-    panel.querySelector("#chartTooltip")?.insertAdjacentElement("afterend", controls);
-  }
-  controls.innerHTML = [["7d", "7D"], ["30d", "30D"]].map(([value, label]) => `<button class="mini-button ${stickerDetailRange === value ? "active" : ""}" type="button" data-sticker-detail-range="${value}">${label}</button>`).join("");
+function applyGiftSales(detail, sales = [], scope = "same-traits") {
+  detail.salesScope = scope;
+  detail.salesLoading = false;
+  detail.giftSalesRaw = Array.isArray(sales) ? sales.slice() : [];
+  detail.sales = sales.map((sale) => ({
+    priceTon: Number(sale.priceTon || 0),
+    priceLabel: `${Number(sale.priceTon || 0).toFixed(2)} TON Â· ${money(sale.priceUsd || 0)}`,
+    dateLabel: formatActivityDate(sale.date || Date.now()),
+    date: sale.date || "",
+    soldAt: sale.soldAt || sale.date || "",
+    marketplace: sale.marketplace || "Market",
+    buyer: truncateWalletAddress(sale.buyer || ""),
+    seller: truncateWalletAddress(sale.seller || ""),
+    mint: Number(sale.mint || 0),
+    model: sale.model || "",
+    backdrop: sale.backdrop || "",
+    symbol: sale.symbol || "",
+    giftUrl: sale.giftUrl || "",
+  }));
 }
 
 function stickerMetricGridHtml(metrics = {}) {
   return `<div class="token-metric-grid">
     ${[
-      ["Floor Price", metrics.floor || "—"],
-      ["24h Volume", metrics.volume24h || "—"],
-      ["Total Supply", metrics.totalSupply || "—"],
-      ["Unique Holders", metrics.holders || "—"],
-      ["All-Time High", metrics.ath || "—"],
-      ["Your Portfolio %", metrics.portfolioShare || "—"],
+      ["Floor Price", metrics.floor || "â€”"],
+      ["24h Volume", metrics.volume24h || "â€”"],
+      ["Total Supply", metrics.totalSupply || "â€”"],
+      ["Unique Holders", metrics.holders || "â€”"],
+      ["All-Time High", metrics.ath || "â€”"],
+      ["Your Portfolio %", metrics.portfolioShare || "â€”"],
     ].map(([label, value]) => `<article class="card token-metric-card"><small>${label}</small><b>${value}</b></article>`).join("")}
   </div>`;
 }
 
 function stickerThumbsHtml(items = []) {
   if (!items.length) return `<div class="mini-thumb-row"><span class="detail-empty-state">No sticker previews</span></div>`;
-  return `<div class="mini-thumb-row">${items.map((item, index) => `<button class="sticker-mini" type="button" data-sticker-thumb='${escapeHtml(JSON.stringify({ image: item.previews?.[0]?.url || item.metadata?.image || "", name: item.metadata?.name || item.collection?.name || `Sticker ${index + 1}`, tag: item.index || 0, traits: (item.metadata?.attributes || []).map((attr) => `${attr.trait_type}: ${attr.value}`).join(" · ") }))}'><img src="${escapeHtml(item.previews?.[0]?.url || item.metadata?.image || "")}" alt="${escapeHtml(item.metadata?.name || "Sticker")}" /></button>`).join("")}</div>`;
+  return `<div class="mini-thumb-row">${items.map((item, index) => {
+    const image = item.previews?.[0]?.url || item.metadata?.image || "";
+    const animated = item.metadata?.animation_url || item.metadata?.animation || item.metadata?.video_url || item.metadata?.video || item.metadata?.lottie || "";
+    const media = stickerMediaDescriptor({
+      image,
+      animatedImage: animated,
+      animationUrl: animated,
+      mediaType: /\.(?:lottie\.)?json(?:[?#].*)?$/i.test(String(animated))
+        ? "lottie"
+        : (/(\.webm|\.mp4|\.mov)(?:[?#].*)?$/i.test(String(animated)) ? "video" : ""),
+    });
+    return `<button class="sticker-mini" type="button" data-sticker-thumb='${escapeHtml(JSON.stringify({ image, name: item.metadata?.name || item.collection?.name || `Sticker ${index + 1}`, tag: item.index || 0, traits: (item.metadata?.attributes || []).map((attr) => `${attr.trait_type}: ${attr.value}`).join(" Â· ") }))}'>${collectibleMediaHtml(media, item.metadata?.name || "Sticker")}</button>`;
+  }).join("")}</div>`;
 }
 
 function stickerDetailCacheKey(detail = {}) {
-  return String(detail.collectionAddress || detail.collection || detail.name || detail.id || "");
+  return [
+    detail.collectionAddress,
+    detail.collectionId,
+    detail.characterId,
+    detail.characterName || detail.name,
+  ].map((value) => String(value || "").trim().toLowerCase()).join("|");
 }
 
 async function fetchStickerDetailPayload(detail) {
   const key = stickerDetailCacheKey(detail);
-  if (!key) return { floor: {}, sales: [], itemsPayload: {} };
+  if (!key) return { floor: {}, sales: [], itemsPayload: {}, intel: {} };
   const cached = stickerDetailCache.get(key);
   if (cached && cached.expiresAt > Date.now()) return cached.value;
   if (stickerDetailRequests.has(key)) return stickerDetailRequests.get(key);
+  const attributes = (detail.attributes || []).map((attribute) => Array.isArray(attribute)
+    ? { label: attribute[0], value: attribute[1] }
+    : attribute);
+  const context = new URLSearchParams({
+    collection: detail.collectionAddress || detail.collection || detail.name || "",
+    name: detail.brand || detail.creator || detail.collection || "",
+    item: detail.characterName || detail.name || "",
+    kind: "sticker",
+    attributes: JSON.stringify(attributes),
+    traits: JSON.stringify(attributes),
+  });
   const request = Promise.allSettled([
-    detail.collectionAddress ? fetchJson(`/api/collection-floor?collection=${encodeURIComponent(detail.collectionAddress)}`) : Promise.resolve({}),
-    detail.collectionAddress ? fetchJson(`/api/collection-sales?collection=${encodeURIComponent(detail.collectionAddress)}`) : Promise.resolve([]),
+    fetchJson(`/api/collection-floor?${context.toString()}`),
+    fetchJson(`/api/collection-sales?${context.toString()}`),
     detail.collectionAddress ? fetchJsonFast(`https://tonapi.io/v2/nfts/collections/${encodeURIComponent(detail.collectionAddress)}/items?limit=24`, 5000) : Promise.resolve({}),
-  ]).then(([floorResult, salesResult, itemsResult]) => {
+    detail.collectionId ? fetchJson(`/api/sticker-detail-intel?${new URLSearchParams({ collectionId: detail.collectionId, characterId: detail.characterId || "", characterName: detail.characterName || detail.name || "" }).toString()}`) : Promise.resolve({}),
+  ]).then(([floorResult, salesResult, itemsResult, intelResult]) => {
     const value = {
       floor: settledValue(floorResult, {}),
       sales: settledValue(salesResult, []),
       itemsPayload: settledValue(itemsResult, {}),
+      intel: settledValue(intelResult, {}),
     };
     stickerDetailCache.set(key, { value, expiresAt: Date.now() + 5 * 60 * 1000 });
     return value;
@@ -2335,26 +2664,21 @@ function applyStickerDetailPayload(detail, payload = {}) {
   const thumbs = itemsPayload?.nft_items || itemsPayload?.items || [];
   detail.floorTon = Number(floor.floorTon || detail.floorTon || 0);
   detail.floorUsd = Number(floor.floorUsd || detail.floorUsd || 0);
+  detail.stickerFloor = floor;
   detail.dailyPct = Number(floor.change24hPct || detail.dailyPct || 0);
   detail.dailyUsd = detail.floorUsd ? detail.floorUsd * (detail.dailyPct / 100) : 0;
   detail.quickSellTon = detail.floorTon ? detail.floorTon * 0.95 : 0;
   detail.quickSellUsd = detail.floorUsd ? detail.floorUsd * 0.95 : 0;
-  detail.sales = sales.map((sale) => [`${Number(sale.priceTon || 0).toFixed(2)} TON · ${money(sale.priceUsd || 0)}`, formatActivityDate(sale.date || Date.now()), detail.format || "Sticker", detail.creator || detail.collection, sale.marketplace || "Market"]);
-  detail.chart = buildStickerChart(detail, sales);
-  setText("#detailValue", `${money(detail.floorUsd)} · ${signedPct(detail.dailyPct)}`);
-  setText("#detailMintLine", `${detail.packId} · ${detail.creator}`);
-  setText("#detailStatOne", money(detail.floorUsd));
-  setText("#detailStatThree", detail.quickSellUsd ? money(detail.quickSellUsd) : "—");
-  document.querySelector("#detailMarketIntel").innerHTML = `${stickerMetricGridHtml({
-    floor: detail.floorUsd ? `${money(detail.floorUsd)} · ${detail.floorTon.toFixed(2)} TON` : "—",
-    volume24h: Number(floor.volume24hUsd || 0) > 0 ? `${money(floor.volume24hUsd)} · ${(Number(floor.volume24hTon || 0)).toFixed(2)} TON` : "—",
-    totalSupply: formatMetricCount(floor.totalSupply),
-    holders: formatMetricCount(floor.holders),
-    ath: floor.athFloorUsd ? money(floor.athFloorUsd) : "—",
-    portfolioShare: homePortfolioValue > 0 ? `${((Number(detail.floorUsd || 0) / homePortfolioValue) * 100).toFixed(2)}%` : "—",
-  })}${stickerThumbsHtml(thumbs)}`;
-  renderSales(detail);
-  drawDetailPriceChart(detail);
+  detail.sales = sales.map((sale) => [`${Number(sale.priceTon || 0).toFixed(2)} TON Â· ${money(sale.priceUsd || 0)}`, formatActivityDate(sale.date || Date.now()), detail.format || "Sticker", detail.creator || detail.collection, sale.marketplace || "Market"]);
+  detail.floorHistoryPoints = buildStickerHistory(sales);
+  detail.chart = detail.floorHistoryPoints.map((point) => point.priceUsd);
+  detail.stickerThumbnails = thumbs;
+  detail.stickerIntel = payload?.intel || {};
+  if (currentDetailAssetId() === detail.id) {
+    renderStickerDetailPage(detail, { loading: false });
+    window.lucide?.createIcons();
+    applyCurrencyDisplay();
+  }
 }
 
 async function loadStickerDetail(detail, { forceRefresh = false } = {}) {
@@ -2366,7 +2690,7 @@ async function loadStickerDetail(detail, { forceRefresh = false } = {}) {
   } catch (error) {
     console.warn("Sticker detail load failed", error);
     if (requestId !== activeStickerDetailRequest) return;
-    document.querySelector("#detailMarketIntel").innerHTML = `${stickerMetricGridHtml()}<div class="mini-thumb-row"><span class="detail-empty-state">—</span></div>`;
+    if (currentDetailAssetId() === detail.id) renderStickerDetailPage(detail, { loading: false });
   }
 }
 
@@ -2380,13 +2704,24 @@ async function fetchGiftDetailPayload(detail) {
   const cached = giftDetailCache.get(key);
   if (cached && cached.expiresAt > Date.now()) return cached.value;
   if (giftDetailRequests.has(key)) return giftDetailRequests.get(key);
-  const collection = detail.collectionAddress || detail.collection || detail.name || "";
+  const wallet = liveWalletAddress || liveWalletData?.account?.address || "";
+  const nft = detail.tokenAddress || "";
+  if (!wallet && !nft) return { floor: {}, sales: [], origin: {}, rarity: {}, links: {} };
+  const collectionAddress = detail.collectionAddress || "";
+  const collectionName = detail.collection || detail.name || "";
+  const model = giftModelTrait(detail) || detail.model || "";
+  const backdrop = giftTraitValue(detail, "Backdrop") || detail.backdrop || "";
+  const symbol = giftTraitValue(detail, "Symbol") || detail.symbol || "";
   const detailParams = new URLSearchParams({
-    wallet: liveWalletAddress || liveWalletData?.account?.address || "",
-    nft: detail.tokenAddress || "",
-    collection,
+    wallet,
+    nft,
+    collection: collectionAddress || collectionName,
+    collectionName,
     item: detail.name || detail.collection || "",
     attributes: JSON.stringify(detail.traits || []),
+    model,
+    backdrop,
+    symbol,
     range: giftDetailRange,
     v: giftDetailPayloadVersion,
     t: String(Date.now()),
@@ -2400,6 +2735,215 @@ async function fetchGiftDetailPayload(detail) {
     })
     .finally(() => giftDetailRequests.delete(key));
   giftDetailRequests.set(key, request);
+  return request;
+}
+
+async function loadGiftSalesFast(detail = {}, requestId = activeGiftDetailRequest) {
+  const combo = giftComboHistoryCandidates(detail)[0];
+  if (!combo) return false;
+  const params = new URLSearchParams({
+    collection: combo.collection,
+    model: combo.model,
+    backdrop: combo.backdrop,
+    symbol: combo.symbol,
+    limit: "10",
+  });
+  try {
+    const payload = await fetchJsonFast(`/api/gift-registry/sales?${params}`, 2200);
+    if (requestId !== activeGiftDetailRequest) return false;
+    const sales = Array.isArray(payload?.sales) ? payload.sales : [];
+    if (!sales.length) return false;
+    applyGiftSales(detail, sales, "same-traits");
+    refreshGiftDetailChrome(detail, { loading: false });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function giftComboHistoryCandidates(detail = {}) {
+  const seen = new Set();
+  return [detail, ...(Array.isArray(detail.children) ? detail.children : [])].flatMap((item) => {
+    const model = String(giftModelTrait(item) || giftModelTrait(detail) || item.model || detail.model || "").trim();
+    const backdrop = String(giftTraitValue(item, "Backdrop") || giftTraitValue(detail, "Backdrop") || item.backdrop || detail.backdrop || "").trim();
+    const symbol = String(giftTraitValue(item, "Symbol") || giftTraitValue(detail, "Symbol") || item.symbol || detail.symbol || "").trim();
+    if (!model || !backdrop || !symbol) return [];
+    return [item.collection, detail.collection, item.creator, detail.creator, item.name, detail.name]
+      .filter(Boolean)
+      .flatMap((value) => {
+        const name = String(value).replace(/\s*#\d+\b/g, "").trim();
+        return [name, /s$/i.test(name) ? name.slice(0, -1) : `${name}s`];
+      })
+      .filter((collection) => {
+        const key = `${collectibleKey(collection)}:${collectibleKey(model)}:${collectibleKey(backdrop)}:${collectibleKey(symbol)}`;
+        if (!collection || seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      })
+      .map((collection) => ({ collection, model, backdrop, symbol }));
+  });
+}
+
+function giftComboHistoryCacheKey(detail = {}) {
+  const candidate = giftComboHistoryCandidates(detail)[0];
+  if (!candidate) return "";
+  return `${giftDetailRange}:${collectibleKey(candidate.collection)}:${collectibleKey(candidate.model)}:${collectibleKey(candidate.backdrop)}:${collectibleKey(candidate.symbol)}`;
+}
+
+async function hydrateGiftDetailTraitRarities(detail = {}, requestId = activeGiftDetailRequest) {
+  const collection = detail.collection || detail.name || "";
+  const model = giftModelTrait(detail);
+  const backdrop = giftTraitValue(detail, "Backdrop");
+  const symbol = giftTraitValue(detail, "Symbol");
+  if (!collection || !model) return false;
+  const payload = await requestJson("/api/gift-model-floors/bulk", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ pairs: [{ collection, model, backdrop, symbol }] }),
+  }, "Gift trait rarity lookup failed").catch(() => null);
+  if (requestId !== activeGiftDetailRequest) return false;
+  const modelPayload = (payload?.models || [])[0];
+  if (!modelPayload?.traitRarities || !Object.keys(modelPayload.traitRarities).length) return false;
+  applyGiftTraitRarities(detail, modelPayload);
+  const stored = assetDetails[detail.id];
+  if (stored && stored !== detail) applyGiftTraitRarities(stored, modelPayload);
+  return true;
+}
+
+function giftModelStatsCacheKey(detail = {}) {
+  const collection = detail.collection || detail.name || "";
+  const model = giftModelTrait(detail);
+  if (!collection || !model) return "";
+  return `${collectibleKey(collection)}:${collectibleKey(model)}`;
+}
+
+function giftCollectionStatsCacheKey(detail = {}) {
+  const collection = detail.collection || detail.name || "";
+  return collection ? collectibleKey(collection) : "";
+}
+
+function applyGiftModelStats(detail = {}, stats = {}) {
+  if (!stats || typeof stats !== "object") return false;
+  const normalized = {
+    modelCount: Number(stats.modelCount || 0) || 0,
+    supplyPct: Number(stats.supplyPct || 0) || 0,
+    holderCount: Number(stats.holderCount || 0) || 0,
+    transferCount7d: Number(stats.transferCount7d || 0) || 0,
+    transferCount30d: Number(stats.transferCount30d || 0) || 0,
+    upgradedCount: Number(stats.upgradedCount || 0) || 0,
+    source: stats.source || "",
+    updatedAt: stats.updatedAt || "",
+  };
+  if (!Object.values(normalized).some((value) => (typeof value === "number" ? value > 0 : Boolean(value)))) return false;
+  detail.modelStats = normalized;
+  return true;
+}
+
+function applyGiftCollectionStats(detail = {}, stats = {}) {
+  if (!stats || typeof stats !== "object") return false;
+  const normalized = {
+    mintPriceStars: Number(stats.mintPriceStars || 0) || 0,
+    mintPriceTon: Number(stats.mintPriceTon || 0) || 0,
+    mintPriceUsd: Number(stats.mintPriceUsd || 0) || 0,
+    upgradedSupply: Number(stats.upgradedSupply || 0) || 0,
+    unupgradedSupply: Number(stats.unupgradedSupply || 0) || 0,
+    burnedCount: Number(stats.burnedCount || 0) || 0,
+    holdOnchainPct: Number(stats.holdOnchainPct || 0) || 0,
+    holdTelegramPct: Number(stats.holdTelegramPct || 0) || 0,
+    onchainHolders: Number(stats.onchainHolders || 0) || 0,
+    tgHolders: Number(stats.tgHolders || 0) || 0,
+    totalMinted: Number(stats.totalMinted || 0) || 0,
+    source: stats.source || "",
+    updatedAt: stats.updatedAt || "",
+  };
+  if (!Object.values(normalized).some((value) => (typeof value === "number" ? value > 0 : Boolean(value)))) return false;
+  detail.collectionStats = normalized;
+  return true;
+}
+
+async function hydrateGiftDetailModelStats(detail = {}, requestId = activeGiftDetailRequest) {
+  const collection = detail.collection || detail.name || "";
+  const model = giftModelTrait(detail);
+  if (!collection || !model) return false;
+  const key = giftModelStatsCacheKey(detail);
+  const collectionKey = giftCollectionStatsCacheKey(detail);
+  const cached = giftModelStatsCache.get(key);
+  const cachedCollection = giftCollectionStatsCache.get(collectionKey);
+  if (cached?.expiresAt > Date.now() && cachedCollection?.expiresAt > Date.now()) {
+    const modelApplied = applyGiftModelStats(detail, cached.value);
+    const collectionApplied = applyGiftCollectionStats(detail, cachedCollection.value);
+    return modelApplied || collectionApplied;
+  }
+  if (giftModelStatsRequests.has(key)) return giftModelStatsRequests.get(key);
+  const request = requestJson("/api/gift-model-stats", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ pairs: [{ collection, model }] }),
+  }, "Gift model stats lookup failed")
+    .then((payload) => {
+      if (requestId !== activeGiftDetailRequest) return false;
+      const stats = (payload?.models || [])[0];
+      const collectionStats = (payload?.collections || [])[0];
+      let applied = false;
+      if (stats) {
+        giftModelStatsCache.set(key, { value: stats, expiresAt: Date.now() + 15 * 60 * 1000 });
+        applied = applyGiftModelStats(detail, stats) || applied;
+      }
+      if (collectionStats && collectionKey) {
+        giftCollectionStatsCache.set(collectionKey, { value: collectionStats, expiresAt: Date.now() + 15 * 60 * 1000 });
+        applied = applyGiftCollectionStats(detail, collectionStats) || applied;
+      }
+      const stored = assetDetails[detail.id];
+      if (stored && stored !== detail) {
+        if (stats) applyGiftModelStats(stored, stats);
+        if (collectionStats) applyGiftCollectionStats(stored, collectionStats);
+      }
+      return applied;
+    })
+    .catch(() => false)
+    .finally(() => giftModelStatsRequests.delete(key));
+  giftModelStatsRequests.set(key, request);
+  return request;
+}
+
+async function fetchGiftComboHistoryPayload(detail = {}) {
+  const key = giftComboHistoryCacheKey(detail);
+  if (!key) return null;
+  const cached = giftComboHistoryCache.get(key);
+  if (cached && cached.expiresAt > Date.now()) return cached.value;
+  if (giftComboHistoryRequests.has(key)) return giftComboHistoryRequests.get(key);
+  const candidates = giftComboHistoryCandidates(detail);
+  const request = (async () => {
+    let points = [];
+    for (const candidate of candidates) {
+      const params = new URLSearchParams({ ...candidate, range: giftDetailRange });
+      const history = await fetchJson(`/api/gift-registry/history?${params.toString()}`).catch(() => []);
+      points = Array.isArray(history) ? history : [];
+      if (points.length >= 2) break;
+    }
+      const latest = points[points.length - 1] || {};
+      const floorTon = Number(detail.floorTon || latest.floorTon || latest.priceTon || 0);
+      const rate = Number(detail.floorTon || 0) > 0 && Number(detail.floorUsd || 0) > 0
+        ? Number(detail.floorUsd) / Number(detail.floorTon)
+        : usdTonRate;
+      const value = {
+        floor: {
+          floorTon,
+          floorUsd: Number(detail.floorUsd || 0) || (floorTon > 0 ? floorTon * rate : 0),
+          tonUsdRate: rate,
+          floorHistorySource: points.length >= 2
+            ? (detail.floorStatus === "estimated" || detail.floorSource === "estimate" ? "tontrack-estimate-history" : "tontrack-combo-registry")
+            : "",
+        },
+        floorHistory: points,
+        floorHistorySource: points.length >= 2
+          ? (detail.floorStatus === "estimated" || detail.floorSource === "estimate" ? "tontrack-estimate-history" : "tontrack-combo-registry")
+          : "",
+      };
+      giftComboHistoryCache.set(key, { value, expiresAt: Date.now() + 5 * 60 * 1000 });
+      return value;
+  })().finally(() => giftComboHistoryRequests.delete(key));
+  giftComboHistoryRequests.set(key, request);
   return request;
 }
 
@@ -2446,22 +2990,56 @@ function giftFloorHistoryPointsFromPayload(detail, payload = {}) {
 
 function applyGiftFloorHistory(detail, payload = {}) {
   const floorHistoryPoints = giftFloorHistoryPointsFromPayload(detail, payload);
-  const hasMarketPrice = Number(detail.floorUsd || payload?.floor?.floorUsd || 0) > 0
-    || Number(detail.floorTon || payload?.floor?.floorTon || 0) > 0;
-  detail.floorHistoryAvailable = hasMarketPrice && floorHistoryPoints.length >= 2;
-  detail.floorHistorySource = detail.floorHistoryAvailable ? (payload.floorHistorySource || payload?.floor?.floorHistorySource || "live") : "";
-  detail.floorHistoryPoints = detail.floorHistoryAvailable ? floorHistoryPoints : [];
-  detail.chart = detail.floorHistoryAvailable ? floorHistoryPoints.map((point) => point.priceUsd) : [];
+  if (floorHistoryPoints.length < 2) {
+    const existingPoints = Array.isArray(detail.floorHistoryPoints) ? detail.floorHistoryPoints : [];
+    if (existingPoints.length >= 2) {
+      detail.floorHistoryAvailable = true;
+      detail.chart = existingPoints.map((point) => point.priceUsd);
+      return;
+    }
+    detail.floorHistoryAvailable = false;
+    detail.floorHistorySource = "";
+    detail.floorHistoryPoints = [];
+    detail.chart = [];
+    return true;
+  }
+  detail.floorHistoryAvailable = true;
+  detail.floorHistorySource = payload.floorHistorySource || payload?.floor?.floorHistorySource || "live";
+  detail.floorHistoryPoints = floorHistoryPoints;
+  detail.chart = floorHistoryPoints.map((point) => point.priceUsd);
+}
+
+function refreshGiftDetailChrome(detail, { loading = false } = {}) {
+  if (currentDetailAssetId() !== detail.id) return;
+  renderGiftDetailPage(detail, { loading });
+  window.lucide?.createIcons();
+  applyCurrencyDisplay();
+  return true;
+}
+
+async function loadGiftComboHistoryFast(detail = {}, requestId = activeGiftDetailRequest) {
+  const comboHistoryPayload = await fetchGiftComboHistoryPayload(detail).catch(() => null);
+  if (requestId !== activeGiftDetailRequest) return false;
+  if (comboHistoryPayload) applyGiftFloorHistory(detail, comboHistoryPayload);
+  return Boolean(detail.floorHistoryAvailable);
 }
 
 function applyGiftVerifiedFloor(detail, payload = {}) {
   const floor = payload?.floor || {};
-  const blockedByBulkState = giftComboState(detail)?.status === "missing";
-  const verifiedFloor = !blockedByBulkState && isVerifiedGiftFloor(floor);
+  const verifiedFloor = isVerifiedGiftFloor(floor);
   const estimatedFloor = !verifiedFloor && isEstimatedGiftFloor(floor);
   const hasDisplayPrice = verifiedFloor || estimatedFloor;
-  detail.floorTon = hasDisplayPrice ? Number(floor.floorTon || 0) : 0;
-  detail.floorUsd = hasDisplayPrice ? Number(floor.floorUsd || 0) : 0;
+  const incomingTon = Number(floor.floorTon || 0);
+  const incomingUsd = Number(floor.floorUsd || 0) || (incomingTon > 0 ? incomingTon * usdTonRate : 0);
+  // A detail response is enrichment, not authority to discard a valid floor
+  // that was resolved in the import response. Empty detail payloads occur for
+  // valid Telegram assets that do not have a separate detail entry yet.
+  if (!hasDisplayPrice && Number(detail.floorUsd || 0) > 0) {
+    applyGiftFloorHistory(detail, payload);
+    return;
+  }
+  detail.floorTon = hasDisplayPrice ? incomingTon : 0;
+  detail.floorUsd = hasDisplayPrice ? incomingUsd : 0;
   detail.dailyPct = verifiedFloor ? Number(floor.change24hPct || 0) : 0;
   detail.dailyUsd = detail.floorUsd && detail.dailyPct ? detail.floorUsd * (detail.dailyPct / 100) : 0;
   detail.marketPlatform = hasDisplayPrice ? (marketSourceLabel(floor.marketPlatform || floor.source) || (estimatedFloor ? "Estimated Value" : "Verified Market")) : "";
@@ -2486,21 +3064,13 @@ function applyGiftDetailPayload(detail, payload = {}, options = {}) {
   detail.origin = payload?.origin || detail.origin || {};
   detail.rarity = payload?.rarity || detail.rarity || {};
   detail.links = payload?.links || detail.links || {};
-  detail.salesScope = payload?.salesScope || "collection";
+  detail.onchainActivity = payload?.onchainActivity || detail.onchainActivity || {};
+  detail.salesScope = payload?.salesScope || detail.salesScope || "collection";
+  if (payload?.modelStats) applyGiftModelStats(detail, payload.modelStats);
+  if (payload?.collectionStats) applyGiftCollectionStats(detail, payload.collectionStats);
   if (options.applyFloor !== false) applyGiftVerifiedFloor(detail, payload);
   else applyGiftFloorHistory(detail, payload);
-  detail.giftSalesRaw = Array.isArray(sales) ? sales.slice() : [];
-  detail.sales = sales.map((sale) => ({
-    priceLabel: `${Number(sale.priceTon || 0).toFixed(2)} TON · ${money(sale.priceUsd || 0)}`,
-    dateLabel: formatActivityDate(sale.date || Date.now()),
-    marketplace: sale.marketplace || "Market",
-    buyer: truncateWalletAddress(sale.buyer || ""),
-    seller: truncateWalletAddress(sale.seller || ""),
-    mint: Number(sale.mint || 0),
-    model: sale.model || "",
-    backdrop: sale.backdrop || "",
-    symbol: sale.symbol || "",
-  }));
+  if (sales.length || !detail.giftSalesRaw?.length) applyGiftSales(detail, sales, detail.salesScope);
   const derivedSales24h = Number(payload?.salesStats?.sales24h || 0);
   const derivedVolume24hTon = Number(payload?.salesStats?.volume24hTon || 0);
   const derivedVolume24hUsd = Number(payload?.salesStats?.volume24hUsd || 0);
@@ -2512,17 +3082,17 @@ function applyGiftDetailPayload(detail, payload = {}, options = {}) {
     ? saleTimestamps.slice(1).reduce((sum, value, index) => sum + ((value - saleTimestamps[index]) / 3600000), 0) / (saleTimestamps.length - 1)
     : (Number(floor.sales24h || derivedSales24h) > 0 ? 24 / Math.max(1, Number(floor.sales24h || derivedSales24h)) : 0);
   detail.intel = {
-    trend: detail.dailyPct >= 0 ? "▂▃▅▆▇" : "▇▆▅▃▂",
+    trend: detail.dailyPct >= 0 ? "â–‚â–ƒâ–…â–†â–‡" : "â–‡â–†â–…â–ƒâ–‚",
     badge: detail.dailyPct > 2 ? "Trending Up" : detail.dailyPct < -2 ? "Cooling" : "Stable",
     change24hPct: Number(floor.change24hPct || detail.dailyPct || 0),
-    sales24h: Number(floor.sales24h || derivedSales24h || 0) > 0 ? String(Number(floor.sales24h || derivedSales24h || 0)) : "—",
-    volume24h: Number(floor.volume24hUsd || derivedVolume24hUsd || 0) > 0 ? collectibleValueLabel(floor.volume24hUsd || derivedVolume24hUsd, floor.volume24hTon || derivedVolume24hTon) : "—",
-    prior: Number.isFinite(Number(floor.change24hPct)) ? signedPct(Number(floor.change24hPct || 0)) : "—",
-    daysToSell: avgGapHours > 0 ? `${avgGapHours.toFixed(1)} hours` : "—",
-    listedSupply: Number(floor.listedCount || 0) > 0 ? String(Number(floor.listedCount || 0)) : "—",
+    sales24h: Number(floor.sales24h || derivedSales24h || 0) > 0 ? String(Number(floor.sales24h || derivedSales24h || 0)) : "â€”",
+    volume24h: Number(floor.volume24hUsd || derivedVolume24hUsd || 0) > 0 ? collectibleValueLabel(floor.volume24hUsd || derivedVolume24hUsd, floor.volume24hTon || derivedVolume24hTon) : "â€”",
+    prior: Number.isFinite(Number(floor.change24hPct)) ? signedPct(Number(floor.change24hPct || 0)) : "â€”",
+    daysToSell: avgGapHours > 0 ? `${avgGapHours.toFixed(1)} hours` : "â€”",
+    listedSupply: Number(floor.listedCount || 0) > 0 ? String(Number(floor.listedCount || 0)) : "â€”",
     listedCount: Number(floor.listedCount || 0) || 0,
     totalSupply: Number(floor.totalSupply || 0) || 0,
-    listingRate: Number(floor.totalSupply || 0) > 0 && Number(floor.listedCount || 0) > 0 ? `${((Number(floor.listedCount || 0) / Number(floor.totalSupply || 1)) * 100).toFixed(1)}%` : "—",
+    listingRate: Number(floor.totalSupply || 0) > 0 && Number(floor.listedCount || 0) > 0 ? `${((Number(floor.listedCount || 0) / Number(floor.totalSupply || 1)) * 100).toFixed(1)}%` : "â€”",
     velocityHours: avgGapHours || 0,
     bestTime: detail.marketPlatform || "Marketplace",
   };
@@ -2530,41 +3100,55 @@ function applyGiftDetailPayload(detail, payload = {}, options = {}) {
 
 async function loadGiftDetail(detail, { forceRefresh = false } = {}) {
   const requestId = ++activeGiftDetailRequest;
-  detail.floorHistoryLoading = true;
-  if (currentDetailAssetId() === detail.id) {
-    renderGiftDetailPage(detail, { loading: true });
-    window.lucide?.createIcons();
-    applyCurrencyDisplay();
-  }
+  detail.floorHistoryLoading = !detail.floorHistoryAvailable;
+  detail.salesLoading = !(detail.sales || []).length;
+  refreshGiftDetailChrome(detail, { loading: false });
+  loadGiftSalesFast(detail, requestId);
+  const traitRarityRequest = hydrateGiftDetailTraitRarities(detail, requestId).then((updated) => {
+    if (requestId !== activeGiftDetailRequest) return;
+    if (updated) refreshGiftDetailChrome(detail, { loading: false });
+  });
+  const modelStatsRequest = hydrateGiftDetailModelStats(detail, requestId).then((updated) => {
+    if (requestId !== activeGiftDetailRequest) return;
+    if (updated) refreshGiftDetailChrome(detail, { loading: false });
+  });
+  const fastHistoryRequest = loadGiftComboHistoryFast(detail, requestId).then((hasHistory) => {
+    if (requestId !== activeGiftDetailRequest) return;
+    if (hasHistory) {
+      detail.floorHistoryLoading = false;
+      refreshGiftDetailChrome(detail, { loading: false });
+    }
+  });
   try {
     const payload = forceRefresh ? await fetchGiftDetailPayload(detail) : (getGiftDetailCachedPayload(detail) || await fetchGiftDetailPayload(detail));
     if (requestId !== activeGiftDetailRequest) return;
-    applyGiftDetailPayload(detail, payload, { applyFloor: forceRefresh });
+    applyGiftDetailPayload(detail, payload, { applyFloor: true });
+    await traitRarityRequest;
+    await modelStatsRequest;
+    if (!detail.floorHistoryAvailable) {
+      await fastHistoryRequest;
+    }
     detail.floorHistoryLoading = false;
-    renderGiftDetailPage(detail, { loading: false });
-    window.lucide?.createIcons();
-    applyCurrencyDisplay();
+    refreshGiftDetailChrome(detail, { loading: false });
   } catch (error) {
     console.warn("Gift detail load failed", error);
     if (requestId !== activeGiftDetailRequest) return;
+    await traitRarityRequest;
+    await modelStatsRequest;
+    await fastHistoryRequest;
     detail.floorHistoryLoading = false;
-    renderGiftDetailPage(detail, { loading: false });
-    window.lucide?.createIcons();
-    applyCurrencyDisplay();
+    refreshGiftDetailChrome(detail, { loading: false });
   }
 }
 
-function buildGiftChart(detail, sales = []) {
-  return [];
-}
-
-function buildStickerChart(detail, sales = []) {
-  const tradePrices = sales.map((sale) => Number(sale.priceUsd || 0)).filter((value) => value > 0);
-  const current = Number(detail.floorUsd || 0);
-  const base = tradePrices.length ? tradePrices : current ? [current] : [];
-  if (!base.length) return [];
-  const values = stickerDetailRange === "30d" ? [...base, current || base[base.length - 1], current || base[base.length - 1]] : base.slice(-7);
-  return values.map((value) => Number(value) || current).filter((value) => value > 0);
+function buildStickerHistory(sales = []) {
+  const start = Date.now() - (stickerDetailRange === "30d" ? 30 : 7) * 86400000;
+  const points = sales.map((sale) => ({
+    timestamp: new Date(sale.date || 0).getTime(),
+    priceUsd: Number(sale.priceUsd || 0),
+  })).filter((point) => Number.isFinite(point.timestamp) && point.timestamp >= start && point.priceUsd > 0)
+    .sort((a, b) => a.timestamp - b.timestamp);
+  return points.length >= 2 ? points : [];
 }
 
 function setDetailHeading(panelSelector, title, action = "") {
@@ -2579,31 +3163,6 @@ function setDetailHeading(panelSelector, title, action = "") {
   }
 }
 
-function setDetailTokenIcon(detail, tone) {
-  const icon = document.querySelector("#detailIcon");
-  const ghost = document.querySelector("#detailGhost");
-  const image = resolveTokenImage(detail.image);
-  const symbol = escapeHtml((detail.symbol || detail.name || "?").slice(0, 3).toUpperCase());
-  if (icon) {
-    icon.className = `asset-icon ${tone}`;
-    icon.style.borderRadius = "50%";
-    icon.style.overflow = "hidden";
-    icon.innerHTML = image
-      ? `<img src="${escapeHtml(image)}" alt="${escapeHtml(detail.symbol || detail.name)}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.parentElement.textContent='${symbol}';">`
-      : symbol;
-  }
-  if (ghost) {
-    ghost.innerHTML = image
-      ? `<img src="${escapeHtml(image)}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;opacity:.32;">`
-      : `<i data-lucide="circle-dollar-sign"></i>`;
-  }
-}
-
-function tokenDetailChart(detail) {
-  const latest = Math.max(0, Number(detail.priceUsd || 0));
-  if (!latest) return [];
-  return [latest, latest];
-}
 
 function tokenActivityMatches(detail, event = {}) {
   const action = event.actions?.find((item) => item.simplePreview?.value) || event.actions?.[0];
@@ -2650,8 +3209,8 @@ function renderTokenActivity(detail) {
       const icon = direction === "Swap" ? "refresh-cw" : direction === "Sent" ? "arrow-up-from-line" : "arrow-down-to-line";
       const rawValue = String(preview.value || preview.description || "");
       const symbol = detail.symbol || "";
-      const tokenAmount = rawValue.match(new RegExp(`[-+−]?\\s*[\\d,.]+(?:\\.\\d+)?\\s*${escapeRegExp(symbol)}`, "i"))?.[0]
-        || rawValue.replace(/^Swapping\s+/i, "").replace(/\s+for\s+/i, " → ")
+      const tokenAmount = rawValue.match(new RegExp(`[-+âˆ’]?\\s*[\\d,.]+(?:\\.\\d+)?\\s*${escapeRegExp(symbol)}`, "i"))?.[0]
+        || rawValue.replace(/^Swapping\s+/i, "").replace(/\s+for\s+/i, " â†’ ")
         || "On-chain";
       const hash = preview.transactionHash || event.id || "";
       return `<article class="token-detail-activity" data-tx-hash="${escapeHtml(hash)}"><span class="activity-dot token-bg"><i data-lucide="${icon}"></i></span><div><b>${escapeHtml(direction)}</b><small>${event.date ? formatActivityDate(event.date) : "Recent"}</small></div><aside><strong>${escapeHtml(tokenAmount)}</strong>${preview.usdValue ? `<small>${escapeHtml(preview.usdValue)}</small>` : ""}</aside></article>`;
@@ -2673,7 +3232,7 @@ function renderTokenHero(detail, pnl, pnlClass) {
     ${logo}
     <h2 id="detailName" data-asset="${escapeHtml(detail.id)}">${escapeHtml(detail.name)}</h2>
     <strong id="detailValue"><span>${tokenPriceLabel(detail.priceUsd)}</span><em class="detail-change-pill ${pnlClass}">${pnl}</em></strong>
-    <p id="detailMintLine">${escapeHtml(tokenBalanceLabel(detail))} · ${money(detail.valueUsd || 0)}</p>
+    <p id="detailMintLine">${escapeHtml(tokenBalanceLabel(detail))} Â· ${money(detail.valueUsd || 0)}</p>
     <small id="detailCategory" hidden></small>
   `;
 }
@@ -2681,50 +3240,19 @@ function renderTokenHero(detail, pnl, pnlClass) {
 function renderTokenChartControls() {
   const panel = document.querySelector(".price-panel");
   if (!panel) return;
-  let controls = panel.querySelector(".token-chart-ranges");
-  if (!controls) {
-    controls = document.createElement("div");
-    controls.className = "token-chart-ranges";
-    panel.querySelector("#chartTooltip")?.insertAdjacentElement("afterend", controls);
-  }
   const chart = panel.querySelector("#detailPriceChart");
-  if (chart && controls.nextElementSibling !== chart) panel.insertBefore(controls, chart);
-  let metrics = panel.querySelector("#tokenChartMetrics");
-  if (!metrics) {
-    metrics = document.createElement("div");
-    metrics.id = "tokenChartMetrics";
-    metrics.className = "token-chart-metrics";
-    chart?.insertAdjacentElement("afterend", metrics);
-  }
+  Charts.mountRangeControls("tokenPrice", tokenDetailRange, { element: panel, attribute: "data-token-detail-range", before: "#detailPriceChart" });
+  let metrics = panel.querySelector("#tokenChartMetrics") || Object.assign(document.createElement("div"), {
+    id: "tokenChartMetrics", className: "token-chart-metrics",
+  });
   if (chart && metrics.previousElementSibling !== chart) chart.insertAdjacentElement("afterend", metrics);
-  const ranges = [
-    ["day", "Day"],
-    ["week", "Week"],
-    ["month", "Month"],
-    ["year", "Year"],
-    ["all", "All"],
-  ];
-  controls.innerHTML = ranges.map(([range, label]) => (
-    `<button class="mini-button ${tokenDetailRange === range ? "active" : ""}" type="button" data-token-detail-range="${range}">${label}</button>`
-  )).join("");
   metrics.innerHTML = Array.from({ length: 4 }, () => `<article class="token-chart-metric"><small class="skeleton">&nbsp;</small><strong class="skeleton">&nbsp;</strong></article>`).join("");
-}
-
-function tokenChartMetricLabel(value) {
-  if (!Number.isFinite(value)) return "—";
-  if (priceMode === "TON") return `${value.toFixed(value >= 1 ? 2 : 4)} TON`;
-  return tokenPriceLabel(value);
 }
 
 function tokenChartAxisLabel(value) {
   const number = Number(value || 0);
   const abs = Math.abs(number);
-  const maximumFractionDigits = abs >= 1 ? 2
-    : abs >= 0.1 ? 4
-      : abs >= 0.01 ? 5
-        : abs >= 0.001 ? 6
-          : abs >= 0.0001 ? 7
-            : 8;
+  const maximumFractionDigits = abs >= 1 ? 2 : Math.min(8, Math.max(4, 3 - Math.floor(Math.log10(abs || 1))));
   return `$${number.toLocaleString(undefined, {
     minimumFractionDigits: abs >= 1 ? 2 : 0,
     maximumFractionDigits,
@@ -2734,24 +3262,18 @@ function tokenChartAxisLabel(value) {
 function renderTokenChartMetrics(detail, values = []) {
   const root = document.querySelector("#tokenChartMetrics");
   if (!root || !Array.isArray(values) || !values.length) return;
-  const high = Math.max(...values);
-  const low = Math.min(...values);
-  const first = values[0];
-  const latest = values.at(-1);
-  const avg = values.reduce((sum, value) => sum + value, 0) / values.length;
-  const changePct = Number.isFinite(first) && Math.abs(first) > 0.0000001 ? ((latest - first) / first) * 100 : 0;
-  const swingPct = Math.abs(low) > 0.0000001 ? ((high - low) / low) * 100 : 0;
+  const stats = Charts.seriesStats(values);
+  if (!stats) return;
+  const price = (value) => priceMode === "TON" ? `${value.toFixed(value >= 1 ? 2 : 4)} TON` : tokenPriceLabel(value);
   const items = [
-    ["High", tokenChartMetricLabel(high), "positive"],
-    ["Low", tokenChartMetricLabel(low), "negative"],
-    ["Period", signedPct(changePct), changePct < 0 ? "negative" : "positive"],
-    ["Swing", signedPct(swingPct), "neutral"],
+    ["High", price(stats.high), "positive"],
+    ["Low", price(stats.low), "negative"],
+    ["Period", signedPct(stats.changePct), stats.changePct < 0 ? "negative" : "positive"],
+    ["Swing", signedPct(stats.swingPct), "neutral"],
   ];
   root.innerHTML = items.map(([label, value, tone]) => (
     `<article class="token-chart-metric ${tone}"><small>${escapeHtml(label)}</small><strong>${escapeHtml(value)}</strong></article>`
   )).join("");
-  root.dataset.latest = tokenChartMetricLabel(latest);
-  root.dataset.average = tokenChartMetricLabel(avg);
 }
 
 function renderPressureMeter(data = {}) {
@@ -2805,20 +3327,20 @@ function renderHolderRing(percent = 0) {
   const known = Number.isFinite(numeric) && numeric > 0;
   const safe = known ? Math.max(0, Math.min(100, numeric)) : 0;
   return `<section class="holder-ring-card">
-    <div class="holder-ring ${known ? "" : "is-loading"}" style="--holder-pct:${safe};"><span>${known ? `${safe.toFixed(1)}%` : "—"}</span></div>
+    <div class="holder-ring ${known ? "" : "is-loading"}" style="--holder-pct:${safe};"><span>${known ? `${safe.toFixed(1)}%` : "â€”"}</span></div>
     <small>Top 10 holders</small>
   </section>`;
 }
 
 function renderTonNetworkHighlights(network = {}) {
   const items = [
-    ["Total Supply", network.totalSupplyTon ? `${network.totalSupplyTon} TON` : "—"],
-    ["Active Wallets", network.activeWalletsMonthly || "—"],
-    ["Daily Wallets", network.activeWalletsDaily || "—"],
-    ["Activated Wallets", network.activatedWallets || "—"],
-    ["Tx / Day", network.txPerDay || "—"],
-    ["Staked TON", network.stakedTon ? `${network.stakedTon} TON` : "—"],
-    ["Inflation", network.annualInflationPct ? `${network.annualInflationPct}%` : "—"],
+    ["Total Supply", network.totalSupplyTon ? `${network.totalSupplyTon} TON` : "â€”"],
+    ["Active Wallets", network.activeWalletsMonthly || "â€”"],
+    ["Daily Wallets", network.activeWalletsDaily || "â€”"],
+    ["Activated Wallets", network.activatedWallets || "â€”"],
+    ["Tx / Day", network.txPerDay || "â€”"],
+    ["Staked TON", network.stakedTon ? `${network.stakedTon} TON` : "â€”"],
+    ["Inflation", network.annualInflationPct ? `${network.annualInflationPct}%` : "â€”"],
   ];
   return `<section class="ton-network-card">
     <div class="section-heading"><h2>TON Network</h2><span class="network-live-badge"><i></i>Live</span></div>
@@ -2839,7 +3361,7 @@ function ensureStickerThumbOverlay() {
   overlay = document.createElement("div");
   overlay.id = "stickerThumbOverlay";
   overlay.className = "sticker-thumb-overlay";
-  overlay.innerHTML = `<button class="sticker-thumb-backdrop" type="button" aria-label="Close"></button><section class="sticker-thumb-panel"><button class="sticker-thumb-close" type="button" aria-label="Close">×</button><img alt=""><h3></h3><p></p><small></small></section>`;
+  overlay.innerHTML = `<button class="sticker-thumb-backdrop" type="button" aria-label="Close"></button><section class="sticker-thumb-panel"><button class="sticker-thumb-close" type="button" aria-label="Close">Ã—</button><img alt=""><h3></h3><p></p><small></small></section>`;
   document.body.appendChild(overlay);
   overlay.querySelector(".sticker-thumb-backdrop")?.addEventListener("click", closeStickerThumbOverlay);
   overlay.querySelector(".sticker-thumb-close")?.addEventListener("click", closeStickerThumbOverlay);
@@ -2851,7 +3373,7 @@ function openStickerThumbOverlay(data = {}) {
   overlay.querySelector("img").src = data.image || "";
   overlay.querySelector("h3").textContent = data.name || "Sticker";
   overlay.querySelector("p").textContent = data.tag ? `#${data.tag}` : "";
-  overlay.querySelector("small").textContent = data.traits || "—";
+  overlay.querySelector("small").textContent = data.traits || "â€”";
   overlay.classList.add("is-open");
 }
 
@@ -2861,7 +3383,7 @@ function closeStickerThumbOverlay() {
 
 function formatMetricMoney(value) {
   const number = Number(value);
-  if (!Number.isFinite(number) || number <= 0) return "—";
+  if (!Number.isFinite(number) || number <= 0) return "â€”";
   if (number >= 1_000_000_000) return `$${(number / 1_000_000_000).toFixed(number >= 10_000_000_000 ? 1 : 2)}B`;
   if (number >= 1_000_000) return `$${(number / 1_000_000).toFixed(number >= 10_000_000 ? 1 : 2)}M`;
   if (number >= 1_000) return `$${(number / 1_000).toFixed(number >= 10_000 ? 1 : 2)}K`;
@@ -2870,7 +3392,7 @@ function formatMetricMoney(value) {
 
 function formatMetricCount(value) {
   const number = Number(value);
-  if (!Number.isFinite(number) || number <= 0) return "—";
+  if (!Number.isFinite(number) || number <= 0) return "â€”";
   if (number >= 1_000_000) return `${(number / 1_000_000).toFixed(2)}M`;
   if (number >= 1_000) return `${(number / 1_000).toFixed(1)}K`;
   return number.toLocaleString();
@@ -2905,60 +3427,6 @@ async function fetchJsonFast(url, timeoutMs = 3200) {
   } finally {
     clearTimeout(timeout);
   }
-}
-
-function mapTokenChartPayload(payload) {
-  const rows = Array.isArray(payload) ? payload : payload?.prices || payload?.points || payload?.data || payload?.items || payload?.chart || [];
-  if (!Array.isArray(rows)) return [];
-  return normalizeTokenDetailChart(rows.map((item) => {
-    if (Array.isArray(item)) return { timestamp: Number(item[0]) > 1e12 ? item[0] : Number(item[0]) * 1000, price: item[1] };
-    const timestamp = Number(item.timestamp ?? item.time ?? item.t ?? item.date);
-    return { timestamp: timestamp > 1e12 ? timestamp : timestamp * 1000, price: item.price ?? item.value ?? item.close ?? item.c };
-  }));
-}
-
-function tokenRangeDays() {
-  return { day: 1, week: 14, month: 30, year: 365, all: 1000 }[tokenDetailRange] || 1;
-}
-
-async function fetchClientTokenChart(detail) {
-  const address = tokenApiAddress(detail);
-  const knownGecko = { TON: "the-open-network", USDT: "tether", "USD₮": "tether", JUSDT: "tether" }[String(detail.symbol || "").toUpperCase()];
-  const attempts = address ? [
-    `https://jetton-index.tonscan.org/public-dyor/chart/${encodeURIComponent(address)}?interval=${tokenRangeDays()}`,
-    `https://api.dedust.io/v2/assets/${encodeURIComponent(address)}/chart?period=${encodeURIComponent(tokenDetailRange)}`,
-    `https://api.dedust.io/v2/prices/${encodeURIComponent(address)}/history?period=${encodeURIComponent(tokenDetailRange)}`,
-    `https://api.ston.fi/v1/assets/${encodeURIComponent(address)}/chart?period=${encodeURIComponent(tokenDetailRange)}`,
-    `https://api.ston.fi/v1/assets/${encodeURIComponent(address)}/price-history?period=${encodeURIComponent(tokenDetailRange)}`,
-  ] : [];
-  if (knownGecko) attempts.push(`https://api.coingecko.com/api/v3/coins/${encodeURIComponent(knownGecko)}/market_chart?vs_currency=usd&days=${tokenRangeDays()}`);
-  for (const url of attempts) {
-    try {
-      const points = mapTokenChartPayload(await fetchJsonFast(url, 1800));
-      if (points.length > 1) return points;
-    } catch {}
-  }
-  return [];
-}
-
-function bestPoolForAddress(pools = [], address = "") {
-  const key = tokenAddressKey(address);
-  if (!key) return null;
-  return pools.filter((pool) => JSON.stringify(pool).toLowerCase().includes(key))
-    .sort((a, b) => poolNumber(b, ["tvl_usd", "tvl", "liquidity_usd", "liquidity.usd", "reserve_usd"]) - poolNumber(a, ["tvl_usd", "tvl", "liquidity_usd", "liquidity.usd", "reserve_usd"]))[0] || null;
-}
-
-function extractHolderRows(payload = {}) {
-  return payload.addresses || payload.holders || payload.jetton_wallets || payload.items || [];
-}
-
-function holderBalance(row = {}) {
-  return row.balance ?? row.amount ?? row.wallet?.balance ?? row.jetton_wallet?.balance ?? 0;
-}
-
-function tonApiInfoSupply(payload = {}, decimals = 9) {
-  const raw = payload.total_supply ?? payload.totalSupply ?? payload.metadata?.total_supply ?? payload.preview?.total_supply;
-  return raw ? decimalBalance(raw, decimals) : 0;
 }
 
 function normalizeTokenDetailChart(points = []) {
@@ -3000,20 +3468,6 @@ function tokenChartRangeLabel(timestamp, compact = false) {
   return date.toLocaleDateString(undefined, { month: "short", year: "2-digit" });
 }
 
-function bestStonPoolForToken(pools = [], address = "") {
-  const key = tokenAddressKey(address);
-  if (!key) return null;
-  return pools.filter((pool) => JSON.stringify(pool).toLowerCase().includes(key))
-    .sort((a, b) => Number(b.tvl_usd || b.tvl || b.liquidity_usd || 0) - Number(a.tvl_usd || a.tvl || a.liquidity_usd || 0))[0] || null;
-}
-
-function poolNumber(pool = {}, keys = []) {
-  for (const key of keys) {
-    const value = Number(key.split(".").reduce((item, part) => item?.[part], pool));
-    if (Number.isFinite(value) && value > 0) return value;
-  }
-  return 0;
-}
 
 async function loadTokenDetailMetrics(detail) {
   const cacheKey = tokenDetailCacheKey(detail);
@@ -3080,11 +3534,48 @@ function flattenCollectibleAssets(assets = []) {
 }
 
 const preloadedGiftImages = new Set();
+const preloadedGiftAnimations = new Set();
+const preloadedStickerAnimations = new Set();
+
+function preloadStickerAnimatedMedia(assets = []) {
+  const queue = [...new Set(
+    flattenCollectibleAssets(assets)
+      .map((asset) => stickerMediaDescriptor(asset))
+      .filter((media) => media.type === "lottie" && media.url)
+      .map((media) => media.url)
+      .filter((url) => !preloadedStickerAnimations.has(url))
+  )];
+  let active = 0;
+  const pump = () => {
+    while (active < 4 && queue.length) {
+      const url = queue.shift();
+      preloadedStickerAnimations.add(url);
+      active += 1;
+      loadCollectibleLottieData(url)
+        .catch(() => preloadedStickerAnimations.delete(url))
+        .finally(() => {
+          active -= 1;
+          pump();
+        });
+    }
+  };
+  pump();
+}
 
 function preloadGiftStaticImages(assets = []) {
-  const queue = flattenCollectibleAssets(assets)
-    .map((asset) => resolveTokenImage(asset.image || asset.iconUrl || asset.previewUrl || ""))
-    .filter((url) => url && !preloadedGiftImages.has(url));
+  const imageUrls = new Set();
+  const animationUrls = new Set();
+  flattenCollectibleAssets(assets).forEach((asset) => {
+    const layer = giftLayerDescriptor(asset);
+    [asset.image, asset.iconUrl, asset.previewUrl, layer?.modelImageUrl, layer?.patternImageUrl]
+      .map((url) => resolveTokenImage(url || ""))
+      .filter(Boolean)
+      .forEach((url) => imageUrls.add(url));
+    const animationUrl = resolveAnimationMediaUrl(layer?.modelAnimationUrl || asset.animationUrl || asset.animatedImage || "");
+    const isLottie = layer?.mediaType === "lottie" || /\.(?:lottie\.)?json(?:[?#].*)?$/i.test(animationUrl);
+    if (animationUrl && isLottie) animationUrls.add(animationUrl);
+  });
+  const queue = [...imageUrls].filter((url) => !preloadedGiftImages.has(url));
   let active = 0;
   const pump = () => {
     while (active < 6 && queue.length) {
@@ -3102,13 +3593,23 @@ function preloadGiftStaticImages(assets = []) {
     }
   };
   pump();
+
+  // Fetch Lottie data now, at import time. The renderer can then paint the
+  // first frame immediately when its card is mounted instead of waiting for
+  // an intersection/hover event to begin network work.
+  [...animationUrls]
+    .filter((url) => !preloadedGiftAnimations.has(url))
+    .forEach((url) => {
+      preloadedGiftAnimations.add(url);
+      loadCollectibleLottieData(url).catch(() => preloadedGiftAnimations.delete(url));
+    });
 }
 
-function refreshCollectibleDerivedUi() {
+function refreshCollectibleDerivedUi({ renderCollectibles = true } = {}) {
   updateAllocationUi(true);
   updateCategoryAndTopAsset();
   updateAssetsPortfolioStrip();
-  renderCollectibleGrids();
+  if (renderCollectibles) renderCollectibleGrids();
   if (typeof renderWalletCharts === "function") renderWalletCharts();
   updateAnalyticsFromWallet(homePortfolioValue);
 }
@@ -3135,20 +3636,84 @@ function syncCollectibleGroupFromChildren(group) {
   return group;
 }
 
+
+let giftDerivedUiRefreshTimer = 0;
+const giftPricePrefetchKeys = new Set();
+
+function scheduleGiftDerivedUiRefresh() {
+  if (giftDerivedUiRefreshTimer) return;
+  giftDerivedUiRefreshTimer = window.setTimeout(() => {
+    giftDerivedUiRefreshTimer = 0;
+    refreshCollectibleDerivedUi();
+  }, 500);
+}
+
 function prefetchGiftDetails(assets = giftAssets) {
   assets.forEach((group) => {
     const children = group.children?.length ? group.children : [group];
-    const representative = children.find((asset) => asset.type === "gift" && asset.tokenAddress) || group;
-    if (representative.type !== "gift") return;
-    queueDetailWarmup(async () => {
-      try {
-        await fetchGiftDetailPayload(representative);
-      } finally {
-        syncCollectibleGroupFromChildren(group);
-        refreshCollectibleDerivedUi();
-      }
-    });
+    children
+      .filter((asset) => asset.type === "gift")
+      .forEach((asset) => {
+        const key = giftDetailCacheKey(asset);
+        if (!key || giftPricePrefetchKeys.has(key)) return;
+        giftPricePrefetchKeys.add(key);
+        queueDetailWarmup(async () => {
+          try {
+            const payload = await fetchGiftDetailPayload(asset);
+            // Telegram imports already receive their resolved D1 price in the
+            // initial response. Detail prefetch is enrichment only; an empty
+            // detail response must never erase that known value.
+            applyGiftDetailPayload(asset, payload, { applyFloor: false });
+          } catch (error) {
+            console.warn("Gift price prefetch failed", error);
+          } finally {
+            asset.priceLoading = false;
+            syncCollectibleGroupFromChildren(group);
+            scheduleGiftDerivedUiRefresh();
+            giftPricePrefetchKeys.delete(key);
+          }
+        });
+      });
   });
+}
+
+let stickerDerivedUiRefreshTimer = 0;
+const stickerPricePrefetchKeys = new Set();
+
+function applyStickerFloorPayload(asset, payload = {}) {
+  const floor = payload?.floor || {};
+  const nextFloorTon = Number(floor.floorTon || asset.floorTon || 0);
+  const nextFloorUsd = Number(floor.floorUsd || asset.floorUsd || 0);
+  const nextDailyPct = Number(floor.change24hPct || asset.dailyPct || 0);
+  asset.floorTon = nextFloorTon;
+  asset.floorUsd = nextFloorUsd;
+  asset.dailyPct = nextDailyPct;
+  asset.dailyUsd = asset.floorUsd && asset.dailyPct ? asset.floorUsd * (asset.dailyPct / 100) : 0;
+  asset.marketPlatform = marketSourceLabel(floor.marketPlatform || floor.source) || asset.marketPlatform || "";
+  asset.marketUrl = floor.marketUrl || asset.marketUrl || "";
+  asset.pnlUsd = asset.costBasis ? asset.floorUsd - asset.costBasis : asset.pnlUsd;
+  asset.pnlPct = asset.costBasis ? ((asset.floorUsd - asset.costBasis) / asset.costBasis) * 100 : asset.pnlPct;
+}
+
+function patchStickerGroupCard(group) {
+  const card = [...document.querySelectorAll("#stickerGrid .collectible-card[data-asset]")]
+    .find((element) => element.dataset.asset === group.id);
+  if (!card) return;
+  const template = document.createElement("template");
+  template.innerHTML = renderStickerCard(group).trim();
+  const replacement = template.content.firstElementChild;
+  if (!replacement) return;
+  card.replaceWith(replacement);
+  window.lucide?.createIcons();
+  initCollectibleAnimations(replacement);
+}
+
+function scheduleStickerDerivedUiRefresh() {
+  if (stickerDerivedUiRefreshTimer) return;
+  stickerDerivedUiRefreshTimer = window.setTimeout(() => {
+    stickerDerivedUiRefreshTimer = 0;
+    refreshCollectibleDerivedUi({ renderCollectibles: false });
+  }, 500);
 }
 
 function prefetchStickerDetails(assets = stickerAssets) {
@@ -3157,24 +3722,19 @@ function prefetchStickerDetails(assets = stickerAssets) {
     children
       .filter((asset) => asset.type === "sticker" && asset.collectionAddress)
       .forEach((asset) => {
+        const key = stickerDetailCacheKey(asset);
+        if (!key || stickerPricePrefetchKeys.has(key)) return;
+        stickerPricePrefetchKeys.add(key);
         queueDetailWarmup(async () => {
           try {
             const payload = await fetchStickerDetailPayload(asset);
-            const floor = payload?.floor || {};
-            if (Number(floor.floorUsd || 0) > 0 || Number(floor.floorTon || 0) > 0) {
-              asset.floorTon = Number(floor.floorTon || asset.floorTon || 0);
-              asset.floorUsd = Number(floor.floorUsd || asset.floorUsd || 0);
-              asset.dailyPct = Number(floor.change24hPct || asset.dailyPct || 0);
-              asset.dailyUsd = asset.floorUsd && asset.dailyPct ? asset.floorUsd * (asset.dailyPct / 100) : 0;
-              asset.marketPlatform = marketSourceLabel(floor.marketPlatform || floor.source) || asset.marketPlatform || "";
-              asset.marketUrl = floor.marketUrl || asset.marketUrl || "";
-              asset.pnlUsd = asset.costBasis ? asset.floorUsd - asset.costBasis : asset.pnlUsd;
-              asset.pnlPct = asset.costBasis ? ((asset.floorUsd - asset.costBasis) / asset.costBasis) * 100 : asset.pnlPct;
-            }
+            applyStickerFloorPayload(asset, payload);
           } finally {
             asset.priceLoading = false;
             syncCollectibleGroupFromChildren(group);
-            refreshCollectibleDerivedUi();
+            patchStickerGroupCard(group);
+            scheduleStickerDerivedUiRefresh();
+            stickerPricePrefetchKeys.delete(key);
           }
         });
       });
@@ -3196,8 +3756,8 @@ function applyTokenDetailMetrics(detail, payload = {}) {
     volume24h: formatMetricMoney(apiMetrics.volume24h),
     tvl: formatMetricMoney(apiMetrics.tvl),
     holders: formatMetricCount(apiMetrics.holders),
-    ath: apiMetrics.ath ? tokenPriceLabel(apiMetrics.ath) : "—",
-    portfolioShare: homePortfolioValue > 0 ? `${((Number(detail.valueUsd || 0) / homePortfolioValue) * 100).toFixed(2)}%` : "—",
+    ath: apiMetrics.ath ? tokenPriceLabel(apiMetrics.ath) : "â€”",
+    portfolioShare: homePortfolioValue > 0 ? `${((Number(detail.valueUsd || 0) / homePortfolioValue) * 100).toFixed(2)}%` : "â€”",
     concentration: Number(apiMetrics.concentration || 0),
   };
   const { pressureHost, tonNetworkHost } = ensureTokenDetailSections();
@@ -3229,10 +3789,7 @@ function renderTokenDetail(detail, tone) {
   const financialGrid = document.querySelector(".financial-grid");
   if (financialGrid) financialGrid.style.display = "none";
   detail.chartLoading = false;
-  detail.historyChart = tokenDetailChart(detail).map((price, index, items) => ({
-    timestamp: Date.now() - (items.length - 1 - index) * (tokenChartRangeMs() / Math.max(1, items.length - 1)),
-    price,
-  }));
+  detail.historyChart = [];
   renderTokenHero(detail, pnl, pnlClass);
   setText("#detailStatOneLabel", "Price");
   setText("#detailStatOne", tokenPriceLabel(detail.priceUsd));
@@ -3309,193 +3866,79 @@ function renderMarketIntel(detail) {
 }
 
 function drawDetailPriceChart(detail, options = {}) {
-  const svg = document.querySelector(options.svgSelector || "#detailPriceChart");
-  if (!svg) return;
+  const element = document.querySelector(options.svgSelector || "#detailPriceChart");
+  if (!element) return;
   const tooltipSelector = options.tooltipSelector || "#chartTooltip";
   const isToken = detail.type === "token";
-  const showAxes = isToken || options.showAxes;
-  const showArea = isToken || options.showArea;
-  const showInteraction = isToken || options.interactive;
-  const width = 340;
-  const height = options.height || (isToken ? 230 : 150);
-  svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
-  if (isToken && detail.chartLoading) {
-    svg.innerHTML = `<rect x="18" y="26" width="304" height="128" rx="10" fill="rgba(246,245,238,.07)" /><path d="M28 136 C82 92 132 112 178 76 S270 96 312 52" fill="none" stroke="rgba(246,245,238,.16)" stroke-width="5" stroke-linecap="round" />`;
+  const sourcePoints = isToken ? (detail.historyChart || []) : (detail.floorHistoryPoints || []);
+  const sourceValues = isToken ? sourcePoints.map((point) => point.price) : (detail.chart || []);
+  const values = priceMode === "TON" ? sourceValues.map((value) => value / usdTonRate) : sourceValues;
+  const rows = values.map((value, index) => ({ value, timestamp: Number(sourcePoints[index]?.timestamp) }))
+    .filter((point) => Number.isFinite(point.timestamp));
+  const sourceReference = isToken ? Number.NaN : (detail.costBasis || sourceValues[0]);
+  const hasReference = !isToken && (Number(detail.costBasis || 0) > 0 || !options.hideReferenceWhenMissing);
+  const reference = priceMode === "TON" ? sourceReference / usdTonRate : sourceReference;
+  const label = (value) => priceMode === "TON"
+    ? `${value.toFixed(value >= 1 ? 2 : 4)} TON`
+    : (isToken ? tokenPriceLabel(value) : usdValueLabel(value));
+  const result = Charts.renderDetailSeries(isToken ? "tokenPrice" : "collectibleFloor", rows, {
+    element,
+    height: options.height || (isToken ? 230 : 150),
+    showAxes: isToken || options.showAxes,
+    showArea: isToken || options.showArea,
+    showPoints: !isToken,
+    interactive: isToken || options.interactive !== false,
+    loading: isToken && detail.chartLoading,
+    reference: hasReference ? reference : Number.NaN,
+    referenceText: hasReference ? (options.referenceText || `Bought at ${label(reference)}`) : "",
+    formatAxis: (value) => priceMode === "TON" ? label(value) : tokenChartAxisLabel(value),
+    formatTick: (point) => point.timestamp ? tokenChartRangeLabel(point.timestamp, true) : "",
+    formatDate: (point) => new Date(point.timestamp).toLocaleString(undefined, {
+      month: "short", day: "numeric", hour: "2-digit", minute: "2-digit", hour12: false,
+    }),
+    formatValue: (point) => `Price: ${label(point.value)}${priceMode === "USD" && isToken ? " USD" : ""}`,
+  });
+  if (result?.loading) {
     setText(tooltipSelector, "Loading chart...");
     return;
   }
-  const sourceValues = isToken
-    ? (detail.historyChart || []).map((point) => point.price)
-    : detail.chart;
-  if (!sourceValues?.length) {
-    svg.innerHTML = `<text x="${width / 2}" y="${height / 2}" fill="var(--text-2, #92938a)" font-size="12" text-anchor="middle">No chart data available</text>`;
-    const emptyLabel = detail.type === "token"
-      ? tokenPriceLabel(detail.priceUsd)
-      : (Number(detail.floorUsd || detail.priceUsd || 0) > 0 ? usdValueLabel(detail.floorUsd || detail.priceUsd || 0) : "—");
-    setText(tooltipSelector, options.emptyTooltip || `Latest: ${emptyLabel}`);
+  if (result?.empty) {
+    const value = Number(detail.floorUsd || detail.priceUsd || 0);
+    setText(tooltipSelector, options.emptyTooltip || `Latest: ${value > 0 ? label(value) : "â€”"}`);
     return;
   }
-  const values = priceMode === "TON" ? sourceValues.map((value) => value / usdTonRate) : sourceValues;
-  const reference = isToken ? Number.NaN : detail.costBasis || sourceValues[0];
-  const hasReference = isToken ? false : (Number(detail.costBasis || 0) > 0 || !options.hideReferenceWhenMissing);
-  const costBasis = priceMode === "TON" ? reference / usdTonRate : reference;
-  const padX = showAxes ? 30 : 18;
-  const padTop = showAxes ? 30 : 18;
-  const padBottom = showAxes ? 42 : 24;
-  const rawMin = hasReference ? Math.min(...values, costBasis) : Math.min(...values);
-  const rawMax = hasReference ? Math.max(...values, costBasis) : Math.max(...values);
-  const actualRange = Math.max(0, rawMax - rawMin);
-  const baselineMagnitude = Math.max(Math.abs(rawMax), Math.abs(rawMin), 0.00000001);
-  const minimumRange = isToken
-    ? baselineMagnitude * 0.0012
-    : baselineMagnitude * 0.015;
-  const displayRange = Math.max(actualRange, minimumRange);
-  const verticalPadding = displayRange * (isToken ? 0.18 : 0.22);
-  const min = Math.max(0, rawMin - verticalPadding);
-  const max = rawMax + verticalPadding;
-  const point = (value, index) => {
-    const x = padX + (index / (values.length - 1)) * (width - padX * 2);
-    const y = height - padBottom - ((value - min) / Math.max(0.0000001, max - min)) * (height - padTop - padBottom);
-    return [x, y];
-  };
-  const points = values.map(point);
-  const line = points.map(([x, y]) => `${x.toFixed(2)},${y.toFixed(2)}`).join(" ");
-  const costY = hasReference ? point(costBasis, 0)[1] : 0;
-  const latest = values[values.length - 1];
-  const label = priceMode === "TON"
-    ? `${latest.toFixed(latest >= 1 ? 2 : 4)} TON`
-    : (detail.type === "token" ? tokenPriceLabel(latest) : usdValueLabel(latest));
-  const boughtLabel = priceMode === "TON" ? `${costBasis.toFixed(2)} TON` : usdValueLabel(costBasis);
-  const referenceText = hasReference ? (options.referenceText || `Bought at ${boughtLabel}`) : "";
-  const circles = detail.type === "token" ? "" : points.map(([x, y], index) => `<circle cx="${x.toFixed(2)}" cy="${y.toFixed(2)}" r="${showInteraction ? "3.5" : "4"}" fill="#FFFFFF" data-price="${values[index]}" data-date="Point ${index + 1}" />`).join("");
-  const latestLabel = priceMode === "TON" ? `${latest.toFixed(4)} TON` : tokenPriceLabel(latest);
-  const baselineY = costY.toFixed(2);
-  const bottomY = height - padBottom;
-  const gridYs = [0.2, 0.5, 0.8].map((ratio) => (padTop + ((height - padTop - padBottom) * ratio)).toFixed(2));
-  const area = `M ${points[0][0].toFixed(2)} ${bottomY.toFixed(2)} L ${line.replaceAll(",", " ")} L ${points[points.length - 1][0].toFixed(2)} ${bottomY.toFixed(2)} Z`;
-  const chartPoints = isToken
-    ? (detail.historyChart || []).map((item, index) => ({
-      x: points[index][0],
-      y: points[index][1],
-      value: values[index],
-      timestamp: item.timestamp || (Date.now() - (values.length - 1 - index) * (tokenChartRangeMs() / Math.max(1, values.length - 1))),
-    }))
-    : (detail.floorHistoryPoints || []).map((item, index) => ({
-      x: points[index]?.[0] || padX,
-      y: points[index]?.[1] || bottomY,
-      value: values[index],
-      timestamp: item.timestamp || (Date.now() - (values.length - 1 - index) * ((giftDetailRange === "30d" ? 30 : 7) * 86400000 / Math.max(1, values.length - 1))),
-    })).filter((point) => Number.isFinite(point.value));
-  const leftTick = chartPoints[0]?.timestamp ? tokenChartRangeLabel(chartPoints[0].timestamp, true) : "Start";
-  const rightTick = chartPoints.at(-1)?.timestamp ? tokenChartRangeLabel(chartPoints.at(-1).timestamp, true) : "Now";
-  const minLabel = priceMode === "TON" ? `${rawMin.toFixed(rawMin >= 1 ? 2 : 4)} TON` : tokenChartAxisLabel(rawMin);
-  const maxLabel = priceMode === "TON" ? `${rawMax.toFixed(rawMax >= 1 ? 2 : 4)} TON` : tokenChartAxisLabel(rawMax);
-  const tokenLabels = showAxes
-    ? `<text x="${padX}" y="${padTop - 6}" fill="#7E8797" font-size="10">${escapeHtml(maxLabel)}</text>
-       <text x="${padX}" y="${bottomY + 16}" fill="#7E8797" font-size="10">${escapeHtml(minLabel)}</text>
-       <text x="${padX}" y="${height - 8}" fill="#6B7280" font-size="10">${escapeHtml(leftTick)}</text>
-       <text x="${width - padX}" y="${height - 8}" fill="#6B7280" font-size="10" text-anchor="end">${escapeHtml(rightTick)}</text>`
-    : "";
-  svg.innerHTML = `
-    ${showArea ? `<defs>
-      <linearGradient id="detailAreaFade" x1="0" x2="0" y1="0" y2="1">
-        <stop offset="0%" stop-color="rgba(59,108,248,.24)" />
-        <stop offset="100%" stop-color="rgba(9,11,18,0)" />
-      </linearGradient>
-      <filter id="tokenLineGlow" x="-20%" y="-20%" width="140%" height="140%">
-        <feGaussianBlur stdDeviation="4" result="blur" />
-        <feMerge>
-          <feMergeNode in="blur" />
-          <feMergeNode in="SourceGraphic" />
-        </feMerge>
-      </filter>
-    </defs>` : ""}
-    ${gridYs.map((y) => `<line x1="${padX}" x2="${width - padX}" y1="${y}" y2="${y}" stroke="rgba(255,255,255,.08)" stroke-width="1" />`).join("")}
-    ${showArea ? `<path d="${area}" fill="url(#detailAreaFade)" />` : ""}
-    ${hasReference ? `<line x1="${padX}" y1="${baselineY}" x2="${width - padX}" y2="${baselineY}" stroke="var(--text-3, #4B5563)" stroke-dasharray="5 5" />` : ""}
-    ${referenceText ? `<text x="${padX}" y="${Math.max(12, costY - 7).toFixed(2)}" fill="var(--text-3, #4B5563)" font-size="11">${escapeHtml(referenceText)}</text>` : ""}
-    ${showArea ? `<path d="M ${line.replaceAll(",", " ")}" fill="none" stroke="rgba(59,108,248,.24)" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" filter="url(#tokenLineGlow)" /><polyline points="${line}" fill="none" stroke="#3B6CF8" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" /><circle cx="${points[points.length - 1][0].toFixed(2)}" cy="${points[points.length - 1][1].toFixed(2)}" r="4.5" fill="#3B6CF8" stroke="#fff" stroke-width="2" />` : `<polyline points="${line}" fill="none" stroke="#3B6CF8" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" />`}
-    ${circles}
-    ${tokenLabels}
-    ${showInteraction ? `<g class="detail-chart-hover" style="display:none">
-      <line class="detail-chart-hover-line" x1="0" x2="0" y1="${padTop}" y2="${bottomY}" stroke="rgba(255,255,255,.24)" stroke-dasharray="5 5" />
-      <circle class="detail-chart-hover-dot" cx="0" cy="0" r="6" fill="#3B6CF8" stroke="#fff" stroke-width="3" />
-      <rect class="detail-chart-hover-card" x="0" y="0" width="156" height="60" rx="14" fill="#121722" stroke="rgba(255,255,255,.08)" />
-      <text class="detail-chart-hover-date" x="0" y="0" fill="#C9CBC4" font-size="11" font-weight="700"></text>
-      <circle class="detail-chart-hover-chip" cx="0" cy="0" r="5" fill="#3B6CF8" stroke="#fff" stroke-width="2" />
-      <text class="detail-chart-hover-price" x="0" y="0" fill="#F7F7F2" font-size="12" font-weight="800"></text>
-    </g>` : ""}
-  `;
-  setText(tooltipSelector, `Latest: ${label}`);
+  const latest = values.at(-1);
+  setText(tooltipSelector, `Latest: ${label(latest)}`);
   if (isToken) renderTokenChartMetrics(detail, values);
-  if (showInteraction) attachDetailChartInteraction(svg, chartPoints, width, height, padX, padTop, bottomY, (value) => {
-    if (priceMode === "TON") return `${value.toFixed(value >= 1 ? 2 : 4)} TON`;
-    return `${tokenPriceLabel(value)} USD`;
-  });
-}
-
-function attachDetailChartInteraction(svg, points = [], width, height, padX, padTop, bottomY, valueFormatter = (value) => `Price: ${tokenPriceLabel(value)} USD`) {
-  const hover = svg.querySelector(".detail-chart-hover");
-  if (!hover || points.length < 2) return;
-  const line = hover.querySelector(".detail-chart-hover-line");
-  const dot = hover.querySelector(".detail-chart-hover-dot");
-  const card = hover.querySelector(".detail-chart-hover-card");
-  const dateText = hover.querySelector(".detail-chart-hover-date");
-  const priceText = hover.querySelector(".detail-chart-hover-price");
-  const chip = hover.querySelector(".detail-chart-hover-chip");
-  const showPoint = (clientX) => {
-    const rect = svg.getBoundingClientRect();
-    const x = Math.max(padX, Math.min(width - padX, ((clientX - rect.left) / rect.width) * width));
-    const nearest = points.reduce((best, point) => (Math.abs(point.x - x) < Math.abs(best.x - x) ? point : best), points[0]);
-    const cardW = 148;
-    const cardH = 58;
-    const cardX = Math.max(8, Math.min(width - cardW - 8, nearest.x + (nearest.x < width / 2 ? 12 : -cardW - 12)));
-    const cardY = Math.max(8, Math.min(height - cardH - 28, nearest.y - cardH / 2));
-    const date = new Date(nearest.timestamp).toLocaleString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit", hour12: false });
-    hover.style.display = "";
-    line.setAttribute("x1", nearest.x.toFixed(2));
-    line.setAttribute("x2", nearest.x.toFixed(2));
-    dot.setAttribute("cx", nearest.x.toFixed(2));
-    dot.setAttribute("cy", nearest.y.toFixed(2));
-    card.setAttribute("x", cardX.toFixed(2));
-    card.setAttribute("y", cardY.toFixed(2));
-    dateText.setAttribute("x", (cardX + 16).toFixed(2));
-    dateText.setAttribute("y", (cardY + 22).toFixed(2));
-    dateText.textContent = date;
-    chip.setAttribute("cx", (cardX + 18).toFixed(2));
-    chip.setAttribute("cy", (cardY + 39).toFixed(2));
-    priceText.setAttribute("x", (cardX + 36).toFixed(2));
-    priceText.setAttribute("y", (cardY + 43).toFixed(2));
-    priceText.textContent = `Price: ${valueFormatter(nearest.value)}`;
-  };
-  svg.onpointerdown = (event) => {
-    svg.setPointerCapture?.(event.pointerId);
-    showPoint(event.clientX);
-  };
-  svg.onpointermove = (event) => {
-    if (event.buttons || event.pointerType === "mouse") showPoint(event.clientX);
-  };
-  svg.onpointerleave = () => {
-    hover.style.display = "none";
-  };
-  svg.onpointerup = () => {
-    hover.style.display = "none";
-  };
 }
 
 function renderWalletState() {
-  document.querySelector(".app-frame")?.classList.toggle("has-wallet", walletConnected);
+  const portfolioConnected = walletConnected || telegramConnected;
+  document.querySelector(".app-frame")?.classList.toggle("has-wallet", portfolioConnected);
+  const portfolioSourceLabel = document.getElementById("portfolioSourceLabel");
+  if (portfolioSourceLabel) {
+    portfolioSourceLabel.textContent = telegramConnected && walletConnected
+      ? "Telegram + TON"
+      : telegramConnected ? "Telegram" : walletConnected ? "TON wallet" : "Connected assets";
+  }
   walletButtons.forEach((button) => {
     const textNode = button.querySelector("span");
-    const label = walletConnected ? "Connected" : "Connect";
+    const label = telegramConnected && !walletConnected
+      ? "Add wallet"
+      : (portfolioConnected ? "Connected" : (button.dataset.walletLabel || "Connect"));
     if (textNode) textNode.textContent = label;
     else button.textContent = label;
-    button.classList.toggle("is-connected", walletConnected);
+    button.classList.toggle("is-connected", portfolioConnected);
   });
-  homeWalletCard?.classList.toggle("is-connected", walletConnected);
-  if (homeWalletTitle) homeWalletTitle.textContent = walletConnected ? "TON wallet connected" : "TON wallet not connected";
-  if (homeWalletText) homeWalletText.textContent = walletConnected ? `${currentWalletLabel()} included in portfolio.` : "Connect wallet to include TON balances.";
-  if (homeWalletButton) homeWalletButton.textContent = walletConnected ? "Connected" : "Connect";
+  homeWalletCard?.classList.toggle("is-connected", portfolioConnected);
+  if (homeWalletTitle) homeWalletTitle.textContent = telegramConnected && !liveWalletAddress ? "Telegram connected" : (walletConnected ? "TON wallet connected" : "TON wallet not connected");
+  if (homeWalletTitle && telegramConnected && walletConnected) homeWalletTitle.textContent = "Telegram + TON wallet connected";
+  if (homeWalletText) homeWalletText.textContent = telegramConnected && !liveWalletAddress
+    ? `${telegramProfile?.firstName || "Telegram"}â€™s gifts and stickers are included.`
+    : (walletConnected ? `${currentWalletLabel()} included in portfolio.` : "Connect wallet to include TON balances.");
+  if (homeWalletButton) homeWalletButton.textContent = portfolioConnected ? "Connected" : "Connect";
+  if (homeWalletText && telegramConnected && walletConnected) homeWalletText.textContent = "Telegram assets and TON wallet assets are included together.";
+  if (homeWalletButton && telegramConnected && !walletConnected) homeWalletButton.textContent = "Add wallet";
 }
 
 function openWalletSheet() {
@@ -3506,11 +3949,171 @@ function openWalletSheet() {
   window.lucide?.createIcons();
 }
 
+function showConnectionRoute(route = "choice") {
+  document.querySelectorAll("[data-connection-view]").forEach((view) => {
+    view.hidden = view.dataset.connectionView !== route;
+  });
+  const title = document.getElementById("walletSheetTitle");
+  const back = document.querySelector(".wallet-sheet-back");
+  if (title) title.textContent = route === "telegram" ? "Connect Telegram" : route === "ton" ? "Connect TON wallet" : "Add to TonTrack";
+  if (back) back.hidden = route === "choice";
+  window.lucide?.createIcons();
+}
+
 function closeWalletSheet() {
   const sheet = document.getElementById("walletSheet");
   if (!sheet) return;
   sheet.classList.remove("is-open");
   sheet.setAttribute("aria-hidden", "true");
+  showConnectionRoute("choice");
+}
+
+function setTelegramLoginStatus(message, error = false) {
+  const status = document.getElementById("telegramLoginStatus");
+  if (!status) return;
+  status.textContent = message;
+  status.style.color = error ? "#ff9188" : "";
+}
+
+function clearStaticPortfolioPreview() {
+  walletConnected = false;
+  telegramConnected = false;
+  telegramProfile = null;
+  telegramPortfolioValue = 0;
+  telegramGiftGroups = [];
+  telegramStickerGroups = [];
+  walletGiftGroups = [];
+  walletStickerGroups = [];
+  activePortfolioSource = "none";
+  liveWalletData = null;
+  liveWalletAddress = "";
+  lastTonConnectAddress = "";
+  giftAssets.splice(0, giftAssets.length);
+  stickerAssets.splice(0, stickerAssets.length);
+  resetWalletBoundUi();
+  renderCollectibleGrids();
+}
+
+function finishTelegramImportAtHome(importSessionId) {
+  if (!isCurrentImportSession(importSessionId) || activePortfolioSource !== "telegram") return;
+  // Telegram connection is an import action, never a Gifts navigation event.
+  navigationStack.length = 0;
+  forwardNavigationStack.length = 0;
+  showScreen("home");
+  window.scrollTo({ top: 0, behavior: "auto" });
+}
+
+async function importTelegramAccount() {
+  if (telegramImportInFlight) return;
+  const initData = telegramInitData();
+  if (!initData) throw new Error("Open TonTrack from Telegram to connect your Telegram account.");
+  telegramImportInFlight = true;
+  const importSessionId = beginImportSession();
+  // A Telegram account is an import source in its own right. Start from the
+  // same clean state as a TON-wallet import so stale assets cannot flicker in
+  // while its gift catalogue is being resolved.
+  resetWalletSwitchState("");
+  activePortfolioSource = "telegram";
+  telegramConnected = false;
+  telegramProfile = null;
+  telegramPortfolioValue = 0;
+  walletConnected = false;
+  giftPricePrefetchKeys.clear();
+  stickerPricePrefetchKeys.clear();
+  setSectionLoading("tokens", "Telegram does not include TON wallet balances...");
+  setSectionLoading("gifts", "Reading your Telegram gifts...");
+  setSectionLoading("stickers", "Preparing Telegram collectibles...");
+  setSectionLoading("activity", "Preparing recent activity...");
+  if (isGraphHistoryLoadingEnabled()) setSectionLoading("graph", "Preparing graph preview...");
+  else setSectionReady("graph", "Graph history paused for this session.", { toast: false });
+  allocationState.tokens = 0;
+  navigationStack.length = 0;
+  forwardNavigationStack.length = 0;
+  renderTokenLoadingState();
+  updateCollectibleSummaryBanner("gifts");
+  updateCollectibleSummaryBanner("stickers");
+  syncAssetsSummary(null, []);
+  updateAllocationUi();
+  finishTelegramImportAtHome(importSessionId);
+  setTelegramLoginStatus("Telegram verified. Reading your owned gifts...");
+  setImportLoader(true, "Opening your Telegram vault", 18);
+  pulseImportLoader(importSessionId, "Opening your Telegram vault", 18, 74, 7000);
+  await nextPaint();
+  try {
+    const payload = await requestJson("/api/telegram/webapp/assets", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ initData }),
+    }, "Could not read your Telegram gifts");
+    if (!isCurrentImportSession(importSessionId)) return;
+    stopImportLoaderPulse();
+    setImportLoader(true, "Putting your collection in place", 78);
+    const importedCollectibles = payload.assets?.collectibles || payload.gifts || [];
+    telegramGiftGroups = groupGiftAssets(importedCollectibles.map((item, index) => liveCollectibleAsset(item, "gift", `telegram-${index}`, { suppressMarket: true })));
+    telegramStickerGroups = groupStickerAssets((payload.stickers || []).map((item, index) => liveCollectibleAsset(item, "sticker", `telegram-${index}`, { suppressMarket: true })));
+    walletGiftGroups = [];
+    walletStickerGroups = [];
+    const { gifts, stickers } = rebuildPortfolioCollectibleGroups();
+    telegramConnected = true;
+    telegramProfile = payload.profile || null;
+    // Telegram is a first-class portfolio source, but not a TON wallet. Keep
+    // wallet-only refresh and totals pipelines from overwriting this session.
+    walletConnected = false;
+    liveWalletAddress = "";
+    latestVisibleTokens = [];
+    if (Number(payload.summary?.tonUsdRate) > 0) usdTonRate = Number(payload.summary.tonUsdRate);
+    telegramPortfolioValue = Math.max(0, Number(payload.summary?.totalUsd || 0));
+    liveWalletData = {
+      account: payload.account || {
+        displayAddress: telegramProfile?.username ? `@${telegramProfile.username}` : "Telegram",
+        tonName: telegramProfile?.firstName || "Telegram account",
+      },
+      summary: {
+        ...(payload.summary || {}),
+        totalUsd: telegramPortfolioValue,
+        tonUsdRate: Number(payload.summary?.tonUsdRate || usdTonRate),
+        tokenCount: 0,
+        giftCount: importedCollectibles.length,
+        stickerCount: stickers.length,
+        nftCount: importedCollectibles.length + stickers.length,
+      },
+      assets: { collectibles: [...importedCollectibles, ...(payload.stickers || [])] },
+    };
+    setCollectiblesBanner("gifts", gifts.length ? "" : "No Telegram gifts found for this account.");
+    setCollectiblesBanner("stickers", stickers.length ? "" : "Connect a TON wallet to include your on-chain sticker NFTs.");
+    setSectionReady("gifts", `Telegram gifts ready Â· ${gifts.length} collection${gifts.length === 1 ? "" : "s"} loaded`, { toast: false });
+    setSectionReady("stickers", "Telegram connection ready Â· connect a TON wallet for on-chain sticker NFTs", { toast: false });
+    setSectionReady("tokens", "Connect a TON wallet to load token balances", { toast: false });
+    setSectionReady("activity", "Telegram collection imported", { toast: false });
+    renderCollectibleGrids();
+    renderTokenEmptyState("Connect a TON wallet to load tokens");
+    preloadGiftStaticImages(gifts);
+    allocationUiLocked = false;
+    // Telegram carries no TON balance. Compute the portfolio once from the
+    // already hydrated Telegram response instead of running wallet totals.
+    updateAllocationUi(true);
+    syncAssetsSummary(liveWalletData, [], 0);
+    updateWalletScreen(liveWalletData, 0);
+    updateAnalyticsFromWallet(homePortfolioValue);
+    resetPortfolioHeader();
+    renderPortfolioGraph(activePortfolioRange(), true);
+    renderWalletState();
+    closeWalletSheet();
+    finishTelegramImportAtHome(importSessionId);
+    setImportLoader(true, "Your Telegram collection is ready", 100);
+    setTimeout(() => {
+      if (!isCurrentImportSession(importSessionId)) return;
+      setSectionReady("graph", "Graph history starts with this import", { toast: false });
+      setImportLoader(false);
+      finishTelegramImportAtHome(importSessionId);
+    }, 420);
+  } catch (error) {
+    stopImportLoaderPulse();
+    setImportLoader(false);
+    throw error;
+  } finally {
+    telegramImportInFlight = false;
+  }
 }
 
 function currentWalletTonName() {
@@ -3742,67 +4345,50 @@ function isGraphHistoryLoadingEnabled() {
   return !graphHistoryLoadingPaused;
 }
 
-function clearLoaderStatusCycle() {
-  clearInterval(loaderStatusCycleTimer);
-  loaderStatusCycleTimer = 0;
-}
-
-function setLoaderStatusText(message) {
-  const loaderText = document.getElementById("importLoaderText");
-  if (!loaderText) return;
-  loaderText.classList.add("is-fading");
-  window.setTimeout(() => {
-    loaderText.textContent = message;
-    loaderText.classList.remove("is-fading");
-  }, 180);
-}
-
-function startLoaderStatusCycle() {
-  const loaderText = document.getElementById("importLoaderText");
-  if (!loaderText || loaderStatusCycleTimer) return;
-  loaderStatusCycleIndex = 0;
-  loaderText.textContent = LOADER_FETCH_MESSAGES[loaderStatusCycleIndex];
-  loaderStatusCycleTimer = window.setInterval(() => {
-    loaderStatusCycleIndex = (loaderStatusCycleIndex + 1) % LOADER_FETCH_MESSAGES.length;
-    setLoaderStatusText(LOADER_FETCH_MESSAGES[loaderStatusCycleIndex]);
-  }, 1200);
-}
-
-function setImportLoader(active, text = "Preparing wallet import...", progress = 8) {
+function setImportLoader(active, text = "Meeting your wallet", progress = 8) {
   const loader = document.getElementById("importLoader");
   const loaderText = document.getElementById("importLoaderText");
+  const loaderNote = document.getElementById("importLoaderNote");
+  const loaderStage = document.getElementById("importLoaderStage");
+  const loaderPercent = document.getElementById("importLoaderPercent");
   const loaderBar = document.getElementById("importLoaderBar");
   if (!loader) return;
   loader.classList.toggle("is-active", active);
   loader.setAttribute("aria-hidden", active ? "false" : "true");
   const clamped = Math.max(0, Math.min(100, progress));
-  const phase = clamped >= 100 ? "complete" : clamped >= 40 ? "fetching" : "scanning";
-  loader.dataset.phase = phase;
+  const stage = [...IMPORT_LOADER_STAGES].reverse().find((entry) => clamped >= entry.min) || IMPORT_LOADER_STAGES[0];
+  loader.dataset.phase = stage.key;
+  loader.dataset.step = String(stage.step);
+  loader.classList.toggle("is-complete", stage.key === "complete");
   if (!active) {
-    clearLoaderStatusCycle();
-    loaderPhaseKey = "";
     loader.classList.remove("is-complete");
-    if (loaderText) {
-      loaderText.textContent = "Preparing wallet import...";
-      loaderText.classList.remove("is-fading");
-    }
-  } else if (phase !== loaderPhaseKey) {
-    loaderPhaseKey = phase;
-    loader.classList.toggle("is-complete", phase === "complete");
-    if (phase === "scanning") {
-      clearLoaderStatusCycle();
-      if (loaderText) loaderText.textContent = "Scanning wallet...";
-    } else if (phase === "fetching") {
-      clearLoaderStatusCycle();
-      startLoaderStatusCycle();
-    } else {
-      clearLoaderStatusCycle();
-      if (loaderText) loaderText.textContent = "Portfolio ready";
-    }
-  } else if (active && phase === "complete" && loaderText) {
-    loaderText.textContent = "Portfolio ready";
+    loader.dataset.phase = "connect";
+    loader.dataset.step = "1";
   }
+  if (loaderText) loaderText.textContent = text;
+  if (loaderNote) loaderNote.textContent = stage.note;
+  if (loaderStage) loaderStage.textContent = `Step ${stage.step} of ${IMPORT_LOADER_STAGES.length}`;
+  if (loaderPercent) loaderPercent.textContent = `${Math.round(clamped)}%`;
   if (loaderBar) loaderBar.style.width = `${clamped}%`;
+}
+
+function stopImportLoaderPulse() {
+  if (!importLoaderPulseTimer) return;
+  window.clearTimeout(importLoaderPulseTimer);
+  importLoaderPulseTimer = 0;
+}
+
+function pulseImportLoader(importSessionId, text, start, ceiling, durationMs) {
+  stopImportLoaderPulse();
+  const startedAt = Date.now();
+  const tick = () => {
+    if (!isCurrentImportSession(importSessionId)) return;
+    const elapsed = Date.now() - startedAt;
+    const progress = start + ((ceiling - start) * (1 - Math.exp((-2.6 * elapsed) / durationMs)));
+    setImportLoader(true, text, progress);
+    importLoaderPulseTimer = window.setTimeout(tick, 140);
+  };
+  tick();
 }
 
 function nextPaint() {
@@ -3825,7 +4411,7 @@ function initTonConnect() {
     if (!address || address === lastTonConnectAddress) return;
     lastTonConnectAddress = address;
     setWalletImportStatus("Wallet connected. Fetching live portfolio...");
-    importWallet(address).catch((error) => {
+    importWallet(address, { combineTelegram: telegramConnected, background: telegramConnected }).catch((error) => {
       setWalletImportStatus(error.message || "Wallet connected, but portfolio import failed.", true);
       openWalletSheet();
     });
@@ -3849,7 +4435,7 @@ async function connectTonWallet() {
   }
 }
 
-async function importWallet(address) {
+async function importWallet(address, options = {}) {
   const cleanAddress = address.trim();
   if (!cleanAddress) {
     setWalletImportStatus("Paste a TON wallet address first.", true);
@@ -3858,10 +4444,15 @@ async function importWallet(address) {
   }
   setWalletImportStatus("Fetching wallet data...");
   const importSessionId = beginImportSession();
-  resetWalletSwitchState(cleanAddress);
+  const combineTelegram = Boolean(options.combineTelegram && telegramConnected);
+  const background = Boolean(options.background && combineTelegram);
+  resetWalletSwitchState(cleanAddress, { preserveTelegram: combineTelegram });
+  activePortfolioSource = combineTelegram ? "combined" : "wallet";
   setSectionLoading("tokens", "Syncing token balances...");
-  setSectionLoading("gifts", "Scanning wallet gifts...");
-  setSectionLoading("stickers", "Scanning sticker packs...");
+  if (!combineTelegram) {
+    setSectionLoading("gifts", "Scanning wallet gifts...");
+    setSectionLoading("stickers", "Scanning sticker packs...");
+  }
   setSectionLoading("activity", "Preparing recent activity...");
   if (isGraphHistoryLoadingEnabled()) setSectionLoading("graph", "Preparing graph preview...");
   else setSectionReady("graph", "Graph history paused for this session.", { toast: false });
@@ -3871,12 +4462,18 @@ async function importWallet(address) {
   updateCollectibleSummaryBanner("stickers");
   syncAssetsSummary(liveWalletData, []);
   updateAllocationUi();
-  setImportLoader(true, "Connecting to TON wallet...", 8);
+  if (!background) {
+    setImportLoader(true, "Meeting your wallet", 8);
+    pulseImportLoader(importSessionId, "Meeting your wallet", 8, 38, 9000);
+  }
   await nextPaint();
   try {
     const payload = await fetchWalletImport(cleanAddress);
     if (!isCurrentImportSession(importSessionId)) return;
-    setImportLoader(true, "Syncing balances and token values...", 42);
+    if (!background) {
+      stopImportLoaderPulse();
+      setImportLoader(true, "Your assets are checking in", 42);
+    }
     liveWalletData = payload;
     liveWalletAddress = payload.account?.address || cleanAddress;
     activeHistoryWalletKey = walletStateKey(liveWalletAddress);
@@ -3899,10 +4496,12 @@ async function importWallet(address) {
     if (initialHistory.length) setLiveHistoryRange("1D", initialHistory);
     applyHistoryStatus(payload.historyStatus || []);
     walletConnected = true;
-    setImportLoader(true, "Preparing dashboard...", 68);
+    if (!background) {
+      setImportLoader(true, "Putting every number in place", 68);
+      pulseImportLoader(importSessionId, "Putting every number in place", 68, 88, 5000);
+    }
     const homeReadyPromise = Promise.resolve(applyImportedWallet(payload, { importSessionId }));
     startActivityPreload(liveWalletAddress || cleanAddress);
-    setImportLoader(true, "Loading graph preview...", 86);
     if (isGraphHistoryLoadingEnabled()) {
       setTimeout(() => {
         if (!isCurrentImportSession(importSessionId) || walletStateKey(liveWalletAddress) !== activeHistoryWalletKey || !isGraphHistoryLoadingEnabled()) return;
@@ -3917,7 +4516,11 @@ async function importWallet(address) {
     closeWalletSheet();
     await homeReadyPromise;
     if (!isCurrentImportSession(importSessionId)) return;
-    setImportLoader(true, "Exact graph history continues in background...", 100);
+    if (!background) {
+      stopImportLoaderPulse();
+      setImportLoader(true, "Drawing the big picture", 92);
+      setImportLoader(true, "Everything found its place", 100);
+    }
     setTimeout(() => {
       if (!isCurrentImportSession(importSessionId)) return;
       allocationUiLocked = false;
@@ -3929,16 +4532,25 @@ async function importWallet(address) {
       resetPortfolioHeader();
       setLastUpdatedLabel(currentWalletTimestamp(liveWalletData));
       setSectionReady("graph", "Graph preview ready");
-      setImportLoader(false);
+      if (!background) setImportLoader(false);
     }, 420);
   } catch (error) {
-    if (isCurrentImportSession(importSessionId)) allocationUiLocked = false;
-    setImportLoader(false);
+    if (isCurrentImportSession(importSessionId)) {
+      allocationUiLocked = false;
+      if (!background) {
+        stopImportLoaderPulse();
+        setImportLoader(false);
+      }
+    }
     throw error;
   }
 }
 
 async function refreshConnectedWallet() {
+  if (!hasTonWalletPortfolio()) {
+    renderPortfolioGraph(activePortfolioRange());
+    return;
+  }
   if (!liveWalletAddress) {
     renderPortfolioGraph(activePortfolioRange());
     return;
@@ -3981,7 +4593,7 @@ async function restoreSavedWallet() {
   try {
     savedAddress = localStorage.getItem("vaulton:lastWalletAddress") || "";
   } catch {}
-  if (!savedAddress || liveWalletData) return;
+  if (!savedAddress || liveWalletData || activePortfolioSource === "telegram") return;
   updateHistoryStatus("Restoring connected wallet...");
   try {
     await importWallet(savedAddress);
@@ -3993,13 +4605,13 @@ async function restoreSavedWallet() {
 }
 
 function applyImportedWallet(data, options = {}) {
+  if (!hasTonWalletPortfolio()) return Promise.resolve();
   if (Number(data.summary?.tonUsdRate) > 0) usdTonRate = Number(data.summary.tonUsdRate);
   const totalUsd = Number(data.summary?.totalUsd || 0);
   homePortfolioValue = totalUsd;
   homePortfolioDelta = 0;
   homePortfolioChange = "+0.00%";
   pinCachedHistoryToCurrent(data);
-  updatePortfolioRangeAnchors();
   updateDashboardFromWallet(data, totalUsd);
   updateAssetsFromWallet(data, totalUsd);
   updateWalletScreen(data, totalUsd);
@@ -4009,14 +4621,14 @@ function applyImportedWallet(data, options = {}) {
   applyCurrencyDisplay();
   window.lucide?.createIcons();
   const tokensReady = Promise.resolve(updateTokensFromWallet(data, { importSessionId: options.importSessionId }));
-  updateCollectiblesFromWallet(data, { importSessionId: options.importSessionId }).then(() => {
+  const collectiblesReady = updateCollectiblesFromWallet(data, { importSessionId: options.importSessionId }).then(() => {
     if (!isCurrentImportSession(options.importSessionId)) return;
     updateAllocationUi();
     syncAssetsSummary();
     updateAnalyticsFromWallet(homePortfolioValue);
     prefetchAllVisibleDetails();
   }).catch((error) => console.warn("Collectibles background update failed", error));
-  return tokensReady.then(() => {
+  return Promise.all([tokensReady, collectiblesReady]).then(() => {
     if (!isCurrentImportSession(options.importSessionId)) return;
     updateAllocationUi();
     syncAssetsSummary();
@@ -4045,8 +4657,8 @@ function resetDetailWarmCaches() {
   detailWarmupQueue = Promise.resolve();
 }
 
-function resetWalletSwitchState(nextAddress = "") {
-  historyPreloadToken += 1;
+function resetWalletSwitchState(nextAddress = "", options = {}) {
+  const preserveTelegram = Boolean(options.preserveTelegram && telegramConnected);
   stopHistoryStatusPolling();
   resetSectionLoadingState();
   liveWalletData = null;
@@ -4060,17 +4672,27 @@ function resetWalletSwitchState(nextAddress = "") {
   resetDetailWarmCaches();
   resetActivityState();
   latestVisibleTokens = [];
-  giftAssets.splice(0, giftAssets.length);
-  stickerAssets.splice(0, stickerAssets.length);
+  collectiblePayloadCache.clear();
+  collectiblePayloadRequests.clear();
+  walletGiftGroups = [];
+  walletStickerGroups = [];
+  if (!preserveTelegram) {
+    telegramGiftGroups = [];
+    telegramStickerGroups = [];
+    giftAssets.splice(0, giftAssets.length);
+    stickerAssets.splice(0, stickerAssets.length);
+  } else {
+    rebuildPortfolioCollectibleGroups();
+  }
   selectedAllocation = null;
-  allocationState.gifts = 0;
+  allocationState.gifts = preserveTelegram ? collectibleTotals().gifts : 0;
   allocationState.tokens = 0;
-  allocationState.stickers = 0;
+  allocationState.stickers = preserveTelegram ? collectibleTotals().stickers : 0;
   document.querySelectorAll("[data-range]").forEach((button) => button.classList.remove("is-loading"));
-  setCollectiblesBanner("gifts", nextAddress ? "Loading wallet gifts..." : "");
-  setCollectiblesBanner("stickers", nextAddress ? "Loading wallet stickers..." : "");
+  setCollectiblesBanner("gifts", preserveTelegram ? "" : (nextAddress ? "Loading wallet gifts..." : ""));
+  setCollectiblesBanner("stickers", preserveTelegram ? "" : (nextAddress ? "Loading wallet stickers..." : ""));
   renderCollectibleGrids();
-  resetWalletBoundUi();
+  if (!preserveTelegram) resetWalletBoundUi();
 }
 
 function resetPerformerCards() {
@@ -4087,7 +4709,6 @@ function resetWalletBoundUi() {
   homePortfolioValue = 0;
   homePortfolioDelta = 0;
   homePortfolioChange = "+0.00%";
-  updatePortfolioRangeAnchors();
   renderPortfolioGraph(activePortfolioRange(), true);
   resetPortfolioHeader();
   setLastUpdatedLabel(Date.now());
@@ -4115,6 +4736,15 @@ function resetWalletBoundUi() {
   if (assetsStrip) assetsStrip.innerHTML = `<article><small>Total</small><b>${money(0)}</b></article><article><small>Items</small><b>0</b></article><article><small>Wallet</small><b>Not connected</b></article>`;
   const tokenCategory = document.querySelector('[data-screen="assets"] .category-stack article[data-screen-target="tokens"] strong');
   if (tokenCategory) tokenCategory.textContent = money(0);
+  document.querySelectorAll('[data-screen="assets"] .category-stack article[data-screen-target] strong').forEach((value) => {
+    value.textContent = money(0);
+  });
+  const topAsset = document.querySelector('[data-screen="assets"] .mini-detail-card');
+  if (topAsset) {
+    topAsset.innerHTML = `<div class="section-heading"><h2>Your collection</h2></div><article class="feature-asset"><span class="asset-icon gift-bg"><i data-lucide="sparkles"></i></span><div><b>Nothing imported yet</b><small>Connect Telegram or a TON wallet to begin.</small></div></article>`;
+    delete topAsset.dataset.screenTarget;
+    delete topAsset.dataset.asset;
+  }
   const walletList = document.querySelector('[data-screen="wallets"] .holdings-list');
   if (walletList) walletList.innerHTML = `<article><span class="asset-icon token-bg"><i data-lucide="wallet"></i></span><div><b>No wallet connected</b><small>Connect or paste another wallet address.</small></div><aside><b>${money(0)}</b><small>Ready</small></aside></article>`;
   window.lucide?.createIcons();
@@ -4122,7 +4752,6 @@ function resetWalletBoundUi() {
 
 async function disconnectWallet() {
   closeWalletActionSheet();
-  historyPreloadToken += 1;
   stopHistoryStatusPolling();
   try {
     await tonConnectUI?.disconnect?.();
@@ -4130,6 +4759,8 @@ async function disconnectWallet() {
     console.warn("TON Connect disconnect failed", error);
   }
   walletConnected = false;
+  walletGiftGroups = [];
+  walletStickerGroups = [];
   liveWalletData = null;
   liveWalletAddress = "";
   activeHistoryWalletKey = "";
@@ -4147,7 +4778,24 @@ async function disconnectWallet() {
   } catch {}
   resetSectionLoadingState();
   resetActivityState();
-  resetWalletBoundUi();
+  if (telegramConnected) {
+    activePortfolioSource = "telegram";
+    const { gifts, stickers } = rebuildPortfolioCollectibleGroups();
+    allocationState.tokens = 0;
+    telegramPortfolioValue = Math.max(0, collectibleTotals().gifts + collectibleTotals().stickers);
+    homePortfolioValue = telegramPortfolioValue;
+    liveWalletData = {
+      account: { displayAddress: telegramProfile?.username ? `@${telegramProfile.username}` : "Telegram", tonName: telegramProfile?.firstName || "Telegram account" },
+      summary: { totalUsd: telegramPortfolioValue, tokenCount: 0, giftCount: gifts.length, stickerCount: stickers.length, nftCount: gifts.length + stickers.length, tonUsdRate: usdTonRate },
+      assets: { collectibles: [...groupedAssetChildren(telegramGiftGroups), ...groupedAssetChildren(telegramStickerGroups)] },
+    };
+    renderCollectibleGrids();
+    updateAllocationUi(true);
+    syncAssetsSummary(liveWalletData, [], 0);
+    renderTokenEmptyState("Connect a TON wallet to load tokens");
+  } else {
+    resetWalletBoundUi();
+  }
   renderWalletState();
   setWalletImportStatus("Wallet disconnected. Connect or paste another wallet.");
   openWalletSheet();
@@ -4168,34 +4816,14 @@ function normalizeWalletHistory(points = []) {
     .sort((a, b) => a.timestamp - b.timestamp);
 }
 
-function activePortfolioRange() {
-  return document.querySelector("[data-range].is-active")?.dataset.range || "1D";
-}
+function activePortfolioRange() { return document.querySelector("[data-range].is-active")?.dataset.range || Charts.definitions.portfolio.ranges[0]; }
 
-function historyStatusLabel(status) {
-  return {
-    ready: "Ready",
-    building: "Building",
-    queued: "Queued",
-    missing: "Queued",
-    error: "Retrying",
-  }[status] || "Queued";
-}
-
-function ensureHistoryBuilder() {
-  document.querySelectorAll(".history-builder").forEach((builder) => builder.remove());
-  return null;
-}
-
-function renderHistoryBuilder() {
-  ensureHistoryBuilder();
-}
 
 function setHistoryRangeState(range, status, pointsCount = 0, source = "") {
   historyRangeState.set(range, { status, pointsCount, source });
-  if (status === "ready" && liveHistoryByRange.has(range)) loadingPortfolioRanges.delete(range);
-  else if (liveWalletData) loadingPortfolioRanges.add(range);
-  renderHistoryBuilder();
+  if (status === "failed" || (status === "ready" && liveHistoryByRange.has(range))) loadingPortfolioRanges.delete(range);
+  else if (liveWalletData && status !== "failed") loadingPortfolioRanges.add(range);
+  syncRangeLoadingButtons();
 }
 
 function applyHistoryStatus(statuses = []) {
@@ -4203,7 +4831,6 @@ function applyHistoryStatus(statuses = []) {
   historyRanges.forEach((range) => {
     if (!historyRangeState.has(range)) setHistoryRangeState(range, liveHistoryByRange.has(range) ? "ready" : "queued");
   });
-  renderHistoryBuilder();
 }
 
 function setLiveHistoryRange(range, points = [], options = {}) {
@@ -4225,7 +4852,6 @@ function setLiveHistoryRange(range, points = [], options = {}) {
   if (source !== "partial") loadingPortfolioRanges.delete(range);
   historyRangeState.set(range, { status, pointsCount: normalized.length, source });
   syncRangeLoadingButtons();
-  renderHistoryBuilder();
   if (activePortfolioRange() === range || !liveHistoryPoints.length) liveHistoryPoints = normalized;
   return normalized;
 }
@@ -4253,15 +4879,14 @@ function updateHistoryStatus(message) {
 
 function setRangeLoading(range, loading) {
   if (loading) loadingPortfolioRanges.add(range);
-  else if (hasFinalHistory(range)) loadingPortfolioRanges.delete(range);
+  else loadingPortfolioRanges.delete(range);
   if (loading && !historyRangeState.has(range)) historyRangeState.set(range, { status: "queued", pointsCount: 0 });
   syncRangeLoadingButtons();
-  renderHistoryBuilder();
 }
 
 function syncRangeLoadingButtons() {
   document.querySelectorAll("[data-range]").forEach((button) => {
-    button.classList.toggle("is-loading", loadingPortfolioRanges.has(button.dataset.range));
+    button.classList.toggle("is-loading", isGraphHistoryLoadingEnabled() && loadingPortfolioRanges.has(button.dataset.range));
   });
 }
 
@@ -4278,39 +4903,24 @@ async function refreshLiveHistory(range, { renderWhenDone = false, force = false
     return liveHistoryByRange.get(range);
   }
   const requestKey = `${requestWalletKey}:${range}`;
-  if (liveHistoryRequests.has(requestKey)) {
-    const existing = liveHistoryRequests.get(requestKey);
-    if (renderWhenDone) {
-      existing.then((points) => {
-        if (activeHistoryWalletKey === requestWalletKey && activePortfolioRange() === range && points?.length) {
-          liveHistoryPoints = points;
-          renderPortfolioGraph(range, true);
-          updateHistoryStatus(`Reconstructed ${range} wallet history | ${points.length} points`);
-        }
-      }).catch(() => {});
-    }
-    return existing;
-  }
+  if (liveHistoryRequests.has(requestKey)) return liveHistoryRequests.get(requestKey);
   const request = (async () => {
     const payload = await requestJson(`/api/wallet/history?address=${encodeURIComponent(requestWalletAddress)}&range=${encodeURIComponent(range)}&t=${Date.now()}`, {}, `History ${range} request failed`);
     if (activeHistoryWalletKey !== requestWalletKey || walletStateKey(liveWalletAddress) !== requestWalletKey) return [];
-    if (payload.status === "partial" && Array.isArray(payload.points) && payload.points.length) {
-      const points = setLiveHistoryRange(range, payload.points, { status: "building", source: "partial" });
-      setRangeLoading(range, true);
-      if (renderWhenDone && activePortfolioRange() === range && points.length) {
-        renderPortfolioGraph(range, true);
-        updateHistoryStatus(`Building ${range} graph live | ${points.length} points`);
-      }
-      return points;
-    }
-    if (payload.status && payload.status !== "ready") {
+    const partial = payload.status === "partial";
+    const rows = Array.isArray(payload.points) ? payload.points : [];
+    if (!rows.length && payload.status && payload.status !== "ready") {
       setHistoryRangeState(range, payload.status, 0, payload.source || "");
       return [];
     }
-    const points = setLiveHistoryRange(range, payload.points || [], { status: "ready", source: payload.source || "api" });
+    const points = setLiveHistoryRange(range, rows, {
+      status: partial ? "building" : "ready",
+      source: partial ? "partial" : (payload.source || "api"),
+    });
+    setRangeLoading(range, partial);
     if (renderWhenDone && activePortfolioRange() === range && points.length) {
       renderPortfolioGraph(range, true);
-      updateHistoryStatus(`Reconstructed ${range} wallet history | ${points.length} points`);
+      updateHistoryStatus(`${partial ? "Building" : "Reconstructed"} ${range} wallet history | ${points.length} points`);
     }
     return points;
   })().finally(() => {
@@ -4363,27 +4973,8 @@ function startHistoryStatusPolling() {
   historyStatusTimer = setTimeout(pollHistoryStatus, 800);
 }
 
-async function refreshLiveHistoryUntilReady(range, token, maxAttempts = 3) {
-  let attempt = 0;
-  while (token === historyPreloadToken && liveWalletAddress && !hasFinalHistory(range) && attempt < maxAttempts) {
-    attempt += 1;
-    setRangeLoading(range, true);
-    try {
-      await refreshLiveHistory(range, { renderWhenDone: activePortfolioRange() === range });
-    } catch (error) {
-      console.warn(`Could not preload ${range} history`, error);
-    }
-    const readyCount = historyRanges.filter((item) => hasFinalHistory(item)).length;
-    updateHistoryStatus(hasFinalHistory(range)
-      ? `Loading wallet history | ${readyCount}/${historyRanges.length} ranges ready`
-      : `Still loading ${range} wallet history...`);
-    if (!hasFinalHistory(range) && attempt < maxAttempts) await delay(Math.min(8000, 1800 * attempt));
-  }
-}
-
 async function preloadLiveHistoryRanges() {
   if (!isGraphHistoryLoadingEnabled()) return;
-  const token = ++historyPreloadToken;
   const ranges = historyRanges.filter((range) => !hasFinalHistory(range));
   if (!ranges.length) {
     updateHistoryStatus(`Wallet history ready | ${historyRanges.length}/${historyRanges.length} ranges loaded`);
@@ -4391,37 +4982,14 @@ async function preloadLiveHistoryRanges() {
   }
   ranges.forEach((range) => setRangeLoading(range, true));
   updateHistoryStatus(`Loading wallet history | 0/${historyRanges.length} ranges ready`);
-  const pending = new Set(ranges);
-  let pass = 0;
-  while (token === historyPreloadToken && liveWalletAddress && pending.size) {
-    pass += 1;
-    for (const range of [...pending]) {
-      if (token !== historyPreloadToken || !liveWalletAddress) return;
-      if (hasFinalHistory(range)) {
-        pending.delete(range);
-        continue;
-      }
-      setRangeLoading(range, true);
-      await refreshLiveHistoryUntilReady(range, token);
-      if (hasFinalHistory(range)) pending.delete(range);
-      const readyCount = historyRanges.filter((item) => hasFinalHistory(item)).length;
-      updateHistoryStatus(pending.size
-        ? `Loading wallet history | ${readyCount}/${historyRanges.length} ranges ready`
-        : `Wallet history ready | ${readyCount}/${historyRanges.length} ranges loaded`);
-      await delay(pass === 1 ? 1800 : 5000);
-    }
+  await Promise.allSettled(ranges.map((range) => refreshLiveHistory(range, { renderWhenDone: activePortfolioRange() === range })));
+  const active = activePortfolioRange();
+  if (liveHistoryByRange.has(active)) {
+    liveHistoryPoints = liveHistoryByRange.get(active);
+    renderPortfolioGraph(active, false);
   }
-  if (token === historyPreloadToken) {
-    const active = activePortfolioRange();
-    if (liveHistoryByRange.has(active)) {
-      liveHistoryPoints = liveHistoryByRange.get(active);
-      renderPortfolioGraph(active, false);
-    }
-    const finalReadyCount = historyRanges.filter((item) => hasFinalHistory(item)).length;
-    updateHistoryStatus(finalReadyCount === historyRanges.length
-      ? `Wallet history ready | ${historyRanges.length}/${historyRanges.length} ranges loaded`
-      : `Wallet history loaded | ${finalReadyCount}/${historyRanges.length} ranges ready`);
-  }
+  const ready = historyRanges.filter((range) => hasFinalHistory(range)).length;
+  updateHistoryStatus(`Wallet history ${ready === historyRanges.length ? "ready" : "loading"} | ${ready}/${historyRanges.length} ranges ready`);
 }
 
 function switchPortfolioRange(range) {
@@ -4455,30 +5023,10 @@ function switchPortfolioRange(range) {
 }
 
 async function refreshVisibleLiveHistory() {
-  if (!liveWalletAddress) return;
-  if (!isGraphHistoryLoadingEnabled()) return;
-  const requestWalletAddress = liveWalletAddress;
-  const requestWalletKey = walletStateKey(requestWalletAddress);
   const range = activePortfolioRange();
-  let payload;
   try {
-    payload = await requestJson(`/api/wallet/history?address=${encodeURIComponent(requestWalletAddress)}&range=${encodeURIComponent(range)}&t=${Date.now()}`, {}, "Wallet history refresh failed");
-  } catch {
-    return;
-  }
-  if (activeHistoryWalletKey !== requestWalletKey || walletStateKey(liveWalletAddress) !== requestWalletKey) return;
-  const points = setLiveHistoryRange(range, payload.points || []);
-  if (points.length) {
-    setRangeLoading(range, false);
-    renderPortfolioGraph(range, true);
-    updateHistoryStatus(`Reconstructed ${range} wallet history | ${points.length} points`);
-  }
-}
-
-function updatePortfolioRangeAnchors() {
-  Object.values(portfolioRanges).forEach((range) => {
-    if (range.basePoints?.length) range.basePoints[range.basePoints.length - 1].value = homePortfolioValue;
-  });
+    await refreshLiveHistory(range, { renderWhenDone: true, force: true });
+  } catch {}
 }
 
 function collectibleTotals() {
@@ -4502,7 +5050,7 @@ function updateAllocationUi(force = false) {
   allocationState.gifts = totals.gifts;
   allocationState.stickers = totals.stickers;
   const total = Math.max(0, allocationState.gifts + allocationState.tokens + allocationState.stickers);
-  if (walletConnected) {
+  if (walletConnected || telegramConnected) {
     homePortfolioValue = total;
     if (liveWalletData?.summary) liveWalletData.summary.totalUsd = total;
   }
@@ -4534,7 +5082,7 @@ function updateCategoryAndTopAsset(tokenValue = allocationState.tokens) {
   const giftCategory = document.querySelector('[data-screen="assets"] .category-stack article[data-screen-target="gifts"] strong');
   const stickerCategory = document.querySelector('[data-screen="assets"] .category-stack article[data-screen-target="stickers"] strong');
   const giftCount = giftAssets.reduce((sum, asset) => sum + Number(asset.count || 1), 0);
-  const stickerCount = stickerAssets.reduce((sum, asset) => sum + Number(asset.count || 1), 0);
+  const stickerCount = stickerAssets.reduce((sum, asset) => sum + stickerOwnedCount(asset), 0);
   if (giftCategory) {
     if (totals.gifts <= 0 && giftCount > 0) giftCategory.textContent = `${giftCount} gift${giftCount === 1 ? "" : "s"}`;
     else if (isSectionLoading("gifts") || (totals.gifts <= 0 && hasPendingCollectiblePrices("gifts"))) giftCategory.innerHTML = `<span class="metric-skeleton"></span>`;
@@ -4570,7 +5118,8 @@ function updateDashboardFromWallet(data, tonUsd) {
     : `Live wallet imported | history starts now`;
   allocationState.tokens = Number(tonUsd || 0);
   updateAllocationUi();
-  renderActivityRows(data.activity, HOME_ACTIVITY_LIMIT);
+  const importedActivity = Array.isArray(data.activity) ? data.activity : [];
+  renderActivityRows(importedActivity.length ? importedActivity : fullActivityEvents, HOME_ACTIVITY_LIMIT);
 }
 
 function updateAssetsFromWallet(data, tonUsd) {
@@ -4586,9 +5135,57 @@ function isTonAddressLike(value = "") {
   return /^(?:UQ|EQ)[A-Za-z0-9_-]{40,}$/.test(String(value).trim());
 }
 
+const ASSETS_DOT_GLYPHS = {
+  "A": ["01110", "10001", "10001", "11111", "10001", "10001", "10001"],
+  "E": ["11111", "10000", "10000", "11110", "10000", "10000", "11111"],
+  "S": ["01111", "10000", "10000", "01110", "00001", "00001", "11110"],
+  "T": ["11111", "00100", "00100", "00100", "00100", "00100", "00100"],
+  "0": ["01110", "10001", "10011", "10101", "11001", "10001", "01110"],
+  "1": ["00100", "01100", "00100", "00100", "00100", "00100", "01110"],
+  "2": ["01110", "10001", "00001", "00010", "00100", "01000", "11111"],
+  "3": ["11110", "00001", "00001", "01110", "00001", "00001", "11110"],
+  "4": ["00010", "00110", "01010", "10010", "11111", "00010", "00010"],
+  "5": ["11111", "10000", "10000", "11110", "00001", "00001", "11110"],
+  "6": ["01110", "10000", "10000", "11110", "10001", "10001", "01110"],
+  "7": ["11111", "00001", "00010", "00100", "01000", "01000", "01000"],
+  "8": ["01110", "10001", "10001", "01110", "10001", "10001", "01110"],
+  "9": ["01110", "10001", "10001", "01111", "00001", "00001", "01110"],
+  "$": ["00100", "01111", "10100", "01110", "00101", "11110", "00100"],
+  ",": ["0", "0", "0", "0", "0", "1", "1"],
+  ".": ["0", "0", "0", "0", "0", "0", "1"],
+  "-": ["000", "000", "000", "111", "000", "000", "000"],
+  " ": ["00", "00", "00", "00", "00", "00", "00"],
+};
+
+function renderDotMatrixText(element, value, variant = "display") {
+  if (!element || element.querySelector(".metric-skeleton")) return;
+  const text = String(value || "").toUpperCase();
+  if (!text || element.dataset.dotText === text) return;
+  element.dataset.dotText = text;
+  element.setAttribute("aria-label", text);
+  element.classList.add("dot-matrix-text", `dot-matrix-${variant}`);
+  element.innerHTML = [...text].map((character) => {
+    const rows = ASSETS_DOT_GLYPHS[character] || ASSETS_DOT_GLYPHS[" "];
+    const columns = rows[0].length;
+    const dots = rows.join("").split("").map((dot) => `<i class="dot-matrix-led${dot === "1" ? " is-on" : ""}"></i>`).join("");
+    return `<span class="dot-matrix-character" style="--dot-columns:${columns}" aria-hidden="true">${dots}</span>`;
+  }).join("");
+}
+
+function renderAssetsDotMatrix() {
+  renderDotMatrixText(document.querySelector('[data-screen="assets"] .assets-header h1'), "ASSETS", "title");
+  const portfolioValue = document.querySelector('[data-screen="assets"] .portfolio-strip article:first-child b');
+  if (portfolioValue && !portfolioValue.querySelector(".metric-skeleton")) {
+    renderDotMatrixText(portfolioValue, portfolioValue.textContent.trim(), "value");
+  }
+}
 function syncAssetsSummary(data = liveWalletData, tokens = latestVisibleTokens, fallbackUsd = homePortfolioValue) {
   const strip = document.querySelector('[data-screen="assets"] .portfolio-strip');
-  const tokenValue = tokens.length ? tokens.reduce((sum, token) => sum + Number(token.valueUsd || 0), 0) : Number(fallbackUsd || 0);
+  // A Telegram-only session has no TON balances. Do not reuse the combined
+  // portfolio total as a token value just because its token list is empty.
+  const tokenValue = tokens.length
+    ? tokens.reduce((sum, token) => sum + Number(token.valueUsd || 0), 0)
+    : (telegramConnected && !liveWalletAddress ? 0 : Number(fallbackUsd || 0));
   const tokenCount = tokens.length || Number(data?.summary?.tokenCount || 0);
   const readyGiftCount = giftAssets.length;
   const readyStickerCount = stickerAssets.length;
@@ -4602,7 +5199,10 @@ function syncAssetsSummary(data = liveWalletData, tokens = latestVisibleTokens, 
     const itemsHtml = isSectionLoading("tokens") && !tokens.length
       ? `<span class="metric-skeleton metric-skeleton-small"></span>`
       : `${tokenCount + readyGiftCount + readyStickerCount}`;
-    strip.innerHTML = `<article><small>Total</small><b>${totalHtml}</b></article><article><small>Items</small><b>${itemsHtml}</b></article><article><small>Wallet</small><b>${escapeHtml(address)}</b></article>`;
+    const portfolioChange = String(homePortfolioChange || "+0.00%");
+    const portfolioChangeClass = portfolioChange.trim().startsWith("-") ? "negative" : "positive";
+    strip.innerHTML = `<article><small>Portfolio value</small><b>${totalHtml}</b><strong class="${portfolioChangeClass}">${escapeHtml(portfolioChange)} <em>24H</em></strong></article><article><small>Total assets</small><b>${itemsHtml}</b><span>Items</span></article><article><small>Wallet</small><b>${escapeHtml(address)}</b></article><article><small>View</small><b class="assets-view-arrow">-&gt;</b></article>`;
+    renderAssetsDotMatrix();
   }
   const tokenCategory = document.querySelector('[data-screen="assets"] .category-stack article[data-screen-target="tokens"] strong');
   if (tokenCategory) {
@@ -4626,8 +5226,8 @@ function updateAnalyticsFromWallet(totalUsd) {
     ...stickerAssets.map((asset) => ({ name: asset.name, change: Number(asset.dailyPct || 0), pnl: Number(asset.pnlUsd || 0) })),
   ];
   const valid = performers.filter((item) => Number.isFinite(item.change));
-  const best = valid.reduce((a, b) => (b.change > a.change ? b : a), valid[0] || { name: "—", change: 0 });
-  const worst = valid.reduce((a, b) => (b.change < a.change ? b : a), valid[0] || { name: "—", change: 0 });
+  const best = valid.reduce((a, b) => (b.change > a.change ? b : a), valid[0] || { name: "â€”", change: 0 });
+  const worst = valid.reduce((a, b) => (b.change < a.change ? b : a), valid[0] || { name: "â€”", change: 0 });
   const pnl = performers.reduce((sum, item) => sum + Number(item.pnl || 0), tokenAggregatePnl(latestVisibleTokens).delta || 0);
   if (rows[0]) rows[0].innerHTML = `<small>Best performer</small><b>${escapeHtml(best.name)}</b><strong class="positive">${signedPct(best.change)}</strong>`;
   if (rows[1]) rows[1].innerHTML = `<small>Worst performer</small><b>${escapeHtml(worst.name)}</b><strong class="negative">${signedPct(worst.change)}</strong>`;
@@ -4647,22 +5247,6 @@ function resolveAnimationMediaUrl(url) {
   return resolveTokenImage(url);
 }
 
-function decimalBalance(rawBalance, decimals = 0) {
-  const raw = String(rawBalance ?? "0").replace(/[^\d-]/g, "");
-  const negative = raw.startsWith("-");
-  const digits = negative ? raw.slice(1) : raw;
-  const scale = Math.max(0, Number(decimals) || 0);
-  if (!scale) return Number(raw || 0);
-  const padded = digits.padStart(scale + 1, "0");
-  const whole = padded.slice(0, -scale) || "0";
-  const fraction = padded.slice(-scale).replace(/0+$/, "");
-  return Number(`${negative ? "-" : ""}${whole}${fraction ? `.${fraction}` : ""}`);
-}
-
-function tokenAddressKey(address) {
-  return String(address || "").trim().toLowerCase();
-}
-
 async function fetchJson(url) {
   return requestJson(url, {}, "Request failed");
 }
@@ -4673,264 +5257,25 @@ function settledValue(result, fallback = null) {
   return fallback;
 }
 
-function extractTonCenterJettons(payload) {
-  return payload?.jetton_wallets || payload?.wallets || payload?.items || payload?.result?.jetton_wallets || payload?.result || [];
-}
-
-function extractStonAssets(payload) {
-  return payload?.asset_list || payload?.assets || payload?.result?.asset_list || payload?.result || [];
-}
-
-function buildStonPriceMap(payload) {
-  const map = new Map();
-  extractStonAssets(payload).forEach((asset) => {
-    const key = tokenAddressKey(asset.contract_address || asset.address || asset.jetton_address || asset.token_address);
-    const price = Number(asset.dex_price_usd ?? asset.price_usd ?? asset.price);
-    if (!key || !Number.isFinite(price)) return;
-    map.set(key, {
-      priceUsd: price,
-      change24h: Number(asset.price_change_24h ?? asset.change_24h ?? asset.price_change_percent_24h),
-      asset,
-      marketRank: Number(asset.popularity_index ?? asset.priority ?? 0),
-    });
-  });
-  return map;
-}
-
-function buildDedustAssetMap(assetsPayload) {
-  const map = new Map();
-  const assets = Array.isArray(assetsPayload) ? assetsPayload : assetsPayload?.assets || assetsPayload?.items || [];
-  assets.forEach((asset) => {
-    if (asset.type !== "jetton" || !asset.address) return;
-    map.set(tokenAddressKey(asset.address), asset);
-  });
-  return map;
-}
-
-function stableAssetPrice(asset) {
-  const symbol = String(asset?.metadata?.symbol || asset?.symbol || "").toUpperCase();
-  return ["USDT", "USD₮", "JUSDT", "USDC", "JUSDC"].includes(symbol) ? 1 : 0;
-}
-
-function buildDedustPriceMap(poolsPayload, tonPriceUsd) {
-  const map = new Map();
-  const pools = Array.isArray(poolsPayload) ? poolsPayload : poolsPayload?.pools || poolsPayload?.items || [];
-  pools.forEach((pool) => {
-    const assets = pool.assets || [];
-    const reserves = pool.reserves || [];
-    const baseIndex = assets.findIndex((asset) => asset.type === "native" || stableAssetPrice(asset));
-    const jettonIndex = assets.findIndex((asset, index) => index !== baseIndex && asset.type === "jetton" && asset.address);
-    if (baseIndex < 0 || jettonIndex < 0) return;
-    const basePrice = assets[baseIndex].type === "native" ? tonPriceUsd : stableAssetPrice(assets[baseIndex]);
-    const baseReserve = decimalBalance(reserves[baseIndex], assets[baseIndex]?.metadata?.decimals ?? 9);
-    const jettonReserve = decimalBalance(reserves[jettonIndex], assets[jettonIndex]?.metadata?.decimals ?? 9);
-    if (baseReserve <= 0 || jettonReserve <= 0 || basePrice <= 0) return;
-    const key = tokenAddressKey(assets[jettonIndex].address);
-    const priceUsd = (baseReserve * basePrice) / jettonReserve;
-    const liquidityUsd = baseReserve * basePrice;
-    const current = map.get(key);
-    if (!current || liquidityUsd > current.liquidityUsd) map.set(key, { priceUsd, liquidityUsd, source: "dedust" });
-  });
-  return map;
-}
-
-function pairMetric(pair, path, fallback = 0) {
-  return Number(path.split(".").reduce((value, key) => value?.[key], pair) ?? fallback) || 0;
-}
-
-function pairDexName(pair = {}) {
-  return String(pair.dexId || pair.dexName || pair.labels?.join(" ") || "").toLowerCase();
-}
-
-function isDedustPair(pair = {}) {
-  return pairDexName(pair).includes("dedust");
-}
-
-function betterDexPair(next, current) {
-  if (!current) return true;
-  const nextDedust = isDedustPair(next);
-  const currentDedust = isDedustPair(current);
-  if (nextDedust !== currentDedust) return nextDedust;
-  const nextLiquidity = pairMetric(next, "liquidity.usd");
-  const currentLiquidity = pairMetric(current, "liquidity.usd");
-  if (nextLiquidity !== currentLiquidity) return nextLiquidity > currentLiquidity;
-  const nextVolume = pairMetric(next, "volume.h24");
-  const currentVolume = pairMetric(current, "volume.h24");
-  if (nextVolume !== currentVolume) return nextVolume > currentVolume;
-  const nextMarketCap = Number(next.marketCap || next.fdv || 0);
-  const currentMarketCap = Number(current.marketCap || current.fdv || 0);
-  return nextMarketCap > currentMarketCap;
-}
-
-function dexPriceForToken(pair, tokenKey) {
-  const baseKey = tokenAddressKey(pair?.baseToken?.address);
-  const baseUsd = Number(pair?.priceUsd || 0);
-  if (tokenKey === baseKey) return baseUsd;
-  return 0;
-}
-
-function buildDexScreenerPriceMap(pairs = [], requestedKeys = null) {
-  const map = new Map();
-  pairs.filter((pair) => pair?.chainId === "ton").forEach((pair) => {
-    const key = tokenAddressKey(pair.baseToken?.address);
-    if (!key || (requestedKeys && !requestedKeys.has(key))) return;
-    const priceUsd = dexPriceForToken(pair, key);
-    if (!(priceUsd > 0)) return;
-    if (betterDexPair(pair, map.get(key)?.pair)) {
-      map.set(key, {
-        priceUsd,
-        change24h: Number(pair.priceChange?.h24),
-        liquidityUsd: pairMetric(pair, "liquidity.usd"),
-        volume24h: pairMetric(pair, "volume.h24"),
-        marketCap: Number(pair.marketCap || pair.fdv || 0),
-        dexId: pair.dexId,
-        pair,
-        source: isDedustPair(pair) ? "dexscreener-dedust" : "dexscreener",
-      });
-    }
-  });
-  return map;
-}
 
 function parsePct(value) {
-  const cleaned = String(value ?? "").replace("−", "-").replace("%", "").trim();
+  const cleaned = String(value ?? "").replace("âˆ’", "-").replace("%", "").trim();
   const number = Number(cleaned);
   return Number.isFinite(number) ? number : NaN;
 }
 
-function buildTonApiTokenMap(payload) {
-  const map = new Map();
-  (payload?.balances || []).forEach((item) => {
-    const address = item.jetton?.address;
-    if (!address) return;
-    map.set(tokenAddressKey(address), {
-      priceUsd: Number(item.price?.prices?.USD || 0),
-      change24h: parsePct(item.price?.diff_24h?.USD),
-      decimals: item.jetton?.decimals,
-      verification: item.jetton?.verification,
-      name: item.jetton?.name,
-      symbol: item.jetton?.symbol,
-      image: item.jetton?.image,
-      source: "tonapi",
-    });
-  });
-  return map;
-}
 
-async function fetchDexScreenerPairs(addresses = []) {
-  const uniqueAddresses = [...new Set(addresses.filter(Boolean))];
-  const chunks = Array.from({ length: Math.ceil(uniqueAddresses.length / 30) }, (_, index) => uniqueAddresses.slice(index * 30, index * 30 + 30));
-  const responses = await Promise.all(chunks.map((chunk) => fetchJson(`https://api.dexscreener.com/tokens/v1/ton/${chunk.map(encodeURIComponent).join(",")}`)));
-  return responses.flatMap((payload) => Array.isArray(payload) ? payload : payload?.pairs || []);
-}
 
-function jettonMasterAddress(wallet = {}) {
-  const jetton = wallet.jetton;
-  return wallet.jetton_address
-    || wallet.jetton_master_address
-    || wallet.jetton_master
-    || wallet.jetton_info?.address
-    || (typeof jetton === "string" ? jetton : jetton?.address)
-    || "";
-}
 
-function tokenLookupKeys(payload, wallet = {}) {
-  const masterAddress = jettonMasterAddress(wallet);
-  const keys = [
-    masterAddress,
-    payload?.address_book?.[masterAddress]?.user_friendly,
-    wallet.jetton_info?.address,
-    wallet.jetton?.address,
-  ].filter(Boolean);
-  return [...new Set(keys.map(tokenAddressKey).filter(Boolean))];
-}
 
-function tokenLookupAddresses(payload, wallet = {}) {
-  const masterAddress = jettonMasterAddress(wallet);
-  return [
-    masterAddress,
-    payload?.address_book?.[masterAddress]?.user_friendly,
-    wallet.jetton_info?.address,
-    wallet.jetton?.address,
-  ].filter((address) => typeof address === "string" && address.trim());
-}
 
-function tonApiTokenAddressKeys(item = {}) {
-  return [
-    item.jetton?.address,
-    item.wallet_address?.address,
-    item.wallet_address,
-  ].filter(Boolean).map(tokenAddressKey).filter(Boolean);
-}
 
-function tonApiBalanceTokens(payload) {
-  return (payload?.balances || []).map((item, index) => {
-    const jetton = item.jetton || {};
-    const balance = decimalBalance(item.balance, jetton.decimals ?? 9);
-    const priceUsd = Number(item.price?.prices?.USD || 0);
-    const valueUsd = balance * priceUsd;
-    return {
-      id: `live-jetton-${index}`,
-      address: jetton.address,
-      name: jetton.name || jetton.symbol || `Jetton ${index + 1}`,
-      symbol: jetton.symbol || `JET${index + 1}`,
-      balance,
-      decimals: jetton.decimals ?? 9,
-      priceUsd,
-      valueUsd,
-      change24h: parsePct(item.price?.diff_24h?.USD),
-      image: jetton.image,
-      category: "TON Jetton",
-      marketTrusted: priceUsd > 0,
-      source: "tonapi-rates",
-    };
-  });
-}
 
-function firstTokenMapValue(map, keys = []) {
-  for (const key of keys) {
-    const value = map.get(key);
-    if (value) return value;
-  }
-  return null;
-}
 
-function tonCenterTokenInfo(payload, masterAddress) {
-  const info = payload?.metadata?.[masterAddress]?.token_info;
-  if (Array.isArray(info)) return info.find((item) => item.type === "jetton_masters") || info[0] || {};
-  return {};
-}
 
-function isTrustedStonAsset(priceInfo) {
-  const asset = priceInfo?.asset;
-  if (!asset || asset.blacklisted || asset.deprecated || asset.community) return false;
-  const tags = asset.tags || [];
-  return Boolean(asset.default_symbol || tags.includes("asset:essential") || tags.includes("asset:popular") || tags.includes("high_liquidity"));
-}
 
-function isTrustedDedustAsset(asset) {
-  if (!asset) return false;
-  return Number(asset.riskScore ?? 1) <= 0.6;
-}
 
-function isBlockedByDedust(asset) {
-  return asset && Number(asset.riskScore ?? 0) > 0.8;
-}
 
-function hasUsableDexMarket(priceInfo) {
-  return Number(priceInfo?.priceUsd || 0) > 0 && Number(priceInfo?.liquidityUsd || 0) > 0;
-}
-
-function failsMarketCapSanity(valueUsd, priceInfo) {
-  const cap = Number(priceInfo?.marketCap || 0);
-  return cap > 0 && valueUsd > cap * 1.05;
-}
-
-function pickTokenPrice(tonApiPrice, dexPrice, dedustPrice) {
-  if (Number(dexPrice?.priceUsd) > 0) return dexPrice;
-  if (Number(dedustPrice?.priceUsd) > 0) return dedustPrice;
-  return null;
-}
 
 function cleanTokenWord(value = "") {
   return String(value).toUpperCase().replace(/[^A-Z0-9]/g, "");
@@ -4966,7 +5311,7 @@ function isDisplayableToken(token = {}) {
 function tokenRowSort(a, b) {
   if (a.symbol === "TON") return -1;
   if (b.symbol === "TON") return 1;
-  const stableRank = (token) => ["USDT", "USD₮", "JUSDT", "USDC", "JUSDC"].includes(String(token.symbol || "").toUpperCase()) ? 0 : 1;
+  const stableRank = (token) => ["USDT", "USDâ‚®", "JUSDT", "USDC", "JUSDC"].includes(String(token.symbol || "").toUpperCase()) ? 0 : 1;
   const rankDiff = stableRank(a) - stableRank(b);
   if (rankDiff) return rankDiff;
   const pricedRank = (token) => Number(token.priceUsd || 0) > 0 ? 0 : 1;
@@ -5016,7 +5361,7 @@ function renderTokenSummary(tokens) {
       <button class="icon-button" type="button" data-token-refresh aria-label="Refresh tokens"><i data-lucide="refresh-cw"></i></button>
     </div>
     <h2>${money(total)}</h2>
-    <p class="token-summary-meta ${tone}">${signedMoney(pnl.delta)} · ${signedPct(pnl.pct)} · ${tokens.length} token${tokens.length === 1 ? "" : "s"}</p>
+    <p class="token-summary-meta ${tone}">${signedMoney(pnl.delta)} Â· ${signedPct(pnl.pct)} Â· ${tokens.length} token${tokens.length === 1 ? "" : "s"}</p>
   `;
 }
 
@@ -5036,7 +5381,7 @@ function renderTokenRows(tokens) {
       address: token.address,
       image: token.image,
       category: token.category,
-      value: `${money(token.valueUsd)} · ${Number.isFinite(token.change24h) ? signedPct(token.change24h) : "24h n/a"}`,
+      value: `${money(token.valueUsd)} Â· ${Number.isFinite(token.change24h) ? signedPct(token.change24h) : "24h n/a"}`,
       icon: "circle-dollar-sign",
       tone: "token-bg",
       balance: token.balance,
@@ -5060,8 +5405,8 @@ function renderTokenRows(tokens) {
   list.innerHTML = sortedTokens.map((token) => {
     const changeClass = Number(token.change24h) < 0 ? "negative" : Number(token.change24h) > 0 ? "positive" : "";
     const hasPrice = Number(token.priceUsd || 0) > 0;
-    const changeText = Number.isFinite(token.change24h) && hasPrice ? signedPct(token.change24h) : "—";
-    const valueLabel = Number(token.valueUsd || 0) > 0 ? money(token.valueUsd) : "—";
+    const changeText = Number.isFinite(token.change24h) && hasPrice ? signedPct(token.change24h) : "â€”";
+    const valueLabel = Number(token.valueUsd || 0) > 0 ? money(token.valueUsd) : "â€”";
     return `<article data-screen-target="detail" data-asset="${escapeHtml(token.id)}">${renderTokenLogo(token)}<div><b>${escapeHtml(token.name)}</b><small class="token-price-line"><span>${tokenPriceLabel(token.priceUsd)}</span><span class="${changeClass}">${changeText}</span></small></div><aside><b>${valueLabel}</b><small>${escapeHtml(tokenBalanceLabel(token))}</small></aside></article>`;
   }).join("");
   syncPortfolioFromDisplayedTokens(sortedTokens);
@@ -5142,7 +5487,7 @@ function importedWalletTokenFallbacks(data = liveWalletData, tonPriceUsd = usdTo
 }
 
 function syncPortfolioFromDisplayedTokens(tokens = latestVisibleTokens) {
-  if (!walletConnected || !tokens.length) return;
+  if (!hasTonWalletPortfolio() || !walletConnected || !tokens.length) return;
   const total = tokens.reduce((sum, token) => sum + Number(token.valueUsd || 0), 0);
   allocationState.tokens = total;
   if (liveWalletData?.summary) {
@@ -5180,6 +5525,11 @@ function renderTokenEmptyState(message = "No token balances above $0.10") {
 async function updateTokensFromWallet(data, options = {}) {
   const list = document.querySelector('[data-screen="tokens"] .holdings-list');
   if (!list) return;
+  if (!hasTonWalletPortfolio()) {
+    renderTokenEmptyState("Connect a TON wallet to load tokens");
+    setSectionReady("tokens", "Connect a TON wallet to load token balances", { toast: false });
+    return [];
+  }
   const walletAddress = liveWalletAddress || data?.account?.address || "";
   if (!walletAddress) {
     renderTokenEmptyState("Connect wallet to load tokens");
@@ -5216,21 +5566,17 @@ async function updateTokensFromWallet(data, options = {}) {
   if (tokens.length) renderTokenRows(tokens);
   else renderTokenEmptyState("No token balances above $0.10");
   const jettonCount = Math.max(0, tokens.length - (tokens.some((token) => token.symbol === "TON") ? 1 : 0));
-  setSectionReady("tokens", tokens.length ? `Tokens ready${jettonCount ? ` · ${jettonCount} jettons loaded` : ""}` : "Token screen is ready");
+  setSectionReady("tokens", tokens.length ? `Tokens ready${jettonCount ? ` Â· ${jettonCount} jettons loaded` : ""}` : "Token screen is ready");
   return tokens;
 }
 
 const collectiblePayloadCache = new Map();
 const collectiblePayloadRequests = new Map();
 
-function demoStickerFallbackAssets() {
-  return demoStickerAssets.map((asset) => ({ ...structuredClone(asset), isDemo: true }));
-}
-
-function fetchWalletCollectiblesPayload(walletAddress) {
+function fetchWalletCollectiblesPayload(walletAddress, options = {}) {
   const key = String(walletAddress || "").toLowerCase();
-  if (collectiblePayloadCache.has(key)) return Promise.resolve(collectiblePayloadCache.get(key));
-  if (collectiblePayloadRequests.has(key)) return collectiblePayloadRequests.get(key);
+  if (!options.force && collectiblePayloadCache.has(key)) return Promise.resolve(collectiblePayloadCache.get(key));
+  if (!options.force && collectiblePayloadRequests.has(key)) return collectiblePayloadRequests.get(key);
   const request = fetchJson(`/api/collectibles?address=${encodeURIComponent(walletAddress)}&t=${Date.now()}`)
     .then((payload) => {
       collectiblePayloadCache.set(key, payload);
@@ -5243,15 +5589,10 @@ function fetchWalletCollectiblesPayload(walletAddress) {
 
 function renderImportedCollectiblesSnapshot(items = []) {
   if (!Array.isArray(items) || !items.length) return false;
-  const gifts = groupGiftAssets(items.filter((item) => item.type === "gift").map((item, index) => liveCollectibleAsset(item, "gift", index, { suppressMarket: true })));
-  const stickers = groupStickerAssets(items.filter((item) => item.type === "sticker").map((item, index) => liveCollectibleAsset(item, "sticker", index, { suppressMarket: true })));
-  giftAssets.splice(0, giftAssets.length, ...gifts);
-  stickerAssets.splice(0, stickerAssets.length, ...stickers);
-  [...gifts, ...stickers].forEach((asset) => {
-    assetDetails[asset.id] = asset;
-    (asset.children || []).forEach((child) => { assetDetails[child.id] = child; });
-  });
-  setCollectiblesBanner("gifts", gifts.length ? "" : "No on-chain wallet gifts found. Telegram profile gifts can be added by username next.");
+  walletGiftGroups = groupGiftAssets(items.filter((item) => item.type === "gift").map((item, index) => liveCollectibleAsset(item, "gift", `wallet-${index}`, { suppressMarket: true })));
+  walletStickerGroups = groupStickerAssets(items.filter((item) => item.type === "sticker").map((item, index) => liveCollectibleAsset(item, "sticker", `wallet-${index}`, { suppressMarket: true })));
+  const { gifts, stickers } = rebuildPortfolioCollectibleGroups();
+  setCollectiblesBanner("gifts", gifts.length ? "" : "No on-chain wallet gifts found.");
   setCollectiblesBanner("stickers", stickers.length ? "" : "No on-chain sticker packs found in this wallet.");
   renderCollectibleGrids();
   updateAllocationUi();
@@ -5260,11 +5601,12 @@ function renderImportedCollectiblesSnapshot(items = []) {
 }
 
 function updateCollectiblesFromWallet(data, options = {}) {
+  if (!hasTonWalletPortfolio()) return Promise.resolve([]);
   const walletAddress = liveWalletAddress || data?.account?.address;
   if (!walletAddress) return Promise.resolve([]);
   const hasSnapshot = renderImportedCollectiblesSnapshot(data?.assets?.collectibles);
   return Promise.allSettled([
-    updateGiftsFromWallet(walletAddress, { loading: !hasSnapshot, importSessionId: options.importSessionId }),
+    updateGiftsFromWallet(walletAddress, { loading: !hasSnapshot, importSessionId: options.importSessionId, force: true }),
     updateStickersFromWallet(walletAddress, { loading: !hasSnapshot, importSessionId: options.importSessionId }),
   ]).then(() => {
     if (!isCurrentImportSession(options.importSessionId)) return [];
@@ -5285,31 +5627,30 @@ async function updateStickersFromWallet(walletAddress, options = {}) {
     if (!isCurrentImportSession(options.importSessionId)) return [];
     const rows = payload?.stickers || [];
     if (!rows.length) {
-      stickerAssets.splice(0, stickerAssets.length, ...demoStickerFallbackAssets());
-      setCollectiblesBanner("stickers", "Showing demo data");
+      walletStickerGroups = [];
+      rebuildPortfolioCollectibleGroups();
+      setCollectiblesBanner("stickers", "No on-chain sticker packs found in this wallet.");
       renderCollectibleGrids();
-      setSectionReady("stickers", "Sticker screen ready · demo data");
+      setSectionReady("stickers", "Sticker screen ready Â· no sticker packs found");
       return [];
     }
-    const assets = groupStickerAssets(rows.map((item, index) => liveCollectibleAsset(item, "sticker", index)));
-    stickerAssets.splice(0, stickerAssets.length, ...assets);
-    assets.forEach((asset) => {
-      assetDetails[asset.id] = asset;
-      (asset.children || []).forEach((child) => { assetDetails[child.id] = child; });
-    });
+    walletStickerGroups = groupStickerAssets(rows.map((item, index) => liveCollectibleAsset(item, "sticker", `wallet-${index}`)));
+    const { stickers: assets } = rebuildPortfolioCollectibleGroups();
     setCollectiblesBanner("stickers", assets.some((asset) => Number(asset.floorUsd || 0) > 0) ? "" : "Fetching sticker prices...");
     renderCollectibleGrids();
     updateCollectibleSummaryBanner("stickers");
+    preloadStickerAnimatedMedia(assets);
     prefetchStickerDetails(assets);
-    setSectionReady("stickers", `Stickers ready · ${assets.length} collection${assets.length === 1 ? "" : "s"} loaded`);
+    setSectionReady("stickers", `Stickers ready Â· ${assets.length} collection${assets.length === 1 ? "" : "s"} loaded`);
     return assets;
   } catch (error) {
     console.warn("stickers live data failed", error);
     if (!isCurrentImportSession(options.importSessionId)) return [];
-    stickerAssets.splice(0, stickerAssets.length, ...demoStickerFallbackAssets());
-    setCollectiblesBanner("stickers", "Showing demo data");
+    walletStickerGroups = [];
+    rebuildPortfolioCollectibleGroups();
+    setCollectiblesBanner("stickers", "Sticker data is unavailable right now.");
     renderCollectibleGrids();
-    setSectionReady("stickers", "Sticker screen ready · demo data");
+    setSectionReady("stickers", "Sticker screen ready Â· data unavailable");
     return [];
   }
 }
@@ -5319,50 +5660,84 @@ async function updateCollectiblesFromGetgems(walletAddress, kind, options = {}) 
   if (options.loading !== false) setSectionLoading(kind, kind === "gifts" ? "Loading wallet gifts..." : "Loading wallet collectibles...");
   if (options.loading !== false) setCollectibleLoading(kind, true);
   try {
-    const payload = await fetchWalletCollectiblesPayload(walletAddress);
+    const payload = await fetchWalletCollectiblesPayload(walletAddress, { force: Boolean(options.force) });
     if (!isCurrentImportSession(options.importSessionId)) return [];
     const rows = payload?.[kind] || [];
     if (!rows.length) {
-      const target = kind === "gifts" ? giftAssets : stickerAssets;
+      if (kind === "gifts") walletGiftGroups = [];
+      else walletStickerGroups = [];
+      rebuildPortfolioCollectibleGroups();
       if (kind === "stickers") {
-        target.splice(0, target.length, ...demoStickerFallbackAssets());
-        setCollectiblesBanner(kind, "Showing demo data");
-        setSectionReady(kind, "Sticker screen ready · demo data");
+        setCollectiblesBanner(kind, "No on-chain sticker packs found in this wallet.");
+        setSectionReady(kind, "Sticker screen ready Â· no sticker packs found");
       } else {
-        target.splice(0, target.length);
-        setCollectiblesBanner(kind, "No on-chain wallet gifts found. Telegram profile gifts can be added by username next.");
-        setSectionReady(kind, "Gifts ready · no wallet gifts found");
+        setCollectiblesBanner(kind, "No on-chain wallet gifts found.");
+        setSectionReady(kind, "Gifts ready Â· no wallet gifts found");
       }
       renderCollectibleGrids();
       return [];
     }
-    const assets = kind === "stickers"
+    const walletGroups = kind === "stickers"
       ? groupStickerAssets(rows.map((item, index) => liveCollectibleAsset(item, "sticker", index)))
       : groupGiftAssets(rows.map((item, index) => liveCollectibleAsset(item, "gift", index, { suppressMarket: true })));
-    const target = kind === "gifts" ? giftAssets : stickerAssets;
-    target.splice(0, target.length, ...assets);
-    assets.forEach((asset) => {
-      assetDetails[asset.id] = asset;
-      (asset.children || []).forEach((child) => { assetDetails[child.id] = child; });
-    });
+    if (kind === "gifts") walletGiftGroups = walletGroups;
+    else walletStickerGroups = walletGroups;
+    const { gifts, stickers } = rebuildPortfolioCollectibleGroups();
+    const assets = kind === "gifts" ? gifts : stickers;
     setCollectiblesBanner(kind, "");
     renderCollectibleGrids();
     if (kind === "gifts") {
       preloadGiftStaticImages(assets);
       updateCollectibleSummaryBanner(kind);
-    } else prefetchStickerDetails(assets);
-    setSectionReady(kind, `${kind === "gifts" ? "Gifts" : "Stickers"} ready · ${assets.length} ${assets.length === 1 ? "collection" : "collections"} loaded`);
+    } else {
+      preloadStickerAnimatedMedia(assets);
+      prefetchStickerDetails(assets);
+    }
+    setSectionReady(kind, `${kind === "gifts" ? "Gifts" : "Stickers"} ready Â· ${assets.length} ${assets.length === 1 ? "collection" : "collections"} loaded`);
     return assets;
   } catch (error) {
     console.warn(`${kind} live data failed`, error);
     if (!isCurrentImportSession(options.importSessionId)) return [];
-    if (kind === "gifts") giftAssets.splice(0, giftAssets.length);
-    else stickerAssets.splice(0, stickerAssets.length, ...demoStickerFallbackAssets());
-    setCollectiblesBanner(kind, kind === "gifts" ? "Live data unavailable" : "Live data unavailable — showing demo data");
+    if (kind === "gifts") walletGiftGroups = [];
+    else walletStickerGroups = [];
+    rebuildPortfolioCollectibleGroups();
+    setCollectiblesBanner(kind, kind === "gifts" ? "Live data unavailable" : "Sticker data is unavailable right now.");
     renderCollectibleGrids();
-    setSectionReady(kind, kind === "gifts" ? "Gift screen ready · live data unavailable" : "Sticker screen ready · demo data");
+    setSectionReady(kind, kind === "gifts" ? "Gift screen ready Â· live data unavailable" : "Sticker screen ready Â· data unavailable");
     return [];
   }
+}
+
+function groupedAssetChildren(groups = []) {
+  return groups.flatMap((group) => Array.isArray(group?.children) && group.children.length ? group.children : [group]);
+}
+
+function stickerOwnedCount(asset = {}) {
+  const holdings = Array.isArray(asset.children) && asset.children.length ? asset.children : [asset];
+  const ownershipKeys = new Set(
+    holdings
+      .map((holding) => String(holding?.tokenAddress || holding?.id || "").trim())
+      .filter(Boolean)
+  );
+  return ownershipKeys.size || holdings.length;
+}
+
+function rebuildPortfolioCollectibleGroups() {
+  const gifts = groupGiftAssets([
+    ...groupedAssetChildren(telegramGiftGroups),
+    ...groupedAssetChildren(walletGiftGroups),
+  ]);
+  const stickers = groupStickerAssets([
+    ...groupedAssetChildren(telegramStickerGroups),
+    ...groupedAssetChildren(walletStickerGroups),
+  ]);
+  giftAssets.splice(0, giftAssets.length, ...gifts);
+  stickerAssets.splice(0, stickerAssets.length, ...stickers);
+  [...gifts, ...stickers].forEach((asset) => {
+    assetDetails[asset.id] = asset;
+    (asset.children || []).forEach((child) => { assetDetails[child.id] = child; });
+  });
+  return { gifts, stickers };
 }
 
 function groupStickerAssets(assets = []) {
@@ -5370,19 +5745,49 @@ function groupStickerAssets(assets = []) {
   assets.forEach((asset) => {
     const brand = stickerBrandName(asset);
     const key = brand.toLowerCase();
-    if (!groups.has(key)) groups.set(key, { ...asset, children: [], childCollections: [], floorUsd: 0, floorTon: 0, initUsd: 0, initTon: 0, count: 0, family: brand, subtitle: "" });
+    if (!groups.has(key)) groups.set(key, {
+      ...asset,
+      children: [],
+      childCollections: [],
+      floorUsd: 0,
+      floorTon: 0,
+      initUsd: 0,
+      initTon: 0,
+      dailyUsd: 0,
+      count: 0,
+      listedCount: 0,
+      ownedStickerKeys: new Set(),
+      family: brand,
+      subtitle: "",
+    });
     const group = groups.get(key);
+    const ownershipKey = String(asset.tokenAddress || asset.id || "").trim();
+    // A wallet holding is identified by its NFT address, never by collectible
+    // metadata such as a pack's declared sticker count.
+    if (ownershipKey && group.ownedStickerKeys.has(ownershipKey)) return;
+    if (ownershipKey) group.ownedStickerKeys.add(ownershipKey);
     group.children.push(asset);
-    const childLabel = asset.collection || asset.name || asset.characterName;
+    const childLabel = stickerPackLabel(asset);
     if (childLabel && !group.childCollections.includes(childLabel)) group.childCollections.push(childLabel);
-    group.count += Number(asset.count || 1);
+    group.count = group.ownedStickerKeys.size || group.children.length;
     group.floorUsd += Number(asset.floorUsd || 0);
     group.floorTon += Number(asset.floorTon || 0);
+    group.dailyUsd += Number(asset.dailyUsd || 0);
+    if (asset.status && asset.status !== "Unlisted") group.listedCount += 1;
     group.name = brand;
     group.collection = brand;
     group.creator = brand;
     group.packId = `${brand} Collection`;
     group.image = group.image || asset.image;
+    const currentMedia = stickerMediaDescriptor(group);
+    const candidateMedia = stickerMediaDescriptor(asset);
+    const mediaRank = (type) => ({ lottie: 3, video: 2, image: 1 }[String(type || "").toLowerCase()] || 0);
+    if (mediaRank(candidateMedia.type) > mediaRank(currentMedia.type)) {
+      group.animatedImage = asset.animatedImage || asset.animationUrl || asset.animatedUrl || asset.mediaUrl || "";
+      group.animationUrl = asset.animationUrl || asset.animatedImage || "";
+      group.mediaType = candidateMedia.type;
+      group.image = asset.image || group.image;
+    }
     group.tokenAddress = group.tokenAddress || asset.tokenAddress;
     group.initUsd += Number(asset.initUsd || 0);
     group.initTon += Number(asset.initTon || 0);
@@ -5395,27 +5800,103 @@ function groupStickerAssets(assets = []) {
     group.categorySource = group.categorySource || asset.categorySource;
     group.priceLoading = Boolean(group.priceLoading || asset.priceLoading);
   });
-  return [...groups.values()].map((group, index) => {
-    const preview = group.childCollections.slice(0, 3).join(", ");
-    const more = group.childCollections.length > 3 ? ` +${group.childCollections.length - 3}` : "";
+  return [...groups.values()].map(({ ownedStickerKeys, ...group }, index) => {
+    const costBasis = Number(group.initUsd || group.costBasis || 0);
+    const previousFloor = Number(group.floorUsd || 0) - Number(group.dailyUsd || 0);
     return {
       ...group,
+      packCount: group.childCollections.length,
+      format: group.mediaType === "lottie" ? "Animated" : (group.mediaType === "video" ? "Video" : "Static"),
       image: STICKER_SOURCE_IMAGES[group.name] || group.image,
       creator: group.family || group.name,
-      subtitle: preview ? `${preview}${more}` : (group.family || group.name),
-      costBasis: group.initUsd || group.costBasis || 0,
-      pnlUsd: group.initUsd ? group.floorUsd - group.initUsd : group.pnlUsd,
-      pnlPct: group.initUsd ? ((group.floorUsd - group.initUsd) / group.initUsd) * 100 : group.pnlPct,
+      subtitle: `${group.childCollections.length} pack${group.childCollections.length === 1 ? "" : "s"}`,
+      costBasis,
+      pnlUsd: costBasis ? group.floorUsd - costBasis : 0,
+      pnlPct: costBasis ? ((group.floorUsd - costBasis) / costBasis) * 100 : 0,
+      dailyPct: previousFloor > 0 ? (Number(group.dailyUsd || 0) / previousFloor) * 100 : 0,
+      status: group.listedCount ? "Listed" : "Unlisted",
       id: `live-sticker-pack-${group.collection || group.name || index}`.replace(/[^a-z0-9_-]/gi, "-"),
     };
   });
+}
+
+function stickerPackLabel(asset = {}) {
+  const brandKey = collectibleKey(stickerBrandName(asset));
+  // Registry character names are classification metadata and can be shared by
+  // otherwise different NFT collections. Ownership grouping must prefer the
+  // collectible's actual collection/name so unrelated holdings never merge.
+  const candidates = [asset.collection, asset.packId, asset.name, asset.characterName]
+    .map((value) => String(value || "").replace(/\s+#\d+\b.*$/i, "").trim())
+    .filter(Boolean);
+  return candidates.find((value) => collectibleKey(value) !== brandKey && !/^telegram(?: collection)?$/i.test(value)) || candidates[0] || "Sticker Pack";
+}
+
+function stickerEditionLabel(asset = {}) {
+  const value = String(asset.name || asset.collection || "").match(/#(\d{1,7})\b/)?.[1] || asset.tag || "";
+  const cleaned = String(value || "").replace(/[^\d]/g, "");
+  return cleaned ? `#${cleaned}` : "";
+}
+
+function stickerPackImageStack(asset = {}) {
+  const previews = (asset.children?.length ? asset.children : [asset]).slice(0, 2);
+  if (previews.length < 2) return "";
+  const extra = stickerOwnedCount(asset) - previews.length;
+  return `<button type="button" class="gift-pfp-stack" data-collectible-pfp-tray="${escapeHtml(asset.id)}" data-collectible-kind="sticker" aria-label="Show owned sticker editions">${previews.map((item) => collectibleArtHtml(item, "sticker")).join("")}${extra > 0 ? `<b>+${extra}</b>` : ""}</button>`;
+}
+
+function stickerPackMeta(asset = {}) {
+  const parts = [asset.format, asset.edition].filter(Boolean);
+  return parts.join(" Â· ") || "Sticker pack";
+}
+
+function groupStickerBrandChildren(children = []) {
+  const groups = new Map();
+  children.forEach((asset) => {
+    const label = stickerPackLabel(asset);
+    const key = collectibleKey(label) || asset.id;
+    const item = groups.get(key) || {
+      ...asset,
+      id: asset.id,
+      children: [],
+      count: 0,
+      floorUsd: 0,
+      floorTon: 0,
+      initUsd: 0,
+      dailyUsd: 0,
+      priceLoading: false,
+      ownedStickerKeys: new Set(),
+    };
+    const ownershipKey = String(asset.tokenAddress || asset.id || "").trim();
+    if (ownershipKey && item.ownedStickerKeys.has(ownershipKey)) return;
+    if (ownershipKey) item.ownedStickerKeys.add(ownershipKey);
+    item.children.push(asset);
+    item.count = item.ownedStickerKeys.size || item.children.length;
+    item.floorUsd += Number(asset.floorUsd || 0);
+    item.floorTon += Number(asset.floorTon || 0);
+    item.initUsd += Number(asset.initUsd || asset.costBasis || 0);
+    item.dailyUsd += Number(asset.dailyUsd || 0);
+    item.priceLoading = Boolean(item.priceLoading || (asset.priceLoading && !(Number(asset.floorUsd || 0) > 0)));
+    groups.set(key, item);
+  });
+  return [...groups.values()]
+    .map((item) => {
+      const previousFloor = Number(item.floorUsd || 0) - Number(item.dailyUsd || 0);
+      const { ownedStickerKeys, ...groupedItem } = item;
+      return {
+        ...groupedItem,
+        pnlUsd: groupedItem.initUsd ? groupedItem.floorUsd - groupedItem.initUsd : 0,
+        pnlPct: groupedItem.initUsd ? ((groupedItem.floorUsd - groupedItem.initUsd) / groupedItem.initUsd) * 100 : 0,
+        dailyPct: previousFloor > 0 ? (groupedItem.dailyUsd / previousFloor) * 100 : 0,
+      };
+    })
+    .sort((a, b) => Number(b.floorUsd || 0) - Number(a.floorUsd || 0) || stickerPackLabel(a).localeCompare(stickerPackLabel(b)));
 }
 
 function groupGiftAssets(assets = []) {
   const groups = new Map();
   assets.forEach((asset) => {
     const name = String(asset.collection || asset.name || "Telegram Gifts").trim();
-    const source = String(asset.marketPlatform || "").trim();
+    const source = isEstimatedAsset(asset) ? "" : String(asset.marketPlatform || "").trim();
     const key = name.toLowerCase();
     if (!groups.has(key)) groups.set(key, {
       ...asset,
@@ -5443,9 +5924,19 @@ function groupGiftAssets(assets = []) {
     if (asset.tag) group.tags.push(asset.tag);
     group.name = name;
     group.collection = name;
-    group.creator = source ? `Floor · ${source}` : (asset.creator || group.creator || name);
-    group.provenance = source ? `${name} · ${source}` : name;
+    group.creator = source ? `Floor Â· ${source}` : (asset.creator || group.creator || name);
+    group.provenance = source ? `${name} Â· ${source}` : name;
     group.image = group.image || asset.image;
+    const mediaRank = (type) => ({ lottie: 3, video: 2, image: 1 }[String(type || "").toLowerCase()] || 0);
+    const currentMedia = giftMediaDescriptor(group);
+    const candidateMedia = giftMediaDescriptor(asset);
+    if (mediaRank(candidateMedia.type) > mediaRank(currentMedia.type)) {
+      group.image = asset.image || group.image;
+      group.animatedImage = asset.animatedImage || asset.animationUrl || "";
+      group.animationUrl = asset.animationUrl || asset.animatedImage || "";
+      group.mediaType = candidateMedia.type;
+      group.layeredMedia = asset.layeredMedia || group.layeredMedia;
+    }
     group.marketPlatform = group.marketPlatform || asset.marketPlatform;
     group.marketUrl = group.marketUrl || asset.marketUrl;
     group.collectionAddress = group.collectionAddress || asset.collectionAddress;
@@ -5558,7 +6049,7 @@ function liveCollectibleAsset(item, kind, index, options = {}) {
   const isGift = kind === "gift";
   const attrs = Array.isArray(item.attributes) ? item.attributes : [];
   const attr = (label) => attrs.find((item) => String(item.trait_type || item.type || item.label || "").toLowerCase().includes(label));
-  const attrValue = (label, fallback = "—") => {
+  const attrValue = (label, fallback = "â€”") => {
     const hit = attr(label);
     return String(hit?.value || fallback);
   };
@@ -5575,27 +6066,33 @@ function liveCollectibleAsset(item, kind, index, options = {}) {
   const marketVerified = options.suppressMarket
     ? hasBackendPrice
     : (hasEstimatedPrice || ((Number(item.floorUsd || 0) > 0 || Number(item.floorTon || 0) > 0) && Boolean(item.marketPlatform || item.source || item.marketUrl)));
-  const floorUsd = marketVerified ? Number(item.floorUsd || 0) : 0;
   const floorTon = marketVerified ? Number(item.floorTon || 0) : 0;
+  const floorUsd = marketVerified
+    ? (Number(item.floorUsd || 0) || (floorTon > 0 ? floorTon * usdTonRate : 0))
+    : 0;
+  const stickerAnimationSource = String(item.animationUrl || item.animatedImage || "");
+  const stickerMediaType = !isGift
+    ? ((/\.(?:lottie\.)?json(?:[?#].*)?$/i.test(stickerAnimationSource) || /\/lottie(?:\/|$)/i.test(stickerAnimationSource)) ? "lottie" : (item.mediaType || ""))
+    : "";
   return {
     id: `live-${kind}-${item.tokenAddress || index}`.replace(/[^a-z0-9_-]/gi, "-"),
     type: kind,
     name: item.name || (isGift ? "Telegram Gift" : "Sticker Pack"),
     collection: item.collection || "Telegram Collection",
     creator: item.collection || "Telegram",
-    image: item.image,
+    image: item.image || item.previewUrl || item.iconUrl || item.thumbnailUrl || item.thumbnail || item.photo || "",
     animatedImage: item.animatedImage || item.animationUrl || item.animatedUrl || item.mediaUrl || "",
     animationUrl: item.animationUrl || item.animatedImage || "",
-    mediaType: item.mediaType || "",
+    mediaType: stickerMediaType || item.mediaType || "",
     layeredMedia: item.layeredMedia || null,
     collectionAddress: item.collectionAddress,
     tokenAddress: item.tokenAddress,
     icon: isGift ? "gift" : "sticker",
     tag: Number(item.mintIndex || index + 1),
     traits: [
-      { label: "Model", value: attrValue("model", "TON NFT"), rarity: attrRarity("model") },
-      { label: "Backdrop", value: attrValue("backdrop", item.collection?.slice(0, 16) || "Collection"), rarity: attrRarity("backdrop") },
-      { label: "Symbol", value: attrValue("symbol", "Wallet"), rarity: attrRarity("symbol") },
+      { label: "Model", value: item.modelName || item.model || attrValue("model", "TON NFT"), rarity: attrRarity("model") },
+      { label: "Backdrop", value: item.backdropName || item.backdrop || attrValue("backdrop", item.collection?.slice(0, 16) || "Collection"), rarity: attrRarity("backdrop") },
+      { label: "Symbol", value: item.symbolName || item.symbol || attrValue("symbol", "Wallet"), rarity: attrRarity("symbol") },
     ],
     mint: { current: Number(item.mintIndex || index + 1), total: Math.max(Number(item.mintIndex || index + 1), 1) },
     floorUsd,
@@ -5613,7 +6110,7 @@ function liveCollectibleAsset(item, kind, index, options = {}) {
     acquiredSort: Date.now(),
     costBasis,
     upgraded: "Imported from connected TON wallet",
-    provenance: `${item.collection || "Collection"} · ${truncateWalletAddress(item.tokenAddress || "")}`,
+    provenance: `${item.collection || "Collection"} Â· ${truncateWalletAddress(item.tokenAddress || "")}`,
     comboRank: item.description || "Live wallet collectible",
     exactCount: "Trait data from marketplace metadata",
     quickSellTon: marketVerified ? floorTon * 0.95 : 0,
@@ -5631,13 +6128,23 @@ function liveCollectibleAsset(item, kind, index, options = {}) {
     source: item.source || "",
     brand: item.brand || "",
     categorySource: item.categorySource || "",
-    sales: [],
-    intel: { trend: "▂▃▅▆▇", badge: "Live", sales24h: "—", volume24h: "—", prior: "—", daysToSell: "—", listedSupply: "—", listingRate: "—", bestTime: "—" },
+    sales: Array.isArray(item.sales) ? item.sales : (Array.isArray(item.recentSales) ? item.recentSales : []),
+    salesScope: item.salesScope || "",
+    salesLoading: Boolean(item.salesLoading),
+    giftSalesRaw: Array.isArray(item.sales) ? item.sales : (Array.isArray(item.recentSales) ? item.recentSales : []),
+    floorHistory: Array.isArray(item.floorHistory) ? item.floorHistory : [],
+    floorHistorySource: item.floorHistorySource || "",
+    floorHistoryAvailable: Array.isArray(item.floorHistory) && item.floorHistory.length >= 2,
+    collectionStats: item.collectionStats || null,
+    modelStats: item.modelStats || null,
+    intel: { trend: "â–‚â–ƒâ–…â–†â–‡", badge: "Live", sales24h: "â€”", volume24h: "â€”", prior: "â€”", daysToSell: "â€”", listedSupply: "â€”", listingRate: "â€”", bestTime: "â€”" },
     chart: floorUsd ? [floorUsd, floorUsd, floorUsd, floorUsd, floorUsd, floorUsd, floorUsd] : [],
     ...(isGift ? {} : {
-      format: attrValue("format", "Static"),
+      format: stickerMediaType === "lottie" ? "Animated" : (stickerMediaType === "video" ? "Video" : attrValue("format", "Static")),
       edition: attrValue("edition", "Open Edition"),
-      count: Number(attrValue("count", "1").replace(/\D/g, "")) || 1,
+      // TonAPI returns one row for each NFT address the wallet owns. Metadata
+      // "count" traits describe the collectible and must not inflate ownership.
+      count: 1,
       packId: item.collection || "Sticker Pack",
       attributes: [["Source", "TON NFT"], ["Collection", item.collection || "Telegram"], ["Owner", "Wallet"]],
     }),
@@ -5667,7 +6174,7 @@ function formatActivityDate(dateValue) {
   const day = date.getDate();
   const hour = String(date.getHours()).padStart(2, "0");
   const minute = String(date.getMinutes()).padStart(2, "0");
-  return `${month} ${day} · ${hour}:${minute}`;
+  return `${month} ${day} Â· ${hour}:${minute}`;
 }
 
 function activityDayLabel(dateValue) {
@@ -5683,16 +6190,16 @@ function activityDayLabel(dateValue) {
 
 function signedActivityValue(value, direction) {
   if (direction === "Swap") return value;
-  if (/^[+\-−]/.test(value)) return value;
+  if (/^[+\-âˆ’]/.test(value)) return value;
   if (!/(TON|USD|JETTON|[A-Z0-9$]{2,})/i.test(value)) return value;
-  return `${direction === "Sent" ? "−" : "+"}${value}`;
+  return `${direction === "Sent" ? "âˆ’" : "+"}${value}`;
 }
 
 function activityRowsHtml(events = [], limit = 5, emptyText = "No TON activity found yet", options = {}) {
   const usableEvents = events.map((event) => {
     const action = event.actions?.find((item) => item.simplePreview?.value) || event.actions?.[0];
     const preview = action?.simplePreview || {};
-    let value = String(preview.value || preview.description?.replace(/^Swapping\s+/i, "").replace(/\s+for\s+/i, " → ") || "On-chain");
+    let value = String(preview.value || preview.description?.replace(/^Swapping\s+/i, "").replace(/\s+for\s+/i, " â†’ ") || "On-chain");
     if (/nft|gift|sticker/i.test(`${action?.type || ""} ${preview.name || ""} ${value}`)) return null;
     const tonMatch = value.match(/[-+]?\d+(?:\.\d+)?\s*TON/i);
     if (tonMatch && Math.abs(Number.parseFloat(tonMatch[0])) <= 0) return null;
@@ -5700,13 +6207,13 @@ function activityRowsHtml(events = [], limit = 5, emptyText = "No TON activity f
     const isPositive = /^\s*\+/.test(value);
     const direction = preview.direction || (/swap/i.test(action?.type || preview.name || "") ? "Swap" : isNegative ? "Sent" : "Received");
     value = signedActivityValue(value, direction);
-    const valueParts = value.split(/\s+→\s+/);
+    const valueParts = value.split(/\s+â†’\s+/);
     return {
       label: direction,
       description: preview.name || action?.type || "TON activity",
       value,
       valueHtml: valueParts.length > 1
-        ? `${escapeHtml(valueParts[0])}<span>${escapeHtml(`→ ${valueParts.slice(1).join(" → ")}`)}</span>`
+        ? `${escapeHtml(valueParts[0])}<span>${escapeHtml(`â†’ ${valueParts.slice(1).join(" â†’ ")}`)}</span>`
         : escapeHtml(value),
       direction,
       usdValue: preview.usdValue || "",
@@ -5800,12 +6307,12 @@ function renderTxSheet(detail = {}) {
   logoStack.classList.toggle("is-single", !isSwap);
   logoStack.innerHTML = logos.map(txLogoHtml).join("");
   const amountTitle = document.getElementById("txAmountTitle");
-  const amountParts = String(detail.amount || "0 TON").split(/\s*→\s*/);
+  const amountParts = String(detail.amount || "0 TON").split(/\s*â†’\s*/);
   amountTitle.innerHTML = isSwap && amountParts.length > 1
-    ? `<span class="tx-swap-sent">−${escapeHtml(amountParts[0])}</span><span class="tx-swap-received">+${escapeHtml(amountParts.slice(1).join(" → "))}</span>`
+    ? `<span class="tx-swap-sent">âˆ’${escapeHtml(amountParts[0])}</span><span class="tx-swap-received">+${escapeHtml(amountParts.slice(1).join(" â†’ "))}</span>`
     : escapeHtml(detail.amount || "0 TON");
   document.getElementById("txUsdValue").textContent = isSwap ? "" : (detail.usdValue || "n/a");
-  document.getElementById("txSubtitle").textContent = `${detail.type || "Transaction"} · ${detail.timestamp ? formatActivityDate(detail.timestamp) : ""}`;
+  document.getElementById("txSubtitle").textContent = `${detail.type || "Transaction"} Â· ${detail.timestamp ? formatActivityDate(detail.timestamp) : ""}`;
   document.getElementById("txDetailList").innerHTML = txRowsHtml(detail);
   const button = document.getElementById("txTonscanButton");
   if (button) button.innerHTML = `<i data-lucide="globe"></i><span>${escapeHtml(truncateWalletAddress(detail.hash || ""))}</span>`;
@@ -5876,6 +6383,7 @@ async function startActivityPreload(address) {
   if (!address) return;
   console.info("Activity preload started", address);
   if (activityPreloadAddress === address && (activityInitialLoading || fullActivityEvents.length)) {
+    if (fullActivityEvents.length) renderActivityRows(fullActivityEvents, HOME_ACTIVITY_LIMIT);
     if (fullActivityEvents.length && document.querySelector('[data-screen="activity"].is-active')) renderFullActivity(fullActivityEvents);
     return;
   }
@@ -5886,9 +6394,10 @@ async function startActivityPreload(address) {
     const payload = await requestJson(`/api/wallet/activity?address=${encodeURIComponent(address)}&limit=200&t=${Date.now()}`, {}, "Could not load activity");
     if (address === activityPreloadAddress) {
       fullActivityEvents = payload.activity || [];
+      renderActivityRows(fullActivityEvents, HOME_ACTIVITY_LIMIT);
       if (document.querySelector('[data-screen="activity"].is-active')) renderFullActivity(fullActivityEvents);
       preloadFullActivityBackground(address);
-      setSectionReady("activity", `Activity ready · ${fullActivityEvents.length} transactions loaded`);
+      setSectionReady("activity", `Activity ready Â· ${fullActivityEvents.length} transactions loaded`);
     }
   } catch (error) {
     console.warn("Full activity load failed", error);
@@ -5896,7 +6405,7 @@ async function startActivityPreload(address) {
       document.querySelector('[data-screen="activity"] .holdings-list').innerHTML = activityRowsHtml([], 1000, "Could not load wallet history");
       window.lucide?.createIcons();
     }
-    setSectionReady("activity", "Activity ready · unavailable");
+    setSectionReady("activity", "Activity ready Â· unavailable");
   } finally {
     activityInitialLoading = false;
   }
@@ -5909,6 +6418,7 @@ async function preloadFullActivityBackground(address) {
     const payload = await requestJson(`/api/wallet/activity?address=${encodeURIComponent(address)}&limit=1000&t=${Date.now()}`, {}, "Could not load background activity");
     if (address === liveWalletAddress && payload.activity?.length > fullActivityEvents.length) {
       fullActivityEvents = payload.activity;
+      renderActivityRows(fullActivityEvents, HOME_ACTIVITY_LIMIT);
       if (document.querySelector('[data-screen="activity"].is-active')) renderFullActivity(fullActivityEvents);
     }
   } catch (error) {
@@ -5926,451 +6436,96 @@ function compactMoney(value) {
 function renderDonut(progress = 1) {
   const host = document.getElementById("donut-chart") || document.querySelector(".allocation-donut") || document.querySelector(".donut-chart");
   if (!host) return;
-  const canvas = host instanceof HTMLCanvasElement ? host : getOrCreateCanvas(host, "donut-chart-canvas", 160, 160);
-  const ctx = canvas.getContext("2d");
-  if (!ctx) return;
-  const ratio = window.devicePixelRatio || 1;
-  const cssSize = Math.max(120, Math.round(host.getBoundingClientRect().width || 160));
-  canvas.style.width = `${cssSize}px`;
-  canvas.style.height = `${cssSize}px`;
-  canvas.width = Math.round(cssSize * ratio);
-  canvas.height = Math.round(cssSize * ratio);
-  ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
-  const cx = cssSize / 2;
-  const cy = cssSize / 2;
-  const r = cx * 0.72;
-  const stroke = cx * 0.24;
+  const values = [allocationState.gifts, allocationState.tokens, allocationState.stickers];
+  const labels = ["Gifts", "TON Tokens", "Stickers"];
+  const total = values.reduce((sum, value) => sum + Math.max(0, Number(value || 0)), 0);
+  const selectedValue = selectedAllocation === null ? total : values[selectedAllocation];
+  const centerValue = host.querySelector("span");
+  if (centerValue) centerValue.textContent = compactMoney(selectedValue);
+  host.setAttribute("aria-label", selectedAllocation === null
+    ? `Portfolio allocation, total ${compactMoney(total)}`
+    : `${labels[selectedAllocation]} allocation, ${compactMoney(selectedValue)}`);
   const styles = getComputedStyle(document.documentElement);
-  const total = Math.max(1, allocationState.gifts + allocationState.tokens + allocationState.stickers);
-  const segments = [
-    { pct: allocationState.gifts / total, color: styles.getPropertyValue("--blue").trim() },
-    { pct: allocationState.tokens / total, color: styles.getPropertyValue("--mint").trim() },
-    { pct: allocationState.stickers / total, color: styles.getPropertyValue("--amber").trim() },
-  ];
-  ctx.clearRect(0, 0, cssSize, cssSize);
-  let angle = -Math.PI / 2;
-  const gap = 0.08;
-  let remaining = Math.max(0, Math.min(1, progress));
-  segments.forEach((segment, index) => {
-    if (remaining <= 0) return;
-    const pct = Math.min(segment.pct, remaining);
-    const sweep = segment.pct * 2 * Math.PI - gap;
-    const animatedSweep = pct * 2 * Math.PI - (pct === segment.pct ? gap : 0);
-    const mid = angle + sweep / 2;
-    const lift = selectedAllocation === index ? stroke * 0.34 : 0;
-    ctx.beginPath();
-    ctx.arc(cx + Math.cos(mid) * lift, cy + Math.sin(mid) * lift, r, angle, angle + Math.max(0, animatedSweep));
-    ctx.strokeStyle = segment.color;
-    ctx.lineWidth = stroke;
-    ctx.lineCap = "round";
-    ctx.stroke();
-    remaining -= segment.pct;
-    angle += segment.pct * 2 * Math.PI;
+  Charts.renderDonut(host, values, {
+    progress,
+    selected: selectedAllocation,
+    pixelRatio: window.devicePixelRatio || 1,
+    colors: ["--blue", "--mint", "--amber"].map((name) => styles.getPropertyValue(name).trim()),
   });
   const legendItems = document.querySelectorAll(".allocation-list article");
   document.querySelector(".allocation-list")?.classList.toggle("is-filtered", selectedAllocation !== null);
-  legendItems.forEach((item, index) => item.classList.toggle("is-selected", selectedAllocation === index));
+  legendItems.forEach((item, index) => {
+    const selected = selectedAllocation === index;
+    item.classList.toggle("is-selected", selected);
+    item.setAttribute("aria-pressed", String(selected));
+  });
 }
 
-const portfolioRanges = {
-  "1D": {
-    label: "Today",
-    defaultLabel: "12:00",
-    ruler: [
-      { label: "09:00", index: 0 },
-      { label: "12:00", index: 3 },
-      { label: "15:00", index: 6 },
-      { label: "18:00", index: 9 },
-      { label: "20:00", index: 11 },
-    ],
-    value: "$0.00",
-    change: "+2.37%",
-    points: [
-      { label: "09:00", date: "May 17 09:00", value: 15104, change: "+0.6%", x: 0, y: 126 },
-      { label: "10:00", date: "May 17 10:00", value: 15620, change: "+0.8%", x: 28, y: 112 },
-      { label: "11:00", date: "May 17 11:00", value: 16210, change: "+1.0%", x: 57, y: 101 },
-      { label: "12:00", date: "May 17 12:00", value: 16578, change: "+1.1%", x: 85, y: 96 },
-      { label: "13:00", date: "May 17 13:00", value: 16180, change: "+0.7%", x: 113, y: 104 },
-      { label: "14:00", date: "May 17 14:00", value: 15890, change: "-0.1%", x: 142, y: 111 },
-      { label: "15:00", date: "May 17 15:00", value: 16025, change: "-0.3%", x: 170, y: 108 },
-      { label: "16:00", date: "May 17 16:00", value: 16670, change: "+0.9%", x: 198, y: 91 },
-      { label: "17:00", date: "May 17 17:00", value: 17140, change: "+1.4%", x: 227, y: 78 },
-      { label: "18:00", date: "May 17 18:00", value: 17499, change: "+1.8%", x: 255, y: 70 },
-      { label: "19:00", date: "May 17 19:00", value: 17920, change: "+2.1%", x: 283, y: 53 },
-      { label: "20:00", date: "May 17 20:00", value: 0, change: "+0.00%", x: 340, y: 34 },
-    ],
-    area: "M0 126 C32 118 46 92 78 96 C112 101 120 58 154 66 C191 75 198 116 232 92 C260 72 282 42 340 34 V160 H0 Z",
-    line: "M0 126 C32 118 46 92 78 96 C112 101 120 58 154 66 C191 75 198 116 232 92 C260 72 282 42 340 34",
-    point: [340, 34],
-  },
-  "7D": {
-    label: "May 11",
-    defaultLabel: "Mon 12:00",
-    ruler: [
-      { label: "Mon", index: 0 },
-      { label: "Tue", index: 1 },
-      { label: "Wed", index: 2 },
-      { label: "Thu", index: 3 },
-      { label: "Fri", index: 4 },
-      { label: "Sat", index: 5 },
-      { label: "Sun", index: 6 },
-    ],
-    value: "$17,980",
-    change: "+4.90%",
-    points: [
-      { label: "Mon 12:00", date: "May 11", value: 14880, change: "+0.4%" },
-      { label: "Tue 12:00", date: "May 12", value: 15620, change: "+1.2%" },
-      { label: "Wed 12:00", date: "May 13", value: 15980, change: "+0.9%" },
-      { label: "Thu 12:00", date: "May 14", value: 16840, change: "+2.0%" },
-      { label: "Fri 12:00", date: "May 15", value: 17060, change: "+1.5%" },
-      { label: "Sat 12:00", date: "May 16", value: 17240, change: "+1.7%" },
-      { label: "Sun 12:00", date: "May 17", value: 17980, change: "+4.90%" },
-    ],
-    area: "M0 118 C42 104 62 122 96 94 C134 62 162 86 196 70 C232 54 258 68 340 38 V160 H0 Z",
-    line: "M0 118 C42 104 62 122 96 94 C134 62 162 86 196 70 C232 54 258 68 340 38",
-    point: [340, 38],
-  },
-  "1M": {
-    label: "Apr 17",
-    defaultLabel: "May 17",
-    ruler: [
-      { label: "May 1", index: 0 },
-      { label: "May 8", index: 1 },
-      { label: "May 15", index: 2 },
-      { label: "May 22", index: 3 },
-    ],
-    value: "$16,860",
-    change: "+9.25%",
-    points: [
-      { label: "May 1", date: "May 1", value: 15120, change: "+1.4%" },
-      { label: "May 8", date: "May 8", value: 15880, change: "+2.1%" },
-      { label: "May 15", date: "May 15", value: 16420, change: "+3.0%" },
-      { label: "May 22", date: "May 22", value: 16860, change: "+9.25%" },
-    ],
-    area: "M0 132 C44 128 74 108 108 112 C148 118 168 84 210 78 C252 72 286 52 340 40 V160 H0 Z",
-    line: "M0 132 C44 128 74 108 108 112 C148 118 168 84 210 78 C252 72 286 52 340 40",
-    point: [340, 40],
-  },
-  "3M": {
-    label: "Feb 17",
-    defaultLabel: "Mar 15",
-    ruler: [
-      { label: "Mar", index: 0 },
-      { label: "Apr", index: 1 },
-      { label: "May", index: 2 },
-    ],
-    value: "$14,240",
-    change: "+29.35%",
-    points: [
-      { label: "Mar 15", date: "Mar 15", value: 11960, change: "+3.8%" },
-      { label: "Apr 15", date: "Apr 15", value: 13280, change: "+5.4%" },
-      { label: "May 15", date: "May 15", value: 14240, change: "+29.35%" },
-    ],
-    area: "M0 140 C38 126 66 132 102 110 C146 84 172 104 214 76 C254 48 294 58 340 30 V160 H0 Z",
-    line: "M0 140 C38 126 66 132 102 110 C146 84 172 104 214 76 C254 48 294 58 340 30",
-    point: [340, 30],
-  },
-  "1Y": {
-    label: "May 2025",
-    defaultLabel: "May 2026",
-    ruler: [
-      { label: "Jan", index: 0 },
-      { label: "Mar", index: 1 },
-      { label: "May", index: 2 },
-      { label: "Jul", index: 3 },
-      { label: "Sep", index: 4 },
-      { label: "Nov", index: 5 },
-    ],
-    value: "$14,260",
-    change: "-18.42%",
-    points: [
-      { label: "Jan 2026", date: "Jan 2026", value: 22580, change: "+8.1%" },
-      { label: "Feb 2026", date: "Feb 2026", value: 21840, change: "+4.4%" },
-      { label: "Mar 2026", date: "Mar 2026", value: 20720, change: "-1.2%" },
-      { label: "Apr 2026", date: "Apr 2026", value: 21360, change: "+1.8%" },
-      { label: "May 2026", date: "May 2026", value: 19940, change: "-5.6%" },
-      { label: "Jun 2026", date: "Jun 2026", value: 20310, change: "-3.9%" },
-      { label: "Jul 2026", date: "Jul 2026", value: 19180, change: "-9.2%" },
-      { label: "Aug 2026", date: "Aug 2026", value: 19540, change: "-7.4%" },
-      { label: "Sep 2026", date: "Sep 2026", value: 18730, change: "-11.8%" },
-      { label: "Oct 2026", date: "Oct 2026", value: 19060, change: "-10.2%" },
-      { label: "Nov 2026", date: "Nov 2026", value: 18190, change: "-14.6%" },
-      { label: "Dec 2026", date: "Dec 2026", value: 0, change: "+0.00%" },
-    ],
-    area: "M0 146 C50 142 80 126 118 118 C158 108 178 78 218 86 C258 94 286 48 340 24 V160 H0 Z",
-    line: "M0 146 C50 142 80 126 118 118 C158 108 178 78 218 86 C258 94 286 48 340 24",
-    point: [340, 24],
-  },
-};
+function portfolioHistoryRows(range = "1D") {
+  return liveHistoryByRange.get(range) || (range === "1D" ? liveHistoryPoints : []);
+}
+
+function portfolioTimeLabel(timestamp, range, detail = false) {
+  const date = new Date(timestamp);
+  const options = detail
+    ? { weekday: "short", month: "2-digit", day: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit", hour12: false }
+    : range === "1D"
+      ? { hour: "2-digit", minute: "2-digit", hour12: false }
+      : range === "7D" ? { weekday: "short" } : { month: "short", day: "numeric" };
+  return new Intl.DateTimeFormat(undefined, options).format(date);
+}
 
 function renderPortfolioGraph(range = "1D", animate = false) {
-  const data = portfolioRanges[range] || portfolioRanges["1D"];
-  preparePortfolioRange(data, range);
   const graph = document.querySelector('[data-screen="home"] .graph-card');
-  const svg = graph?.querySelector(".value-graph svg");
-  if (!svg) return;
-  svg.querySelector(".area")?.setAttribute("d", data.area);
-  svg.querySelector(".line")?.setAttribute("d", data.line);
-  renderGraphRuler(data);
-  renderExtremeLabels(data.points);
-  document.querySelector('[data-screen="home"] .value-graph')?.classList.remove("is-touching");
+  const canvas = graph?.querySelector(".value-graph canvas");
+  if (!canvas) return;
+  const points = portfolioHistoryRows(range);
+  const rangeState = historyRangeState.get(range) || {};
+  const hasHistory = points.length >= 2;
+  const isLoading = !hasHistory
+    && rangeState.status !== "failed"
+    && isGraphHistoryLoadingEnabled()
+    && (loadingPortfolioRanges.has(range) || ["queued", "building", "partial"].includes(rangeState.status));
+  const hasFailed = !hasHistory && rangeState.status === "failed";
+  const state = graph.querySelector(".portfolio-chart-state");
+  const stateTitle = state?.querySelector("b");
+  const stateText = state?.querySelector("small");
+  graph.classList.toggle("is-history-ready", hasHistory);
+  graph.classList.toggle("is-history-loading", isLoading);
+  graph.classList.toggle("is-history-empty", !hasHistory && !isLoading && !hasFailed);
+  graph.classList.toggle("is-history-failed", hasFailed);
+  graph.dataset.historyState = hasHistory ? "ready" : isLoading ? "loading" : hasFailed ? "failed" : "empty";
+  canvas.setAttribute("aria-hidden", String(!hasHistory));
+  if (state) state.hidden = hasHistory;
+  if (stateTitle) stateTitle.textContent = isLoading ? "Building your trend" : hasFailed ? "History unavailable" : "History starts here";
+  if (stateText) stateText.textContent = isLoading
+    ? "Refreshing your saved snapshots."
+    : hasFailed ? "Your current portfolio value is still available." : "Your next snapshot unlocks the trend.";
+  Charts.renderConfigured("portfolio", hasHistory ? points : [], {
+    element: canvas,
+    duration: animate ? 320 : 0,
+    color: "#F4F4F1",
+    areaColor: "rgba(244,244,241,.11)",
+    gridColor: "rgba(255,255,255,.055)",
+    tickColor: "#73736E",
+    lineWidth: 2.25,
+    easing: "easeOutQuart",
+    formatTick: (point) => portfolioTimeLabel(point.timestamp, range),
+    formatDate: (point) => portfolioTimeLabel(point.timestamp, range, true),
+    formatValue: (point) => `${money(point.value)} portfolio`,
+    formatAxis: compactMoney,
+  });
   graph.querySelectorAll("[data-range]").forEach((button) => {
     button.classList.toggle("is-active", button.dataset.range === range);
-    button.classList.toggle("is-loading", loadingPortfolioRanges.has(button.dataset.range));
+    button.classList.toggle("is-loading", isGraphHistoryLoadingEnabled() && loadingPortfolioRanges.has(button.dataset.range));
   });
   resetPortfolioHeader(range);
-  if (animate) animatePortfolioGraphLine();
-}
-
-function preparePortfolioRange(data, range) {
-  if (!data.basePoints) data.basePoints = data.points.map((point) => ({ ...point }));
-  data.activeRange = range;
-  data.points = buildRangePoints(data, range);
-  const values = data.points.map((point) => point.value);
-  const min = Math.min(...values);
-  const max = Math.max(...values);
-  const valuePadding = Math.max((max - min) * 0.12, homePortfolioValue * 0.01);
-  const scaledMin = min - valuePadding;
-  const scaledMax = max + valuePadding;
-  const plotTop = 28;
-  const plotBottom = 132;
-  data.points.forEach((point, index) => {
-    point.x = data.points.length === 1 ? 0 : (index / (data.points.length - 1)) * 340;
-    point.y = plotBottom - ((point.value - scaledMin) / Math.max(1, scaledMax - scaledMin)) * (plotBottom - plotTop);
-  });
-  const line = data.points.map((point, index) => `${index === 0 ? "M" : "L"}${point.x.toFixed(2)} ${point.y.toFixed(2)}`).join(" ");
-  data.line = line;
-  data.area = `${line} L340 160 L0 160 Z`;
-}
-
-function buildRangePoints(data, range) {
-  const rangeHistory = liveHistoryByRange.get(range) || (range === "1D" ? liveHistoryPoints : []);
-  if (liveWalletData && rangeHistory.length) {
-    const guideEvery = liveGuideStep(range, rangeHistory.length);
-    return rangeHistory.map((point, index) => {
-      const date = new Date(point.timestamp);
-      const previous = rangeHistory[Math.max(0, index - 1)];
-      return {
-        label: formatRangeDate(range, date),
-        detailLabel: formatRangeDetailDate(range, date),
-        value: point.value,
-        change: index === 0 ? "+0.00%" : `${point.value >= previous.value ? "+" : ""}${((point.value - previous.value) / Math.max(1, previous.value) * 100).toFixed(2)}%`,
-        guide: index === 0 || index === rangeHistory.length - 1 || index % guideEvery === 0,
-      };
-    });
-  }
-  if (liveWalletData) return buildLoadingRangePoints(range);
-  const now = currentGraphEnd();
-  const configs = {
-    "1D": { start: addMinutes(now, -144 * 5), count: 145, step: 5, guide: 36 },
-    "7D": { start: addMinutes(now, -168 * 60), count: 169, step: 60, guide: 24 },
-    "1M": { start: addMinutes(now, -360 * 120), count: 361, step: 120, guide: 84 },
-    "3M": { start: addMinutes(now, -91 * 1440), count: 92, step: 1440, guide: 31 },
-    "1Y": { start: new Date(now.getFullYear(), now.getMonth() - 11, now.getDate(), now.getHours(), 0), count: 12, monthly: true, guide: 2 },
-  };
-  const config = configs[range];
-  if (!config) return data.basePoints.map((point) => ({ ...point }));
-  return Array.from({ length: config.count }, (_, index) => {
-    const date = config.monthly ? addMonths(config.start, index) : addMinutes(config.start, index * config.step);
-    const value = portfolioValueAt(date, now);
-    const previousDate = config.monthly ? addMonths(config.start, Math.max(0, index - 1)) : addMinutes(config.start, Math.max(0, index - 1) * config.step);
-    const previousValue = index === 0 ? value : portfolioValueAt(previousDate, now);
-    const changePct = previousValue ? ((value - previousValue) / previousValue) * 100 : 0;
-    return {
-      label: formatRangeDate(range, date),
-      detailLabel: formatRangeDetailDate(range, date),
-      value,
-      change: `${changePct >= 0 ? "+" : ""}${changePct.toFixed(2)}%`,
-      guide: isGuidePoint(range, date, index, config),
-    };
-  });
-}
-
-function liveGuideStep(range, length) {
-  if (range === "1D") return Math.max(1, Math.ceil(length / 5));
-  if (range === "7D") return 1;
-  if (range === "1M") return Math.max(1, Math.ceil(length / 5));
-  if (range === "1Y") return Math.max(1, Math.ceil(length / 6));
-  return Math.max(1, Math.ceil(length / 4));
-}
-
-function buildLoadingRangePoints(range) {
-  const now = currentGraphEnd();
-  const count = range === "1D" ? 25 : range === "7D" ? 15 : 31;
-  const stepMinutes = range === "1D" ? 60 : range === "7D" ? 12 * 60 : 24 * 60;
-  const start = range === "1Y"
-    ? new Date(now.getFullYear(), now.getMonth() - 12, now.getDate(), 12, 0, 0, 0)
-    : addMinutes(now, -(count - 1) * stepMinutes);
-  return Array.from({ length: count }, (_, index) => {
-    const date = range === "1Y" ? addMonths(start, index) : addMinutes(start, index * stepMinutes);
-    return {
-      label: formatRangeDate(range, date),
-      detailLabel: formatRangeDetailDate(range, date),
-      value: homePortfolioValue,
-      change: "+0.00%",
-      guide: true,
-      isLoading: true,
-    };
-  });
-}
-
-function currentGraphEnd() {
-  const now = new Date();
-  now.setSeconds(0, 0);
-  return now;
-}
-
-function addMinutes(date, minutes) {
-  return new Date(date.getTime() + minutes * 60000);
-}
-
-function addMonths(date, monthsToAdd) {
-  return new Date(date.getFullYear(), date.getMonth() + monthsToAdd, date.getDate(), date.getHours(), date.getMinutes());
-}
-
-function portfolioValueAt(date, now = currentGraphEnd()) {
-  if (liveWalletData && liveHistoryPoints.length) return livePortfolioValueAt(date);
-  if (homePortfolioValue <= 0) return 0;
-  const daysAgo = Math.max(0, (now.getTime() - date.getTime()) / 86400000);
-  const trendPct = Math.min(0.28, daysAgo * 0.0012);
-  const wavePct =
-    Math.sin(daysAgo * 0.42 + 1.4) * 0.026 +
-    Math.sin(daysAgo * 0.083 + 0.7) * 0.052 +
-    Math.sin(daysAgo * 3.2 + 0.35) * 0.009;
-  const currentWavePct = Math.sin(1.4) * 0.026 + Math.sin(0.7) * 0.052 + Math.sin(0.35) * 0.009;
-  const value = homePortfolioValue * (1 + trendPct + wavePct - currentWavePct);
-  return Math.max(homePortfolioValue * 0.12, value);
-}
-
-function livePortfolioValueAt(date) {
-  const target = date.getTime();
-  const points = liveHistoryByRange.get(activePortfolioRange()) || liveHistoryPoints;
-  if (!points.length) return homePortfolioValue;
-  if (points.length === 1 || target <= points[0].timestamp) return points[0].value;
-  if (target >= points[points.length - 1].timestamp) return points[points.length - 1].value;
-  const rightIndex = points.findIndex((point) => point.timestamp >= target);
-  const left = points[Math.max(0, rightIndex - 1)];
-  const right = points[rightIndex];
-  const span = Math.max(1, right.timestamp - left.timestamp);
-  const pct = (target - left.timestamp) / span;
-  return left.value + (right.value - left.value) * pct;
-}
-
-function isGuidePoint(range, date, index, config) {
-  if (range === "3M") return date.getDate() === 1 || index === config.count - 1;
-  if (range === "1Y") return index % config.guide === 0;
-  if (range === "1M") return index % config.guide === 0;
-  return index % config.guide === 0 || index === config.count - 1;
-}
-
-function formatRangeDate(range, date) {
-  const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-  const hhmm = `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
-  if (range === "1D") return hhmm;
-  if (range === "7D") return `${days[date.getDay()]} ${hhmm}`;
-  if (range === "1M") return `${months[date.getMonth()]} ${date.getDate()} ${hhmm}`;
-  if (range === "3M") return `${months[date.getMonth()]} ${date.getDate()}`;
-  return `${months[date.getMonth()]} ${date.getFullYear()}`;
-}
-
-function formatRangeDetailDate(range, date) {
-  const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-  const mm = String(date.getMonth() + 1).padStart(2, "0");
-  const dd = String(date.getDate()).padStart(2, "0");
-  const hhmm = `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
-  if (range === "3M" || range === "1Y") return `${days[date.getDay()]} ${mm}/${dd}/${date.getFullYear()}`;
-  return `${days[date.getDay()]} ${mm}/${dd}/${date.getFullYear()}, ${hhmm}`;
-}
-
-function renderGraphRuler(data) {
-  const ruler = document.getElementById("portfolioGraphRuler");
-  if (!ruler) return;
-  ruler.style.gridTemplateColumns = "none";
-  const guided = data.points.filter((point) => point.guide);
-  const maxMarkers = data.activeRange === "7D" ? 8 : data.activeRange === "1Y" ? 6 : 5;
-  const step = Math.max(1, Math.ceil(guided.length / maxMarkers));
-  const markers = guided.filter((_, index) => index === 0 || index === guided.length - 1 || index % step === 0);
-  ruler.innerHTML = markers.map((point, rulerIndex) => {
-    const left = point ? (point.x / 340) * 100 : 0;
-    const edge = rulerIndex === 0 ? "is-start" : rulerIndex === markers.length - 1 ? "is-end" : "";
-    const label = graphRulerLabel(data.activeRange, point.label);
-    return `<span class="${edge}" style="left:${left}%">${label}</span>`;
-  }).join("");
-}
-
-function graphRulerLabel(range, label) {
-  if (range === "1D") return label;
-  if (range === "7D") return label.split(" ")[0];
-  if (range === "1M") return label.split(" ").slice(0, 2).join(" ");
-  if (range === "3M") return label.split(" ")[0];
-  if (range === "1Y") return label.split(" ")[0];
-  return label;
-}
-
-function renderExtremeLabels(points = []) {
-  const graph = document.querySelector('[data-screen="home"] .value-graph');
-  if (!graph || !points.length) return;
-  graph.querySelectorAll(".graph-extreme-label").forEach((node) => node.remove());
-  if (points.every((point) => point.isLoading)) return;
-  if (liveWalletData && homePortfolioValue > 0 && points.some((point) => point.value > homePortfolioValue * 20)) return;
-  const minPoint = points.reduce((lowest, point) => (point.value < lowest.value ? point : lowest), points[0]);
-  const maxPoint = points.reduce((highest, point) => (point.value > highest.value ? point : highest), points[0]);
-  [
-    { point: maxPoint, type: "max" },
-    { point: minPoint, type: "min" },
-  ].forEach(({ point, type }) => {
-    const label = document.createElement("span");
-    label.className = `graph-extreme-label is-${type}`;
-    label.textContent = money(point.value);
-    graph.appendChild(label);
-    placeExtremeLabel(label, point, type);
-  });
-}
-
-function placeExtremeLabel(label, point, type) {
-  const graph = document.querySelector('[data-screen="home"] .value-graph');
-  if (!graph) return;
-  const { x, y } = graphSvgToLocal(point);
-  const labelWidth = label.offsetWidth || 58;
-  const left = Math.max(labelWidth / 2, Math.min(graph.clientWidth - labelWidth / 2, x));
-  label.style.left = `${left}px`;
-  label.style.top = `${type === "max" ? Math.max(4, y - 20) : Math.min(graph.clientHeight - 16, y + 12)}px`;
-}
-
-function setGraphTooltipFromPointer(event) {
-  const active = document.querySelector("[data-range].is-active")?.dataset.range || "1D";
-  const data = portfolioRanges[active] || portfolioRanges["1D"];
-  const points = data.points || [];
-  const point = graphPointFromPointer(event, points, active);
-  positionGraphHover(point, true);
-}
-
-function setPortfolioHeader(value, change) {
-  const title = document.querySelector('[data-screen="home"] .graph-head h1');
-  const badge = document.querySelector('[data-screen="home"] .portfolio-actions-row span');
-  if (title) title.textContent = money(homePortfolioValue);
-  if (badge) {
-    const active = document.querySelector("[data-range].is-active")?.dataset.range || "1D";
-    const current = portfolioRanges[active] || portfolioRanges["1D"];
-    const currentValue = latestPortfolioValue(active);
-    const delta = value - currentValue;
-    badge.textContent = `${signedMoney(delta)} | ${change}`;
-    badge.classList.toggle("negative", change.trim().startsWith("-"));
-  }
-}
-
-function latestPortfolioValue(range) {
-  const data = portfolioRanges[range] || portfolioRanges["1D"];
-  const points = data.points?.length ? data.points : data.basePoints || [];
-  return points.at(-1)?.value || homePortfolioValue;
 }
 
 function rangePnl(range) {
-  const data = portfolioRanges[range] || portfolioRanges["1D"];
-  const points = data.points?.length ? data.points : data.basePoints || [];
-  const first = points[0]?.value || latestPortfolioValue(range);
-  const last = latestPortfolioValue(range);
+  const points = portfolioHistoryRows(range);
+  const first = points[0]?.value ?? homePortfolioValue;
+  const last = points.at(-1)?.value ?? homePortfolioValue;
   const delta = last - first;
   const pct = first ? (delta / first) * 100 : 0;
   return { delta, pct };
@@ -6387,244 +6542,14 @@ function resetPortfolioHeader(range = document.querySelector("[data-range].is-ac
   }
 }
 
-function graphPointFromPointer(event, points, range) {
-  const svg = document.querySelector('[data-screen="home"] .value-graph svg');
-  if (!svg || !points.length) return points.at(-1);
-  const svgPoint = svg.createSVGPoint();
-  svgPoint.x = event.clientX;
-  svgPoint.y = event.clientY;
-  const localPoint = svgPoint.matrixTransform(svg.getScreenCTM().inverse());
-  const viewX = Math.min(340, Math.max(0, localPoint.x));
-  const nearest = points.reduce((best, point) => (Math.abs(point.x - viewX) < Math.abs(best.x - viewX) ? point : best), points[0]);
-  return {
-    ...nearest,
-    detailLabel: nearest.detailLabel || getDetailedPointLabel(range, nearest.label),
-  };
-}
-
-function getDetailedPointLabel(range, label) {
-  return label;
-}
-
-function getStrictPointLabel(range, left, right, localPct) {
-  if (localPct >= 1) return right.label;
-  if (range === "1D") {
-    const leftMinutes = timeLabelToMinutes(left.label);
-    const rightMinutes = timeLabelToMinutes(right.label);
-    const exactMinutes = Math.floor(leftMinutes + (rightMinutes - leftMinutes) * localPct);
-    return minutesToTimeLabel(exactMinutes);
-  }
-  if (range === "7D") {
-    return interpolateDayTimeLabel(left.label, right.label, localPct, 60);
-  }
-  if (range === "1M" || range === "3M") {
-    return interpolateMonthDayLabel(left.label, right.label, localPct, range === "1M" ? 120 : 24 * 60);
-  }
-  if (range === "1Y") {
-    return interpolateMonthYearLabel(left.label, right.label, localPct);
-  }
-  return left.label;
-}
-
-function timeLabelToMinutes(label) {
-  const time24 = label.match(/(\d{1,2}):(\d{2})$/);
-  if (time24) return Number(time24[1]) * 60 + Number(time24[2]);
-  const match = label.match(/^(\d{1,2}):(\d{2})\s(AM|PM)$/);
-  if (!match) return 0;
-  let hour = Number(match[1]);
-  const minute = Number(match[2]);
-  const period = match[3];
-  if (period === "PM" && hour !== 12) hour += 12;
-  if (period === "AM" && hour === 12) hour = 0;
-  return hour * 60 + minute;
-}
-
-function minutesToTimeLabel(totalMinutes) {
-  const hour24 = Math.floor(totalMinutes / 60) % 24;
-  const minute = totalMinutes % 60;
-  return `${String(hour24).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
-}
-
-function interpolateDayTimeLabel(leftLabel, rightLabel, localPct, stepMinutes = 60) {
-  const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-  const leftDay = days.indexOf(leftLabel.slice(0, 3));
-  const rightDay = days.indexOf(rightLabel.slice(0, 3));
-  const daySpan = Math.max(1, (rightDay - leftDay + 7) % 7);
-  const total = 12 * 60 + Math.floor((24 * 60 * daySpan * localPct) / stepMinutes) * stepMinutes;
-  const exactDay = leftDay + Math.floor(total / (24 * 60));
-  return `${days[exactDay % 7]} ${minutesToTimeLabel(total)}`;
-}
-
-function interpolateMonthDayLabel(leftLabel, rightLabel, localPct, stepMinutes = 24 * 60) {
-  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-  const [leftMonth, leftDayRaw] = leftLabel.split(" ");
-  const [rightMonth, rightDayRaw] = rightLabel.split(" ");
-  const leftMonthIndex = months.indexOf(leftMonth);
-  const rightMonthIndex = months.indexOf(rightMonth);
-  const leftDay = Number(leftDayRaw);
-  const rightDay = Number(rightDayRaw);
-  const leftAbsoluteMinutes = (leftMonthIndex * 31 + leftDay) * 24 * 60;
-  const rightAbsoluteMinutes = (rightMonthIndex * 31 + rightDay) * 24 * 60;
-  const exactMinutes = leftAbsoluteMinutes + (rightAbsoluteMinutes - leftAbsoluteMinutes) * localPct;
-  const snappedMinutes = Math.floor(exactMinutes / stepMinutes) * stepMinutes;
-  const exactAbsolute = Math.floor(snappedMinutes / (24 * 60));
-  const month = months[Math.max(0, Math.min(11, Math.floor((exactAbsolute - 1) / 31)))];
-  const day = ((exactAbsolute - 1) % 31) + 1;
-  return stepMinutes < 24 * 60 ? `${month} ${day} ${minutesToTimeLabel(snappedMinutes)}` : `${month} ${day}`;
-}
-
-function interpolateMonthYearLabel(leftLabel, rightLabel, localPct) {
-  const months = ["Jan", "Feb", "Mar", "May", "Jul", "Aug", "Sep", "Nov"];
-  return localPct < 1 ? leftLabel : rightLabel;
-}
-
-function positionGraphHover(point, visible) {
-  const graph = document.querySelector('[data-screen="home"] .value-graph');
-  if (!graph || !point) return;
-  const svg = graph.querySelector("svg");
-  if (!svg) return;
-  let dot = graph.querySelector(".graph-hover-dot");
-  let label = graph.querySelector(".graph-value-label");
-  let guide = graph.querySelector(".graph-guide-line");
-  if (!dot) {
-    dot = document.createElement("span");
-    dot.className = "graph-hover-dot";
-    graph.appendChild(dot);
-  }
-  if (!label) {
-    label = document.createElement("span");
-    label.className = "graph-value-label";
-    graph.appendChild(label);
-  }
-  if (!guide) {
-    guide = document.createElement("span");
-    guide.className = "graph-guide-line";
-    graph.appendChild(guide);
-  }
-  const { x, y } = graphSvgToLocal(point);
-  const labelWidth = 74;
-  const rightSide = x < graph.clientWidth / 2;
-  const desiredX = rightSide ? x + 44 : x - 44;
-  const safeLabelX = Math.max(labelWidth / 2, Math.min(graph.clientWidth - labelWidth / 2, desiredX));
-  dot.style.left = `${x}px`;
-  dot.style.top = `${y}px`;
-  guide.style.left = `${x}px`;
-  guide.style.height = `${graph.querySelector("svg")?.clientHeight || 196}px`;
-  label.style.left = `${safeLabelX}px`;
-  label.style.top = `${Math.max(34, y - 4)}px`;
-  label.innerHTML = `<b>${money(point.value)}</b><small>${point.detailLabel || point.label || point.date}</small>`;
-  graph.classList.toggle("is-touching", visible);
-}
-
-function graphSvgToLocal(point) {
-  const graph = document.querySelector('[data-screen="home"] .value-graph');
-  const svg = graph?.querySelector("svg");
-  if (!graph || !svg) return { x: 0, y: 0 };
-  const graphRect = graph.getBoundingClientRect();
-  const svgPoint = svg.createSVGPoint();
-  svgPoint.x = point.x;
-  svgPoint.y = point.y;
-  const screenPoint = svgPoint.matrixTransform(svg.getScreenCTM());
-  return { x: screenPoint.x - graphRect.left, y: screenPoint.y - graphRect.top };
-}
-
-function placeGraphElement(element, point, offsets) {
-  const graph = document.querySelector('[data-screen="home"] .value-graph');
-  if (!graph) return;
-  const { x, y } = graphSvgToLocal(point);
-  element.style.left = `${Math.max(4, Math.min(graph.clientWidth - 58, x + offsets.xOffset))}px`;
-  element.style.top = `${Math.max(8, y + offsets.yOffset)}px`;
-}
-
-function animatePortfolioGraphLine() {
-  const graph = document.querySelector('[data-screen="home"] .value-graph');
-  const line = graph?.querySelector(".line");
-  const area = graph?.querySelector(".area");
-  if (!graph || !line || !area) return;
-  const length = line.getTotalLength();
-  graph.classList.add("graph-drawing");
-  line.style.transition = "none";
-  line.style.strokeDasharray = `${length}px`;
-  line.style.strokeDashoffset = `${length}px`;
-  area.style.opacity = "0";
-  line.getBoundingClientRect();
-  requestAnimationFrame(() => {
-    line.style.transition = "stroke-dashoffset .8s cubic-bezier(.22, 1, .36, 1)";
-    line.style.strokeDashoffset = "0";
-    area.style.opacity = "1";
-  });
-  setTimeout(() => {
-    line.style.strokeDasharray = "";
-    line.style.strokeDashoffset = "";
-    line.style.transition = "";
-    graph.classList.remove("graph-drawing");
-  }, 800);
-}
-
 function playHomeEntrance() {
   const home = document.querySelector('[data-screen="home"]');
-  const line = home?.querySelector(".value-graph .line");
-  const area = home?.querySelector(".value-graph .area");
-  const value = home?.querySelector(".graph-head h1");
-  const badge = home?.querySelector(".portfolio-actions-row span");
-  const donut = home?.querySelector(".donut-chart");
-  const legendItems = home?.querySelectorAll(".allocation-list article") || [];
-  const performers = home?.querySelectorAll(".performer-row article") || [];
-  const rows = home?.querySelectorAll(".activity-row") || [];
-  if (!home || !line || !area || !value || !badge) return;
-
-  home.classList.remove("home-animating", "home-ready");
-  void home.offsetWidth;
-  home.classList.add("home-animating");
-  badge.classList.remove("is-visible");
-  donut?.classList.remove("is-complete");
-  legendItems.forEach((item) => item.classList.remove("legend-in"));
-  performers.forEach((card) => card.classList.remove("bars-in"));
-  rows.forEach((row) => row.classList.remove("row-in"));
-  value.textContent = money(0);
-  renderDonut(0);
-
-  animatePortfolioGraphLine();
-
-  const activeRange = document.querySelector("[data-range].is-active")?.dataset.range || "1D";
-  const targetValue = homePortfolioValue;
-  const valueStart = performance.now();
-  function countValue(now) {
-    const progress = Math.min(1, (now - valueStart) / 800);
-    const eased = 1 - Math.pow(1 - progress, 3);
-    value.textContent = money(targetValue * eased);
-    if (progress < 1) requestAnimationFrame(countValue);
-    else resetPortfolioHeader(activeRange);
-  }
-  requestAnimationFrame(countValue);
-
-  const donutStart = performance.now();
-  function drawDonut(now) {
-    const progress = Math.min(1, (now - donutStart) / 600);
-    renderDonut(1 - Math.pow(1 - progress, 3));
-    if (progress < 1) requestAnimationFrame(drawDonut);
-    else {
-      setTimeout(() => {
-        legendItems.forEach((item, index) => setTimeout(() => item.classList.add("legend-in"), index * 150));
-        setTimeout(() => donut?.classList.add("is-complete"), legendItems.length * 150 + 200);
-      }, 100);
-    }
-  }
-  requestAnimationFrame(drawDonut);
-
-  setTimeout(() => {
-    resetPortfolioHeader();
-    badge.classList.add("is-visible");
-    setTimeout(() => {
-      performers.forEach((card, index) => setTimeout(() => card.classList.add("bars-in"), index * 100));
-      rows.forEach((row, index) => setTimeout(() => row.classList.add("row-in"), index * 80));
-      const finishDelay = Math.max((performers.length - 1) * 100, (rows.length - 1) * 80) + 360;
-      setTimeout(() => {
-        home.classList.remove("home-animating");
-        home.classList.add("home-ready");
-      }, finishDelay);
-    }, 220);
-  }, 800);
+  if (!home) return;
+  home.classList.remove("home-animating");
+  home.classList.add("home-ready");
+  resetPortfolioHeader();
+  renderPortfolioGraph(activePortfolioRange(), true);
+  renderDonut();
 }
 
 const originalText = new WeakMap();
@@ -6672,54 +6597,12 @@ function setCurrency(currency) {
   applyCurrencyDisplay();
 }
 
-function getOrCreateCanvas(host, id, width, height) {
-  let canvas = host.querySelector("canvas");
-  if (!canvas) {
-    canvas = document.createElement("canvas");
-    canvas.id = id;
-    canvas.width = width;
-    canvas.height = height;
-    canvas.setAttribute("aria-hidden", "true");
-    canvas.style.position = "absolute";
-    canvas.style.inset = "0";
-    canvas.style.width = "100%";
-    canvas.style.height = "100%";
-    canvas.style.pointerEvents = "none";
-    host.prepend(canvas);
-  }
-  return canvas;
-}
-
 function renderAnalyticsChart() {
   const analyticsScreen = document.querySelector('[data-screen="analytics"]');
-  const svg = analyticsScreen?.querySelector(".value-graph svg");
-  if (!svg) return;
+  const canvas = analyticsScreen?.querySelector(".value-graph canvas");
+  if (!canvas) return;
   const activeHistory = liveHistoryByRange.get(activePortfolioRange()) || liveHistoryPoints;
-  const perfData = activeHistory.length
-    ? activeHistory.map((point) => point.value)
-    : [0, 0, 0, 0, 0, 0, 0];
-  const width = 340;
-  const height = 140;
-  const padding = 16;
-  const min = Math.min(...perfData);
-  const max = Math.max(...perfData);
-  const points = perfData.map((value, index) => {
-    const x = (index / (perfData.length - 1)) * (width - padding * 2) + padding;
-    const y = height - padding - ((value - min) / Math.max(1, max - min)) * (height - padding * 2);
-    return `${x.toFixed(2)},${y.toFixed(2)}`;
-  });
-  let polyline = svg.querySelector("#analytics-performance-line");
-  if (!polyline) {
-    polyline = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
-    polyline.id = "analytics-performance-line";
-    polyline.setAttribute("fill", "none");
-    polyline.setAttribute("stroke", "#3B6CF8");
-    polyline.setAttribute("stroke-width", "5");
-    polyline.setAttribute("stroke-linecap", "round");
-    polyline.setAttribute("stroke-linejoin", "round");
-    svg.appendChild(polyline);
-  }
-  polyline.setAttribute("points", points.join(" "));
+  Charts.renderConfigured("analytics", activeHistory, { element: canvas });
 }
 
 document.addEventListener("click", (event) => {
@@ -6733,6 +6616,17 @@ document.addEventListener("click", (event) => {
     event.preventDefault();
     event.stopPropagation();
     openGiftPfpTray(giftPfpTrayButton.dataset.giftPfpTray, giftPfpTrayButton);
+    return;
+  }
+  const collectiblePfpTrayButton = event.target.closest("[data-collectible-pfp-tray]");
+  if (collectiblePfpTrayButton) {
+    event.preventDefault();
+    event.stopPropagation();
+    openGiftPfpTray(
+      collectiblePfpTrayButton.dataset.collectiblePfpTray,
+      collectiblePfpTrayButton,
+      collectiblePfpTrayButton.dataset.collectibleKind || "gift",
+    );
     return;
   }
   const walletLogout = event.target.closest("[data-wallet-logout]");
@@ -6786,7 +6680,8 @@ document.addEventListener("click", (event) => {
     const activeAsset = currentDetailAssetId();
     const detail = assetDetails[activeAsset];
     if (detail?.type === "gift") {
-      renderGiftDetailPage(detail, { loading: true });
+      detail.floorHistoryLoading = true;
+      renderGiftDetailPage(detail, { loading: false });
       window.lucide?.createIcons();
       applyCurrencyDisplay();
       loadGiftDetail(detail, { forceRefresh: false });
@@ -6846,6 +6741,8 @@ document.addEventListener("click", (event) => {
   navigateToRoute(nextRoute, { back: isHeaderBackTarget(target) });
 });
 
+installNavigationSwipeGestures();
+
 walletButtons.forEach((button) => {
   button.addEventListener("click", () => {
     if (walletConnected) {
@@ -6853,11 +6750,30 @@ walletButtons.forEach((button) => {
       return;
     }
     openWalletSheet();
+    if (telegramConnected) showConnectionRoute("ton");
   });
 });
 
 document.querySelector(".wallet-sheet-backdrop")?.addEventListener("click", closeWalletSheet);
 document.querySelector(".wallet-sheet-close")?.addEventListener("click", closeWalletSheet);
+document.querySelector(".wallet-sheet-back")?.addEventListener("click", () => showConnectionRoute("choice"));
+document.querySelectorAll("[data-connection-route]").forEach((button) => {
+  button.addEventListener("click", (event) => {
+    // A connection choice is an action, not a screen route. Keep an ancestor
+    // route from processing the same tap and skipping the choice flow.
+    event.preventDefault();
+    event.stopPropagation();
+    const route = button.dataset.connectionRoute || "choice";
+    showConnectionRoute(route);
+    if (route === "telegram") {
+      importTelegramAccount().catch((error) => {
+        setTelegramLoginStatus(error.message || "Telegram connection failed.", true);
+      });
+    } else if (route === "ton") {
+      initTonConnect();
+    }
+  });
+});
 document.querySelector(".wallet-action-backdrop")?.addEventListener("click", closeWalletActionSheet);
 document.querySelector("[data-wallet-open-tonviewer]")?.addEventListener("click", () => {
   const url = currentWalletExplorer("tonviewer");
@@ -6919,11 +6835,6 @@ document.querySelector("[data-settings-refresh]")?.addEventListener("click", ref
 document.querySelector("[data-settings-alerts]")?.addEventListener("click", () => showScreen("watchlist"));
 document.querySelectorAll("[data-wallet-connect]").forEach((button) => {
   button.addEventListener("click", async () => {
-    if (button.dataset.walletConnect === "Address") {
-      document.getElementById("walletAddressInput")?.focus();
-      setWalletImportStatus("Paste the wallet address to import live data.");
-      return;
-    }
     try {
       await connectTonWallet();
     } catch (error) {
@@ -6938,7 +6849,7 @@ document.querySelector("#walletAddressForm")?.addEventListener("submit", async (
   const submit = event.currentTarget.querySelector("button[type='submit']");
   submit.disabled = true;
   try {
-    await importWallet(input?.value || "");
+    await importWallet(input?.value || "", { combineTelegram: telegramConnected, background: telegramConnected });
   } catch (error) {
     setWalletImportStatus(error.message, true);
   } finally {
@@ -6974,99 +6885,46 @@ document.querySelector(".refresh-button")?.addEventListener("click", () => {
     renderPortfolioGraph(activePortfolioRange(), true);
   }
 });
-const homeGraph = document.querySelector('[data-screen="home"] .value-graph');
-function beginGraphInteraction(graph, pointEvent) {
-  graph.classList.add("is-touching");
-  setGraphTooltipFromPointer(pointEvent);
+function selectAllocation(index) {
+  selectedAllocation = selectedAllocation === index ? null : index;
+  renderDonut();
 }
 
-function updateGraphInteraction(graph, pointEvent) {
-  if (!graph.classList.contains("is-touching")) graph.classList.add("is-touching");
-  setGraphTooltipFromPointer(pointEvent);
-}
-
-function endGraphInteraction(graph) {
-  graph.classList.remove("is-touching");
-  resetPortfolioHeader();
-}
-
-function touchPointEvent(event) {
-  const touch = event.touches[0] || event.changedTouches[0];
-  return touch ? { clientX: touch.clientX, clientY: touch.clientY } : null;
-}
-
-homeGraph?.addEventListener("pointerdown", (event) => {
-  if (event.pointerType === "touch") return;
-  if (event.target.closest("[data-range]")) return;
-  event.currentTarget.setPointerCapture?.(event.pointerId);
-  beginGraphInteraction(event.currentTarget, event);
-});
-homeGraph?.addEventListener("pointermove", (event) => {
-  if (event.pointerType === "touch") return;
-  if (event.target.closest("[data-range]")) return;
-  if (event.currentTarget.classList.contains("is-touching")) updateGraphInteraction(event.currentTarget, event);
-});
-homeGraph?.addEventListener("pointerup", (event) => {
-  if (event.pointerType === "touch") return;
-  event.currentTarget.releasePointerCapture?.(event.pointerId);
-  endGraphInteraction(event.currentTarget);
-});
-homeGraph?.addEventListener("pointercancel", (event) => {
-  if (event.pointerType === "touch") return;
-  endGraphInteraction(event.currentTarget);
-});
-homeGraph?.addEventListener("pointerleave", (event) => {
-  if (event.pointerType === "mouse") {
-    endGraphInteraction(event.currentTarget);
-  }
-});
-homeGraph?.addEventListener("touchstart", (event) => {
-  if (event.target.closest("[data-range]")) return;
-  const point = touchPointEvent(event);
-  if (!point) return;
-  event.preventDefault();
-  beginGraphInteraction(event.currentTarget, point);
-}, { passive: false });
-homeGraph?.addEventListener("touchmove", (event) => {
-  if (event.target.closest("[data-range]")) return;
-  const point = touchPointEvent(event);
-  if (!point) return;
-  event.preventDefault();
-  updateGraphInteraction(event.currentTarget, point);
-}, { passive: false });
-homeGraph?.addEventListener("touchend", (event) => {
-  if (event.target.closest("[data-range]")) return;
-  event.preventDefault();
-  endGraphInteraction(event.currentTarget);
-}, { passive: false });
-homeGraph?.addEventListener("touchcancel", (event) => {
-  if (event.target.closest("[data-range]")) return;
-  endGraphInteraction(event.currentTarget);
-}, { passive: false });
-document.querySelector(".donut-chart")?.addEventListener("click", (event) => {
+const allocationDonut = document.querySelector(".donut-chart");
+allocationDonut?.addEventListener("click", (event) => {
   event.stopPropagation();
   const rect = event.currentTarget.getBoundingClientRect();
   const x = event.clientX - rect.left - rect.width / 2;
   const y = event.clientY - rect.top - rect.height / 2;
-  let angle = Math.atan2(y, x) + Math.PI / 2;
-  if (angle < 0) angle += Math.PI * 2;
-  const total = Math.max(1, allocationState.gifts + allocationState.tokens + allocationState.stickers);
-  const giftPct = allocationState.gifts / total;
-  const tokenPct = allocationState.tokens / total;
-  const cutoffs = [giftPct, giftPct + tokenPct, 1];
-  const hit = cutoffs.findIndex((cutoff) => angle / (Math.PI * 2) <= cutoff);
-  selectedAllocation = selectedAllocation === hit ? null : hit;
-  renderDonut();
+  const hit = Charts.donutHitIndex(
+    [allocationState.gifts, allocationState.tokens, allocationState.stickers],
+    x,
+    y,
+    rect.width,
+  );
+  if (hit < 0) return;
+  selectAllocation(hit);
+});
+allocationDonut?.addEventListener("keydown", (event) => {
+  if (!["ArrowLeft", "ArrowRight", "Enter", " "].includes(event.key)) return;
+  event.preventDefault();
+  const direction = event.key === "ArrowLeft" ? -1 : 1;
+  selectAllocation(selectedAllocation === null ? 0 : (selectedAllocation + direction + 3) % 3);
 });
 document.querySelectorAll(".allocation-list article").forEach((item, index) => {
   item.addEventListener("click", (event) => {
     event.stopPropagation();
-    selectedAllocation = selectedAllocation === index ? null : index;
-    renderDonut();
+    selectAllocation(index);
+  });
+  item.addEventListener("keydown", (event) => {
+    if (event.key !== "Enter" && event.key !== " ") return;
+    event.preventDefault();
+    event.stopPropagation();
+    selectAllocation(index);
   });
 });
 document.addEventListener("click", (event) => {
-  if (!event.target.closest(".allocation-card")) {
+  if (selectedAllocation !== null && !event.target.closest(".allocation-card")) {
     selectedAllocation = null;
     renderDonut();
   }
@@ -7095,6 +6953,13 @@ document.querySelector("#priceToggle")?.addEventListener("click", () => {
 });
 
 document.addEventListener("keydown", (event) => {
+  const externalTarget = event.target.closest?.("[data-external-url]");
+  if (externalTarget && (event.key === "Enter" || event.key === " ")) {
+    event.preventDefault();
+    const url = externalTarget.dataset.externalUrl || "";
+    if (url) window.open(url, "_blank", "noopener,noreferrer");
+    return;
+  }
   const key = event.key.toLowerCase();
   if ((event.ctrlKey || event.metaKey) && ["s", "p"].includes(key)) {
     event.preventDefault();
@@ -7116,10 +6981,10 @@ if (initialScreen && document.querySelector(`[data-screen="${initialScreen}"]`) 
   if (defaultScreen) showScreen(defaultScreen.dataset.screen);
 }
 if (window.lucide) window.lucide.createIcons();
-initTonConnect();
+clearStaticPortfolioPreview();
 renderWalletState();
+renderAssetsDotMatrix();
 applyCurrencyDisplay();
-restoreSavedWallet();
 if (document.querySelector('[data-screen="home"].is-active')) {
   playHomeEntrance();
   homeEntrancePlayed = true;

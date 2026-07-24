@@ -289,6 +289,7 @@ function mergeItems(combinations, items = [], market = "") {
   items.forEach((item) => {
     const model = String(item?.model?.name || "").trim();
     const backdrop = String(item?.backdrop?.name || "").trim();
+    const symbol = String(item?.symbol?.name || item?.pattern?.name || "").trim();
     const floorTon = Number(item?.price || 0) / 1e9;
     const marketplace = String(item?.marketplace || market || "thermos-aggregate").trim();
     const listingUrl = String(item?.listingUrl || item?.marketUrl || item?.url || item?.link || item?.permalink || "").trim();
@@ -298,7 +299,7 @@ function mergeItems(combinations, items = [], market = "") {
     const listingKey = listingId || listingUrl || `${marketplace}:${targetKey}:${floorTon}`;
     const existing = combinations.get(targetKey);
     if (!existing) {
-      combinations.set(targetKey, { m: model, b: backdrop, f: floorTon, l: 1, p: marketplace, u: listingUrl, i: listingId, s: [listingKey] });
+      combinations.set(targetKey, { m: model, b: backdrop, y: symbol, f: floorTon, l: 1, p: marketplace, u: listingUrl, i: listingId, s: [listingKey] });
       return;
     }
     if (!Array.isArray(existing.s)) existing.s = [];

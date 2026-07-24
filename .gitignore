@@ -3,6 +3,8 @@ node_modules/
 # Local environment and secrets
 .env
 .env.local
+.telegram-session
+.telegram-login.json
 
 # Runtime logs
 *.log
@@ -21,6 +23,7 @@ ssh-tunnel.*
 data/history-cache/
 data/gift-combo-work/
 data/*.json
+!data/gift-layer-registry.json
 !data/*.schema.sql
 
 # Local probes and generated artifacts

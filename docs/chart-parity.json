@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "source": {
+    "path": "C:/Users/vishu/Documents/New project/ton-portfolio-ui",
+    "head": "e82a7f1186a4bcef1f4ad2f1deb74fe17582fade",
+    "trackedDiffHash": "79dce43056508f0f3f94ed301c011750b7d001c5",
+    "untrackedListHash": "ac7c38366dc86b2870e433abc07b36554804b89d"
+  },
+  "uiPolicy": "preserve the current visual identity; focused UI changes are allowed when required for chart correctness or shared architecture",
+  "routes": [
+    { "id": "home", "parity": "retained" },
+    { "id": "assets", "parity": "retained" },
+    { "id": "tokens", "parity": "retained" },
+    { "id": "gifts", "parity": "retained" },
+    { "id": "gift-brand", "parity": "retained" },
+    { "id": "stickers", "parity": "retained" },
+    { "id": "sticker-brand", "parity": "retained" },
+    { "id": "analytics", "parity": "retained" },
+    { "id": "watchlist", "parity": "retained" },
+    { "id": "activity", "parity": "retained" },
+    { "id": "detail", "parity": "retained" },
+    { "id": "wallets", "parity": "retained" },
+    { "id": "settings", "parity": "retained" }
+  ],
+  "charts": [
+    {
+      "id": "portfolio",
+      "screen": "home",
+      "renderer": "line-area",
+      "ranges": ["1D", "7D", "1M"],
+      "controls": ["range", "pointer-tooltip", "touch-tooltip", "currency"],
+      "pipeline": ["/api/wallet/history", "/api/wallet/history-status"],
+      "parity": "retained"
+    },
+    {
+      "id": "allocation",
+      "screen": "home",
+      "renderer": "doughnut",
+      "ranges": [],
+      "controls": ["segment-selection", "legend-selection"],
+      "pipeline": ["wallet import response"],
+      "parity": "retained"
+    },
+    {
+      "id": "analytics",
+      "screen": "analytics",
+      "renderer": "line",
+      "ranges": ["1D", "7D", "1M"],
+      "controls": [],
+      "pipeline": ["shared wallet history cache"],
+      "parity": "retained"
+    },
+    {
+      "id": "tokenPrice",
+      "screen": "detail:token",
+      "renderer": "line-area",
+      "ranges": ["day", "week", "month", "year", "all"],
+      "controls": ["range", "pointer-tooltip", "touch-tooltip", "currency"],
+      "pipeline": ["/api/token-detail-data"],
+      "parity": "retained"
+    },
+    {
+      "id": "collectibleFloor",
+      "screen": "detail:gift|sticker",
+      "renderer": "line",
+      "ranges": ["7d", "30d"],
+      "controls": ["range", "pointer-tooltip", "touch-tooltip", "currency"],
+      "pipeline": ["/api/gift-registry/history", "/api/gift-detail-data", "/api/collection-floor", "/api/collection-sales", "TonAPI collection items"],
+      "parity": "retained"
+    }
+  ],
+  "nonexistentSurfaces": {
+    "chartPresets": "not present in source",
+    "chartEditor": "not present in source",
+    "chartExports": "not present in source",
+    "savedChartWorkflows": "not present in source"
+  }
+}

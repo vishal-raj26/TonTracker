@@ -3,13 +3,44 @@
   "main": "cloudflare/gift-registry-worker.mjs",
   "compatibility_date": "2026-06-13",
   "triggers": {
-    "crons": ["17 2 * * *"]
+    "crons": ["17 * * * *"]
   },
   "d1_databases": [
     {
       "binding": "GIFT_REGISTRY",
       "database_name": "tontrack-gift-registry",
-      "database_id": "d123b8de-1fd5-4117-a656-6855bbccf49e"
+      "database_id": "d123b8de-1fd5-4117-a656-6855bbccf49e",
+      "migrations_dir": "cloudflare/migrations"
+    },
+    {
+      "binding": "GIFT_SALES_CURRENT",
+      "database_name": "tontrack-gift-sales-live",
+      "database_id": "c777bb70-59fc-49dd-b48e-49399997e991"
+    },
+    {
+      "binding": "GIFT_SALES_2025",
+      "database_name": "tontrack-gift-sales-2025",
+      "database_id": "dbb70b62-4757-4ddc-b4de-c4d06a4d5e6b"
+    },
+    {
+      "binding": "GIFT_SALES_2026",
+      "database_name": "tontrack-gift-sales-2026",
+      "database_id": "45c13ebc-2a13-411b-9dae-08cb5e387df6"
+    },
+    {
+      "binding": "GIFT_SALES_ARCHIVE",
+      "database_name": "tontrack-gift-sales-current",
+      "database_id": "1cfb3e57-48ee-4a55-a21a-55a56b5a117d"
+    },
+    {
+      "binding": "GIFT_SALES_ARCHIVE_2",
+      "database_name": "tontrack-gift-sales",
+      "database_id": "587ece3e-c57d-401a-a35e-445f2b264b02"
+    },
+    {
+      "binding": "GIFT_FLOOR_SOURCES",
+      "database_name": "tontrack-gift-floor-sources",
+      "database_id": "b5eb97b3-9114-47a9-97ad-e56b5543ad54"
     }
   ]
 }
