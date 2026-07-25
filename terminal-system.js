@@ -26,11 +26,7 @@
     '[data-screen="gifts"] .asset-total-banner h2',
     '[data-screen="stickers"] .asset-total-banner h2'
   ];
-  const COMPACT_SELECTORS = [
-    '[data-screen="assets"] .portfolio-strip article:nth-child(2) b',
-    '[data-screen="assets"] .category-stack article > strong',
-    '[data-screen="tokens"] .holdings-list article aside > b'
-  ];  function sourceText(element) {
+  function sourceText(element) {
     if (!element) return "";
     if (element.querySelector('.metric-skeleton')) return "";
     if (element.querySelector('.dot-matrix-character')) return element.dataset.dotText || "";
@@ -55,7 +51,6 @@
     if (!document.querySelector('.app-frame.has-wallet')) return;
     TITLE_SELECTORS.forEach((selector) => root.querySelectorAll?.(selector).forEach((node) => render(node, 'title')));
     VALUE_SELECTORS.forEach((selector) => root.querySelectorAll?.(selector).forEach((node) => render(node, 'value')));
-    COMPACT_SELECTORS.forEach((selector) => root.querySelectorAll?.(selector).forEach((node) => render(node, 'compact')));
   }
 
   let scheduled = false;
