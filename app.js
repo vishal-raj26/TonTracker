@@ -129,9 +129,9 @@ const giftAssets = [
     icon: "gem",
     tag: 4821,
     traits: [
-      { label: "Model", value: "Hypnotoad", rarity: "1.2% â€” Very Rare" },
-      { label: "Backdrop", value: "Electric Indigo", rarity: "1.5% â€” Rare" },
-      { label: "Symbol", value: "Coin", rarity: "0.2% â€” Ultra Rare" },
+      { label: "Model", value: "Hypnotoad", rarity: "1.2% — Very Rare" },
+      { label: "Backdrop", value: "Electric Indigo", rarity: "1.5% — Rare" },
+      { label: "Symbol", value: "Coin", rarity: "0.2% — Ultra Rare" },
     ],
     mint: { current: 1240, total: 6962 },
     floorUsd: 2840,
@@ -144,27 +144,27 @@ const giftAssets = [
     acquired: "May 15, 2026",
     acquiredSort: 20260515,
     costBasis: 2000,
-    upgraded: "Upgraded Â· 2,500 Stars Â· ~$25",
-    provenance: 'Gifted by @alex to you Â· May 15 Â· "Happy birthday!"',
+    upgraded: "Upgraded · 2,500 Stars · ~$25",
+    provenance: 'Gifted by @alex to you · May 15 · "Happy birthday!"',
     comboRank: "Top 0.03% rarest trait combo in this collection",
     exactCount: "Only 9 gifts share this exact Model + Backdrop + Symbol",
     quickSellTon: 135.8,
     quickSellUsd: 2698,
     sales: [
-      ["148 TON Â· $2,938", "May 15", "Hypnotoad", "Electric Indigo", "Coin", "Getgems"],
-      ["143 TON Â· $2,840", "May 14", "Hypnotoad", "Electric Indigo", "Coin", "Fragment"],
-      ["139 TON Â· $2,761", "May 12", "Hypnotoad", "Electric Indigo", "Coin", "Getgems"],
+      ["148 TON · $2,938", "May 15", "Hypnotoad", "Electric Indigo", "Coin", "Getgems"],
+      ["143 TON · $2,840", "May 14", "Hypnotoad", "Electric Indigo", "Coin", "Fragment"],
+      ["139 TON · $2,761", "May 12", "Hypnotoad", "Electric Indigo", "Coin", "Getgems"],
     ],
     intel: {
-      trend: "â–‚â–ƒâ–…â–†â–‡",
+      trend: "▂▃▅▆▇",
       badge: "Trending Up",
       sales24h: "3 exact variant sales",
-      volume24h: "430 TON Â· $8,539",
-      prior: "+34% volume Â· +12% sales count",
+      volume24h: "430 TON · $8,539",
+      prior: "+34% volume · +12% sales count",
       daysToSell: "~2.4 days",
       listedSupply: "12 listed across Getgems + Fragment",
-      listingRate: "Listed: 8% of supply â€” low supply supports price",
-      bestTime: "Thursdays 6â€“9 PM UTC",
+      listingRate: "Listed: 8% of supply — low supply supports price",
+      bestTime: "Thursdays 6–9 PM UTC",
     },
     chart: [2000, 2140, 2260, 2190, 2420, 2680, 2840],
   },
@@ -176,9 +176,9 @@ const giftAssets = [
     icon: "crown",
     tag: 1088,
     traits: [
-      { label: "Model", value: "Goldcrest", rarity: "2.4% â€” Rare" },
-      { label: "Backdrop", value: "Velvet Night", rarity: "3.1% â€” Scarce" },
-      { label: "Symbol", value: "Star", rarity: "0.8% â€” Very Rare" },
+      { label: "Model", value: "Goldcrest", rarity: "2.4% — Rare" },
+      { label: "Backdrop", value: "Velvet Night", rarity: "3.1% — Scarce" },
+      { label: "Symbol", value: "Star", rarity: "0.8% — Very Rare" },
     ],
     mint: { current: 886, total: 5000 },
     floorUsd: 1960,
@@ -191,26 +191,26 @@ const giftAssets = [
     acquired: "Apr 28, 2026",
     acquiredSort: 20260428,
     costBasis: 1640,
-    upgraded: "Upgraded Â· 1,200 Stars Â· ~$12",
-    provenance: 'Gifted by @mira to you Â· Apr 28 Â· "For the vault"',
+    upgraded: "Upgraded · 1,200 Stars · ~$12",
+    provenance: 'Gifted by @mira to you · Apr 28 · "For the vault"',
     comboRank: "Top 0.12% rarest trait combo in this collection",
     exactCount: "Only 21 gifts share this exact Model + Backdrop + Symbol",
     quickSellTon: 93.1,
     quickSellUsd: 1862,
     sales: [
-      ["101 TON Â· $2,018", "May 14", "Goldcrest", "Velvet Night", "Star", "Fragment"],
-      ["97 TON Â· $1,931", "May 11", "Goldcrest", "Velvet Night", "Star", "Getgems"],
+      ["101 TON · $2,018", "May 14", "Goldcrest", "Velvet Night", "Star", "Fragment"],
+      ["97 TON · $1,931", "May 11", "Goldcrest", "Velvet Night", "Star", "Getgems"],
     ],
     intel: {
-      trend: "â–‚â–ƒâ–„â–…â–…",
+      trend: "▂▃▄▅▅",
       badge: "Stable",
       sales24h: "2 exact variant sales",
-      volume24h: "198 TON Â· $3,949",
-      prior: "+9% volume Â· +4% sales count",
+      volume24h: "198 TON · $3,949",
+      prior: "+9% volume · +4% sales count",
       daysToSell: "~3.1 days",
       listedSupply: "18 listed across Getgems + Fragment",
       listingRate: "Listed: 11% of supply",
-      bestTime: "Sundays 4â€“7 PM UTC",
+      bestTime: "Sundays 4–7 PM UTC",
     },
     chart: [1640, 1705, 1810, 1760, 1880, 1920, 1960],
   },
@@ -222,9 +222,9 @@ const giftAssets = [
     icon: "sparkles",
     tag: 7812,
     traits: [
-      { label: "Model", value: "Soft Flare", rarity: "8.2% â€” Notable" },
-      { label: "Backdrop", value: "Mint Haze", rarity: "4.5% â€” Scarce" },
-      { label: "Symbol", value: "Moon", rarity: "2.1% â€” Rare" },
+      { label: "Model", value: "Soft Flare", rarity: "8.2% — Notable" },
+      { label: "Backdrop", value: "Mint Haze", rarity: "4.5% — Scarce" },
+      { label: "Symbol", value: "Moon", rarity: "2.1% — Rare" },
     ],
     mint: { current: 4210, total: 9000 },
     floorUsd: 420,
@@ -237,26 +237,26 @@ const giftAssets = [
     acquired: "Mar 12, 2026",
     acquiredSort: 20260312,
     costBasis: 372,
-    upgraded: "Not upgraded Â· 0 Stars Â· $0",
-    provenance: 'Gifted by @dani to you Â· Mar 12 Â· "Tiny star"',
+    upgraded: "Not upgraded · 0 Stars · $0",
+    provenance: 'Gifted by @dani to you · Mar 12 · "Tiny star"',
     comboRank: "Top 1.6% rarest trait combo in this collection",
     exactCount: "Only 144 gifts share this exact Model + Backdrop + Symbol",
     quickSellTon: 19.95,
     quickSellUsd: 399,
     sales: [
-      ["22 TON Â· $438", "May 13", "Soft Flare", "Mint Haze", "Moon", "Getgems"],
-      ["21 TON Â· $420", "May 10", "Soft Flare", "Mint Haze", "Moon", "Fragment"],
+      ["22 TON · $438", "May 13", "Soft Flare", "Mint Haze", "Moon", "Getgems"],
+      ["21 TON · $420", "May 10", "Soft Flare", "Mint Haze", "Moon", "Fragment"],
     ],
     intel: {
-      trend: "â–…â–„â–ƒâ–ƒâ–‚",
+      trend: "▅▄▃▃▂",
       badge: "Cooling",
       sales24h: "1 exact variant sale",
-      volume24h: "21 TON Â· $420",
-      prior: "-12% volume Â· -18% sales count",
+      volume24h: "21 TON · $420",
+      prior: "-12% volume · -18% sales count",
       daysToSell: "~5.8 days",
       listedSupply: "64 listed across Getgems + Fragment",
       listingRate: "Listed: 19% of supply",
-      bestTime: "Fridays 5â€“8 PM UTC",
+      bestTime: "Fridays 5–8 PM UTC",
     },
     chart: [372, 405, 444, 462, 438, 426, 420],
   },
@@ -268,9 +268,9 @@ const giftAssets = [
     icon: "medal",
     tag: 2260,
     traits: [
-      { label: "Model", value: "Champion", rarity: "1.8% â€” Very Rare" },
-      { label: "Backdrop", value: "Carbon Black", rarity: "2.7% â€” Rare" },
-      { label: "Symbol", value: "Laurel", rarity: "0.9% â€” Very Rare" },
+      { label: "Model", value: "Champion", rarity: "1.8% — Very Rare" },
+      { label: "Backdrop", value: "Carbon Black", rarity: "2.7% — Rare" },
+      { label: "Symbol", value: "Laurel", rarity: "0.9% — Very Rare" },
     ],
     mint: { current: 612, total: 4200 },
     floorUsd: 1380,
@@ -283,26 +283,26 @@ const giftAssets = [
     acquired: "Feb 09, 2026",
     acquiredSort: 20260209,
     costBasis: 970,
-    upgraded: "Upgraded Â· 900 Stars Â· ~$9",
-    provenance: 'Gifted by @tonfan to you Â· Feb 09 Â· "Winner"',
+    upgraded: "Upgraded · 900 Stars · ~$9",
+    provenance: 'Gifted by @tonfan to you · Feb 09 · "Winner"',
     comboRank: "Top 0.18% rarest trait combo in this collection",
     exactCount: "Only 15 gifts share this exact Model + Backdrop + Symbol",
     quickSellTon: 65.55,
     quickSellUsd: 1311,
     sales: [
-      ["70 TON Â· $1,398", "May 15", "Champion", "Carbon Black", "Laurel", "Getgems"],
-      ["67 TON Â· $1,337", "May 12", "Champion", "Carbon Black", "Laurel", "Fragment"],
+      ["70 TON · $1,398", "May 15", "Champion", "Carbon Black", "Laurel", "Getgems"],
+      ["67 TON · $1,337", "May 12", "Champion", "Carbon Black", "Laurel", "Fragment"],
     ],
     intel: {
-      trend: "â–‚â–„â–…â–†â–‡",
+      trend: "▂▄▅▆▇",
       badge: "Trending Up",
       sales24h: "2 exact variant sales",
-      volume24h: "137 TON Â· $2,735",
-      prior: "+22% volume Â· +9% sales count",
+      volume24h: "137 TON · $2,735",
+      prior: "+22% volume · +9% sales count",
       daysToSell: "~2.9 days",
       listedSupply: "15 listed across Getgems + Fragment",
-      listingRate: "Listed: 7% of supply â€” tight inventory",
-      bestTime: "Thursdays 6â€“9 PM UTC",
+      listingRate: "Listed: 7% of supply — tight inventory",
+      bestTime: "Thursdays 6–9 PM UTC",
     },
     chart: [970, 1040, 1115, 1190, 1260, 1328, 1380],
   },
@@ -343,19 +343,19 @@ const stickerAssets = [
     quickSellTon: 29.45,
     quickSellUsd: 589,
     sales: [
-      ["32 TON Â· $638", "May 14", "Animated", "NeonCatLab", "Getgems"],
-      ["31 TON Â· $620", "May 12", "Animated", "NeonCatLab", "Getgems"],
+      ["32 TON · $638", "May 14", "Animated", "NeonCatLab", "Getgems"],
+      ["31 TON · $620", "May 12", "Animated", "NeonCatLab", "Getgems"],
     ],
     intel: {
-      trend: "â–…â–„â–ƒâ–ƒâ–‚",
+      trend: "▅▄▃▃▂",
       badge: "Cooling",
       sales24h: "4 pack sales",
-      volume24h: "124 TON Â· $2,476",
-      prior: "-8% volume Â· -11% sales",
+      volume24h: "124 TON · $2,476",
+      prior: "-8% volume · -11% sales",
       daysToSell: "~4.1 days",
       listedSupply: "41 listed across Getgems",
       listingRate: "Listed: 14% of total supply",
-      bestTime: "Mondays 7â€“9 PM UTC",
+      bestTime: "Mondays 7–9 PM UTC",
     },
     chart: [648, 676, 690, 671, 650, 632, 620],
   },
@@ -387,25 +387,25 @@ const stickerAssets = [
       ["Set ID", "ton://sticker/pixel-faces"],
       ["Creator", "PixelForge"],
       ["Release Type", "Limited Drop"],
-      ["Collaboration", "PixelForge Ãƒâ€” Telegram"],
+      ["Collaboration", "PixelForge × Telegram"],
       ["Drop Date", "March 22, 2026"],
     ],
     quickSellTon: 41.8,
     quickSellUsd: 836,
     sales: [
-      ["45 TON Â· $898", "May 15", "Static", "PixelForge", "Getgems"],
-      ["43 TON Â· $858", "May 13", "Static", "PixelForge", "Getgems"],
+      ["45 TON · $898", "May 15", "Static", "PixelForge", "Getgems"],
+      ["43 TON · $858", "May 13", "Static", "PixelForge", "Getgems"],
     ],
     intel: {
-      trend: "â–‚â–ƒâ–…â–†â–‡",
+      trend: "▂▃▅▆▇",
       badge: "Trending Up",
       sales24h: "7 pack sales",
-      volume24h: "306 TON Â· $6,109",
-      prior: "+28% volume Â· +18% sales",
+      volume24h: "306 TON · $6,109",
+      prior: "+28% volume · +18% sales",
       daysToSell: "~1.9 days",
       listedSupply: "23 listed across Getgems",
-      listingRate: "Listed: 6% of total supply â€” price support",
-      bestTime: "Thursdays 6â€“9 PM UTC",
+      listingRate: "Listed: 6% of total supply — price support",
+      bestTime: "Thursdays 6–9 PM UTC",
     },
     chart: [740, 762, 790, 812, 850, 862, 880],
   },
@@ -443,19 +443,19 @@ const stickerAssets = [
     quickSellTon: 19.48,
     quickSellUsd: 390,
     sales: [
-      ["21 TON Â· $420", "May 13", "Video", "MoonStudio", "Getgems"],
-      ["20 TON Â· $399", "May 11", "Video", "MoonStudio", "Getgems"],
+      ["21 TON · $420", "May 13", "Video", "MoonStudio", "Getgems"],
+      ["20 TON · $399", "May 11", "Video", "MoonStudio", "Getgems"],
     ],
     intel: {
-      trend: "â–ƒâ–„â–ƒâ–„â–…",
+      trend: "▃▄▃▄▅",
       badge: "Stable",
       sales24h: "5 pack sales",
-      volume24h: "102 TON Â· $2,041",
-      prior: "+4% volume Â· +2% sales",
+      volume24h: "102 TON · $2,041",
+      prior: "+4% volume · +2% sales",
       daysToSell: "~3.5 days",
       listedSupply: "78 listed across Getgems",
       listingRate: "Listed: 18% of total supply",
-      bestTime: "Saturdays 3â€“6 PM UTC",
+      bestTime: "Saturdays 3–6 PM UTC",
     },
     chart: [378, 390, 402, 398, 407, 414, 410],
   },
@@ -466,7 +466,7 @@ const tokenDetails = {
     type: "token",
     name: "Toncoin",
     category: "TON Token",
-    value: "$4,180 Â· +2.4%",
+    value: "$4,180 · +2.4%",
     icon: "coins",
     tone: "token-bg",
     statOneLabel: "Balance",
@@ -476,7 +476,7 @@ const tokenDetails = {
     statThreeLabel: "Wallet",
     statThree: "Main",
     pnl: "+$610",
-    history: "Received 30 TON Â· 3m ago",
+    history: "Received 30 TON · 3m ago",
     link: "Explorer",
   },
   notcoin: {
@@ -484,7 +484,7 @@ const tokenDetails = {
     type: "token",
     name: "Notcoin",
     category: "TON Token",
-    value: "$1,120 Â· -1.1%",
+    value: "$1,120 · -1.1%",
     icon: "circle-dollar-sign",
     tone: "token-bg",
     statOneLabel: "Balance",
@@ -494,7 +494,7 @@ const tokenDetails = {
     statThreeLabel: "Wallet",
     statThree: "Trading",
     pnl: "-$42",
-    history: "Bought 4,200 NOT Â· May 10",
+    history: "Bought 4,200 NOT · May 10",
     link: "Explorer",
   },
   "jetton-basket": {
@@ -502,7 +502,7 @@ const tokenDetails = {
     type: "token",
     name: "Jetton Basket",
     category: "TON Token",
-    value: "$440 Â· +0.8%",
+    value: "$440 · +0.8%",
     icon: "landmark",
     tone: "token-bg",
     statOneLabel: "Assets",
@@ -512,7 +512,7 @@ const tokenDetails = {
     statThreeLabel: "Wallet",
     statThree: "Main",
     pnl: "+$36",
-    history: "Portfolio refreshed Â· Today",
+    history: "Portfolio refreshed · Today",
     link: "Explorer",
   },
 };
@@ -871,7 +871,7 @@ function updateCollectibleSummaryBanner(kind) {
   const pnlPct = pnlBase ? (pnl / pnlBase) * 100 : 0;
   const dailyClass = daily < 0 ? "negative" : "positive";
   const pnlClass = pnl < 0 ? "negative" : "positive";
-  banner.innerHTML = `<small>${label}</small><div><h2>${money(total)}</h2><span>${compactNumber(totalTon)} TON</span></div><strong class="${dailyClass}">${signedMoney(daily)} Â· ${signedPct(dailyPct)} 24h</strong><p>${kind === "gifts" ? "Gift" : "Sticker"} unrealized PnL: <b class="${pnlClass}">${signedMoney(pnl)} Â· ${signedPct(pnlPct)}</b></p>`;
+  banner.innerHTML = `<small>${label}</small><div><h2>${money(total)}</h2><span>${compactNumber(totalTon)} TON</span></div><strong class="${dailyClass}">${signedMoney(daily)} · ${signedPct(dailyPct)} 24h</strong><p>${kind === "gifts" ? "Gift" : "Sticker"} unrealized PnL: <b class="${pnlClass}">${signedMoney(pnl)} · ${signedPct(pnlPct)}</b></p>`;
 }
 
 function renderGiftGrid() {
@@ -909,7 +909,7 @@ function renderGiftGrid() {
     const holdings = giftAssets.flatMap((asset) => asset.children?.length ? asset.children : [asset]);
     const fetched = holdings.filter((asset) => asset.floorSource === "backdrop" && Number(asset.floorUsd || 0) > 0).length;
     const estimated = holdings.filter(isEstimatedAsset).length;
-    coverageLabel.textContent = `${fetched} fetched Â· ${estimated} valued`;
+    coverageLabel.textContent = `${fetched} fetched · ${estimated} valued`;
     coverageLabel.classList.toggle("is-complete", Boolean(holdings.length) && fetched + estimated >= holdings.length);
   }
   grid.innerHTML = items.length ? items.map(renderGiftCard).join("") : `<article class="collectible-card"><div class="value-stack"><strong>No gifts found</strong><small>Try a different search.</small></div></article>`;
@@ -991,7 +991,7 @@ function sortAssets(items, sort) {
 function floorSourceLine(asset = {}) {
   if (Number(asset.estimatedCount || 0) > 0) {
     const base = Number(asset.floorTon || 0) > 0 ? `${Number(asset.floorTon).toFixed(2)} TON` : "";
-    return ["Floor", base].filter(Boolean).map((part) => escapeHtml(String(part))).join(" Â· ");
+    return ["Floor", base].filter(Boolean).map((part) => escapeHtml(String(part))).join(" · ");
   }
   const isEstimate = asset.floorStatus === "estimated" || asset.floorSource === "estimate" || asset.source === "estimated-combo-value";
   const isLastSale = asset.floorSource === "last-sale" || asset.source === "last-sale-exact" || /last sale/i.test(String(asset.marketPlatform || ""));
@@ -1002,7 +1002,7 @@ function floorSourceLine(asset = {}) {
   if (!isEstimate && platform && platform !== "xGift Model" && platform !== "Model Floor") parts.push(platform);
   if (Number(asset.initTon || 0) > 0) parts.push(`Init ${Number(asset.initTon).toFixed(2)} TON`);
   else if (Number(asset.initUsd || 0) > 0) parts.push(`Init ${money(asset.initUsd)}`);
-  return parts.map((part) => escapeHtml(String(part))).join(" Â· ");
+  return parts.map((part) => escapeHtml(String(part))).join(" · ");
 }
 
 function isEstimatedAsset(asset = {}) {
@@ -1022,7 +1022,7 @@ function renderGiftCard(asset) {
   const title = asset.name || asset.collection || "Gift";
   const model = giftModelTrait(asset);
   const backdrop = giftBackdropTrait(asset);
-  const subtitle = [model, backdrop].filter(Boolean).join(" Â· ")
+  const subtitle = [model, backdrop].filter(Boolean).join(" · ")
     || [asset.creator, asset.collection].find((value) => value && collectibleKey(value) !== collectibleKey(title)) || "";
   const provenance = asset.provenance && collectibleKey(asset.provenance) !== collectibleKey(title)
     && collectibleKey(asset.provenance) !== collectibleKey(subtitle) ? asset.provenance : "";
@@ -1040,8 +1040,8 @@ function renderGiftCard(asset) {
       ${provenance || listed ? `<div class="card-meta-line ${provenance ? "" : "is-status-only"}">${provenance ? `<span>${escapeHtml(provenance)}</span>` : ""}${listed ? `<b class="status-badge is-listed">${escapeHtml(asset.status)}</b>` : ""}</div>` : ""}
       <div class="value-stack"><strong>${hasPrice ? money(asset.floorUsd) : "Price unavailable"}</strong><small>${floorNote}</small></div>
       <div class="pnl-row">
-        <span class="pnl-box"><small>Daily PnL</small><b class="${dailyClass}">${hasPrice ? `${signedMoney(asset.dailyUsd)} Â· ${signedPct(asset.dailyPct)}` : "â€”"}</b></span>
-        <span class="pnl-box"><small>Total PnL</small><b class="${pnlClass}">${hasPrice ? `${signedMoney(asset.pnlUsd)} Â· ${signedPct(asset.pnlPct)}` : "â€”"}</b></span>
+        <span class="pnl-box"><small>Daily PnL</small><b class="${dailyClass}">${hasPrice ? `${signedMoney(asset.dailyUsd)} · ${signedPct(asset.dailyPct)}` : "—"}</b></span>
+        <span class="pnl-box"><small>Total PnL</small><b class="${pnlClass}">${hasPrice ? `${signedMoney(asset.pnlUsd)} · ${signedPct(asset.pnlPct)}` : "—"}</b></span>
       </div>
     </article>`;
 }
@@ -1066,7 +1066,7 @@ function renderGiftBrand(assetId) {
     const pnl = init ? totalValue - init : 0;
     const valueLabel = totalValue > 0 ? money(totalValue) : "Price unavailable";
     const countLabel = `${count} gift${count === 1 ? "" : "s"}`;
-    summary.innerHTML = `<small>${escapeHtml(brand.creator || brand.collection || "Gift collection")}</small><div><h2>${valueLabel}</h2><span>${escapeHtml(countLabel)}</span></div><strong class="${pnl < 0 ? "negative" : "positive"}">${init && totalValue > 0 ? `${signedMoney(pnl)} Â· ${signedPct((pnl / init) * 100)}` : "Tap a gift to open details"}</strong>`;
+    summary.innerHTML = `<small>${escapeHtml(brand.creator || brand.collection || "Gift collection")}</small><div><h2>${valueLabel}</h2><span>${escapeHtml(countLabel)}</span></div><strong class="${pnl < 0 ? "negative" : "positive"}">${init && totalValue > 0 ? `${signedMoney(pnl)} · ${signedPct((pnl / init) * 100)}` : "Tap a gift to open details"}</strong>`;
   }
   const grid = document.querySelector("#giftBrandGrid");
   groupedChildren.forEach((item) => { assetDetails[item.id] = item; });
@@ -1090,8 +1090,8 @@ function giftDetailHeroMeta(detail = {}) {
     detail.creator || detail.collection || "Gift collection",
     `${count} gift${count === 1 ? "" : "s"}`,
   ].filter(Boolean);
-  if (!numbers.length) return escapeHtml(parts.join(" Â· "));
-  return escapeHtml(parts.join(" Â· "));
+  if (!numbers.length) return escapeHtml(parts.join(" · "));
+  return escapeHtml(parts.join(" · "));
 }
 
 function giftBrandModelLabel(asset = {}) {
@@ -1171,13 +1171,13 @@ function groupGiftBrandChildren(children = []) {
 function renderGiftBrandItem(asset) {
   if (asset.priceLoading && !(Number(asset.floorUsd || 0) > 0)) return renderCollectiblePriceSkeletonCard(asset, "gift");
   const hasPrice = Number(asset.floorUsd) > 0;
-  const floorNote = hasPrice ? floorSourceLine(asset) : (asset.marketPlatform ? `Floor Â· ${escapeHtml(asset.marketPlatform)}` : "Open details");
+  const floorNote = hasPrice ? floorSourceLine(asset) : (asset.marketPlatform ? `Floor · ${escapeHtml(asset.marketPlatform)}` : "Open details");
   const count = Number(asset.count || asset.children?.length || 1);
   const imageStack = count > 1 ? giftBrandImageStack(asset) : "";
   const modelLabel = giftBrandModelLabel(asset);
   const modelCount = giftBrandModelNumber(asset);
   const backdropLabel = giftBackdropTrait(asset);
-  const modelMeta = [modelLabel, backdropLabel].filter(Boolean).join(" Â· ") || modelLabel;
+  const modelMeta = [modelLabel, backdropLabel].filter(Boolean).join(" · ") || modelLabel;
   const target = count > 1 ? "gift-model-group" : "detail";
   return `
     <article class="collectible-card is-gift-card ${imageStack ? "has-gift-stack" : ""} ${count > 1 ? "is-grouped-gift" : ""}" data-screen-target="${target}" data-asset="${asset.id}">
@@ -1225,7 +1225,7 @@ function renderGiftIndividualItem(asset) {
         ${collectibleArtHtml(asset, "gift")}
         <div>
           <h3>${escapeHtml(title)}</h3>
-          <small>${escapeHtml([modelLabel, backdropLabel].filter(Boolean).join(" Â· "))}</small>
+          <small>${escapeHtml([modelLabel, backdropLabel].filter(Boolean).join(" · "))}</small>
         </div>
         ${number ? `<span class="tag-number">${escapeHtml(number)}</span>` : ""}${estimatedPillHtml(asset)}
       </div>
@@ -1748,7 +1748,7 @@ function renderStickerBrand(assetId) {
 
 function renderStickerBrandItem(asset) {
   const hasPrice = Number(asset.floorUsd) > 0;
-  const floorNote = hasPrice ? floorSourceLine(asset) : (asset.marketPlatform ? `Floor Â· ${escapeHtml(asset.marketPlatform)}` : "Open details");
+  const floorNote = hasPrice ? floorSourceLine(asset) : (asset.marketPlatform ? `Floor · ${escapeHtml(asset.marketPlatform)}` : "Open details");
   const count = stickerOwnedCount(asset);
   const imageStack = count > 1 ? stickerPackImageStack(asset) : "";
   return `
@@ -1825,8 +1825,8 @@ function renderAssetDetail(assetId) {
 
   setText("#detailCategory", category);
   setText("#detailName", detail.name);
-  setText("#detailValue", detail.type === "token" ? detail.value : `${money(detail.floorUsd)} Â· ${signedPct(detail.dailyPct)}`);
-  setText("#detailMintLine", detail.type === "gift" ? `#${detail.tag} Â· ${detail.collection} Â· ${detail.mint.current.toLocaleString()} of ${detail.mint.total.toLocaleString()} issued` : detail.type === "sticker" ? `${detail.packId} Â· ${detail.creator}` : "Held in Main wallet");
+  setText("#detailValue", detail.type === "token" ? detail.value : `${money(detail.floorUsd)} · ${signedPct(detail.dailyPct)}`);
+  setText("#detailMintLine", detail.type === "gift" ? `#${detail.tag} · ${detail.collection} · ${detail.mint.current.toLocaleString()} of ${detail.mint.total.toLocaleString()} issued` : detail.type === "sticker" ? `${detail.packId} · ${detail.creator}` : "Held in Main wallet");
   if (detail.type === "token") {
     setIcon(document.querySelector("#detailIcon"), detail.icon || "coins", tone);
     const ghost = document.querySelector("#detailGhost");
@@ -1936,10 +1936,10 @@ function renderCollectibleDetail(detail, tone) {
   setText("#detailStatOneLabel", "Current Floor");
   setText("#detailStatOne", collectibleValueLabel(detail.floorUsd, detail.floorTon));
   setText("#detailStatTwoLabel", "Cost Basis");
-  setText("#detailStatTwo", detail.costBasis ? `${money(detail.costBasis)} Â· purchased ${String(detail.acquired || "").replace(", 2026", "")}` : "Set cost");
+  setText("#detailStatTwo", detail.costBasis ? `${money(detail.costBasis)} · purchased ${String(detail.acquired || "").replace(", 2026", "")}` : "Set cost");
   setText("#detailStatThreeLabel", "Quick Sell Estimate");
   setText("#detailStatThree", detail.quickSellTon ? collectibleValueLabel(detail.quickSellUsd, detail.quickSellTon) : quickSell);
-  setText("#detailPnl", `${signedMoney(detail.pnlUsd)} Â· ${signedPct(detail.pnlPct)}`);
+  setText("#detailPnl", `${signedMoney(detail.pnlUsd)} · ${signedPct(detail.pnlPct)}`);
   document.querySelector("#detailPnl")?.classList.toggle("positive", detail.pnlUsd >= 0);
   document.querySelector("#detailPnl")?.classList.toggle("negative", detail.pnlUsd < 0);
   setText("#detailAcquiredLabel", detail.acquired ? `Acquired ${detail.acquired}` : "");
@@ -1955,7 +1955,7 @@ function renderCollectibleDetail(detail, tone) {
   if (meta) {
     meta.innerHTML = isGift
       ? `<article class="detail-note"><b>${detail.comboRank || "Live collectible"}</b></article><article class="detail-note">${detail.exactCount || ""}</article><article class="detail-note">${detail.upgraded || ""}</article><article class="detail-note">${detail.provenance || ""}</article>`
-      : `<article class="detail-note">${(detail.attributes || []).map(([label, value]) => `<b>${label}</b>: ${value}`).join(" Â· ")}</article>`;
+      : `<article class="detail-note">${(detail.attributes || []).map(([label, value]) => `<b>${label}</b>: ${value}`).join(" · ")}</article>`;
   }
 
   renderSales(detail);
@@ -1985,23 +1985,23 @@ function renderCollectibleDetail(detail, tone) {
   }
   setIcon(document.querySelector("#detailHistoryIcon"), "clock", tone);
   const detailMarketLabel = isEstimatedAsset(detail) ? "" : marketSourceLabel(detail.marketPlatform);
-  setText("#detailHistoryText", isGift ? (detailMarketLabel ? `Floor source Â· ${detailMarketLabel}` : detail.provenance) : `Pack acquired Â· ${detail.acquired}`);
+  setText("#detailHistoryText", isGift ? (detailMarketLabel ? `Floor source · ${detailMarketLabel}` : detail.provenance) : `Pack acquired · ${detail.acquired}`);
   setText("#detailLinkLabel", isGift ? (detailMarketLabel || "Marketplace") : "Marketplace");
 }
 
 function collectibleValueLabel(usdValue, tonValue) {
   const usd = Number(usdValue || 0);
   const ton = Number(tonValue || 0);
-  if (usd > 0 && ton > 0) return `${money(usd)} Â· ${ton.toFixed(2)} TON`;
+  if (usd > 0 && ton > 0) return `${money(usd)} · ${ton.toFixed(2)} TON`;
   if (usd > 0) return money(usd);
   if (ton > 0) return `${ton.toFixed(2)} TON`;
-  return "â€”";
+  return "—";
 }
 
 function renderStickerDetailSkeleton() {
   setDetailHeading(".market-intel", "Pack Stats", "");
   document.querySelector("#detailMarketIntel").innerHTML = `${renderDetailLoadingMetrics()}<div class="mini-thumb-row"><span class="sticker-mini skeleton"></span><span class="sticker-mini skeleton"></span><span class="sticker-mini skeleton"></span></div>`;
-  document.querySelector("#detailSalesTable").innerHTML = `<div class="sales-row"><b>Loading trades<span>Sticker pack</span></b><span>â€”</span><span>â€”</span></div>`;
+  document.querySelector("#detailSalesTable").innerHTML = `<div class="sales-row"><b>Loading trades<span>Sticker pack</span></b><span>—</span><span>—</span></div>`;
   Charts.mountRangeControls("collectibleFloor", stickerDetailRange, {
     element: document.querySelector(".price-panel"),
     attribute: "data-sticker-detail-range",
@@ -2048,21 +2048,21 @@ function giftTraitPills(detail) {
   return (detail.traits || []).slice(0, 3).map((trait) => {
     const percent = giftTraitPercent(trait);
     const tone = giftTraitTone(percent);
-    return `<span class="gift-trait-pill" style="border-color:${tone.border};">${escapeHtml(trait.value || "â€”")}</span>`;
+    return `<span class="gift-trait-pill" style="border-color:${tone.border};">${escapeHtml(trait.value || "—")}</span>`;
   }).join("");
 }
 
 function giftUpgradeState(detail) {
   const onChain = Boolean(detail.tokenAddress || detail.collectionAddress) && !/not yet upgraded|held in telegram/i.test(String(detail.upgraded || ""));
-  if (onChain) return { upgraded: true, label: "Upgraded Â· On-chain collectible" };
-  return { upgraded: false, label: "Not yet upgraded Â· Held in Telegram" };
+  if (onChain) return { upgraded: true, label: "Upgraded · On-chain collectible" };
+  return { upgraded: false, label: "Not yet upgraded · Held in Telegram" };
 }
 
 function giftEligibility(detail) {
   const state = giftUpgradeState(detail);
   if (state.upgraded) return null;
   const acquiredTs = new Date(detail.origin?.receivedOn || detail.acquired || "").getTime();
-  if (!Number.isFinite(acquiredTs)) return { text: "â€”", eligible: false };
+  if (!Number.isFinite(acquiredTs)) return { text: "—", eligible: false };
   const readyTs = acquiredTs + 21 * 24 * 60 * 60 * 1000;
   const diffDays = Math.ceil((readyTs - Date.now()) / (24 * 60 * 60 * 1000));
   return diffDays <= 0
@@ -2076,23 +2076,23 @@ function giftOriginSender(detail) {
   const senderAddress = detail.origin?.senderAddress || "";
   if (senderAddress) return truncateWalletAddress(senderAddress);
   const provenance = String(detail.provenance || "");
-  const match = provenance.match(/gifted by\s+([^Â·]+?)(?:\s+to|\s+Â·|$)/i);
-  return match ? match[1].trim() : "â€”";
+  const match = provenance.match(/gifted by\s+([^·]+?)(?:\s+to|\s+·|$)/i);
+  return match ? match[1].trim() : "—";
 }
 
 
 function giftDemandBadge(intel) {
   if (!giftDemandHasData(intel)) return "";
   const change = Number(intel?.change24hPct ?? intel?.change ?? 0);
-  if (!Number.isFinite(change)) return `<span class="status-badge is-unlisted">â€” Stable</span>`;
+  if (!Number.isFinite(change)) return `<span class="status-badge is-unlisted">— Stable</span>`;
   if (change > 20) return `<span class="status-badge is-listed">Heating Up</span>`;
   if (change < -20) return `<span class="status-badge is-unlisted">Cooling Down</span>`;
-  return `<span class="status-badge is-unlisted">â€” Stable</span>`;
+  return `<span class="status-badge is-unlisted">— Stable</span>`;
 }
 
 function giftDemandHasData(intel) {
   if (!intel) return false;
-  return [intel.sales24h, intel.volume24h, intel.listedCount, intel.listedSupply, intel.change24hPct].some((value) => value && value !== "â€”" && value !== 0);
+  return [intel.sales24h, intel.volume24h, intel.listedCount, intel.listedSupply, intel.change24hPct].some((value) => value && value !== "—" && value !== 0);
 }
 
 function giftMarketLinks(detail) {
@@ -2113,13 +2113,13 @@ function renderGiftDetailPage(detail, { loading = false } = {}) {
   const isListed = /listed/i.test(String(detail.status || "")) && !/unlisted/i.test(String(detail.status || ""));
   const glow = giftGlowFromBackdrop(detail);
   const detailMarketSource = isEstimatedAsset(detail) ? "" : marketSourceLabel(detail.marketPlatform);
-  const sourceLabel = detailMarketSource ? `Floor Â· ${escapeHtml(detailMarketSource)}` : "Price source unavailable";
+  const sourceLabel = detailMarketSource ? `Floor · ${escapeHtml(detailMarketSource)}` : "Price source unavailable";
   const upgradeState = giftUpgradeState(detail);
   const eligibility = giftEligibility(detail);
   const links = giftMarketLinks(detail);
   const priceChangeClass = Number(detail.dailyPct || 0) < 0 ? "negative" : "positive";
-  const floorLabel = Number(detail.floorUsd || 0) > 0 ? money(detail.floorUsd) : "â€”";
-  const floorSubLabel = Number(detail.floorTon || 0) > 0 ? `${detail.floorTon.toFixed(2)} TON` : "â€”";
+  const floorLabel = Number(detail.floorUsd || 0) > 0 ? money(detail.floorUsd) : "—";
+  const floorSubLabel = Number(detail.floorTon || 0) > 0 ? `${detail.floorTon.toFixed(2)} TON` : "—";
   const chartIsLoading = loading || detail.floorHistoryLoading || detail.priceLoading;
   const chartSourceLabel = detail.floorHistoryAvailable
     ? detail.floorHistorySource === "sales-derived" ? "Sales-derived floor"
@@ -2135,10 +2135,10 @@ function renderGiftDetailPage(detail, { loading = false } = {}) {
     const width = percent === null ? 12 : Math.max(10, Math.min(80, (100 - percent) * 0.8));
     return `<div class="gift-rarity-row">
       <span class="gift-rarity-label">${escapeHtml(trait.label)}</span>
-      <b class="gift-rarity-value">${escapeHtml(trait.value || "â€”")}</b>
+      <b class="gift-rarity-value">${escapeHtml(trait.value || "—")}</b>
       <div class="gift-rarity-meter">
         <span class="gift-rarity-bar"><span style="width:${width}px;background:${tone.fill};"></span></span>
-        <small>${percent === null ? "â€”" : `${percent}%`}</small>
+        <small>${percent === null ? "—" : `${percent}%`}</small>
       </div>
     </div>`;
   }).join("");
@@ -2168,7 +2168,7 @@ function renderGiftDetailPage(detail, { loading = false } = {}) {
               <strong>${floorLabel}</strong>
               <span class="status-badge ${priceChangeClass === "negative" ? "is-unlisted" : "is-listed"}">${signedPct(detail.dailyPct || 0)}</span>
             </div>
-            <small class="gift-detail-floor-sub">${floorSubLabel} Â· ${sourceLabel}</small>
+            <small class="gift-detail-floor-sub">${floorSubLabel} · ${sourceLabel}</small>
           </div>
         </div>
       </article>
@@ -2184,7 +2184,7 @@ function renderGiftDetailPage(detail, { loading = false } = {}) {
             <div><h2>Traits & Rarity</h2><small>Exact attributes</small></div>
           </div>
         </div>
-        <div class="gift-traits-list">${rows || `<p class="detail-empty-state">â€”</p>`}</div>
+        <div class="gift-traits-list">${rows || `<p class="detail-empty-state">—</p>`}</div>
       </article>
 
       <article class="card gift-detail-card gift-floor-card">
@@ -2223,7 +2223,7 @@ function renderGiftDetailPage(detail, { loading = false } = {}) {
             <span class="gift-detail-section-icon"><i data-lucide="receipt-text"></i></span>
             <div><h2>Last Sales</h2><small>Recent market evidence</small></div>
           </div>
-          <button class="text-action" type="button">${detail.salesScope === "same-traits" ? "Exact variant Â· 365D" : "Collection-wide Â· 365D"}</button>
+          <button class="text-action" type="button">${detail.salesScope === "same-traits" ? "Exact variant · 365D" : "Collection-wide · 365D"}</button>
         </div>
         <div class="sales-table">${salesRows}</div>
       </article>
@@ -2278,8 +2278,8 @@ function renderGiftDetailPage(detail, { loading = false } = {}) {
 function stickerDetailPackRows(detail) {
   const count = stickerOwnedCount(detail);
   const rows = [
-    ["Format", detail.format || "â€”"],
-    ["Edition", detail.edition || "â€”"],
+    ["Format", detail.format || "—"],
+    ["Edition", detail.edition || "—"],
     ["Owned", `${count} sticker${count === 1 ? "" : "s"}`],
   ];
   return rows.map(([label, value], index) => `${index ? `<div class="gift-detail-divider"></div>` : ""}<div class="gift-detail-data-row"><span>${escapeHtml(label)}</span><span>${escapeHtml(value)}</span></div>`).join("");
@@ -2288,16 +2288,16 @@ function stickerDetailPackRows(detail) {
 function stickerDetailStatsRows(detail) {
   const floor = detail.stickerFloor || {};
   const rows = [
-    ["24h volume", Number(floor.volume24hUsd || 0) > 0 ? collectibleValueLabel(floor.volume24hUsd, floor.volume24hTon) : "â€”"],
+    ["24h volume", Number(floor.volume24hUsd || 0) > 0 ? collectibleValueLabel(floor.volume24hUsd, floor.volume24hTon) : "—"],
     ["Total supply", formatMetricCount(floor.totalSupply)],
     ["Holders", formatMetricCount(floor.holders)],
-  ].filter(([, value]) => value && value !== "â€”");
+  ].filter(([, value]) => value && value !== "—");
   if (!rows.length) return `<p class="detail-empty-state">Pack stats unavailable</p>`;
   return rows.map(([label, value], index) => `${index ? `<div class="gift-detail-divider"></div>` : ""}<div class="gift-detail-data-row"><span>${escapeHtml(label)}</span><span>${escapeHtml(value)}</span></div>`).join("");
 }
 
 function stickerDetailRows(rows = []) {
-  const available = rows.filter(([, value]) => value && value !== "â€”");
+  const available = rows.filter(([, value]) => value && value !== "—");
   if (!available.length) return "";
   return available.map(([label, value], index) => `${index ? `<div class="gift-detail-divider"></div>` : ""}<div class="gift-detail-data-row"><span>${escapeHtml(label)}</span><span>${escapeHtml(value)}</span></div>`).join("");
 }
@@ -2307,13 +2307,13 @@ function stickerDetailIntelSections(detail) {
   const about = intel.about || {};
   const supply = intel.supply || {};
   const market = intel.market || {};
-  const ton = (value) => Number(value || 0) > 0 ? `${Number(value).toLocaleString(undefined, { maximumFractionDigits: 2 })} TON` : "â€”";
-  const date = market.releaseAt ? new Date(market.releaseAt).toLocaleDateString(undefined, { month: "short", year: "numeric" }) : "â€”";
+  const ton = (value) => Number(value || 0) > 0 ? `${Number(value).toLocaleString(undefined, { maximumFractionDigits: 2 })} TON` : "—";
+  const date = market.releaseAt ? new Date(market.releaseAt).toLocaleDateString(undefined, { month: "short", year: "numeric" }) : "—";
   const aboutRows = stickerDetailRows([
-    ["Creator", about.creator || "â€”"],
-    ["Status", about.official ? "Official collection" : "â€”"],
+    ["Creator", about.creator || "—"],
+    ["Status", about.official ? "Official collection" : "—"],
     ["Released", date],
-    ["Sticker set", Number(about.stickerCount || 0) ? `${about.stickerCount} designs` : "â€”"],
+    ["Sticker set", Number(about.stickerCount || 0) ? `${about.stickerCount} designs` : "—"],
   ]);
   const supplyRows = stickerDetailRows([
     ["Issued", formatMetricCount(supply.initial)],
@@ -2322,8 +2322,8 @@ function stickerDetailIntelSections(detail) {
     ["Primary remaining", formatMetricCount(supply.remaining)],
   ]);
   const marketRows = stickerDetailRows([
-    ["Median price", Number(market.medianUsd || 0) ? `${money(market.medianUsd)} Â· ${ton(market.medianTon)}` : "â€”"],
-    ["24h activity", Number(market.volume24hTon || 0) || Number(market.trades24h || 0) ? `${ton(market.volume24hTon)} Â· ${formatMetricCount(market.trades24h)} trades` : "â€”"],
+    ["Median price", Number(market.medianUsd || 0) ? `${money(market.medianUsd)} · ${ton(market.medianTon)}` : "—"],
+    ["24h activity", Number(market.volume24hTon || 0) || Number(market.trades24h || 0) ? `${ton(market.volume24hTon)} · ${formatMetricCount(market.trades24h)} trades` : "—"],
     ["7d volume", ton(market.volume7dTon)],
     ["30d volume", ton(market.volume30dTon)],
     ["All-time trades", formatMetricCount(market.totalTrades)],
@@ -2344,8 +2344,8 @@ function renderStickerDetailSalesRows(detail, loading = false) {
   if (!rows.length) return `<p class="detail-empty-state">No recent pack sales</p>`;
   return `<div class="gift-sales-list" role="table" aria-label="Recent sticker pack sales">${rows.slice(0, 8).map((sale) => `
     <div class="gift-sale-row" role="row">
-      <span class="gift-sale-copy" role="cell"><b>${escapeHtml(sale[4] || "Market")}</b><small>${escapeHtml(sale[1] || "â€”")}</small></span>
-      <span class="gift-sale-value" role="cell"><b>${escapeHtml(sale[0] || "â€”")}</b><small>${escapeHtml(sale[2] || detail.format || "Sticker")}</small></span>
+      <span class="gift-sale-copy" role="cell"><b>${escapeHtml(sale[4] || "Market")}</b><small>${escapeHtml(sale[1] || "—")}</small></span>
+      <span class="gift-sale-value" role="cell"><b>${escapeHtml(sale[0] || "—")}</b><small>${escapeHtml(sale[2] || detail.format || "Sticker")}</small></span>
     </div>`).join("")}</div>`;
 }
 
@@ -2353,7 +2353,7 @@ function renderStickerDetailPage(detail, { loading = false } = {}) {
   const mount = document.getElementById("giftDetailMount");
   if (!mount) return;
   const media = stickerMediaDescriptor(detail);
-  const floorLabel = Number(detail.floorUsd || 0) > 0 ? money(detail.floorUsd) : "â€”";
+  const floorLabel = Number(detail.floorUsd || 0) > 0 ? money(detail.floorUsd) : "—";
   const floorSubLabel = Number(detail.floorTon || 0) > 0 ? `${Number(detail.floorTon).toFixed(2)} TON` : "Price unavailable";
   const priceChangeClass = Number(detail.dailyPct || 0) < 0 ? "negative" : "positive";
   const hasChart = Array.isArray(detail.floorHistoryPoints) && detail.floorHistoryPoints.length >= 2;
@@ -2378,7 +2378,7 @@ function renderStickerDetailPage(detail, { loading = false } = {}) {
             <strong>${floorLabel}</strong>
             ${Number(detail.floorUsd || 0) > 0 ? `<span class="status-badge ${priceChangeClass === "negative" ? "is-unlisted" : "is-listed"}">${signedPct(detail.dailyPct || 0)}</span>` : ""}
           </div>
-          <small class="gift-detail-floor-sub">${floorSubLabel} Â· ${escapeHtml(source)}</small>
+          <small class="gift-detail-floor-sub">${floorSubLabel} · ${escapeHtml(source)}</small>
         </div>
       </article>
 
@@ -2436,13 +2436,13 @@ function renderStickerDetailPage(detail, { loading = false } = {}) {
 function giftOriginRows(detail, upgradeState, eligibility) {
   const rows = [
     ["Received From", giftOriginSender(detail)],
-    ["Received On", detail.origin?.receivedOn ? formatActivityDate(detail.origin.receivedOn) : (detail.acquired || "â€”")],
+    ["Received On", detail.origin?.receivedOn ? formatActivityDate(detail.origin.receivedOn) : (detail.acquired || "—")],
     ["Upgrade Status", upgradeState.label],
   ];
-  if (!upgradeState.upgraded) rows.push(["Upgrade Eligibility", eligibility?.text || "â€”"]);
+  if (!upgradeState.upgraded) rows.push(["Upgrade Eligibility", eligibility?.text || "—"]);
   const body = rows.map(([label, value], index) => `${index ? `<div class="gift-detail-divider"></div>` : ""}<div class="gift-detail-data-row"><span>${escapeHtml(label)}</span><span class="${/Eligible now|Upgraded/i.test(String(value)) ? "is-positive" : ""}">${escapeHtml(value)}</span></div>`).join("");
   const upgradeLink = !upgradeState.upgraded && eligibility?.eligible
-    ? `<div class="gift-detail-divider"></div><button type="button" data-external-url="https://t.me/nft" class="gift-detail-link-button">Upgrade on Telegram â†’</button>`
+    ? `<div class="gift-detail-divider"></div><button type="button" data-external-url="https://t.me/nft" class="gift-detail-link-button">Upgrade on Telegram →</button>`
     : "";
   return `${body}${upgradeLink}`;
 }
@@ -2451,12 +2451,12 @@ function formatMintPrice(stats = {}) {
   if (Number(stats.mintPriceTon || 0) > 0) return `${Number(stats.mintPriceTon).toLocaleString(undefined, { maximumFractionDigits: 2 })} TON`;
   if (Number(stats.mintPriceStars || 0) > 0) return `${Number(stats.mintPriceStars).toLocaleString()} Stars`;
   if (Number(stats.mintPriceUsd || 0) > 0) return money(stats.mintPriceUsd);
-  return "â€”";
+  return "—";
 }
 
 function formatGiftStatPercent(value) {
   const numeric = Number(value);
-  if (!Number.isFinite(numeric)) return "â€”";
+  if (!Number.isFinite(numeric)) return "—";
   return `${numeric.toFixed(numeric > 0 && numeric < 1 ? 2 : 0)}%`;
 }
 
@@ -2468,7 +2468,7 @@ function giftCollectionSupplyPercent(value, total) {
 }
 
 function giftCollectionPercentLabel(value) {
-  if (!Number.isFinite(value)) return "â€”";
+  if (!Number.isFinite(value)) return "—";
   return `${value.toFixed(value > 0 && value < 1 ? 2 : 0)}%`;
 }
 
@@ -2527,7 +2527,7 @@ function giftCollectionStatsRows(detail) {
       <div class="collection-ownership-row is-${item.tone}">
         <span class="collection-stats-icon-tile"><i data-lucide="${item.icon}"></i></span>
         <div class="collection-ownership-copy">
-          <div><span>${item.label}</span><strong>${Number.isFinite(item.pct) ? formatGiftStatPercent(item.pct) : "â€”"}</strong></div>
+          <div><span>${item.label}</span><strong>${Number.isFinite(item.pct) ? formatGiftStatPercent(item.pct) : "—"}</strong></div>
           <span class="collection-ownership-track" role="img" aria-label="${item.label}: ${Number.isFinite(item.pct) ? formatGiftStatPercent(item.pct) : "unavailable"}">
             <span style="width:${pct}%"></span>
           </span>
@@ -2566,21 +2566,21 @@ function renderGiftDemandBlock(detail) {
   const modelStats = detail.modelStats || {};
   const hasModelStats = [modelStats.modelCount, modelStats.supplyPct, modelStats.holderCount, modelStats.transferCount7d, modelStats.transferCount30d, modelStats.upgradedCount]
     .some((value) => Number(value || 0) > 0);
-  if (!hasModelStats && (!intel || [intel.sales24h, intel.volume24h, intel.listedCount, intel.totalSupply].every((value) => !value || value === "â€”" || value === 0))) {
-    return `<p class="detail-empty-state" style="text-align:center;color:var(--text-2);">â€” Insufficient data</p>`;
+  if (!hasModelStats && (!intel || [intel.sales24h, intel.volume24h, intel.listedCount, intel.totalSupply].every((value) => !value || value === "—" || value === 0))) {
+    return `<p class="detail-empty-state" style="text-align:center;color:var(--text-2);">— Insufficient data</p>`;
   }
-  const velocity = Number(intel.velocityHours || 0) > 0 ? `Avg 1 sale every ${Number(intel.velocityHours).toFixed(1)} hours` : "â€”";
-  const activeListingsValue = Number(intel.listedCount || intel.listedSupply || 0) > 0 ? String(intel.listedCount || intel.listedSupply) : "â€”";
+  const velocity = Number(intel.velocityHours || 0) > 0 ? `Avg 1 sale every ${Number(intel.velocityHours).toFixed(1)} hours` : "—";
+  const activeListingsValue = Number(intel.listedCount || intel.listedSupply || 0) > 0 ? String(intel.listedCount || intel.listedSupply) : "—";
   const rows = [
     ["Model supply", formatMetricCount(modelStats.modelCount), modelStats.supplyPct ? `${Number(modelStats.supplyPct).toFixed(Number(modelStats.supplyPct) < 1 ? 2 : 1)}% of collection` : ""],
     ["Model holders", formatMetricCount(modelStats.holderCount), ""],
     ["Model activity", formatMetricCount(modelStats.transferCount30d || modelStats.transferCount7d), modelStats.transferCount30d ? "30D transfers" : (modelStats.transferCount7d ? "7D transfers" : "")],
     ["Upgraded on-chain", formatMetricCount(modelStats.upgradedCount), ""],
-    ["Sales last 24h", intel.sales24h || "â€”", ""],
-    ["Volume last 24h", intel.volume24h || "â€”", ""],
-    ["Active Listings", activeListingsValue, activeListingsValue !== "â€”" && intel.totalSupply ? `of ${formatMetricCount(intel.totalSupply)} total supply` : ""],
+    ["Sales last 24h", intel.sales24h || "—", ""],
+    ["Volume last 24h", intel.volume24h || "—", ""],
+    ["Active Listings", activeListingsValue, activeListingsValue !== "—" && intel.totalSupply ? `of ${formatMetricCount(intel.totalSupply)} total supply` : ""],
     ["Sales velocity", velocity, ""],
-  ].filter(([, value]) => value !== "â€”");
+  ].filter(([, value]) => value !== "—");
   return rows.map(([label, value, secondary], index) => `${index ? `<div class="gift-detail-divider"></div>` : ""}<div class="gift-detail-data-row"><span>${escapeHtml(label)}</span><span class="gift-detail-data-stack"><b>${escapeHtml(value)}</b>${secondary ? `<small>${escapeHtml(secondary)}</small>` : ""}</span></div>`).join("");
 }
 
@@ -2600,7 +2600,7 @@ function renderGiftSalesRows(detail) {
   };
   const dateParts = (value = "") => {
     const date = new Date(value);
-    if (!Number.isFinite(date.getTime())) return { time: "â€”", day: "â€”" };
+    if (!Number.isFinite(date.getTime())) return { time: "—", day: "—" };
     return {
       time: date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false }),
       day: `${String(date.getDate()).padStart(2, "0")}.${String(date.getMonth() + 1).padStart(2, "0")}`,
@@ -2618,7 +2618,7 @@ function renderGiftSalesRows(detail) {
     return `<div class="gift-sale-table-row" role="row"${linkAttributes}>
       <span class="gift-sale-thumb" role="cell">${image ? `<img src="${escapeHtml(image)}" alt="" loading="lazy" decoding="async">` : `<i data-lucide="gift"></i>`}</span>
       <span class="gift-sale-identity" role="cell"><b>${escapeHtml(sale.model || "Gift")}${saleMint ? ` <small>${escapeHtml(saleMint)}</small>` : ""}</b></span>
-      <span class="gift-sale-price" role="cell"><b>${priceTon > 0 ? `${priceTon.toLocaleString(undefined, { maximumFractionDigits: 4 })} TON` : "â€”"}</b><time datetime="${escapeHtml(sale.soldAt || sale.date || "")}">${escapeHtml(sold.day)} Â· ${escapeHtml(sold.time)}</time></span>
+      <span class="gift-sale-price" role="cell"><b>${priceTon > 0 ? `${priceTon.toLocaleString(undefined, { maximumFractionDigits: 4 })} TON` : "—"}</b><time datetime="${escapeHtml(sale.soldAt || sale.date || "")}">${escapeHtml(sold.day)} · ${escapeHtml(sold.time)}</time></span>
       <span class="gift-sale-market" role="cell" title="${escapeHtml(marketplace)}" aria-label="${escapeHtml(marketplace)}">${logo ? `<img src="${logo}" alt="${escapeHtml(marketplace)}">` : `<b>${escapeHtml(marketplace.slice(0, 2).toUpperCase())}</b>`}</span>
     </div>`;
   }).join("");
@@ -2631,7 +2631,7 @@ function applyGiftSales(detail, sales = [], scope = "same-traits") {
   detail.giftSalesRaw = Array.isArray(sales) ? sales.slice() : [];
   detail.sales = sales.map((sale) => ({
     priceTon: Number(sale.priceTon || 0),
-    priceLabel: `${Number(sale.priceTon || 0).toFixed(2)} TON Â· ${money(sale.priceUsd || 0)}`,
+    priceLabel: `${Number(sale.priceTon || 0).toFixed(2)} TON · ${money(sale.priceUsd || 0)}`,
     dateLabel: formatActivityDate(sale.date || Date.now()),
     date: sale.date || "",
     soldAt: sale.soldAt || sale.date || "",
@@ -2649,12 +2649,12 @@ function applyGiftSales(detail, sales = [], scope = "same-traits") {
 function stickerMetricGridHtml(metrics = {}) {
   return `<div class="token-metric-grid">
     ${[
-      ["Floor Price", metrics.floor || "â€”"],
-      ["24h Volume", metrics.volume24h || "â€”"],
-      ["Total Supply", metrics.totalSupply || "â€”"],
-      ["Unique Holders", metrics.holders || "â€”"],
-      ["All-Time High", metrics.ath || "â€”"],
-      ["Your Portfolio %", metrics.portfolioShare || "â€”"],
+      ["Floor Price", metrics.floor || "—"],
+      ["24h Volume", metrics.volume24h || "—"],
+      ["Total Supply", metrics.totalSupply || "—"],
+      ["Unique Holders", metrics.holders || "—"],
+      ["All-Time High", metrics.ath || "—"],
+      ["Your Portfolio %", metrics.portfolioShare || "—"],
     ].map(([label, value]) => `<article class="card token-metric-card"><small>${label}</small><b>${value}</b></article>`).join("")}
   </div>`;
 }
@@ -2672,7 +2672,7 @@ function stickerThumbsHtml(items = []) {
         ? "lottie"
         : (/(\.webm|\.mp4|\.mov)(?:[?#].*)?$/i.test(String(animated)) ? "video" : ""),
     });
-    return `<button class="sticker-mini" type="button" data-sticker-thumb='${escapeHtml(JSON.stringify({ image, name: item.metadata?.name || item.collection?.name || `Sticker ${index + 1}`, tag: item.index || 0, traits: (item.metadata?.attributes || []).map((attr) => `${attr.trait_type}: ${attr.value}`).join(" Â· ") }))}'>${collectibleMediaHtml(media, item.metadata?.name || "Sticker")}</button>`;
+    return `<button class="sticker-mini" type="button" data-sticker-thumb='${escapeHtml(JSON.stringify({ image, name: item.metadata?.name || item.collection?.name || `Sticker ${index + 1}`, tag: item.index || 0, traits: (item.metadata?.attributes || []).map((attr) => `${attr.trait_type}: ${attr.value}`).join(" · ") }))}'>${collectibleMediaHtml(media, item.metadata?.name || "Sticker")}</button>`;
   }).join("")}</div>`;
 }
 
@@ -2738,7 +2738,7 @@ function applyStickerDetailPayload(detail, payload = {}) {
   detail.dailyUsd = detail.floorUsd ? detail.floorUsd * (detail.dailyPct / 100) : 0;
   detail.quickSellTon = detail.floorTon ? detail.floorTon * 0.95 : 0;
   detail.quickSellUsd = detail.floorUsd ? detail.floorUsd * 0.95 : 0;
-  detail.sales = sales.map((sale) => [`${Number(sale.priceTon || 0).toFixed(2)} TON Â· ${money(sale.priceUsd || 0)}`, formatActivityDate(sale.date || Date.now()), detail.format || "Sticker", detail.creator || detail.collection, sale.marketplace || "Market"]);
+  detail.sales = sales.map((sale) => [`${Number(sale.priceTon || 0).toFixed(2)} TON · ${money(sale.priceUsd || 0)}`, formatActivityDate(sale.date || Date.now()), detail.format || "Sticker", detail.creator || detail.collection, sale.marketplace || "Market"]);
   detail.floorHistoryPoints = buildStickerHistory(sales);
   detail.chart = detail.floorHistoryPoints.map((point) => point.priceUsd);
   detail.stickerThumbnails = thumbs;
@@ -3151,17 +3151,17 @@ function applyGiftDetailPayload(detail, payload = {}, options = {}) {
     ? saleTimestamps.slice(1).reduce((sum, value, index) => sum + ((value - saleTimestamps[index]) / 3600000), 0) / (saleTimestamps.length - 1)
     : (Number(floor.sales24h || derivedSales24h) > 0 ? 24 / Math.max(1, Number(floor.sales24h || derivedSales24h)) : 0);
   detail.intel = {
-    trend: detail.dailyPct >= 0 ? "â–‚â–ƒâ–…â–†â–‡" : "â–‡â–†â–…â–ƒâ–‚",
+    trend: detail.dailyPct >= 0 ? "▂▃▅▆▇" : "▇▆▅▃▂",
     badge: detail.dailyPct > 2 ? "Trending Up" : detail.dailyPct < -2 ? "Cooling" : "Stable",
     change24hPct: Number(floor.change24hPct || detail.dailyPct || 0),
-    sales24h: Number(floor.sales24h || derivedSales24h || 0) > 0 ? String(Number(floor.sales24h || derivedSales24h || 0)) : "â€”",
-    volume24h: Number(floor.volume24hUsd || derivedVolume24hUsd || 0) > 0 ? collectibleValueLabel(floor.volume24hUsd || derivedVolume24hUsd, floor.volume24hTon || derivedVolume24hTon) : "â€”",
-    prior: Number.isFinite(Number(floor.change24hPct)) ? signedPct(Number(floor.change24hPct || 0)) : "â€”",
-    daysToSell: avgGapHours > 0 ? `${avgGapHours.toFixed(1)} hours` : "â€”",
-    listedSupply: Number(floor.listedCount || 0) > 0 ? String(Number(floor.listedCount || 0)) : "â€”",
+    sales24h: Number(floor.sales24h || derivedSales24h || 0) > 0 ? String(Number(floor.sales24h || derivedSales24h || 0)) : "—",
+    volume24h: Number(floor.volume24hUsd || derivedVolume24hUsd || 0) > 0 ? collectibleValueLabel(floor.volume24hUsd || derivedVolume24hUsd, floor.volume24hTon || derivedVolume24hTon) : "—",
+    prior: Number.isFinite(Number(floor.change24hPct)) ? signedPct(Number(floor.change24hPct || 0)) : "—",
+    daysToSell: avgGapHours > 0 ? `${avgGapHours.toFixed(1)} hours` : "—",
+    listedSupply: Number(floor.listedCount || 0) > 0 ? String(Number(floor.listedCount || 0)) : "—",
     listedCount: Number(floor.listedCount || 0) || 0,
     totalSupply: Number(floor.totalSupply || 0) || 0,
-    listingRate: Number(floor.totalSupply || 0) > 0 && Number(floor.listedCount || 0) > 0 ? `${((Number(floor.listedCount || 0) / Number(floor.totalSupply || 1)) * 100).toFixed(1)}%` : "â€”",
+    listingRate: Number(floor.totalSupply || 0) > 0 && Number(floor.listedCount || 0) > 0 ? `${((Number(floor.listedCount || 0) / Number(floor.totalSupply || 1)) * 100).toFixed(1)}%` : "—",
     velocityHours: avgGapHours || 0,
     bestTime: detail.marketPlatform || "Marketplace",
   };
@@ -3278,8 +3278,8 @@ function renderTokenActivity(detail) {
       const icon = direction === "Swap" ? "refresh-cw" : direction === "Sent" ? "arrow-up-from-line" : "arrow-down-to-line";
       const rawValue = String(preview.value || preview.description || "");
       const symbol = detail.symbol || "";
-      const tokenAmount = rawValue.match(new RegExp(`[-+âˆ’]?\\s*[\\d,.]+(?:\\.\\d+)?\\s*${escapeRegExp(symbol)}`, "i"))?.[0]
-        || rawValue.replace(/^Swapping\s+/i, "").replace(/\s+for\s+/i, " â†’ ")
+      const tokenAmount = rawValue.match(new RegExp(`[-+−]?\\s*[\\d,.]+(?:\\.\\d+)?\\s*${escapeRegExp(symbol)}`, "i"))?.[0]
+        || rawValue.replace(/^Swapping\s+/i, "").replace(/\s+for\s+/i, " → ")
         || "On-chain";
       const hash = preview.transactionHash || event.id || "";
       return `<article class="token-detail-activity" data-tx-hash="${escapeHtml(hash)}"><span class="activity-dot token-bg"><i data-lucide="${icon}"></i></span><div><b>${escapeHtml(direction)}</b><small>${event.date ? formatActivityDate(event.date) : "Recent"}</small></div><aside><strong>${escapeHtml(tokenAmount)}</strong>${preview.usdValue ? `<small>${escapeHtml(preview.usdValue)}</small>` : ""}</aside></article>`;
@@ -3301,7 +3301,7 @@ function renderTokenHero(detail, pnl, pnlClass) {
     ${logo}
     <h2 id="detailName" data-asset="${escapeHtml(detail.id)}">${escapeHtml(detail.name)}</h2>
     <strong id="detailValue"><span>${tokenPriceLabel(detail.priceUsd)}</span><em class="detail-change-pill ${pnlClass}">${pnl}</em></strong>
-    <p id="detailMintLine">${escapeHtml(tokenBalanceLabel(detail))} Â· ${money(detail.valueUsd || 0)}</p>
+    <p id="detailMintLine">${escapeHtml(tokenBalanceLabel(detail))} · ${money(detail.valueUsd || 0)}</p>
     <small id="detailCategory" hidden></small>
   `;
 }
@@ -3396,20 +3396,20 @@ function renderHolderRing(percent = 0) {
   const known = Number.isFinite(numeric) && numeric > 0;
   const safe = known ? Math.max(0, Math.min(100, numeric)) : 0;
   return `<section class="holder-ring-card">
-    <div class="holder-ring ${known ? "" : "is-loading"}" style="--holder-pct:${safe};"><span>${known ? `${safe.toFixed(1)}%` : "â€”"}</span></div>
+    <div class="holder-ring ${known ? "" : "is-loading"}" style="--holder-pct:${safe};"><span>${known ? `${safe.toFixed(1)}%` : "—"}</span></div>
     <small>Top 10 holders</small>
   </section>`;
 }
 
 function renderTonNetworkHighlights(network = {}) {
   const items = [
-    ["Total Supply", network.totalSupplyTon ? `${network.totalSupplyTon} TON` : "â€”"],
-    ["Active Wallets", network.activeWalletsMonthly || "â€”"],
-    ["Daily Wallets", network.activeWalletsDaily || "â€”"],
-    ["Activated Wallets", network.activatedWallets || "â€”"],
-    ["Tx / Day", network.txPerDay || "â€”"],
-    ["Staked TON", network.stakedTon ? `${network.stakedTon} TON` : "â€”"],
-    ["Inflation", network.annualInflationPct ? `${network.annualInflationPct}%` : "â€”"],
+    ["Total Supply", network.totalSupplyTon ? `${network.totalSupplyTon} TON` : "—"],
+    ["Active Wallets", network.activeWalletsMonthly || "—"],
+    ["Daily Wallets", network.activeWalletsDaily || "—"],
+    ["Activated Wallets", network.activatedWallets || "—"],
+    ["Tx / Day", network.txPerDay || "—"],
+    ["Staked TON", network.stakedTon ? `${network.stakedTon} TON` : "—"],
+    ["Inflation", network.annualInflationPct ? `${network.annualInflationPct}%` : "—"],
   ];
   return `<section class="ton-network-card">
     <div class="section-heading"><h2>TON Network</h2><span class="network-live-badge"><i></i>Live</span></div>
@@ -3430,7 +3430,7 @@ function ensureStickerThumbOverlay() {
   overlay = document.createElement("div");
   overlay.id = "stickerThumbOverlay";
   overlay.className = "sticker-thumb-overlay";
-  overlay.innerHTML = `<button class="sticker-thumb-backdrop" type="button" aria-label="Close"></button><section class="sticker-thumb-panel"><button class="sticker-thumb-close" type="button" aria-label="Close">Ã—</button><img alt=""><h3></h3><p></p><small></small></section>`;
+  overlay.innerHTML = `<button class="sticker-thumb-backdrop" type="button" aria-label="Close"></button><section class="sticker-thumb-panel"><button class="sticker-thumb-close" type="button" aria-label="Close">×</button><img alt=""><h3></h3><p></p><small></small></section>`;
   document.body.appendChild(overlay);
   overlay.querySelector(".sticker-thumb-backdrop")?.addEventListener("click", closeStickerThumbOverlay);
   overlay.querySelector(".sticker-thumb-close")?.addEventListener("click", closeStickerThumbOverlay);
@@ -3442,7 +3442,7 @@ function openStickerThumbOverlay(data = {}) {
   overlay.querySelector("img").src = data.image || "";
   overlay.querySelector("h3").textContent = data.name || "Sticker";
   overlay.querySelector("p").textContent = data.tag ? `#${data.tag}` : "";
-  overlay.querySelector("small").textContent = data.traits || "â€”";
+  overlay.querySelector("small").textContent = data.traits || "—";
   overlay.classList.add("is-open");
 }
 
@@ -3452,7 +3452,7 @@ function closeStickerThumbOverlay() {
 
 function formatMetricMoney(value) {
   const number = Number(value);
-  if (!Number.isFinite(number) || number <= 0) return "â€”";
+  if (!Number.isFinite(number) || number <= 0) return "—";
   if (number >= 1_000_000_000) return `$${(number / 1_000_000_000).toFixed(number >= 10_000_000_000 ? 1 : 2)}B`;
   if (number >= 1_000_000) return `$${(number / 1_000_000).toFixed(number >= 10_000_000 ? 1 : 2)}M`;
   if (number >= 1_000) return `$${(number / 1_000).toFixed(number >= 10_000 ? 1 : 2)}K`;
@@ -3461,7 +3461,7 @@ function formatMetricMoney(value) {
 
 function formatMetricCount(value) {
   const number = Number(value);
-  if (!Number.isFinite(number) || number <= 0) return "â€”";
+  if (!Number.isFinite(number) || number <= 0) return "—";
   if (number >= 1_000_000) return `${(number / 1_000_000).toFixed(2)}M`;
   if (number >= 1_000) return `${(number / 1_000).toFixed(1)}K`;
   return number.toLocaleString();
@@ -3825,8 +3825,8 @@ function applyTokenDetailMetrics(detail, payload = {}) {
     volume24h: formatMetricMoney(apiMetrics.volume24h),
     tvl: formatMetricMoney(apiMetrics.tvl),
     holders: formatMetricCount(apiMetrics.holders),
-    ath: apiMetrics.ath ? tokenPriceLabel(apiMetrics.ath) : "â€”",
-    portfolioShare: homePortfolioValue > 0 ? `${((Number(detail.valueUsd || 0) / homePortfolioValue) * 100).toFixed(2)}%` : "â€”",
+    ath: apiMetrics.ath ? tokenPriceLabel(apiMetrics.ath) : "—",
+    portfolioShare: homePortfolioValue > 0 ? `${((Number(detail.valueUsd || 0) / homePortfolioValue) * 100).toFixed(2)}%` : "—",
     concentration: Number(apiMetrics.concentration || 0),
   };
   const { pressureHost, tonNetworkHost } = ensureTokenDetailSections();
@@ -3973,7 +3973,7 @@ function drawDetailPriceChart(detail, options = {}) {
   }
   if (result?.empty) {
     const value = Number(detail.floorUsd || detail.priceUsd || 0);
-    setText(tooltipSelector, options.emptyTooltip || `Latest: ${value > 0 ? label(value) : "â€”"}`);
+    setText(tooltipSelector, options.emptyTooltip || `Latest: ${value > 0 ? label(value) : "—"}`);
     return;
   }
   const latest = values.at(-1);
@@ -4003,7 +4003,7 @@ function renderWalletState() {
   if (homeWalletTitle) homeWalletTitle.textContent = telegramConnected && !liveWalletAddress ? "Telegram connected" : (walletConnected ? "TON wallet connected" : "TON wallet not connected");
   if (homeWalletTitle && telegramConnected && walletConnected) homeWalletTitle.textContent = "Telegram + TON wallet connected";
   if (homeWalletText) homeWalletText.textContent = telegramConnected && !liveWalletAddress
-    ? `${telegramProfile?.firstName || "Telegram"}â€™s gifts and stickers are included.`
+    ? `${telegramProfile?.firstName || "Telegram"}’s gifts and stickers are included.`
     : (walletConnected ? `${currentWalletLabel()} included in portfolio.` : "Connect wallet to include TON balances.");
   if (homeWalletButton) homeWalletButton.textContent = portfolioConnected ? "Connected" : "Connect";
   if (homeWalletText && telegramConnected && walletConnected) homeWalletText.textContent = "Telegram assets and TON wallet assets are included together.";
@@ -4150,8 +4150,8 @@ async function importTelegramAccount() {
     };
     setCollectiblesBanner("gifts", gifts.length ? "" : "No Telegram gifts found for this account.");
     setCollectiblesBanner("stickers", stickers.length ? "" : "Connect a TON wallet to include your on-chain sticker NFTs.");
-    setSectionReady("gifts", `Telegram gifts ready Â· ${gifts.length} collection${gifts.length === 1 ? "" : "s"} loaded`, { toast: false });
-    setSectionReady("stickers", "Telegram connection ready Â· connect a TON wallet for on-chain sticker NFTs", { toast: false });
+    setSectionReady("gifts", `Telegram gifts ready · ${gifts.length} collection${gifts.length === 1 ? "" : "s"} loaded`, { toast: false });
+    setSectionReady("stickers", "Telegram connection ready · connect a TON wallet for on-chain sticker NFTs", { toast: false });
     setSectionReady("tokens", "Connect a TON wallet to load token balances", { toast: false });
     setSectionReady("activity", "Telegram collection imported", { toast: false });
     renderCollectibleGrids();
@@ -5295,8 +5295,8 @@ function updateAnalyticsFromWallet(totalUsd) {
     ...stickerAssets.map((asset) => ({ name: asset.name, change: Number(asset.dailyPct || 0), pnl: Number(asset.pnlUsd || 0) })),
   ];
   const valid = performers.filter((item) => Number.isFinite(item.change));
-  const best = valid.reduce((a, b) => (b.change > a.change ? b : a), valid[0] || { name: "â€”", change: 0 });
-  const worst = valid.reduce((a, b) => (b.change < a.change ? b : a), valid[0] || { name: "â€”", change: 0 });
+  const best = valid.reduce((a, b) => (b.change > a.change ? b : a), valid[0] || { name: "—", change: 0 });
+  const worst = valid.reduce((a, b) => (b.change < a.change ? b : a), valid[0] || { name: "—", change: 0 });
   const pnl = performers.reduce((sum, item) => sum + Number(item.pnl || 0), tokenAggregatePnl(latestVisibleTokens).delta || 0);
   if (rows[0]) rows[0].innerHTML = `<small>Best performer</small><b>${escapeHtml(best.name)}</b><strong class="positive">${signedPct(best.change)}</strong>`;
   if (rows[1]) rows[1].innerHTML = `<small>Worst performer</small><b>${escapeHtml(worst.name)}</b><strong class="negative">${signedPct(worst.change)}</strong>`;
@@ -5328,7 +5328,7 @@ function settledValue(result, fallback = null) {
 
 
 function parsePct(value) {
-  const cleaned = String(value ?? "").replace("âˆ’", "-").replace("%", "").trim();
+  const cleaned = String(value ?? "").replace("−", "-").replace("%", "").trim();
   const number = Number(cleaned);
   return Number.isFinite(number) ? number : NaN;
 }
@@ -5380,7 +5380,7 @@ function isDisplayableToken(token = {}) {
 function tokenRowSort(a, b) {
   if (a.symbol === "TON") return -1;
   if (b.symbol === "TON") return 1;
-  const stableRank = (token) => ["USDT", "USDâ‚®", "JUSDT", "USDC", "JUSDC"].includes(String(token.symbol || "").toUpperCase()) ? 0 : 1;
+  const stableRank = (token) => ["USDT", "USD₮", "JUSDT", "USDC", "JUSDC"].includes(String(token.symbol || "").toUpperCase()) ? 0 : 1;
   const rankDiff = stableRank(a) - stableRank(b);
   if (rankDiff) return rankDiff;
   const pricedRank = (token) => Number(token.priceUsd || 0) > 0 ? 0 : 1;
@@ -5430,7 +5430,7 @@ function renderTokenSummary(tokens) {
       <button class="icon-button" type="button" data-token-refresh aria-label="Refresh tokens"><i data-lucide="refresh-cw"></i></button>
     </div>
     <h2>${money(total)}</h2>
-    <p class="token-summary-meta ${tone}">${signedMoney(pnl.delta)} Â· ${signedPct(pnl.pct)} Â· ${tokens.length} token${tokens.length === 1 ? "" : "s"}</p>
+    <p class="token-summary-meta ${tone}">${signedMoney(pnl.delta)} · ${signedPct(pnl.pct)} · ${tokens.length} token${tokens.length === 1 ? "" : "s"}</p>
   `;
 }
 
@@ -5450,7 +5450,7 @@ function renderTokenRows(tokens) {
       address: token.address,
       image: token.image,
       category: token.category,
-      value: `${money(token.valueUsd)} Â· ${Number.isFinite(token.change24h) ? signedPct(token.change24h) : "24h n/a"}`,
+      value: `${money(token.valueUsd)} · ${Number.isFinite(token.change24h) ? signedPct(token.change24h) : "24h n/a"}`,
       icon: "circle-dollar-sign",
       tone: "token-bg",
       balance: token.balance,
@@ -5474,8 +5474,8 @@ function renderTokenRows(tokens) {
   list.innerHTML = sortedTokens.map((token) => {
     const changeClass = Number(token.change24h) < 0 ? "negative" : Number(token.change24h) > 0 ? "positive" : "";
     const hasPrice = Number(token.priceUsd || 0) > 0;
-    const changeText = Number.isFinite(token.change24h) && hasPrice ? signedPct(token.change24h) : "â€”";
-    const valueLabel = Number(token.valueUsd || 0) > 0 ? money(token.valueUsd) : "â€”";
+    const changeText = Number.isFinite(token.change24h) && hasPrice ? signedPct(token.change24h) : "—";
+    const valueLabel = Number(token.valueUsd || 0) > 0 ? money(token.valueUsd) : "—";
     return `<article data-screen-target="detail" data-asset="${escapeHtml(token.id)}">${renderTokenLogo(token)}<div><b>${escapeHtml(token.name)}</b><small class="token-price-line"><span>${tokenPriceLabel(token.priceUsd)}</span><span class="${changeClass}">${changeText}</span></small></div><aside><b>${valueLabel}</b><small>${escapeHtml(tokenBalanceLabel(token))}</small></aside></article>`;
   }).join("");
   syncPortfolioFromDisplayedTokens(sortedTokens);
@@ -5635,7 +5635,7 @@ async function updateTokensFromWallet(data, options = {}) {
   if (tokens.length) renderTokenRows(tokens);
   else renderTokenEmptyState("No token balances above $0.10");
   const jettonCount = Math.max(0, tokens.length - (tokens.some((token) => token.symbol === "TON") ? 1 : 0));
-  setSectionReady("tokens", tokens.length ? `Tokens ready${jettonCount ? ` Â· ${jettonCount} jettons loaded` : ""}` : "Token screen is ready");
+  setSectionReady("tokens", tokens.length ? `Tokens ready${jettonCount ? ` · ${jettonCount} jettons loaded` : ""}` : "Token screen is ready");
   return tokens;
 }
 
@@ -5700,7 +5700,7 @@ async function updateStickersFromWallet(walletAddress, options = {}) {
       rebuildPortfolioCollectibleGroups();
       setCollectiblesBanner("stickers", "No on-chain sticker packs found in this wallet.");
       renderCollectibleGrids();
-      setSectionReady("stickers", "Sticker screen ready Â· no sticker packs found");
+      setSectionReady("stickers", "Sticker screen ready · no sticker packs found");
       return [];
     }
     walletStickerGroups = groupStickerAssets(rows.map((item, index) => liveCollectibleAsset(item, "sticker", `wallet-${index}`)));
@@ -5710,7 +5710,7 @@ async function updateStickersFromWallet(walletAddress, options = {}) {
     updateCollectibleSummaryBanner("stickers");
     preloadStickerAnimatedMedia(assets);
     prefetchStickerDetails(assets);
-    setSectionReady("stickers", `Stickers ready Â· ${assets.length} collection${assets.length === 1 ? "" : "s"} loaded`);
+    setSectionReady("stickers", `Stickers ready · ${assets.length} collection${assets.length === 1 ? "" : "s"} loaded`);
     return assets;
   } catch (error) {
     console.warn("stickers live data failed", error);
@@ -5719,7 +5719,7 @@ async function updateStickersFromWallet(walletAddress, options = {}) {
     rebuildPortfolioCollectibleGroups();
     setCollectiblesBanner("stickers", "Sticker data is unavailable right now.");
     renderCollectibleGrids();
-    setSectionReady("stickers", "Sticker screen ready Â· data unavailable");
+    setSectionReady("stickers", "Sticker screen ready · data unavailable");
     return [];
   }
 }
@@ -5738,10 +5738,10 @@ async function updateCollectiblesFromGetgems(walletAddress, kind, options = {}) 
       rebuildPortfolioCollectibleGroups();
       if (kind === "stickers") {
         setCollectiblesBanner(kind, "No on-chain sticker packs found in this wallet.");
-        setSectionReady(kind, "Sticker screen ready Â· no sticker packs found");
+        setSectionReady(kind, "Sticker screen ready · no sticker packs found");
       } else {
         setCollectiblesBanner(kind, "No on-chain wallet gifts found.");
-        setSectionReady(kind, "Gifts ready Â· no wallet gifts found");
+        setSectionReady(kind, "Gifts ready · no wallet gifts found");
       }
       renderCollectibleGrids();
       return [];
@@ -5762,7 +5762,7 @@ async function updateCollectiblesFromGetgems(walletAddress, kind, options = {}) 
       preloadStickerAnimatedMedia(assets);
       prefetchStickerDetails(assets);
     }
-    setSectionReady(kind, `${kind === "gifts" ? "Gifts" : "Stickers"} ready Â· ${assets.length} ${assets.length === 1 ? "collection" : "collections"} loaded`);
+    setSectionReady(kind, `${kind === "gifts" ? "Gifts" : "Stickers"} ready · ${assets.length} ${assets.length === 1 ? "collection" : "collections"} loaded`);
     return assets;
   } catch (error) {
     console.warn(`${kind} live data failed`, error);
@@ -5772,7 +5772,7 @@ async function updateCollectiblesFromGetgems(walletAddress, kind, options = {}) 
     rebuildPortfolioCollectibleGroups();
     setCollectiblesBanner(kind, kind === "gifts" ? "Live data unavailable" : "Sticker data is unavailable right now.");
     renderCollectibleGrids();
-    setSectionReady(kind, kind === "gifts" ? "Gift screen ready Â· live data unavailable" : "Sticker screen ready Â· data unavailable");
+    setSectionReady(kind, kind === "gifts" ? "Gift screen ready · live data unavailable" : "Sticker screen ready · data unavailable");
     return [];
   }
 }
@@ -5915,7 +5915,7 @@ function stickerPackImageStack(asset = {}) {
 
 function stickerPackMeta(asset = {}) {
   const parts = [asset.format, asset.edition].filter(Boolean);
-  return parts.join(" Â· ") || "Sticker pack";
+  return parts.join(" · ") || "Sticker pack";
 }
 
 function groupStickerBrandChildren(children = []) {
@@ -5993,8 +5993,8 @@ function groupGiftAssets(assets = []) {
     if (asset.tag) group.tags.push(asset.tag);
     group.name = name;
     group.collection = name;
-    group.creator = source ? `Floor Â· ${source}` : (asset.creator || group.creator || name);
-    group.provenance = source ? `${name} Â· ${source}` : name;
+    group.creator = source ? `Floor · ${source}` : (asset.creator || group.creator || name);
+    group.provenance = source ? `${name} · ${source}` : name;
     group.image = group.image || asset.image;
     const mediaRank = (type) => ({ lottie: 3, video: 2, image: 1 }[String(type || "").toLowerCase()] || 0);
     const currentMedia = giftMediaDescriptor(group);
@@ -6118,7 +6118,7 @@ function liveCollectibleAsset(item, kind, index, options = {}) {
   const isGift = kind === "gift";
   const attrs = Array.isArray(item.attributes) ? item.attributes : [];
   const attr = (label) => attrs.find((item) => String(item.trait_type || item.type || item.label || "").toLowerCase().includes(label));
-  const attrValue = (label, fallback = "â€”") => {
+  const attrValue = (label, fallback = "—") => {
     const hit = attr(label);
     return String(hit?.value || fallback);
   };
@@ -6179,7 +6179,7 @@ function liveCollectibleAsset(item, kind, index, options = {}) {
     acquiredSort: Date.now(),
     costBasis,
     upgraded: "Imported from connected TON wallet",
-    provenance: `${item.collection || "Collection"} Â· ${truncateWalletAddress(item.tokenAddress || "")}`,
+    provenance: `${item.collection || "Collection"} · ${truncateWalletAddress(item.tokenAddress || "")}`,
     comboRank: item.description || "Live wallet collectible",
     exactCount: "Trait data from marketplace metadata",
     quickSellTon: marketVerified ? floorTon * 0.95 : 0,
@@ -6206,7 +6206,7 @@ function liveCollectibleAsset(item, kind, index, options = {}) {
     floorHistoryAvailable: Array.isArray(item.floorHistory) && item.floorHistory.length >= 2,
     collectionStats: item.collectionStats || null,
     modelStats: item.modelStats || null,
-    intel: { trend: "â–‚â–ƒâ–…â–†â–‡", badge: "Live", sales24h: "â€”", volume24h: "â€”", prior: "â€”", daysToSell: "â€”", listedSupply: "â€”", listingRate: "â€”", bestTime: "â€”" },
+    intel: { trend: "▂▃▅▆▇", badge: "Live", sales24h: "—", volume24h: "—", prior: "—", daysToSell: "—", listedSupply: "—", listingRate: "—", bestTime: "—" },
     chart: floorUsd ? [floorUsd, floorUsd, floorUsd, floorUsd, floorUsd, floorUsd, floorUsd] : [],
     ...(isGift ? {} : {
       format: stickerMediaType === "lottie" ? "Animated" : (stickerMediaType === "video" ? "Video" : attrValue("format", "Static")),
@@ -6243,7 +6243,7 @@ function formatActivityDate(dateValue) {
   const day = date.getDate();
   const hour = String(date.getHours()).padStart(2, "0");
   const minute = String(date.getMinutes()).padStart(2, "0");
-  return `${month} ${day} Â· ${hour}:${minute}`;
+  return `${month} ${day} · ${hour}:${minute}`;
 }
 
 function activityDayLabel(dateValue) {
@@ -6259,16 +6259,16 @@ function activityDayLabel(dateValue) {
 
 function signedActivityValue(value, direction) {
   if (direction === "Swap") return value;
-  if (/^[+\-âˆ’]/.test(value)) return value;
+  if (/^[+\-−]/.test(value)) return value;
   if (!/(TON|USD|JETTON|[A-Z0-9$]{2,})/i.test(value)) return value;
-  return `${direction === "Sent" ? "âˆ’" : "+"}${value}`;
+  return `${direction === "Sent" ? "−" : "+"}${value}`;
 }
 
 function activityRowsHtml(events = [], limit = 5, emptyText = "No TON activity found yet", options = {}) {
   const usableEvents = events.map((event) => {
     const action = event.actions?.find((item) => item.simplePreview?.value) || event.actions?.[0];
     const preview = action?.simplePreview || {};
-    let value = String(preview.value || preview.description?.replace(/^Swapping\s+/i, "").replace(/\s+for\s+/i, " â†’ ") || "On-chain");
+    let value = String(preview.value || preview.description?.replace(/^Swapping\s+/i, "").replace(/\s+for\s+/i, " → ") || "On-chain");
     if (/nft|gift|sticker/i.test(`${action?.type || ""} ${preview.name || ""} ${value}`)) return null;
     const tonMatch = value.match(/[-+]?\d+(?:\.\d+)?\s*TON/i);
     if (tonMatch && Math.abs(Number.parseFloat(tonMatch[0])) <= 0) return null;
@@ -6276,13 +6276,13 @@ function activityRowsHtml(events = [], limit = 5, emptyText = "No TON activity f
     const isPositive = /^\s*\+/.test(value);
     const direction = preview.direction || (/swap/i.test(action?.type || preview.name || "") ? "Swap" : isNegative ? "Sent" : "Received");
     value = signedActivityValue(value, direction);
-    const valueParts = value.split(/\s+â†’\s+/);
+    const valueParts = value.split(/\s+→\s+/);
     return {
       label: direction,
       description: preview.name || action?.type || "TON activity",
       value,
       valueHtml: valueParts.length > 1
-        ? `${escapeHtml(valueParts[0])}<span>${escapeHtml(`â†’ ${valueParts.slice(1).join(" â†’ ")}`)}</span>`
+        ? `${escapeHtml(valueParts[0])}<span>${escapeHtml(`→ ${valueParts.slice(1).join(" → ")}`)}</span>`
         : escapeHtml(value),
       direction,
       usdValue: preview.usdValue || "",
@@ -6376,12 +6376,12 @@ function renderTxSheet(detail = {}) {
   logoStack.classList.toggle("is-single", !isSwap);
   logoStack.innerHTML = logos.map(txLogoHtml).join("");
   const amountTitle = document.getElementById("txAmountTitle");
-  const amountParts = String(detail.amount || "0 TON").split(/\s*â†’\s*/);
+  const amountParts = String(detail.amount || "0 TON").split(/\s*→\s*/);
   amountTitle.innerHTML = isSwap && amountParts.length > 1
-    ? `<span class="tx-swap-sent">âˆ’${escapeHtml(amountParts[0])}</span><span class="tx-swap-received">+${escapeHtml(amountParts.slice(1).join(" â†’ "))}</span>`
+    ? `<span class="tx-swap-sent">−${escapeHtml(amountParts[0])}</span><span class="tx-swap-received">+${escapeHtml(amountParts.slice(1).join(" → "))}</span>`
     : escapeHtml(detail.amount || "0 TON");
   document.getElementById("txUsdValue").textContent = isSwap ? "" : (detail.usdValue || "n/a");
-  document.getElementById("txSubtitle").textContent = `${detail.type || "Transaction"} Â· ${detail.timestamp ? formatActivityDate(detail.timestamp) : ""}`;
+  document.getElementById("txSubtitle").textContent = `${detail.type || "Transaction"} · ${detail.timestamp ? formatActivityDate(detail.timestamp) : ""}`;
   document.getElementById("txDetailList").innerHTML = txRowsHtml(detail);
   const button = document.getElementById("txTonscanButton");
   if (button) button.innerHTML = `<i data-lucide="globe"></i><span>${escapeHtml(truncateWalletAddress(detail.hash || ""))}</span>`;
@@ -6466,7 +6466,7 @@ async function startActivityPreload(address) {
       renderActivityRows(fullActivityEvents, HOME_ACTIVITY_LIMIT);
       if (document.querySelector('[data-screen="activity"].is-active')) renderFullActivity(fullActivityEvents);
       preloadFullActivityBackground(address);
-      setSectionReady("activity", `Activity ready Â· ${fullActivityEvents.length} transactions loaded`);
+      setSectionReady("activity", `Activity ready · ${fullActivityEvents.length} transactions loaded`);
     }
   } catch (error) {
     console.warn("Full activity load failed", error);
@@ -6474,7 +6474,7 @@ async function startActivityPreload(address) {
       document.querySelector('[data-screen="activity"] .holdings-list').innerHTML = activityRowsHtml([], 1000, "Could not load wallet history");
       window.lucide?.createIcons();
     }
-    setSectionReady("activity", "Activity ready Â· unavailable");
+    setSectionReady("activity", "Activity ready · unavailable");
   } finally {
     activityInitialLoading = false;
   }
