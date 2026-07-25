@@ -61,6 +61,17 @@
 .app-frame.has-wallet [data-screen="tokens"] .holdings-list article:hover{padding-left:5px}
 .app-frame.has-wallet [data-screen="tokens"] .asset-icon{border:1px solid var(--terminal-line);border-radius:12px;background:#0b0b0b}
 
+/* Shared shell alignment: avoid stacking screen padding with section margins. */
+.app-frame:is(.has-wallet,.is-home-screen) .dock{border-radius:999px}
+.app-frame:is(.has-wallet,.is-home-screen) .dock button{border-radius:999px}
+.app-frame.has-wallet [data-screen="home"],
+.app-frame.has-wallet [data-screen="assets"]{padding-inline:0}
+.app-frame.has-wallet [data-screen="home"] :is(.app-header,.page-header),
+.app-frame.has-wallet [data-screen="assets"] :is(.assets-header,.page-header){padding-inline:18px}
+.app-frame.has-wallet [data-screen="assets"] .portfolio-strip,
+.app-frame.has-wallet [data-screen="assets"] .category-stack,
+.app-frame.has-wallet [data-screen="assets"] .mini-detail-card{margin-inline:18px}
+
 /* Gifts, stickers, and their groups: summary + control rail + collection rows. */
 .app-frame.has-wallet :is([data-screen="gifts"],[data-screen="gift-brand"],[data-screen="stickers"],[data-screen="sticker-brand"]) .asset-total-banner{margin:0 18px;padding:20px 0;border:0;border-bottom:1px solid var(--terminal-line);border-radius:0;background:transparent;box-shadow:none}
 .app-frame.has-wallet :is([data-screen="gifts"],[data-screen="gift-brand"],[data-screen="stickers"],[data-screen="sticker-brand"]) .asset-total-banner>div{align-items:flex-end}
