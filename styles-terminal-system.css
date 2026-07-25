@@ -150,10 +150,15 @@ body.product-v2 .app-frame.has-wallet .dock button{min-width:46px;min-height:48p
 body.product-v2 .app-frame.has-wallet .dock button.active{border-radius:999px}
 @media(max-width:359px){body.product-v2 .app-frame.has-wallet [data-screen="assets"]>.assets-header h1.dot-matrix-title{--dot-size:1.58px;--dot-gap:.9px}body.product-v2 .app-frame.has-wallet [data-screen="assets"] .portfolio-strip article:first-child b.dot-matrix-value{--dot-size:1.95px;--dot-gap:1.02px;gap:2.7px}body.product-v2 .app-frame.has-wallet [data-screen="assets"] .category-stack article{grid-template-columns:29px minmax(0,1fr) 82px 12px;gap:9px}body.product-v2 .app-frame.has-wallet [data-screen="assets"] .category-stack strong{max-width:82px;font-size:12px}}
 /* Shared numeric columns: prices and balances align across token and activity rows. */
-.app-frame.has-wallet [data-screen="tokens"] .holdings-list article{display:grid;grid-template-columns:52px minmax(0,1fr) 108px;align-items:center;column-gap:14px}
-.app-frame.has-wallet [data-screen="tokens"] .holdings-list article>aside{width:108px;min-width:0;margin:0;justify-self:end;text-align:right;font-variant-numeric:tabular-nums}
-.app-frame.has-wallet [data-screen="tokens"] .holdings-list article>aside>b,.app-frame.has-wallet [data-screen="tokens"] .holdings-list article>aside>small{width:100%;white-space:nowrap}
+.app-frame.has-wallet [data-screen="tokens"] .holdings-list article{display:grid;grid-template-columns:46px minmax(0,1fr) 112px;align-items:center;column-gap:12px;padding-left:0;padding-right:0}
+.app-frame.has-wallet [data-screen="tokens"] .holdings-list article:hover{padding-left:0}
+.app-frame.has-wallet [data-screen="tokens"] .holdings-list article>div{min-width:0}
+.app-frame.has-wallet [data-screen="tokens"] .holdings-list article>aside{display:grid;width:112px;min-width:0;margin:0;justify-self:end;justify-items:end;align-content:center;row-gap:4px;text-align:right;font-variant-numeric:tabular-nums}
+.app-frame.has-wallet [data-screen="tokens"] .holdings-list article>aside>b,.app-frame.has-wallet [data-screen="tokens"] .holdings-list article>aside>small{width:100%;margin:0;text-align:right;white-space:nowrap}
+.app-frame.has-wallet [data-screen="tokens"] .holdings-list article>aside>b.dot-matrix-text{justify-content:flex-end}
 .app-frame.has-wallet [data-screen="tokens"] .token-price-line{gap:8px;white-space:nowrap}
-.app-frame.has-wallet [data-screen="activity"] .activity-row{display:grid;grid-template-columns:48px minmax(0,1fr) 108px;align-items:center;column-gap:12px}
-.app-frame.has-wallet [data-screen="activity"] .activity-row>aside{width:108px;min-width:0;margin:0;justify-self:end;text-align:right;font-variant-numeric:tabular-nums}
-.app-frame.has-wallet [data-screen="activity"] .activity-row>aside>strong,.app-frame.has-wallet [data-screen="activity"] .activity-row>aside>small{width:100%;white-space:nowrap}
+.app-frame.has-wallet [data-screen="activity"] .activity-row{display:grid;grid-template-columns:48px minmax(0,1fr) 112px;align-items:center;column-gap:12px;padding-left:0;padding-right:0}
+.app-frame.has-wallet [data-screen="activity"] .activity-row>div{min-width:0}
+.app-frame.has-wallet [data-screen="activity"] .activity-row>aside{display:grid;width:112px;min-width:0;margin:0;justify-self:end;justify-items:end;align-content:center;row-gap:4px;text-align:right;font-variant-numeric:tabular-nums}
+.app-frame.has-wallet [data-screen="activity"] .activity-row>aside>strong,.app-frame.has-wallet [data-screen="activity"] .activity-row>aside>small{width:100%;margin:0;text-align:right;white-space:nowrap}
+@media(max-width:359px){.app-frame.has-wallet [data-screen="tokens"] .holdings-list article{grid-template-columns:44px minmax(0,1fr) 104px;column-gap:10px}.app-frame.has-wallet [data-screen="tokens"] .holdings-list article>aside,.app-frame.has-wallet [data-screen="activity"] .activity-row>aside{width:104px}.app-frame.has-wallet [data-screen="activity"] .activity-row{grid-template-columns:44px minmax(0,1fr) 104px;column-gap:10px}}
