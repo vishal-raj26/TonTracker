@@ -70,6 +70,13 @@ const resetBaseline = process.argv.includes("--reset");
 const collectionArgIndex = process.argv.indexOf("--collection");
 const onlyCollection = collectionArgIndex >= 0 ? String(process.argv[collectionArgIndex + 1] || "").trim() : "";
 const lockFile = path.join(root, "data", "gift-sales-worker.lock");
+const coinGeckoBase = String(process.env.COINGECKO_API_BASE || "https://api.coingecko.com/api/v3").replace(/\/+$/, "");
+const coinGeckoApiKey = String(process.env.COINGECKO_API_KEY || "").trim();
+const historicalRateMaxGapMs = Math.max(
+  60 * 1000,
+  Number(process.env.GIFT_SALES_HISTORICAL_RATE_MAX_GAP_MS || 2 * 60 * 60 * 1000)
+);
+let historicalTonUsdPointsPromise = null;
 
 const hasTelegramWebViewAuth = Boolean(telegramApiId && telegramApiHash && telegramSession);
 
@@ -102,6 +109,82 @@ function singularWord(word = "") {
 function collectionIdentity(value = "") {
   const words = String(value || "").toLowerCase().match(/[a-z0-9]+/g) || [];
   return key(words.map(singularWord).join(" "));
+}
+
+async function historicalTonUsdPoints() {
+  if (historicalTonUsdPointsPromise) return historicalTonUsdPointsPromise;
+  historicalTonUsdPointsPromise = (async () => {
+    const endMs = Date.now() + 60 * 60 * 1000;
+    const startMs = Date.now() - retentionDays * 24 * 60 * 60 * 1000;
+    const chunkMs = 89 * 24 * 60 * 60 * 1000;
+    const points = [];
+    for (let fromMs = startMs; fromMs < endMs; fromMs += chunkMs) {
+      const toMs = Math.min(endMs, fromMs + chunkMs);
+      const params = new URLSearchParams({
+        vs_currency: "usd",
+        from: String(Math.floor(fromMs / 1000)),
+        to: String(Math.ceil(toMs / 1000)),
+        precision: "full",
+      });
+      const payload = await fetchJson(
+        `${coinGeckoBase}/coins/the-open-network/market_chart/range?${params}`,
+        {
+          headers: coinGeckoApiKey ? { "x-cg-demo-api-key": coinGeckoApiKey } : {},
+          timeoutMs: 30000,
+        },
+        4
+      );
+      (Array.isArray(payload?.prices) ? payload.prices : []).forEach(([timestamp, rate]) => {
+        if (Number.isFinite(Number(timestamp)) && Number(rate) > 0) {
+          points.push({ timestamp: Number(timestamp), rate: Number(rate) });
+        }
+      });
+      if (toMs < endMs) await sleep(1500);
+    }
+    const deduped = [...new Map(points.map((point) => [point.timestamp, point])).values()]
+      .sort((left, right) => left.timestamp - right.timestamp);
+    if (!deduped.length) throw new Error("Historical TON/USD series is empty");
+    console.log(`[gift-sales] historical TON/USD series ready: ${deduped.length} observed market points`);
+    return deduped;
+  })().catch((error) => {
+    historicalTonUsdPointsPromise = null;
+    throw error;
+  });
+  return historicalTonUsdPointsPromise;
+}
+
+function closestHistoricalRate(points, soldAt = "") {
+  const target = new Date(soldAt).getTime();
+  if (!Number.isFinite(target) || !points.length) return null;
+  let low = 0;
+  let high = points.length - 1;
+  while (low < high) {
+    const middle = Math.floor((low + high) / 2);
+    if (points[middle].timestamp < target) low = middle + 1;
+    else high = middle;
+  }
+  const after = points[low];
+  const before = points[Math.max(0, low - 1)];
+  const closest = !before || Math.abs(after.timestamp - target) < Math.abs(before.timestamp - target)
+    ? after
+    : before;
+  if (!closest || Math.abs(closest.timestamp - target) > historicalRateMaxGapMs) return null;
+  return closest;
+}
+
+async function attachHistoricalUsd(sales = []) {
+  if (!sales.length) return sales;
+  const points = await historicalTonUsdPoints();
+  return sales.map((sale) => {
+    const observed = closestHistoricalRate(points, sale.soldAt);
+    if (!observed) return null;
+    return {
+      ...sale,
+      tonUsdRate: observed.rate,
+      priceUsd: Number(sale.priceTon || 0) * observed.rate,
+      rateAt: new Date(observed.timestamp).toISOString(),
+    };
+  }).filter(Boolean);
 }
 
 let refreshedSatelliteInitData = satelliteInitData;
@@ -729,7 +812,11 @@ async function scanPriorityTargets(targets = [], requestBudget = exactRequestBud
 
 async function uploadSales(snapshot) {
   if (dryRun) return { ok: true, inserted: 0, accepted: snapshot.sales.length, dryRun: true };
-  const sales = Array.isArray(snapshot.sales) ? snapshot.sales : [];
+  const rawSales = Array.isArray(snapshot.sales) ? snapshot.sales : [];
+  const sales = await attachHistoricalUsd(rawSales);
+  if (sales.length !== rawSales.length) {
+    throw new Error(`Historical TON/USD unavailable for ${rawSales.length - sales.length}/${rawSales.length} sales; checkpoint preserved`);
+  }
   const chunkSize = 40;
   const chunks = sales.length ? Array.from({ length: Math.ceil(sales.length / chunkSize) }, (_, index) => sales.slice(index * chunkSize, (index + 1) * chunkSize)) : [[]];
   let inserted = 0;

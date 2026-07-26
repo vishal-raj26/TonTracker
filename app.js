@@ -899,6 +899,7 @@ function updateCollectibleSummaryBanner(kind) {
   const dailyClass = daily < 0 ? "negative" : "positive";
   const pnlClass = pnl < 0 ? "negative" : "positive";
   banner.innerHTML = `<small>${label}</small><div><h2>${money(total)}</h2><span>${compactNumber(totalTon)} TON</span></div><strong class="${dailyClass}">${signedMoney(daily)} · ${signedPct(dailyPct)} 24h</strong><p>${kind === "gifts" ? "Gift" : "Sticker"} unrealized PnL: <b class="${pnlClass}">${signedMoney(pnl)} · ${signedPct(pnlPct)}</b></p>`;
+  renderCollectibleSummaryDotMatrix(banner);
 }
 
 function renderGiftGrid() {
@@ -1094,6 +1095,7 @@ function renderGiftBrand(assetId) {
     const valueLabel = totalValue > 0 ? money(totalValue) : "Price unavailable";
     const countLabel = `${count} gift${count === 1 ? "" : "s"}`;
     summary.innerHTML = `<small>${escapeHtml(brand.creator || brand.collection || "Gift collection")}</small><div><h2>${valueLabel}</h2><span>${escapeHtml(countLabel)}</span></div><strong class="${pnl < 0 ? "negative" : "positive"}">${init && totalValue > 0 ? `${signedMoney(pnl)} · ${signedPct((pnl / init) * 100)}` : "Tap a gift to open details"}</strong>`;
+    renderCollectibleSummaryDotMatrix(summary);
   }
   const grid = document.querySelector("#giftBrandGrid");
   groupedChildren.forEach((item) => { assetDetails[item.id] = item; });
@@ -1184,6 +1186,9 @@ function groupGiftBrandChildren(children = []) {
   return Array.from(groups.values())
     .map((item) => ({
       ...item,
+      id: Number(item.count || 0) > 1
+        ? `gift-model-group:${collectibleKey(`${item.collection || ""}:${giftBrandModelLabel(item)}`)}`
+        : item.id,
       pnlUsd: Number(item.initUsd || 0) ? Number(item.floorUsd || 0) - Number(item.initUsd || 0) : Number(item.pnlUsd || 0),
       pnlPct: Number(item.initUsd || 0) ? ((Number(item.floorUsd || 0) - Number(item.initUsd || 0)) / Number(item.initUsd || 1)) * 100 : Number(item.pnlPct || 0),
     }))
@@ -1233,6 +1238,7 @@ function renderGiftModelGroup(assetId) {
   if (summary) {
     const totalValue = children.reduce((sum, item) => sum + Number(item.floorUsd || 0), 0);
     summary.innerHTML = `<small>${escapeHtml(giftBrandModelLabel(group))}</small><div><h2>${money(totalValue)}</h2><span>${children.length} gift${children.length === 1 ? "" : "s"}</span></div><strong class="positive">Tap a gift to open details</strong>`;
+    renderCollectibleSummaryDotMatrix(summary);
   }
   const grid = document.querySelector("#giftBrandGrid");
   if (grid) grid.innerHTML = children.map(renderGiftIndividualItem).join("");
@@ -1764,6 +1770,7 @@ function renderStickerBrand(assetId) {
     const packCount = groupedChildren.length;
     const total = Number(brand.floorUsd || 0);
     summary.innerHTML = `<small>Sticker brand</small><div><h2>${total > 0 ? money(total) : "Price unavailable"}</h2><span>${count} sticker${count === 1 ? "" : "s"}</span></div><strong>${packCount} pack${packCount === 1 ? "" : "s"} in this brand</strong>`;
+    renderCollectibleSummaryDotMatrix(summary);
   }
   const grid = document.querySelector("#stickerBrandGrid");
   groupedChildren.forEach((item) => { assetDetails[item.id] = item; });
@@ -2630,7 +2637,7 @@ function renderGiftSalesRows(detail) {
     if (!Number.isFinite(date.getTime())) return { time: "—", day: "—" };
     return {
       time: date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false }),
-      day: `${String(date.getDate()).padStart(2, "0")}.${String(date.getMonth() + 1).padStart(2, "0")}`,
+      day: `${String(date.getDate()).padStart(2, "0")}.${String(date.getMonth() + 1).padStart(2, "0")}.${date.getFullYear()}`,
     };
   };
   const body = rows.slice(0, 10).map((sale) => {
@@ -5293,6 +5300,14 @@ function renderDotMatrixText(element, value, variant = "display") {
     const dots = rows.join("").split("").map((dot) => `<i class="dot-matrix-led${dot === "1" ? " is-on" : ""}"></i>`).join("");
     return `<span class="dot-matrix-character" style="--dot-columns:${columns}" aria-hidden="true">${dots}</span>`;
   }).join("");
+}
+
+function renderCollectibleSummaryDotMatrix(container) {
+  const value = container?.querySelector("h2");
+  if (!value || value.querySelector(".metric-skeleton")) return;
+  const text = value.textContent.trim();
+  if (!/^\$[\d,.]+$/.test(text)) return;
+  renderDotMatrixText(value, text, "value");
 }
 
 function renderAssetsDotMatrix() {

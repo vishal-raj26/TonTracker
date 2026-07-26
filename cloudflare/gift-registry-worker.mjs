@@ -616,6 +616,11 @@ function saleRow(row = {}) {
     giftId: row.gift_id || "",
     mint: Number(row.gift_number || 0),
     priceTon: Number(row.price_ton || 0),
+    priceUsd: Number(row.price_usd || 0),
+    tonUsdRate: Number(row.ton_usd_rate || 0),
+    rateAt: Number(row.rate_at_unix || 0) > 0
+      ? new Date(Number(row.rate_at_unix) * 1000).toISOString()
+      : "",
     originalPrice: row.original_price || "",
     date: soldAt,
     soldAt,
@@ -641,15 +646,56 @@ function salesReadDatabases(env) {
   return databases.filter((database, index) => databases.indexOf(database) === index);
 }
 
-function compactSalesDatabases(env) {
-  return [env.GIFT_SALES_2025, env.GIFT_SALES_2026].filter(Boolean);
+function compactSalesDatabaseConfigs(env) {
+  return [
+    { name: "reserve-2", database: env.GIFT_SALES_RESERVE_2, historicalUsd: true, writable: true },
+    { name: "reserve-1", database: env.GIFT_SALES_RESERVE_1, historicalUsd: true, writable: true },
+    { name: "2026-b", database: env.GIFT_SALES_2026_B, historicalUsd: true, writable: true },
+    { name: "2025", database: env.GIFT_SALES_2025, historicalUsd: true, writable: true },
+    { name: "2026-legacy", database: env.GIFT_SALES_2026, historicalUsd: false, writable: false },
+  ].filter((entry) => entry.database);
 }
 
-function salesWriteDatabaseFor(env, sale) {
+function compactSalesDatabases(env) {
+  return compactSalesDatabaseConfigs(env)
+    .filter((entry) => entry.historicalUsd)
+    .map((entry) => entry.database);
+}
+
+const salesShardSizeCache = new Map();
+const SALES_SHARD_CACHE_MS = 5 * 60 * 1000;
+const DEFAULT_SALES_SHARD_LIMIT_BYTES = 400_000_000;
+
+function writableCompactSalesDatabaseConfigs(env, year) {
+  const primary = year === 2025
+    ? ["2025", "2026-b", "reserve-1", "reserve-2"]
+    : ["2026-b", "reserve-1", "reserve-2", "2025"];
+  const rank = new Map(primary.map((name, index) => [name, index]));
+  return compactSalesDatabaseConfigs(env)
+    .filter((entry) => entry.writable)
+    .sort((left, right) => (rank.get(left.name) ?? 99) - (rank.get(right.name) ?? 99));
+}
+
+async function salesShardSize(config, force = false) {
+  const cached = salesShardSizeCache.get(config.name);
+  if (!force && cached && Date.now() - cached.checkedAt < SALES_SHARD_CACHE_MS) return cached.bytes;
+  const result = await config.database.prepare("SELECT 1 AS healthy").run();
+  const bytes = Math.max(0, Number(result.meta?.size_after || 0));
+  salesShardSizeCache.set(config.name, { bytes, checkedAt: Date.now() });
+  return bytes;
+}
+
+async function salesWriteDatabaseFor(env, sale) {
   const year = new Date(sale.soldAt).getUTCFullYear();
-  if (year === 2025 && env.GIFT_SALES_2025) return env.GIFT_SALES_2025;
-  if (year === 2026 && env.GIFT_SALES_2026) return env.GIFT_SALES_2026;
-  return salesDatabase(env);
+  const limit = Math.max(50_000_000, Number(env.SALES_SHARD_ROTATE_BYTES || DEFAULT_SALES_SHARD_LIMIT_BYTES));
+  for (const config of writableCompactSalesDatabaseConfigs(env, year)) {
+    try {
+      if (await salesShardSize(config) < limit) return config;
+    } catch {
+      // A full or temporarily unhealthy shard must not block the reserve.
+    }
+  }
+  throw new Error(`All compact gift-sales shards reached the ${limit}-byte rotation threshold`);
 }
 
 function saleTimestamp(row = {}) {
@@ -668,7 +714,7 @@ function mergeSalesRows(results = [], requestedLimit = 5) {
     .slice(0, Math.max(1, Math.min(20, Number(requestedLimit || 5))));
 }
 
-function compactSalesReadStatement(database, pair = {}, requestedLimit = 5) {
+function compactSalesReadStatement(database, pair = {}, requestedLimit = 5, historicalUsd = false) {
   const collectionKeys = collectionAliasKeys(pair.collection).slice(0, 16);
   const modelKey = key(pair.model);
   const backdropKey = key(pair.backdrop);
@@ -678,7 +724,11 @@ function compactSalesReadStatement(database, pair = {}, requestedLimit = 5) {
   const collectionParams = collectionKeys.map((_, index) => `?${index + 1}`).join(",");
   let sql = `SELECT e.sale_id, c.collection_name, c.model_name, c.backdrop_name, c.symbol_name,
       e.marketplace, e.slug, e.gift_id, e.gift_number,
-      (e.price_nano / 1000000000.0) AS price_ton, e.sold_at AS sold_at_unix
+      (e.price_nano / 1000000000.0) AS price_ton,
+      ${historicalUsd ? "(e.price_usd_micros / 1000000.0)" : "0"} AS price_usd,
+      ${historicalUsd ? "(e.ton_usd_micros / 1000000.0)" : "0"} AS ton_usd_rate,
+      ${historicalUsd ? "e.rate_at" : "0"} AS rate_at_unix,
+      e.sold_at AS sold_at_unix
      FROM gift_sale_events e
      JOIN gift_sale_combos c ON c.combo_id = e.combo_id
      WHERE c.collection_key IN (${collectionParams})
@@ -718,7 +768,9 @@ function salesReadStatement(database, pair = {}, requestedLimit = 5) {
 
 async function readSales(env, pair = {}, requestedLimit = 5) {
   const statements = [
-    ...compactSalesDatabases(env).map((database) => compactSalesReadStatement(database, pair, requestedLimit)),
+    ...compactSalesDatabaseConfigs(env).map(({ database, historicalUsd }) => (
+      compactSalesReadStatement(database, pair, requestedLimit, historicalUsd)
+    )),
     ...salesReadDatabases(env).map((database) => salesReadStatement(database, pair, requestedLimit)),
   ].filter(Boolean);
   if (!statements.length) return [];
@@ -1108,7 +1160,19 @@ function normalizedSaleForIngest(input = {}, fallbackCollection = "", ingestedAt
   const soldAtValue = input.soldAt || input.sold_at || input.date || "";
   const soldAtMs = new Date(soldAtValue).getTime();
   const priceTon = Number(input.priceTon ?? input.normalizedPrice ?? 0);
-  if (!key(collectionName) || !key(modelName) || !key(backdropName) || !Number.isFinite(soldAtMs) || !(priceTon > 0)) return null;
+  const priceUsd = Number(input.priceUsd ?? input.price_usd ?? 0);
+  const tonUsdRate = Number(input.tonUsdRate ?? input.ton_usd_rate ?? 0);
+  const rateAtMs = new Date(input.rateAt || input.rate_at || "").getTime();
+  if (
+    !key(collectionName)
+    || !key(modelName)
+    || !key(backdropName)
+    || !Number.isFinite(soldAtMs)
+    || !(priceTon > 0)
+    || !(priceUsd > 0)
+    || !(tonUsdRate > 0)
+    || !Number.isFinite(rateAtMs)
+  ) return null;
   const soldAt = new Date(soldAtMs).toISOString();
   const originalValue = input.originalPrice ?? input.original_price ?? "";
   const originalPrice = typeof originalValue === "object" && originalValue !== null
@@ -1132,6 +1196,9 @@ function normalizedSaleForIngest(input = {}, fallbackCollection = "", ingestedAt
     giftId,
     giftNumber: Number(input.mint || input.number || input.giftNumber || 0),
     priceTon,
+    priceUsd,
+    tonUsdRate,
+    rateAt: new Date(rateAtMs).toISOString(),
     originalPrice,
     soldAt,
     giftUrl: String(input.giftUrl || (slug ? `https://t.me/nft/${encodeURIComponent(slug)}` : "")),
@@ -1170,13 +1237,20 @@ async function writeCompactSales(database, sales = []) {
       .map((sale) => ({ sale, comboId: comboIds.get(compactSaleComboKey(sale)) }))
       .filter(({ comboId }) => Number.isFinite(comboId))
       .map(({ sale, comboId }) => database.prepare(
-        `INSERT OR IGNORE INTO gift_sale_events (
+        `INSERT INTO gift_sale_events (
           sale_id, combo_id, marketplace, slug, gift_id, gift_number,
-          price_nano, sold_at, ingested_at
-        ) VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9)`
+          price_nano, price_usd_micros, ton_usd_micros, rate_at, sold_at, ingested_at
+        ) VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12)
+        ON CONFLICT(sale_id) DO UPDATE SET
+          price_usd_micros=excluded.price_usd_micros,
+          ton_usd_micros=excluded.ton_usd_micros,
+          rate_at=excluded.rate_at`
       ).bind(
         sale.saleId, comboId, sale.marketplace, sale.slug, sale.giftId, sale.giftNumber,
         Math.round(sale.priceTon * 1_000_000_000),
+        Math.round(sale.priceUsd * 1_000_000),
+        Math.round(sale.tonUsdRate * 1_000_000),
+        Math.floor(new Date(sale.rateAt).getTime() / 1000),
         Math.floor(new Date(sale.soldAt).getTime() / 1000),
         Math.floor(new Date(sale.ingestedAt).getTime() / 1000)
       )));
@@ -1208,19 +1282,75 @@ async function writeLegacySales(database, sales = []) {
 
 async function writeSales(env, sales = []) {
   const byDatabase = new Map();
+  const byYear = new Map();
   sales.forEach((sale) => {
-    const database = salesWriteDatabaseFor(env, sale);
-    const rows = byDatabase.get(database) || [];
+    const year = new Date(sale.soldAt).getUTCFullYear();
+    const rows = byYear.get(year) || [];
     rows.push(sale);
-    byDatabase.set(database, rows);
+    byYear.set(year, rows);
   });
+  for (const [year, rows] of byYear) {
+    const config = await salesWriteDatabaseFor(env, rows[0]);
+    const existing = byDatabase.get(config.name) || { config, rows: [] };
+    existing.rows.push(...rows);
+    byDatabase.set(config.name, existing);
+  }
   let inserted = 0;
-  for (const [database, rows] of byDatabase) {
-    inserted += database === salesDatabase(env)
-      ? await writeLegacySales(database, rows)
-      : await writeCompactSales(database, rows);
+  for (const { config, rows } of byDatabase.values()) {
+    inserted += await writeCompactSales(config.database, rows);
+    await salesShardSize(config, true);
   }
   return inserted;
+}
+
+async function compactSalesShardStats(env) {
+  const limit = Math.max(50_000_000, Number(env.SALES_SHARD_ROTATE_BYTES || DEFAULT_SALES_SHARD_LIMIT_BYTES));
+  return Promise.all(compactSalesDatabaseConfigs(env).map(async (config) => {
+    try {
+      const [eventsResult, combosResult] = await Promise.all([
+        config.database.prepare(
+          `SELECT COUNT(*) AS events, MIN(sold_at) AS earliest_sold_at,
+             MAX(sold_at) AS latest_sold_at, MAX(ingested_at) AS latest_ingested_at
+           FROM gift_sale_events`
+        ).run(),
+        config.database.prepare("SELECT COUNT(*) AS combinations FROM gift_sale_combos").run(),
+      ]);
+      const bytes = Math.max(
+        Number(eventsResult.meta?.size_after || 0),
+        Number(combosResult.meta?.size_after || 0),
+        Number(salesShardSizeCache.get(config.name)?.bytes || 0)
+      );
+      salesShardSizeCache.set(config.name, { bytes, checkedAt: Date.now() });
+      const events = eventsResult.results?.[0] || {};
+      const combos = combosResult.results?.[0] || {};
+      const utilization = limit > 0 ? bytes / limit : 0;
+      return {
+        name: config.name,
+        writable: Boolean(config.writable),
+        historicalUsd: Boolean(config.historicalUsd),
+        bytes,
+        limitBytes: limit,
+        utilization: Number(utilization.toFixed(4)),
+        status: !config.writable ? "legacy" : utilization >= 1 ? "full" : utilization >= 0.85 ? "critical" : utilization >= 0.7 ? "warning" : "healthy",
+        events: Number(events.events || 0),
+        combinations: Number(combos.combinations || 0),
+        earliestSaleAt: Number(events.earliest_sold_at || 0) > 0
+          ? new Date(Number(events.earliest_sold_at) * 1000).toISOString() : "",
+        latestSaleAt: Number(events.latest_sold_at || 0) > 0
+          ? new Date(Number(events.latest_sold_at) * 1000).toISOString() : "",
+        latestIngestedAt: Number(events.latest_ingested_at || 0) > 0
+          ? new Date(Number(events.latest_ingested_at) * 1000).toISOString() : "",
+      };
+    } catch (error) {
+      return {
+        name: config.name,
+        writable: Boolean(config.writable),
+        historicalUsd: Boolean(config.historicalUsd),
+        status: "unavailable",
+        error: String(error?.message || error).slice(0, 160),
+      };
+    }
+  }));
 }
 
 async function ingestSales(request, env) {
@@ -1887,6 +2017,7 @@ export default {
       ).first();
       let sales = {};
       let salesBackfill = {};
+      let salesShards = [];
       try {
         const salesParts = await Promise.all(salesReadDatabases(env).map((database) => database.prepare(
           `SELECT COUNT(*) AS sales,
@@ -1913,24 +2044,54 @@ export default {
       }
       try {
         const backfillParts = await Promise.all(salesReadDatabases(env).map((database) => database.prepare(
-          `SELECT COUNT(*) AS sales_backfill_collections,
-            SUM(CASE WHEN completed_at <> '' THEN 1 ELSE 0 END) AS sales_backfill_completed_collections,
-            MIN(NULLIF(oldest_sold_at, '')) AS sales_backfill_oldest_at,
-            MAX(last_scanned_at) AS sales_backfill_updated_at
+          `SELECT collection_key, completed_at, oldest_sold_at, last_scanned_at
            FROM gift_sales_backfill_state`
-        ).first().catch(() => ({}))));
-        salesBackfill = backfillParts.reduce((total, part) => ({
-          sales_backfill_collections: Number(total.sales_backfill_collections || 0) + Number(part?.sales_backfill_collections || 0),
-          sales_backfill_completed_collections: Number(total.sales_backfill_completed_collections || 0) + Number(part?.sales_backfill_completed_collections || 0),
-          sales_backfill_oldest_at: !total.sales_backfill_oldest_at || (part?.sales_backfill_oldest_at && part.sales_backfill_oldest_at < total.sales_backfill_oldest_at)
-            ? part?.sales_backfill_oldest_at || total.sales_backfill_oldest_at : total.sales_backfill_oldest_at,
-          sales_backfill_updated_at: !total.sales_backfill_updated_at || (part?.sales_backfill_updated_at && part.sales_backfill_updated_at > total.sales_backfill_updated_at)
-            ? part?.sales_backfill_updated_at || total.sales_backfill_updated_at : total.sales_backfill_updated_at,
-        }), {});
+        ).all().catch(() => ({ results: [] }))));
+        const states = new Map();
+        backfillParts.flatMap((part) => part.results || []).forEach((row) => {
+          const current = states.get(row.collection_key) || {};
+          states.set(row.collection_key, {
+            completed_at: current.completed_at || row.completed_at || "",
+            oldest_sold_at: !current.oldest_sold_at || (row.oldest_sold_at && row.oldest_sold_at < current.oldest_sold_at)
+              ? row.oldest_sold_at || current.oldest_sold_at : current.oldest_sold_at,
+            last_scanned_at: !current.last_scanned_at || (row.last_scanned_at && row.last_scanned_at > current.last_scanned_at)
+              ? row.last_scanned_at || current.last_scanned_at : current.last_scanned_at,
+          });
+        });
+        const uniqueStates = [...states.values()];
+        salesBackfill = {
+          sales_backfill_collections: uniqueStates.length,
+          sales_backfill_completed_collections: uniqueStates.filter((state) => state.completed_at).length,
+          sales_backfill_oldest_at: uniqueStates.map((state) => state.oldest_sold_at).filter(Boolean).sort()[0] || "",
+          sales_backfill_updated_at: uniqueStates.map((state) => state.last_scanned_at).filter(Boolean).sort().at(-1) || "",
+        };
       } catch {
         salesBackfill = {};
       }
-      return json({ ...(stats || {}), ...sales, ...salesBackfill });
+      salesShards = await compactSalesShardStats(env);
+      const compactSales = salesShards.filter((shard) => shard.historicalUsd).reduce((total, shard) => ({
+        events: total.events + Number(shard.events || 0),
+        combinations: total.combinations + Number(shard.combinations || 0),
+        bytes: total.bytes + Number(shard.bytes || 0),
+      }), { events: 0, combinations: 0, bytes: 0 });
+      const backfillTotal = Number(salesBackfill.sales_backfill_collections || stats?.collections || 0);
+      const backfillCompleted = Math.min(
+        backfillTotal,
+        Number(salesBackfill.sales_backfill_completed_collections || 0)
+      );
+      return json({
+        ...(stats || {}),
+        ...sales,
+        ...salesBackfill,
+        sales_backfill_total_collections: backfillTotal,
+        sales_backfill_pending_collections: Math.max(0, backfillTotal - backfillCompleted),
+        sales_backfill_coverage_percent: backfillTotal > 0
+          ? Number(((backfillCompleted / backfillTotal) * 100).toFixed(2)) : 0,
+        compact_sales: compactSales.events,
+        compact_sales_combinations: compactSales.combinations,
+        compact_sales_bytes: compactSales.bytes,
+        sales_shards: salesShards,
+      });
     }
     if (url.pathname === "/collections") {
       const rows = await env.GIFT_REGISTRY.prepare(

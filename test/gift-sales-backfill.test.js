@@ -22,6 +22,24 @@ function readBody(req) {
   });
 }
 
+async function historicalRateServer(t) {
+  const server = await listen((req, res) => {
+    const url = new URL(req.url, "http://rates.test");
+    if (url.pathname !== "/coins/the-open-network/market_chart/range") {
+      return sendJson(res, { error: "not found" }, 404);
+    }
+    return sendJson(res, {
+      prices: [
+        [new Date("2025-01-01T10:00:00.000Z").getTime(), 4],
+        [new Date("2026-07-14T10:00:00.000Z").getTime(), 3],
+        [new Date("2026-07-15T10:00:00.000Z").getTime(), 3],
+      ],
+    });
+  });
+  t.after(() => server.close());
+  return `http://127.0.0.1:${server.address().port}`;
+}
+
 test("sales worker checks latest first and checkpoints a 365-day backfill", async (t) => {
   const uploads = [];
   const calls = [];
@@ -57,6 +75,7 @@ test("sales worker checks latest first and checkpoints a 365-day backfill", asyn
     return sendJson(res, { error: "not found" }, 404);
   });
   t.after(() => satellite.close());
+  const rateBase = await historicalRateServer(t);
 
   const root = path.resolve(__dirname, "..");
   const child = spawn(process.execPath, ["scripts/snapshot-gift-sales.js", "--collection", "Test Gifts"], {
@@ -73,6 +92,7 @@ test("sales worker checks latest first and checkpoints a 365-day backfill", asyn
       GIFT_SALES_BASELINE_PAGES: "1",
       GIFT_SALES_BACKFILL_PAGES_PER_COLLECTION: "2",
       GIFT_SALES_RETENTION_DAYS: "365",
+      COINGECKO_API_BASE: rateBase,
       TELEGRAM_FLOOR_ENABLED: "0",
     },
     stdio: ["ignore", "pipe", "pipe"],
@@ -90,6 +110,9 @@ test("sales worker checks latest first and checkpoints a 365-day backfill", asyn
   assert.equal(uploads.length, 2);
   assert.equal(uploads[0].mode, "incremental");
   assert.equal(uploads[0].sales[0].saleId, "new-0");
+  assert.equal(uploads[0].sales[0].tonUsdRate, 3);
+  assert.equal(uploads[0].sales[0].priceUsd, 15);
+  assert.equal(uploads[0].sales[0].rateAt, "2026-07-14T10:00:00.000Z");
   assert.equal(uploads[1].mode, "backfill");
   assert.equal(uploads[1].commitState, true);
   assert.equal(uploads[1].complete, true);
@@ -140,6 +163,7 @@ test("sales worker prioritizes exact wallet targets and avoids chronological pag
     return sendJson(res, { error: "not found" }, 404);
   });
   t.after(() => satellite.close());
+  const rateBase = await historicalRateServer(t);
 
   const root = path.resolve(__dirname, "..");
   const child = spawn(process.execPath, ["scripts/snapshot-gift-sales.js", "--collection", "Exact Gifts"], {
@@ -155,6 +179,7 @@ test("sales worker prioritizes exact wallet targets and avoids chronological pag
       GIFT_SALES_BACKFILL_MODE: "exact",
       GIFT_SALES_EXACT_REQUESTS_PER_CYCLE: "100",
       GIFT_SALES_EXACT_COMBOS_PER_COLLECTION: "50",
+      COINGECKO_API_BASE: rateBase,
       TELEGRAM_FLOOR_ENABLED: "0",
     },
     stdio: ["ignore", "pipe", "pipe"],
@@ -231,6 +256,7 @@ test("exact backfill resolves several backdrops with fewer provider requests", a
     return sendJson(res, { error: "not found" }, 404);
   });
   t.after(() => satellite.close());
+  const rateBase = await historicalRateServer(t);
 
   const root = path.resolve(__dirname, "..");
   const child = spawn(process.execPath, ["scripts/snapshot-gift-sales.js", "--collection", "Batch Gifts"], {
@@ -247,6 +273,7 @@ test("exact backfill resolves several backdrops with fewer provider requests", a
       GIFT_SALES_EXACT_REQUESTS_PER_CYCLE: "100",
       GIFT_SALES_EXACT_COMBOS_PER_COLLECTION: "50",
       GIFT_SALES_EXACT_FILTER_BATCH_SIZE: "20",
+      COINGECKO_API_BASE: rateBase,
       TELEGRAM_FLOOR_ENABLED: "0",
     },
     stdio: ["ignore", "pipe", "pipe"],

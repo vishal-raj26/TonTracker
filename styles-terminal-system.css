@@ -5,7 +5,7 @@
 .app-frame.has-wallet :is([data-screen="home"],[data-screen="assets"],[data-screen="tokens"],[data-screen="gifts"],[data-screen="gift-brand"],[data-screen="stickers"],[data-screen="sticker-brand"],[data-screen="detail"]) :is(.section-eyebrow,.graph-head p,.portfolio-strip small,.mini-detail-card .section-heading h2,.asset-total-banner>small,.summary-card>small,.control-bar label){color:var(--terminal-soft);font-family:var(--terminal-mono);font-size:10px;font-weight:500;letter-spacing:.085em;line-height:1.35;text-transform:uppercase}
 
 /* True LED displays are reserved for identity and major measurements. */
-.app-frame.has-wallet :is([data-screen="home"],[data-screen="assets"],[data-screen="tokens"],[data-screen="gifts"],[data-screen="stickers"]) .dot-matrix-text{display:flex!important;align-items:center;width:max-content;max-width:100%;color:transparent!important;font-size:0!important;line-height:0!important;text-shadow:none!important}
+.app-frame.has-wallet :is([data-screen="home"],[data-screen="assets"],[data-screen="tokens"],[data-screen="gifts"],[data-screen="gift-brand"],[data-screen="stickers"],[data-screen="sticker-brand"]) .dot-matrix-text{display:flex!important;align-items:center;width:max-content;max-width:100%;color:transparent!important;font-size:0!important;line-height:0!important;text-shadow:none!important}
 .app-frame.has-wallet .dot-matrix-character{display:grid;flex:0 0 auto;grid-template-columns:repeat(var(--dot-columns),var(--dot-size));grid-template-rows:repeat(7,var(--dot-size));gap:var(--dot-gap)}
 .app-frame.has-wallet .dot-matrix-led{display:block;width:var(--dot-size);height:var(--dot-size);border-radius:50%;background:rgba(244,244,239,.045)}
 .app-frame.has-wallet .dot-matrix-led.is-on{background:var(--terminal-ink);box-shadow:0 0 3px rgba(255,255,255,.3)}
@@ -76,6 +76,7 @@
 .app-frame.has-wallet :is([data-screen="gifts"],[data-screen="gift-brand"],[data-screen="stickers"],[data-screen="sticker-brand"]) .asset-total-banner{margin:0 18px;padding:20px 0;border:0;border-bottom:1px solid var(--terminal-line);border-radius:0;background:transparent;box-shadow:none}
 .app-frame.has-wallet :is([data-screen="gifts"],[data-screen="gift-brand"],[data-screen="stickers"],[data-screen="sticker-brand"]) .asset-total-banner>div{align-items:flex-end}
 .app-frame.has-wallet :is([data-screen="gifts"],[data-screen="gift-brand"],[data-screen="stickers"],[data-screen="sticker-brand"]) .asset-total-banner h2{font-size:34px;letter-spacing:-.055em}
+.app-frame.has-wallet :is([data-screen="gifts"],[data-screen="gift-brand"],[data-screen="stickers"],[data-screen="sticker-brand"]) .asset-total-banner h2.dot-matrix-value{--dot-size:2.35px;--dot-gap:1.25px;gap:3.25px;margin:0}
 .app-frame.has-wallet :is([data-screen="gifts"],[data-screen="stickers"]) .control-bar{margin:18px 18px 0;gap:10px}
 .app-frame.has-wallet :is([data-screen="gifts"],[data-screen="stickers"]) .control-bar label{gap:7px}
 .app-frame.has-wallet :is([data-screen="gifts"],[data-screen="stickers"]) .control-bar select{height:45px;padding-inline:13px;border:1px solid var(--terminal-line);border-radius:9px;background:#090909;color:var(--terminal-ink);box-shadow:none}
@@ -103,8 +104,8 @@
 .app-frame.has-wallet [data-screen="detail"] :is(.gift-detail-art-stage,.sticker-detail-hero-art)::after{content:"";position:absolute;inset:auto 8% 0;height:46%;border-radius:50%;background:radial-gradient(ellipse,rgba(255,255,255,.07),transparent 68%);filter:blur(18px);pointer-events:none}
 .app-frame.has-wallet [data-screen="detail"] :is(.gift-detail-title-block,.gift-detail-price-lockup){position:relative;z-index:2}
 .app-frame.has-wallet [data-screen="detail"] .gift-detail-title-block h2{font-size:34px;letter-spacing:-.055em}
-.app-frame.has-wallet [data-screen="detail"] .gift-detail-pill-row{justify-content:center;gap:7px}
-.app-frame.has-wallet [data-screen="detail"] .gift-detail-pill-row span{border:1px solid var(--terminal-line-strong);border-radius:999px;background:rgba(8,8,8,.76);backdrop-filter:blur(10px)}
+.app-frame.has-wallet [data-screen="detail"] .gift-detail-pill-row{display:grid;width:100%;grid-template-columns:repeat(3,minmax(0,1fr));align-items:center;gap:8px}
+.app-frame.has-wallet [data-screen="detail"] .gift-detail-pill-row span{display:flex;width:100%;height:38px;min-width:0;box-sizing:border-box;align-items:center;justify-content:center;padding:0 10px;border:1px solid var(--terminal-line-strong);border-radius:999px;background:rgba(8,8,8,.76);backdrop-filter:blur(10px);line-height:1;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .app-frame.has-wallet [data-screen="detail"] .gift-detail-price-lockup{padding-bottom:22px}
 .app-frame.has-wallet [data-screen="detail"] .gift-detail-price-lockup strong{font-size:32px;letter-spacing:-.05em}
 .app-frame.has-wallet [data-screen="detail"] :is(.gift-traits-card,.gift-floor-card,.gift-sales-card,.gift-demand-card,.gift-origin-card,.price-panel,.sales-panel,.market-intel,.trait-panel,.financial-grid){margin-inline:18px;border:0;border-bottom:1px solid var(--terminal-line);border-radius:0;background:transparent;box-shadow:none}

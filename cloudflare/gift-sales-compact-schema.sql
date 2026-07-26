@@ -21,6 +21,9 @@ CREATE TABLE IF NOT EXISTS gift_sale_events (
   gift_id TEXT NOT NULL DEFAULT '',
   gift_number INTEGER NOT NULL DEFAULT 0,
   price_nano INTEGER NOT NULL,
+  price_usd_micros INTEGER NOT NULL,
+  ton_usd_micros INTEGER NOT NULL,
+  rate_at INTEGER NOT NULL,
   sold_at INTEGER NOT NULL,
   ingested_at INTEGER NOT NULL
 ) WITHOUT ROWID;

@@ -563,25 +563,6 @@ function telegramGiftAttributes(gift = {}) {
     .filter(Boolean);
 }
 
-function telegramColorHex(value, fallback = "") {
-  const color = Number(value);
-  if (!Number.isInteger(color) || color < 0 || color > 0xffffff) return fallback;
-  return `#${color.toString(16).padStart(6, "0")}`;
-}
-
-function telegramBackdropPalette(backdrop = {}) {
-  const colors = backdrop?.colors || {};
-  const centerColor = telegramColorHex(colors.center_color, "");
-  const edgeColor = telegramColorHex(colors.edge_color, "");
-  if (!centerColor || !edgeColor) return null;
-  return {
-    centerColor,
-    edgeColor,
-    patternColor: telegramColorHex(colors.symbol_color, "#ffffff"),
-    textColor: telegramColorHex(colors.text_color, "#ffffff"),
-  };
-}
-
 function telegramGiftCollectionName(gift = {}) {
   const raw = String(gift?.base_name || gift?.collection_name || gift?.collection?.name || gift?.title || gift?.name || "Telegram Gift").trim();
   return raw.replace(/\s+#\d+\s*$/i, "").trim() || "Telegram Gift";
@@ -683,15 +664,14 @@ async function telegramMiniAppAssets(initData) {
     const hasPriceTraits = Boolean(traits.model && traits.backdrop);
     if (isUnique) normalization.unique += 1;
     else normalization.regular += 1;
-    // Prefer Telegram's complete gift sticker. It already represents the
-    // exact model/backdrop/symbol combination, just like a TON wallet NFT
-    // preview. The model sticker is only a fallback when Telegram omits it.
+    // Keep Telegram's complete sticker only as the normal static fallback.
+    // Layered rendering must use the same model-only input as wallet gifts.
     const media = telegramGiftMedia(
       { sticker: gift?.sticker },
       gift,
       ownedGift,
-      { sticker: gift?.model?.sticker },
     );
+    const modelMedia = telegramGiftMedia({ sticker: gift?.model?.sticker });
     const imageFileId = media?.fileId || "";
     const previewFileId = media?.previewFileId || "";
     if (!imageFileId) normalization.missingMedia += 1;
@@ -700,21 +680,24 @@ async function telegramMiniAppAssets(initData) {
       ? (imageFileId ? telegramWebAppMediaTicket(imageFileId) : "")
       : (previewFileId ? telegramWebAppMediaTicket(previewFileId) : "");
     const animationUrl = mediaType === "image" || !imageFileId ? "" : telegramWebAppMediaTicket(imageFileId);
-    // Symbols intentionally resolve only through the verified local pattern
-    // registry. This is the same source and visual treatment as TON-wallet
-    // imports; Telegram sticker thumbnails are not interchangeable pattern art.
-    const symbolImageUrl = "";
-    // Preserve the shared wallet layered-media contract. The backdrop palette
-    // comes from Telegram's official UniqueGift payload when the local registry
-    // does not already have that exact backdrop.
+    const modelFileId = modelMedia?.fileId || "";
+    const modelPreviewFileId = modelMedia?.previewFileId || "";
+    const modelMediaType = modelMedia?.mediaType || "image";
+    const modelImage = modelMediaType === "image"
+      ? (modelFileId ? telegramWebAppMediaTicket(modelFileId) : "")
+      : (modelPreviewFileId ? telegramWebAppMediaTicket(modelPreviewFileId) : "");
+    const modelAnimationUrl = modelMediaType === "image" || !modelFileId
+      ? ""
+      : telegramWebAppMediaTicket(modelFileId);
+    // This is the same composer and registry input contract as a TON-wallet
+    // gift: model media from the NFT, verified backdrop and symbol assets from
+    // the shared registry, and no source-specific visual substitutions.
     const layeredMedia = giftLayeredMediaPayload({
       collectionName: collection,
       attributes,
-      image,
-      animationUrl,
-      patternImageUrl: symbolImageUrl,
-      backdropPalette: telegramBackdropPalette(gift?.backdrop),
-      mediaType,
+      image: modelImage,
+      animationUrl: modelAnimationUrl,
+      mediaType: modelMediaType,
     });
     if (layeredMedia) normalization.layered += 1;
     if (layeredMedia?.backdropPalette) normalization.backdrops += 1;
@@ -5838,7 +5821,9 @@ async function d1GiftSales(collectionName = "", modelName = "", backdropName = "
     const expectedSymbolKey = giftSnapshotKey(symbolName);
     const rows = (Array.isArray(payload?.sales) ? payload.sales : []).map((sale) => ({
       priceTon: Number(sale.priceTon || 0),
-      priceUsd: 0,
+      priceUsd: Number(sale.priceUsd || 0),
+      tonUsdRate: Number(sale.tonUsdRate || 0),
+      rateAt: sale.rateAt || "",
       date: sale.date || "",
       marketplace: marketSourceLabel(sale.marketplace || "GiftSatellite"),
       buyer: "",
@@ -8569,9 +8554,6 @@ async function collectibleSales(collection, traits = "") {
       rawTraitFilter.symbol,
       10,
     );
-    registryRows.forEach((sale) => {
-      sale.priceUsd = Number(sale.priceTon || 0) * tonRate;
-    });
     return setCachedMapValue(collectibleSalesCache, key, registryRows, registryRows.length ? 5 * 60 * 1000 : 60 * 1000);
   }
   if (rawTraitFilter?.model && rawTraitFilter?.backdrop) {
