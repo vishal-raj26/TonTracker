@@ -4810,7 +4810,7 @@ function resetWalletBoundUi() {
   });
   const topAsset = document.querySelector('[data-screen="assets"] .mini-detail-card');
   if (topAsset) {
-    topAsset.innerHTML = `<div class="section-heading"><h2>Your collection</h2></div><article class="feature-asset"><span class="asset-icon gift-bg"><i data-lucide="sparkles"></i></span><div><b>Nothing imported yet</b><small>Connect Telegram or a TON wallet to begin.</small></div></article>`;
+    topAsset.innerHTML = `<div class="section-heading"><h2>Top asset</h2></div><article class="feature-asset"><span class="asset-icon gift-bg"><i data-lucide="sparkles"></i></span><div><b>Nothing imported yet</b><small>Connect Telegram or a TON wallet to begin.</small></div></article>`;
     delete topAsset.dataset.screenTarget;
     delete topAsset.dataset.asset;
   }

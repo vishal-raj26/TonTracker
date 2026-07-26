@@ -217,3 +217,16 @@ body.product-v2 .app-frame.has-wallet .dock{width:min(352px,calc(100vw - 40px));
 body.product-v2 .app-frame.has-wallet .dock button{min-width:0;min-height:56px;border-radius:14px;color:var(--terminal-muted);transition:background-color 180ms ease,color 180ms ease,transform 140ms ease}
 body.product-v2 .app-frame.has-wallet .dock button.active{border-radius:14px;background:var(--terminal-ink);color:#050505}
 body.product-v2 .app-frame.has-wallet .dock button.active span{display:block}
+
+/* Active product shell: onboarding navigation proportions. */
+.app-frame:is(.has-wallet,.is-home-screen) .dock{width:min(352px,calc(100vw - 40px));min-height:70px;bottom:calc(16px + env(safe-area-inset-bottom));gap:4px;padding:7px;border:1px solid var(--terminal-line-strong);border-radius:999px;background:#090909;box-shadow:none;backdrop-filter:none}
+.app-frame:is(.has-wallet,.is-home-screen) .dock button{min-width:0;min-height:56px;border-radius:999px;color:var(--terminal-muted);transition:background-color 180ms ease,color 180ms ease,transform 140ms ease}
+.app-frame:is(.has-wallet,.is-home-screen) .dock button.is-active{border-radius:999px;background:var(--terminal-ink);color:#050505}
+.app-frame:is(.has-wallet,.is-home-screen) .dock button.is-active span{display:block}
+
+/* Assets collection: one surface, not a card inside another card. */
+.app-frame:is(.has-wallet,.is-home-screen) [data-screen="assets"] .mini-detail-card{margin:22px 18px 0;padding:0;border:0;border-radius:0;background:transparent;box-shadow:none}
+.app-frame:is(.has-wallet,.is-home-screen) [data-screen="assets"] .mini-detail-card .section-heading{margin:0 0 10px;padding:0}
+.app-frame:is(.has-wallet,.is-home-screen) [data-screen="assets"] .mini-detail-card .feature-asset{min-height:92px;padding:14px;border:1px solid var(--terminal-line-strong);border-radius:16px;background:#090909;box-shadow:none}
+.app-frame:is(.has-wallet,.is-home-screen) [data-screen="assets"] .mini-detail-card .feature-asset .asset-icon{width:48px;height:48px;border-radius:12px}
+.app-frame:is(.has-wallet,.is-home-screen) [data-screen="assets"] .mini-detail-card .feature-asset>strong{width:96px;justify-self:end;text-align:right;font-variant-numeric:tabular-nums}
