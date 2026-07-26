@@ -466,3 +466,123 @@ body.product-v2 .app-frame.has-wallet :is(
   text-overflow:ellipsis;
   white-space:nowrap;
 }
+
+/* One app-wide title system and one uninterrupted Assets canvas. */
+.app-frame.has-wallet .screen{
+  background:
+    radial-gradient(circle at 88% -8%,rgba(255,255,255,.04),transparent 28%),
+    var(--terminal-bg);
+}
+.app-frame.has-wallet .screen::before{content:none}
+.app-frame.has-wallet .screen> .page-header{
+  position:relative;
+  top:auto;
+  z-index:18;
+  display:grid;
+  grid-template-columns:44px minmax(0,1fr) 44px;
+  min-height:42px;
+  margin:0 0 16px;
+  padding:0;
+  align-items:center;
+  border:0;
+  background:transparent;
+  box-shadow:none;
+  -webkit-backdrop-filter:none;
+  backdrop-filter:none;
+}
+.app-frame.has-wallet .screen> .page-header h1{
+  grid-column:2;
+  grid-row:1;
+  justify-self:center;
+  margin:0;
+}
+.app-frame.has-wallet .screen> .page-header> .icon-button:first-child{
+  grid-column:1;
+  grid-row:1;
+  justify-self:start;
+}
+.app-frame.has-wallet .screen> .page-header> .icon-button:last-child{
+  grid-column:3;
+  grid-row:1;
+  justify-self:end;
+}
+.app-frame.has-wallet .screen> .page-header h1.dot-matrix-title{
+  --dot-size:2.52px;
+  --dot-gap:1.47px;
+  gap:3.86px;
+  max-width:100%;
+  justify-content:center;
+}
+.app-frame.has-wallet [data-screen="detail"] .gift-detail-pill-row{
+  display:grid;
+  width:100%;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:8px;
+  margin-top:8px;
+  overflow:visible;
+}
+.app-frame.has-wallet [data-screen="detail"] .gift-detail-pill-row .gift-trait-pill.is-rich-trait{
+  position:relative;
+  display:flex;
+  width:100%;
+  min-width:0;
+  height:58px;
+  box-sizing:border-box;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:3px;
+  padding:10px 7px 7px;
+  overflow:visible;
+  border:1px solid color-mix(in srgb,var(--trait-accent) 55%,rgba(255,255,255,.18));
+  border-radius:14px;
+  background:rgba(255,255,255,.045);
+  color:var(--ui-text);
+  text-align:center;
+}
+.app-frame.has-wallet [data-screen="detail"] .gift-detail-pill-row .gift-trait-pill.is-rich-trait b{
+  display:block;
+  width:100%;
+  overflow:hidden;
+  color:var(--ui-text);
+  font-family:var(--ui-font);
+  font-size:12px;
+  font-weight:700;
+  line-height:1.15;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.app-frame.has-wallet [data-screen="detail"] .gift-detail-pill-row .gift-trait-pill.is-rich-trait small{
+  color:var(--ui-muted);
+  font-family:var(--ui-font);
+  font-size:10px;
+  font-weight:550;
+  line-height:1;
+  text-transform:none;
+}
+.app-frame.has-wallet [data-screen="detail"] .gift-detail-pill-row .gift-trait-pill.is-rich-trait em{
+  position:absolute;
+  top:-7px;
+  right:7px;
+  min-width:30px;
+  padding:3px 6px;
+  border-radius:999px;
+  background:#fff;
+  color:#050505;
+  font-family:var(--ui-font);
+  font-size:9px;
+  font-style:normal;
+  font-weight:800;
+  line-height:1;
+  text-align:center;
+  box-shadow:0 2px 6px rgba(0,0,0,.28);
+}
+@media(max-width:359px){
+  .app-frame.has-wallet .screen> .page-header h1.dot-matrix-title{
+    --dot-size:2.2px;
+    --dot-gap:1.25px;
+    gap:3.3px;
+  }
+  .app-frame.has-wallet [data-screen="detail"] .gift-detail-pill-row{gap:6px}
+  .app-frame.has-wallet [data-screen="detail"] .gift-detail-pill-row .gift-trait-pill.is-rich-trait b{font-size:11px}
+}

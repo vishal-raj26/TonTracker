@@ -708,6 +708,7 @@ function showScreen(name) {
     playHomeEntrance();
     homeEntrancePlayed = true;
   }
+  renderScreenHeaderDotMatrix(document.querySelector(`.screen[data-screen="${name}"]`));
   if (name === "activity") loadFullActivity();
 }
 
@@ -2085,7 +2086,11 @@ function giftTraitPills(detail) {
   return (detail.traits || []).slice(0, 3).map((trait) => {
     const percent = giftTraitPercent(trait);
     const tone = giftTraitTone(percent);
-    return `<span class="gift-trait-pill" style="border-color:${tone.border};">${escapeHtml(trait.value || "—")}</span>`;
+    return `<span class="gift-trait-pill is-rich-trait" style="--trait-accent:${tone.border};">
+      <b>${escapeHtml(trait.value || "—")}</b>
+      <small>${escapeHtml(trait.label || "Trait")}</small>
+      <em>${percent === null ? "—" : `${percent}%`}</em>
+    </span>`;
   }).join("");
 }
 
@@ -2146,7 +2151,6 @@ function giftMarketLinks(detail) {
 function renderGiftDetailPage(detail, { loading = false } = {}) {
   const mount = document.getElementById("giftDetailMount");
   if (!mount) return;
-  const traits = (detail.traits || []).slice(0, 3);
   const isListed = /listed/i.test(String(detail.status || "")) && !/unlisted/i.test(String(detail.status || ""));
   const glow = giftGlowFromBackdrop(detail);
   const detailMarketSource = isEstimatedAsset(detail) ? "" : marketSourceLabel(detail.marketPlatform);
@@ -2166,19 +2170,6 @@ function renderGiftDetailPage(detail, { loading = false } = {}) {
       : detail.floorHistorySource === "tontrack-snapshots" ? "TonTrack snapshots"
       : "Live floor history"
     : chartIsLoading ? "Loading floor history..." : "Floor history unavailable";
-  const rows = traits.map((trait) => {
-    const percent = giftTraitPercent(trait);
-    const tone = giftTraitTone(percent);
-    const width = percent === null ? 12 : Math.max(10, Math.min(80, (100 - percent) * 0.8));
-    return `<div class="gift-rarity-row">
-      <span class="gift-rarity-label">${escapeHtml(trait.label)}</span>
-      <b class="gift-rarity-value">${escapeHtml(trait.value || "—")}</b>
-      <div class="gift-rarity-meter">
-        <span class="gift-rarity-bar"><span style="width:${width}px;background:${tone.fill};"></span></span>
-        <small>${percent === null ? "—" : `${percent}%`}</small>
-      </div>
-    </div>`;
-  }).join("");
   const salesRows = loading
     ? `<div class="sales-row"><b class="skeleton">&nbsp;<span class="skeleton">&nbsp;</span></b><b class="skeleton">&nbsp;<span class="skeleton">&nbsp;</span></b><b class="skeleton">&nbsp;<span class="skeleton">&nbsp;</span></b></div>`
     : renderGiftSalesRows(detail);
@@ -2212,16 +2203,6 @@ function renderGiftDetailPage(detail, { loading = false } = {}) {
 
       <article class="card gift-detail-card gift-collection-stats-card">
         ${giftCollectionStatsRows(detail)}
-      </article>
-
-      <article class="card gift-detail-card gift-traits-card">
-        <div class="section-heading">
-          <div class="gift-detail-heading-lockup">
-            <span class="gift-detail-section-icon"><i data-lucide="fingerprint"></i></span>
-            <div><h2>Traits & Rarity</h2><small>Exact attributes</small></div>
-          </div>
-        </div>
-        <div class="gift-traits-list">${rows || `<p class="detail-empty-state">—</p>`}</div>
       </article>
 
       <article class="card gift-detail-card gift-floor-card">
@@ -5296,9 +5277,31 @@ function isTonAddressLike(value = "") {
 
 const ASSETS_DOT_GLYPHS = {
   "A": ["01110", "10001", "10001", "11111", "10001", "10001", "10001"],
+  "B": ["11110", "10001", "10001", "11110", "10001", "10001", "11110"],
+  "C": ["01111", "10000", "10000", "10000", "10000", "10000", "01111"],
+  "D": ["11110", "10001", "10001", "10001", "10001", "10001", "11110"],
   "E": ["11111", "10000", "10000", "11110", "10000", "10000", "11111"],
+  "F": ["11111", "10000", "10000", "11110", "10000", "10000", "10000"],
+  "G": ["01111", "10000", "10000", "10111", "10001", "10001", "01111"],
+  "H": ["10001", "10001", "10001", "11111", "10001", "10001", "10001"],
+  "I": ["11111", "00100", "00100", "00100", "00100", "00100", "11111"],
+  "J": ["00111", "00010", "00010", "00010", "10010", "10010", "01100"],
+  "K": ["10001", "10010", "10100", "11000", "10100", "10010", "10001"],
+  "L": ["10000", "10000", "10000", "10000", "10000", "10000", "11111"],
+  "M": ["10001", "11011", "10101", "10101", "10001", "10001", "10001"],
+  "N": ["10001", "11001", "10101", "10011", "10001", "10001", "10001"],
+  "O": ["01110", "10001", "10001", "10001", "10001", "10001", "01110"],
+  "P": ["11110", "10001", "10001", "11110", "10000", "10000", "10000"],
+  "Q": ["01110", "10001", "10001", "10001", "10101", "10010", "01101"],
+  "R": ["11110", "10001", "10001", "11110", "10100", "10010", "10001"],
   "S": ["01111", "10000", "10000", "01110", "00001", "00001", "11110"],
   "T": ["11111", "00100", "00100", "00100", "00100", "00100", "00100"],
+  "U": ["10001", "10001", "10001", "10001", "10001", "10001", "01110"],
+  "V": ["10001", "10001", "10001", "10001", "10001", "01010", "00100"],
+  "W": ["10001", "10001", "10001", "10101", "10101", "11011", "10001"],
+  "X": ["10001", "10001", "01010", "00100", "01010", "10001", "10001"],
+  "Y": ["10001", "10001", "01010", "00100", "00100", "00100", "00100"],
+  "Z": ["11111", "00001", "00010", "00100", "01000", "10000", "11111"],
   "0": ["01110", "10001", "10011", "10101", "11001", "10001", "01110"],
   "1": ["00100", "01100", "00100", "00100", "00100", "00100", "01110"],
   "2": ["01110", "10001", "00001", "00010", "00100", "01000", "11111"],
@@ -5319,7 +5322,7 @@ const ASSETS_DOT_GLYPHS = {
 function renderDotMatrixText(element, value, variant = "display") {
   if (!element || element.querySelector(".metric-skeleton")) return;
   const text = String(value || "").toUpperCase();
-  if (!text || element.dataset.dotText === text) return;
+  if (!text || (element.dataset.dotText === text && element.querySelector(".dot-matrix-character"))) return;
   element.dataset.dotText = text;
   element.setAttribute("aria-label", text);
   element.classList.add("dot-matrix-text", `dot-matrix-${variant}`);
@@ -5331,6 +5334,12 @@ function renderDotMatrixText(element, value, variant = "display") {
   }).join("");
 }
 
+function renderScreenHeaderDotMatrix(screen = document.querySelector(".screen.is-active")) {
+  const heading = screen?.querySelector(":scope > .page-header h1");
+  if (!heading) return;
+  renderDotMatrixText(heading, heading.dataset.dotText || heading.textContent.trim(), "title");
+}
+
 function renderCollectibleSummaryDotMatrix(container) {
   const value = container?.querySelector("h2");
   if (!value || value.querySelector(".metric-skeleton")) return;
@@ -5340,7 +5349,7 @@ function renderCollectibleSummaryDotMatrix(container) {
 }
 
 function renderAssetsDotMatrix() {
-  renderDotMatrixText(document.querySelector('[data-screen="assets"] .assets-header h1'), "ASSETS", "title");
+  renderScreenHeaderDotMatrix(document.querySelector('[data-screen="assets"]'));
   const portfolioValue = document.querySelector('[data-screen="assets"] .portfolio-strip article:first-child b');
   if (portfolioValue && !portfolioValue.querySelector(".metric-skeleton")) {
     renderDotMatrixText(portfolioValue, portfolioValue.textContent.trim(), "value");
