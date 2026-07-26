@@ -90,7 +90,10 @@ let activeHistoryWalletKey = "";
 let homeEntrancePlayed = false;
 let latestCollectibleStatus = "";
 const allocationState = { gifts: 0, tokens: 0, stickers: 0 };
-let detailWarmupQueue = Promise.resolve();
+let detailWarmupQueue = [];
+let detailWarmupActive = 0;
+let detailWarmupGeneration = 0;
+const DETAIL_WARMUP_CONCURRENCY = 4;
 let activeImportSessionId = 0;
 let importLoaderPulseTimer = 0;
 let allocationUiLocked = false;
@@ -3651,12 +3654,31 @@ function prefetchVisibleTokenDetails(tokens = latestVisibleTokens) {
   }
 }
 
+function pumpDetailWarmupQueue() {
+  while (detailWarmupActive < DETAIL_WARMUP_CONCURRENCY && detailWarmupQueue.length) {
+    const entry = detailWarmupQueue.shift();
+    if (entry.generation !== detailWarmupGeneration) {
+      entry.resolve();
+      continue;
+    }
+    detailWarmupActive += 1;
+    Promise.resolve()
+      .then(entry.task)
+      .catch(() => {})
+      .finally(async () => {
+        await delay(45);
+        detailWarmupActive -= 1;
+        entry.resolve();
+        pumpDetailWarmupQueue();
+      });
+  }
+}
+
 function queueDetailWarmup(task) {
-  detailWarmupQueue = detailWarmupQueue
-    .then(() => task())
-    .catch(() => {})
-    .then(() => delay(45));
-  return detailWarmupQueue;
+  return new Promise((resolve) => {
+    detailWarmupQueue.push({ task, resolve, generation: detailWarmupGeneration });
+    pumpDetailWarmupQueue();
+  });
 }
 
 function flattenCollectibleAssets(assets = []) {
@@ -3779,11 +3801,16 @@ function scheduleGiftDerivedUiRefresh() {
 }
 
 function prefetchGiftDetails(assets = giftAssets) {
+  const entries = [];
   assets.forEach((group) => {
     const children = group.children?.length ? group.children : [group];
-    children
-      .filter((asset) => asset.type === "gift")
-      .forEach((asset) => {
+    const giftChildren = children.filter((asset) => asset.type === "gift");
+    if (giftChildren[0]) entries.push({ asset: giftChildren[0], group, representative: true });
+    giftChildren.slice(1).forEach((asset) => entries.push({ asset, group, representative: false }));
+  });
+  entries
+    .sort((a, b) => Number(b.representative) - Number(a.representative))
+    .forEach(({ asset, group }) => {
         const key = giftDetailCacheKey(asset);
         if (!key || giftPricePrefetchKeys.has(key)) return;
         giftPricePrefetchKeys.add(key);
@@ -3803,8 +3830,7 @@ function prefetchGiftDetails(assets = giftAssets) {
             giftPricePrefetchKeys.delete(key);
           }
         });
-      });
-  });
+    });
 }
 
 let stickerDerivedUiRefreshTimer = 0;
@@ -3873,6 +3899,7 @@ function prefetchStickerDetails(assets = stickerAssets) {
 
 function prefetchAllVisibleDetails() {
   prefetchVisibleTokenDetails(latestVisibleTokens);
+  prefetchGiftDetails(giftAssets);
   prefetchStickerDetails(stickerAssets);
 }
 
@@ -4218,6 +4245,7 @@ async function importTelegramAccount() {
     renderCollectibleGrids();
     renderTokenEmptyState("Connect a TON wallet to load tokens");
     preloadGiftStaticImages(gifts);
+    prefetchGiftDetails(gifts);
     allocationUiLocked = false;
     // Telegram carries no TON balance. Compute the portfolio once from the
     // already hydrated Telegram response instead of running wallet totals.
@@ -4784,7 +4812,8 @@ function resetDetailWarmCaches() {
   giftDetailRequests.clear();
   stickerDetailCache.clear();
   stickerDetailRequests.clear();
-  detailWarmupQueue = Promise.resolve();
+  detailWarmupGeneration += 1;
+  detailWarmupQueue.splice(0).forEach((entry) => entry.resolve());
 }
 
 function resetWalletSwitchState(nextAddress = "", options = {}) {
@@ -5826,6 +5855,7 @@ async function updateCollectiblesFromGetgems(walletAddress, kind, options = {}) 
     renderCollectibleGrids();
     if (kind === "gifts") {
       preloadGiftStaticImages(assets);
+      prefetchGiftDetails(assets);
       updateCollectibleSummaryBanner(kind);
     } else {
       preloadStickerAnimatedMedia(assets);

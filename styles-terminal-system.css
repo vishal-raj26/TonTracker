@@ -365,6 +365,12 @@ body.product-v2 .app-frame.has-wallet .dock button.active span{display:block}
 .app-frame.has-wallet [data-screen="home"] :is(.graph-card,.allocation-card,.movement-panel,.activity-panel){margin-inline:0}
 .app-frame.has-wallet [data-screen="detail"] :is(.gift-traits-card,.gift-floor-card,.gift-sales-card,.gift-demand-card,.gift-origin-card,.price-panel,.sales-panel,.market-intel,.trait-panel,.financial-grid){margin-inline:0}
 
+/* Category screens inherit the Assets gutter; child sections must not add it again. */
+.app-frame.has-wallet :is([data-screen="tokens"],[data-screen="gifts"],[data-screen="gift-brand"],[data-screen="stickers"],[data-screen="sticker-brand"],[data-screen="detail"])>.page-header{padding-inline:0}
+.app-frame.has-wallet [data-screen="tokens"] :is(.summary-card,.holdings-list){margin-inline:0}
+.app-frame.has-wallet :is([data-screen="gifts"],[data-screen="gift-brand"],[data-screen="stickers"],[data-screen="sticker-brand"]) :is(.asset-total-banner,.collectible-grid){margin-inline:0}
+.app-frame.has-wallet :is([data-screen="gifts"],[data-screen="stickers"]) :is(.control-bar,.search-card){margin-left:0;margin-right:0}
+
 /* Assets screen: one deliberate hierarchy from headline metrics to rows. */
 .app-frame.has-wallet [data-screen="assets"]>.assets-header{display:flex;min-height:42px;margin:0 0 16px;align-items:center;justify-content:center}
 .app-frame.has-wallet [data-screen="assets"]>.assets-header h1.dot-matrix-title{--dot-size:2.52px;--dot-gap:1.47px;gap:3.86px;margin:0}
@@ -402,4 +408,61 @@ body.product-v2 .app-frame.has-wallet .dock button.active span{display:block}
   .app-frame.has-wallet [data-screen="assets"] .category-stack{padding-inline:11px}
   .app-frame.has-wallet [data-screen="assets"] .category-stack article{grid-template-columns:38px minmax(0,1fr) 92px 14px;gap:10px}
   .app-frame.has-wallet [data-screen="assets"] .category-stack strong{width:92px;font-size:15px}
+}
+
+/* Every Assets descendant uses the same page canvas and title line as Assets. */
+.app-frame.has-wallet :is(
+  [data-screen="assets"],
+  [data-screen="tokens"],
+  [data-screen="gifts"],
+  [data-screen="gift-brand"],
+  [data-screen="stickers"],
+  [data-screen="sticker-brand"],
+  [data-screen="detail"]
+){
+  background:
+    radial-gradient(circle at 88% -8%,rgba(255,255,255,.04),transparent 28%),
+    var(--terminal-bg);
+}
+.app-frame.has-wallet :is(
+  [data-screen="tokens"],
+  [data-screen="gifts"],
+  [data-screen="gift-brand"],
+  [data-screen="stickers"],
+  [data-screen="sticker-brand"],
+  [data-screen="detail"]
+)> .page-header{
+  position:relative;
+  top:auto;
+  z-index:18;
+  display:grid;
+  grid-template-columns:44px minmax(0,1fr) 44px;
+  min-height:42px;
+  margin:0 0 16px;
+  padding:0;
+  align-items:center;
+  border:0;
+  background:transparent;
+  box-shadow:none;
+  -webkit-backdrop-filter:none;
+  backdrop-filter:none;
+}
+body.product-v2 .app-frame.has-wallet :is(
+  [data-screen="tokens"],
+  [data-screen="gifts"],
+  [data-screen="gift-brand"],
+  [data-screen="stickers"],
+  [data-screen="sticker-brand"],
+  [data-screen="detail"]
+)> .page-header h1:not(.dot-matrix-text){
+  margin:0;
+  overflow:hidden;
+  color:var(--ui-text);
+  font-size:22px;
+  font-weight:700;
+  line-height:1.1;
+  letter-spacing:-.025em;
+  text-align:center;
+  text-overflow:ellipsis;
+  white-space:nowrap;
 }

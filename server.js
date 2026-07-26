@@ -671,7 +671,6 @@ async function telegramMiniAppAssets(initData) {
       gift,
       ownedGift,
     );
-    const modelMedia = telegramGiftMedia({ sticker: gift?.model?.sticker });
     const imageFileId = media?.fileId || "";
     const previewFileId = media?.previewFileId || "";
     if (!imageFileId) normalization.missingMedia += 1;
@@ -680,24 +679,15 @@ async function telegramMiniAppAssets(initData) {
       ? (imageFileId ? telegramWebAppMediaTicket(imageFileId) : "")
       : (previewFileId ? telegramWebAppMediaTicket(previewFileId) : "");
     const animationUrl = mediaType === "image" || !imageFileId ? "" : telegramWebAppMediaTicket(imageFileId);
-    const modelFileId = modelMedia?.fileId || "";
-    const modelPreviewFileId = modelMedia?.previewFileId || "";
-    const modelMediaType = modelMedia?.mediaType || "image";
-    const modelImage = modelMediaType === "image"
-      ? (modelFileId ? telegramWebAppMediaTicket(modelFileId) : "")
-      : (modelPreviewFileId ? telegramWebAppMediaTicket(modelPreviewFileId) : "");
-    const modelAnimationUrl = modelMediaType === "image" || !modelFileId
-      ? ""
-      : telegramWebAppMediaTicket(modelFileId);
-    // This is the same composer and registry input contract as a TON-wallet
-    // gift: model media from the NFT, verified backdrop and symbol assets from
-    // the shared registry, and no source-specific visual substitutions.
+    // Use the exact same composer input contract as a TON-wallet gift. The
+    // registry resolves model, backdrop, and symbol layers; Telegram's owned
+    // gift media is only the normal fallback when a layer is unregistered.
     const layeredMedia = giftLayeredMediaPayload({
       collectionName: collection,
       attributes,
-      image: modelImage,
-      animationUrl: modelAnimationUrl,
-      mediaType: modelMediaType,
+      image,
+      animationUrl,
+      mediaType,
     });
     if (layeredMedia) normalization.layered += 1;
     if (layeredMedia?.backdropPalette) normalization.backdrops += 1;
