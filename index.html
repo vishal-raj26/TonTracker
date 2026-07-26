@@ -10,7 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="./styles.css?v=sticker-art-surface-20260724-1" />
   <link rel="stylesheet" href="./styles-product-v2.css?v=assets-led-20260725-8" />
-  <link rel="stylesheet" href="./styles-terminal-system.css?v=onboarding-dock-20260726-2" />
+  <link rel="stylesheet" href="./styles-terminal-system.css?v=liquid-dock-20260726-5" />
     <script src="https://telegram.org/js/telegram-web-app.js?63"></script>
   </head>
   <body>
@@ -371,7 +371,8 @@
       </main>
 
       <nav class="dock five" aria-label="Main navigation">
-        <button class="is-active" type="button" data-screen-target="home" aria-label="Home"><i data-lucide="house"></i><span>Home</span></button>
+        <span class="dock-indicator" aria-hidden="true"></span>
+        <button class="is-active" type="button" data-screen-target="home" aria-label="Home" aria-current="page"><i data-lucide="house"></i><span>Home</span></button>
         <button type="button" data-screen-target="assets" aria-label="Assets"><i data-lucide="layers-3"></i><span>Assets</span></button>
         <button type="button" data-screen-target="analytics" aria-label="Analytics"><i data-lucide="chart-no-axes-combined"></i><span>Analytics</span></button>
         <button type="button" data-screen-target="watchlist" aria-label="Watchlist"><i data-lucide="radar"></i><span>Watchlist</span></button>
@@ -504,7 +505,7 @@
     <script src="https://unpkg.com/@tonconnect/ui@2.4.4/dist/tonconnect-ui.min.js"></script>
     <script src="./node_modules/chart.js/dist/chart.umd.js"></script>
     <script src="./chart-platform.js?v=3"></script>
-  <script src="./app.js?v=encoding-source-20260725-2"></script>
+  <script src="./app.js?v=liquid-dock-20260726-3"></script>
   <script src="./terminal-system.js?v=type-balance-20260725-5"></script>
   </body>
 </html>

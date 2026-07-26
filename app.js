@@ -1,6 +1,8 @@
 const screens = document.querySelectorAll("[data-screen]");
 const Charts = window.TonTrackCharts;
 const navButtons = document.querySelectorAll(".dock button");
+const mainDock = document.querySelector(".dock");
+const dockIndicator = mainDock?.querySelector(".dock-indicator");
 const walletButtons = document.querySelectorAll(".js-connect-wallet");
 const homeWalletCard = document.querySelector(".home-wallet-card");
 const homeWalletTitle = document.querySelector("#homeWalletTitle");
@@ -662,6 +664,27 @@ function compactNumber(value, options = {}) {
   });
 }
 
+function syncDockIndicator(animate = false) {
+  const activeButton = mainDock?.querySelector("button.is-active");
+  if (!mainDock || !dockIndicator || !activeButton) return;
+
+  mainDock.style.setProperty("--dock-indicator-x", `${activeButton.offsetLeft}px`);
+  mainDock.style.setProperty("--dock-indicator-width", `${activeButton.offsetWidth}px`);
+
+  if (!animate) return;
+  dockIndicator.classList.remove("is-moving");
+  void dockIndicator.offsetWidth;
+  dockIndicator.classList.add("is-moving");
+}
+
+if (mainDock) {
+  window.addEventListener("resize", () => syncDockIndicator(false), { passive: true });
+  dockIndicator?.addEventListener("animationend", () => {
+    dockIndicator.classList.remove("is-moving");
+  });
+  requestAnimationFrame(() => syncDockIndicator(false));
+}
+
 
 
 function showScreen(name) {
@@ -672,8 +695,12 @@ function showScreen(name) {
   document.querySelector(".app-frame")?.classList.toggle("is-home-screen", name === "home");
   const group = navGroup[name] || name;
   navButtons.forEach((button) => {
-    button.classList.toggle("is-active", button.dataset.screenTarget === group);
+    const isCurrent = button.dataset.screenTarget === group;
+    button.classList.toggle("is-active", isCurrent);
+    if (isCurrent) button.setAttribute("aria-current", "page");
+    else button.removeAttribute("aria-current");
   });
+  requestAnimationFrame(() => syncDockIndicator(true));
   if (name === "home" && !homeEntrancePlayed) {
     playHomeEntrance();
     homeEntrancePlayed = true;
