@@ -103,6 +103,7 @@ const giftSalesRegistryCache = new Map();
 let duneGiftModelStatsCache = { rows: [], expiresAt: 0, promise: null };
 let duneGiftCollectionStatsCache = { rows: [], expiresAt: 0, promise: null };
 const duneGiftCollectionHolderCache = new Map();
+let duneGiftCollectionHolderRefresh = null;
 const txActionCache = new Map();
 const dnsNameCache = new Map();
 const historyCacheVersion = "short-ranges-v3";
@@ -2372,6 +2373,113 @@ async function latestDuneGiftCollectionStatsRows() {
   return duneGiftCollectionStatsCache.promise;
 }
 
+function normalizedGiftCollectionStats(collection = "", dune = null) {
+  const holderCacheKey = String(dune?.collectionAddress || "").toLowerCase();
+  const cachedHolder = holderCacheKey ? duneGiftCollectionHolderCache.get(holderCacheKey) : null;
+  return {
+    collection,
+    mintPriceStars: modelStatsNumber(dune?.mintPriceStars),
+    mintPriceTon: modelStatsNumber(dune?.mintPriceTon),
+    mintPriceUsd: modelStatsNumber(dune?.mintPriceUsd),
+    upgradedSupply: modelStatsNumber(dune?.upgradedSupply),
+    unupgradedSupply: modelStatsNumber(dune?.unupgradedSupply),
+    burnedCount: modelStatsNumber(dune?.burnedCount),
+    holdOnchainPct: modelStatsNumber(dune?.holdOnchainPct),
+    holdTelegramPct: modelStatsNumber(dune?.holdTelegramPct),
+    onchainHolders: modelStatsNumber(
+      dune?.onchainHolders,
+      cachedHolder?.expiresAt > Date.now() ? cachedHolder.value : null
+    ),
+    tgHolders: modelStatsNumber(dune?.tgHolders),
+    totalMinted: modelStatsNumber(dune?.totalMinted),
+    source: dune ? "dune" : "unavailable",
+    updatedAt: dune?.updatedAt || "",
+  };
+}
+
+function refreshDuneGiftCollectionHoldersInBackground(rows = []) {
+  if (duneGiftCollectionHolderRefresh || !rows.length) return;
+  duneGiftCollectionHolderRefresh = duneGiftCollectionOnchainHolders(rows)
+    .catch((error) => console.warn(`[dune-collection-holders] background refresh failed: ${error.message}`))
+    .finally(() => {
+      duneGiftCollectionHolderRefresh = null;
+    });
+}
+
+async function giftCollectionStatsSnapshotForPairs(pairs = [], { waitMs = 0 } = {}) {
+  const requested = requestedGiftModelPairs(pairs);
+  if (!requested.length) return [];
+  let duneRows = duneGiftCollectionStatsCache.rows;
+  if (!duneRows.length && waitMs > 0) {
+    duneRows = await settleWithin(latestDuneGiftCollectionStatsRows(), waitMs, []);
+  } else if (duneGiftCollectionStatsCache.expiresAt <= Date.now()) {
+    latestDuneGiftCollectionStatsRows().catch(() => []);
+  }
+  const duneByKey = new Map();
+  duneRows.forEach((row) => {
+    giftCollectionAliasKeys(row.collection).forEach((key) => duneByKey.set(key, row));
+  });
+  const unique = new Map();
+  requested.forEach((pair) => {
+    if (unique.has(pair.collectionKey)) return;
+    const dune = pair.collectionKeys.map((key) => duneByKey.get(key)).find(Boolean);
+    unique.set(pair.collectionKey, normalizedGiftCollectionStats(pair.collection, dune));
+  });
+  refreshDuneGiftCollectionHoldersInBackground(duneRows);
+  return [...unique.values()];
+}
+
+async function giftModelStatsSnapshotForPairs(pairs = [], { waitMs = 0 } = {}) {
+  const requested = requestedGiftModelPairs(pairs);
+  if (!requested.length) return [];
+  let duneRows = duneGiftModelStatsCache.rows;
+  if (!duneRows.length && waitMs > 0) {
+    duneRows = await settleWithin(latestDuneGiftModelStatsRows(), waitMs, []);
+  } else if (duneGiftModelStatsCache.expiresAt <= Date.now()) {
+    latestDuneGiftModelStatsRows().catch(() => []);
+  }
+  const duneByKey = new Map();
+  duneRows.forEach((row) => {
+    giftCollectionAliasKeys(row.collection).forEach((collectionKey) => {
+      duneByKey.set(`${collectionKey}:${giftSnapshotKey(row.model)}`, row);
+    });
+  });
+  const unique = new Map();
+  requested.forEach((pair) => {
+    const key = `${pair.collectionKey}:${pair.modelKey}`;
+    if (unique.has(key)) return;
+    const dune = pair.collectionKeys
+      .map((collectionKey) => duneByKey.get(`${collectionKey}:${pair.modelKey}`))
+      .find(Boolean);
+    unique.set(key, {
+      collection: pair.collection,
+      model: pair.model,
+      modelCount: modelStatsNumber(dune?.modelCount),
+      supplyPct: modelStatsNumber(dune?.supplyPct),
+      holderCount: modelStatsNumber(dune?.holderCount),
+      transferCount7d: modelStatsNumber(dune?.transferCount7d),
+      transferCount30d: modelStatsNumber(dune?.transferCount30d),
+      upgradedCount: modelStatsNumber(dune?.upgradedCount),
+      source: dune ? "dune" : "unavailable",
+      updatedAt: dune?.updatedAt || "",
+    });
+  });
+  return [...unique.values()];
+}
+
+function prewarmGiftCollectionStats(reason = "scheduled") {
+  if (!duneApiKey || !duneGiftCollectionStatsQueryId) return;
+  Promise.all([
+    latestDuneGiftCollectionStatsRows(),
+    latestDuneGiftModelStatsRows(),
+  ])
+    .then(([collectionRows, modelRows]) => {
+      refreshDuneGiftCollectionHoldersInBackground(collectionRows);
+      console.log(`[dune-gift-stats] ${reason}: warmed ${collectionRows.length} collections and ${modelRows.length} models`);
+    })
+    .catch((error) => console.warn(`[dune-gift-stats] ${reason} warm failed: ${error.message}`));
+}
+
 async function giftCollectionStatsForPairs(pairs = []) {
   let requested = requestedGiftModelPairs(pairs);
   if (!requested.length) return [];
@@ -2379,34 +2487,12 @@ async function giftCollectionStatsForPairs(pairs = []) {
   requested = await resolveStoredGiftCollectionKeys(requested, pool);
   const duneRows = await latestDuneGiftCollectionStatsRows();
   const duneByKey = new Map(duneRows.map((row) => [giftSnapshotKey(row.collection), row]));
-  const matchedRows = requested.map((pair) => (pair.collectionKeys || [])
-    .map((collectionKey) => duneByKey.get(collectionKey))
-    .find(Boolean)).filter(Boolean);
-  const holderByAddress = await duneGiftCollectionOnchainHolders(matchedRows);
+  refreshDuneGiftCollectionHoldersInBackground(duneRows);
   return requested.map((pair) => {
     const dune = (pair.collectionKeys || [])
       .map((collectionKey) => duneByKey.get(collectionKey))
       .find(Boolean);
-    const holderCount = modelStatsNumber(
-      dune?.onchainHolders,
-      holderByAddress.get(String(dune?.collectionAddress || "").toLowerCase())
-    );
-    return {
-      collection: pair.collection,
-      mintPriceStars: modelStatsNumber(dune?.mintPriceStars),
-      mintPriceTon: modelStatsNumber(dune?.mintPriceTon),
-      mintPriceUsd: modelStatsNumber(dune?.mintPriceUsd),
-      upgradedSupply: modelStatsNumber(dune?.upgradedSupply),
-      unupgradedSupply: modelStatsNumber(dune?.unupgradedSupply),
-      burnedCount: modelStatsNumber(dune?.burnedCount),
-      holdOnchainPct: modelStatsNumber(dune?.holdOnchainPct),
-      holdTelegramPct: modelStatsNumber(dune?.holdTelegramPct),
-      onchainHolders: holderCount,
-      tgHolders: modelStatsNumber(dune?.tgHolders),
-      totalMinted: modelStatsNumber(dune?.totalMinted),
-      source: dune ? "dune" : "unavailable",
-      updatedAt: dune?.updatedAt || "",
-    };
+    return normalizedGiftCollectionStats(pair.collection, dune);
   });
 }
 
@@ -5693,7 +5779,6 @@ async function d1GiftComboFloor(collectionName = "", modelName = "", backdropNam
       collection: collectionName,
       model: modelName,
       backdrop: backdropName,
-      symbol: symbolName,
     });
     const payload = await d1RegistryJson(`/combo?${params}`, {}, 1500);
     const floor = Number(payload?.floorTon || 0) > 0 ? payload : null;
@@ -5717,7 +5802,7 @@ async function d1GiftComboHistory(collectionName = "", modelName = "", backdropN
   const cached = giftComboHistoryCache.get(cacheKey);
   if (cached?.expiresAt > Date.now()) return cached.value;
   try {
-    const params = new URLSearchParams({ collection: collectionName, model: modelName, backdrop: backdropName, symbol: symbolName });
+    const params = new URLSearchParams({ collection: collectionName, model: modelName, backdrop: backdropName });
     const payload = await d1RegistryJson(`/history?${params}`, {}, preferDirect ? 1500 : 8000);
     const history = Array.isArray(payload) ? payload : [];
     giftComboHistoryCache.set(cacheKey, { value: history, expiresAt: Date.now() + (history.length ? 5 * 60 * 1000 : 45 * 1000) });
@@ -5840,7 +5925,7 @@ function warmGiftComboHistoryCache(models = []) {
 }
 
 async function d1GiftComboFloors(pairs = []) {
-  if ((!giftRegistryReadUrl && !giftRegistryProxyUrl) || !pairs.length) return { combinations: [], coverage: [] };
+  if ((!giftRegistryReadUrl && !giftRegistryProxyUrl) || !pairs.length) return { combinations: [], estimates: [], coverage: [] };
   const collectionLookup = await d1GiftCollectionComboFloors(pairs);
   const seen = new Set();
   const requested = [];
@@ -5859,13 +5944,13 @@ async function d1GiftComboFloors(pairs = []) {
         collection,
         model: pair.model,
         backdrop: pair.backdrop,
-        symbol: pair.symbol,
       });
     });
   });
   const requestChunkSize = 100;
   const chunks = Array.from({ length: Math.ceil(requested.length / requestChunkSize) }, (_, index) => requested.slice(index * requestChunkSize, index * requestChunkSize + requestChunkSize));
   const combinations = [];
+  const estimates = [];
   const coverage = new Map();
   const concurrentD1Reads = 6;
   for (let index = 0; index < chunks.length; index += concurrentD1Reads) {
@@ -5885,6 +5970,7 @@ async function d1GiftComboFloors(pairs = []) {
     console.log(`[gift-d1-lookup] directBatch=${batchNumber}/${Math.ceil(chunks.length / concurrentD1Reads)} chunks=${batchChunks.length} requested=${batchChunks.reduce((sum, chunk) => sum + chunk.length, 0)} ms=${Date.now() - batchStarted}`);
     responses.forEach((response) => {
       if (Array.isArray(response?.combinations)) combinations.push(...response.combinations);
+      if (Array.isArray(response?.estimates)) estimates.push(...response.estimates);
       (Array.isArray(response?.coverage) ? response.coverage : []).forEach((entry) => {
         if (entry?.collectionKey && entry?.snapshotAt) {
           coverage.set(giftSnapshotKey(entry.collectionKey), entry.snapshotAt);
@@ -5907,11 +5993,23 @@ async function d1GiftComboFloors(pairs = []) {
   };
   (collectionLookup.combinations || []).forEach(addCombination);
   combinations.forEach(addCombination);
+  const mergedEstimates = new Map();
+  estimates.forEach((estimate) => {
+    const key = [estimate?.collection, estimate?.model, estimate?.backdrop]
+      .map(giftSnapshotKey)
+      .join(":");
+    if (!key || key === "::") return;
+    const current = mergedEstimates.get(key);
+    if (!current || new Date(estimate?.snapshotAt || 0) > new Date(current?.snapshotAt || 0)) {
+      mergedEstimates.set(key, estimate);
+    }
+  });
   (collectionLookup.coverage || []).forEach((entry) => {
     if (entry?.collectionKey && entry?.snapshotAt) coverage.set(giftSnapshotKey(entry.collectionKey), entry.snapshotAt);
   });
   return {
     combinations: [...mergedCombinations.values()],
+    estimates: [...mergedEstimates.values()],
     coverage: [...coverage].map(([collectionKey, snapshotAt]) => ({ collectionKey, snapshotAt })),
     collections: collectionLookup.collections || [],
   };
@@ -6370,12 +6468,18 @@ async function priceWalletGiftsFromD1(gifts = [], tonRate = 0, context = "wallet
     console.log(`[gift-import-pricing] ${context}: d1Batches=0 resolved=0 missing=${gifts.length} totalMs=${Date.now() - started}`);
     return gifts.map((gift) => ({ ...gift, floorStatus: "unavailable", priceLoading: false }));
   }
+  const collectionStatsPromise = giftCollectionStatsSnapshotForPairs(pairs, { waitMs: 1200 });
+  const modelStatsPromise = giftModelStatsSnapshotForPairs(pairs, { waitMs: 1200 });
   const lookupStarted = Date.now();
   const lookup = await d1GiftComboFloors(pairs);
   const lookupMs = Date.now() - lookupStarted;
   const combosByKey = new Map((lookup.combinations || []).map((combo) => [
     [combo.collection, combo.model, combo.backdrop].map(giftSnapshotKey).join(":"),
     combo,
+  ]));
+  const estimatesByKey = new Map((lookup.estimates || []).map((estimate) => [
+    [estimate.collection, estimate.model, estimate.backdrop].map(giftSnapshotKey).join(":"),
+    estimate,
   ]));
   let resolved = 0;
   let missing = 0;
@@ -6420,15 +6524,25 @@ async function priceWalletGiftsFromD1(gifts = [], tonRate = 0, context = "wallet
           priceLoading: false,
         };
       }
-      const estimate = pair ? estimatedGiftComboFloorFromRegistry(pair, lookup.collections || [], tonRate) : null;
+      const storedEstimate = pair ? d1ComboForGiftPair(pair, estimatesByKey) : null;
+      const estimate = storedEstimate
+        ? {
+            ...storedEstimate,
+            floorUsd: Number(storedEstimate.floorTon || 0) * tonRate,
+            marketPlatform: "Estimated Value",
+            marketUpdatedAt: storedEstimate.snapshotAt || "",
+          }
+        : (pair ? estimatedGiftComboFloorFromRegistry(pair, lookup.collections || [], tonRate) : null);
       if (estimate) {
-        ingestD1GiftEstimateHistory({
-          collectionName: pair.collection,
-          modelName: pair.model,
-          backdropName: pair.backdrop,
-          floorTon: estimate.floorTon,
-          snapshotAt: estimate.snapshotAt || new Date().toISOString(),
-        }).catch(() => null);
+        if (!storedEstimate) {
+          ingestD1GiftEstimateHistory({
+            collectionName: pair.collection,
+            modelName: pair.model,
+            backdropName: pair.backdrop,
+            floorTon: estimate.floorTon,
+            snapshotAt: estimate.snapshotAt || new Date().toISOString(),
+          }).catch(() => null);
+        }
         resolved += 1;
         return {
           ...gift,
@@ -6492,8 +6606,35 @@ async function priceWalletGiftsFromD1(gifts = [], tonRate = 0, context = "wallet
     console.log(`[gift-import-pricing] ${context}: exactHealScheduled=${healingScheduled}`);
   }
   const batchCount = Math.ceil(Math.max(1, pairs.length) / 100);
-  console.log(`[gift-import-pricing] ${context}: d1Batches=${batchCount} d1Ms=${lookupMs} resolved=${resolved} missing=${missing} totalMs=${Date.now() - started}`);
-  return priced;
+  const [collectionStats, modelStats] = await Promise.all([collectionStatsPromise, modelStatsPromise]);
+  const collectionStatsByKey = new Map();
+  collectionStats
+    .filter((stats) => stats?.source === "dune")
+    .forEach((stats) => {
+      giftCollectionAliasKeys(stats.collection).forEach((key) => collectionStatsByKey.set(key, stats));
+    });
+  const modelStatsByKey = new Map();
+  modelStats
+    .filter((stats) => stats?.source === "dune")
+    .forEach((stats) => {
+      giftCollectionAliasKeys(stats.collection).forEach((collectionKey) => {
+        modelStatsByKey.set(`${collectionKey}:${giftSnapshotKey(stats.model)}`, stats);
+      });
+    });
+  const enriched = priced.map((gift) => {
+    const pair = giftFloorPairFromItem(gift);
+    const stats = giftCollectionAliasKeys(gift.collection || "").map((key) => collectionStatsByKey.get(key)).find(Boolean);
+    const model = pair
+      ? pair.collectionKeys.map((collectionKey) => modelStatsByKey.get(`${collectionKey}:${pair.modelKey}`)).find(Boolean)
+      : null;
+    return {
+      ...gift,
+      ...(stats ? { collectionStats: stats } : {}),
+      ...(model ? { modelStats: model } : {}),
+    };
+  });
+  console.log(`[gift-import-pricing] ${context}: d1Batches=${batchCount} d1Ms=${lookupMs} resolved=${resolved} missing=${missing} collectionStats=${collectionStatsByKey.size} modelStats=${modelStatsByKey.size} totalMs=${Date.now() - started}`);
+  return enriched;
 }
 
 async function d1GiftCollectionComboFloors(pairs = []) {
@@ -6691,7 +6832,7 @@ async function ingestD1GiftEstimateHistory(record = {}) {
 }
 
 async function thermosExactGiftComboFloor(collectionName = "", modelName = "", backdropName = "", symbolName = "", tonRate = 0) {
-  if (!collectionName || !modelName || !backdropName || !symbolName) return null;
+  if (!collectionName || !modelName || !backdropName) return null;
   try {
     const collections = await thermosGiftCollections();
     const collectionRow = bestThermosGiftCollection(collections, [collectionName]);
@@ -6708,7 +6849,6 @@ async function thermosExactGiftComboFloor(collectionName = "", modelName = "", b
         collections: [canonicalName],
         models: [modelName],
         backdrops: [backdropName],
-        symbols: [symbolName],
         markets: [],
       },
     }, 8000);
@@ -6728,9 +6868,9 @@ async function thermosExactGiftComboFloor(collectionName = "", modelName = "", b
       backdrop: item?.backdrop?.name || backdropName,
       backdropName: item?.backdrop?.name || backdropName,
       backdropKey: giftSnapshotKey(item?.backdrop?.name || backdropName),
-      symbol: item?.symbol?.name || item?.pattern?.name || symbolName,
-      symbolName: item?.symbol?.name || item?.pattern?.name || symbolName,
-      symbolKey: giftSnapshotKey(item?.symbol?.name || item?.pattern?.name || symbolName),
+      symbol: "",
+      symbolName: "",
+      symbolKey: "",
       timestamp: new Date().toISOString(),
       floorTon,
       floorUsd: floorTon * tonRate,
@@ -6945,7 +7085,7 @@ async function healMissingGiftComboFloors(pairs = [], combosByKey = new Map(), t
 }
 
 async function thermosGiftComboFloor(collectionName = "", modelName = "", backdropName = "", symbolName = "", tonRate = 0) {
-  if (!collectionName || !modelName || !backdropName || !symbolName) return null;
+  if (!collectionName || !modelName || !backdropName) return null;
   const d1Floor = await d1GiftComboFloor(collectionName, modelName, backdropName, symbolName);
   if (d1Floor) {
     return {
@@ -6954,8 +7094,6 @@ async function thermosGiftComboFloor(collectionName = "", modelName = "", backdr
       tonUsdRate: tonRate,
     };
   }
-  // The legacy local cache is keyed only by model + backdrop. It cannot prove
-  // that a price belongs to this symbol, so never surface it as an exact floor.
   try {
     const payload = await marketJson("https://proxy.thermos.gifts/api/v1/gifts", {
       method: "POST",
@@ -6967,7 +7105,6 @@ async function thermosGiftComboFloor(collectionName = "", modelName = "", backdr
         collections: [collectionName],
         models: [modelName],
         backdrops: [backdropName],
-        symbols: [symbolName],
         markets: [],
       },
     }, 10000);
@@ -6981,8 +7118,8 @@ async function thermosGiftComboFloor(collectionName = "", modelName = "", backdr
       modelName,
       backdropKey: giftSnapshotKey(backdropName),
       backdropName,
-      symbolKey: giftSnapshotKey(symbolName),
-      symbolName,
+      symbolKey: "",
+      symbolName: "",
       timestamp: new Date().toISOString(),
       floorTon,
       floorUsd: floorTon * tonRate,
@@ -7000,8 +7137,21 @@ async function thermosGiftComboFloor(collectionName = "", modelName = "", backdr
 
 function estimatedComboFloorPayload({ estimate = null, collectionName = "", modelName = "", backdropName = "", tonRate = 0, comboHistory = [], ignoredFloor = null } = {}) {
   if (!estimate) return null;
+  const latestStoredEstimate = comboHistory
+    .filter((point) => point?.estimate === true && Number(point.floorTon || 0) > 0)
+    .sort((left, right) => new Date(left.timestamp || 0) - new Date(right.timestamp || 0))
+    .at(-1);
+  const effectiveEstimate = latestStoredEstimate
+    ? {
+        ...estimate,
+        floorTon: Number(latestStoredEstimate.floorTon || 0),
+        floorUsd: Number(latestStoredEstimate.floorTon || 0) * tonRate,
+        snapshotAt: latestStoredEstimate.timestamp || estimate.snapshotAt,
+        marketUpdatedAt: latestStoredEstimate.timestamp || estimate.marketUpdatedAt,
+      }
+    : estimate;
   return {
-    ...estimate,
+    ...effectiveEstimate,
     volume24hTon: 0,
     volume24hUsd: 0,
     change24hPct: 0,
@@ -7010,7 +7160,7 @@ function estimatedComboFloorPayload({ estimate = null, collectionName = "", mode
     modelName,
     backdropName,
     tonUsdRate: tonRate,
-    listedCount: ignoredFloor ? Number(ignoredFloor.listedCount || 0) : Number(estimate.listedCount || 0),
+    listedCount: ignoredFloor ? Number(ignoredFloor.listedCount || 0) : Number(effectiveEstimate.listedCount || 0),
     ignoredFloorTon: ignoredFloor ? Number(ignoredFloor.floorTon || 0) : 0,
     ignoredFloorReason: ignoredFloor ? "single-active-listing" : "",
     floorHistory: comboHistory,
@@ -7056,10 +7206,10 @@ async function thermosGiftFloorLookup(aliasObject = {}, aliases = [], tonRate = 
   const requestedModelName = traits.model || "";
   const requestedBackdropName = traits.backdrop || "";
   const requestedSymbolName = traits.symbol || "";
-  if (requestedCollectionName && requestedModelName && requestedBackdropName && requestedSymbolName) {
+  if (requestedCollectionName && requestedModelName && requestedBackdropName) {
     const [d1Floor, comboHistory] = await Promise.all([
-      d1GiftComboFloor(requestedCollectionName, requestedModelName, requestedBackdropName, requestedSymbolName),
-      d1GiftComboHistory(requestedCollectionName, requestedModelName, requestedBackdropName, requestedSymbolName),
+      d1GiftComboFloor(requestedCollectionName, requestedModelName, requestedBackdropName),
+      d1GiftComboHistory(requestedCollectionName, requestedModelName, requestedBackdropName),
     ]);
     const singleListingFloor = d1Floor && Number(d1Floor.floorTon || 0) > 0 && Number(d1Floor.listedCount || 0) <= 1;
     if (d1Floor && !singleListingFloor) {
@@ -7148,14 +7298,14 @@ async function thermosGiftFloorLookup(aliasObject = {}, aliases = [], tonRate = 
     const modelPayload = await thermosGiftModelPayload(collectionName, { tonRate });
     modelFloor = modelPayload.models.find((model) => giftSnapshotKey(model.model) === giftSnapshotKey(modelName)) || null;
     if (modelPayload.models.length) appendGiftModelFloorSnapshots(collectionName, modelPayload).catch(() => null);
-    if (backdropName && symbolName) {
+    if (backdropName) {
       [comboFloor, comboHistory] = await Promise.all([
-        thermosGiftComboFloor(collectionName, modelName, backdropName, symbolName, tonRate),
-        d1GiftComboHistory(collectionName, modelName, backdropName, symbolName),
+        thermosGiftComboFloor(collectionName, modelName, backdropName, "", tonRate),
+        d1GiftComboHistory(collectionName, modelName, backdropName),
       ]);
     }
   }
-  if (modelName && backdropName && symbolName && !comboFloor) {
+  if (modelName && backdropName && !comboFloor) {
     const coverage = await d1GiftComboFloors([{
       collection: collectionName,
       model: modelName,
@@ -7457,13 +7607,13 @@ async function getCollectibles(address) {
         ...item,
         floorTon,
         floorUsd: Number(item.floorUsd || floor.floorUsd || floorTon * tonRate || 0),
-        change24hPct: Number(floor.change24hPct || 0),
-        volume24hTon: Number(floor.volume24hTon || 0),
-        volume24hUsd: Number(floor.volume24hUsd || 0),
+        change24hPct: Number(item.change24hPct || floor.change24hPct || 0),
+        volume24hTon: Number(item.volume24hTon || floor.volume24hTon || 0),
+        volume24hUsd: Number(item.volume24hUsd || floor.volume24hUsd || 0),
         marketPlatform: floor.marketPlatform || item.marketPlatform || "",
         marketUrl: floor.marketUrl || item.marketUrl || "",
         source: floor.source || item.source || "",
-        recentSales: Array.isArray(floor.recentSales) ? floor.recentSales : [],
+        recentSales: Array.isArray(item.recentSales) ? item.recentSales : (Array.isArray(floor.recentSales) ? floor.recentSales : []),
         listedCount: Number(floor.listedCount || item.listedCount || 0),
         holders: Number(floor.holders || item.holders || 0),
         totalSupply: Number(floor.totalSupply || item.totalSupply || 0),
@@ -9509,7 +9659,10 @@ function startServer() {
         if (giftSnapshotAutorun) collectGiftFloorSnapshotsNow().catch((error) => console.warn("Gift floor snapshot preload failed", error.message));
       }, 15000);
     }
+    prewarmGiftCollectionStats("startup");
   });
+
+  setInterval(() => prewarmGiftCollectionStats("scheduled"), 15 * 60 * 1000);
 
   if (registryPreloadRequested) {
     setInterval(() => {

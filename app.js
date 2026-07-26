@@ -2961,6 +2961,11 @@ async function hydrateGiftDetailModelStats(detail = {}, requestId = activeGiftDe
   const collection = detail.collection || detail.name || "";
   const model = giftModelTrait(detail);
   if (!collection || !model) return false;
+  const hasModelStats = detail.modelStats && Object.values(detail.modelStats)
+    .some((value) => (typeof value === "number" ? value > 0 : value === "dune" || value === "gift-attributes"));
+  const hasCollectionStats = detail.collectionStats && Object.values(detail.collectionStats)
+    .some((value) => (typeof value === "number" ? value > 0 : value === "dune"));
+  if (hasModelStats && hasCollectionStats) return false;
   const key = giftModelStatsCacheKey(detail);
   const collectionKey = giftCollectionStatsCacheKey(detail);
   const cached = giftModelStatsCache.get(key);
@@ -3018,14 +3023,24 @@ async function fetchGiftComboHistoryPayload(detail = {}) {
       if (points.length >= 2) break;
     }
       const latest = points[points.length - 1] || {};
-      const floorTon = Number(detail.floorTon || latest.floorTon || latest.priceTon || 0);
+      const latestEstimate = [...points].reverse().find((point) => point?.estimate === true) || {};
+      const isEstimated = detail.floorStatus === "estimated" || detail.floorSource === "estimate";
+      const floorTon = Number(
+        (isEstimated ? (latestEstimate.floorTon || latestEstimate.priceTon) : 0)
+        || detail.floorTon
+        || latest.floorTon
+        || latest.priceTon
+        || 0
+      );
       const rate = Number(detail.floorTon || 0) > 0 && Number(detail.floorUsd || 0) > 0
         ? Number(detail.floorUsd) / Number(detail.floorTon)
         : usdTonRate;
       const value = {
         floor: {
           floorTon,
-          floorUsd: Number(detail.floorUsd || 0) || (floorTon > 0 ? floorTon * rate : 0),
+          floorUsd: isEstimated && floorTon > 0
+            ? floorTon * rate
+            : (Number(detail.floorUsd || 0) || (floorTon > 0 ? floorTon * rate : 0)),
           tonUsdRate: rate,
           floorHistorySource: points.length >= 2
             ? (detail.floorStatus === "estimated" || detail.floorSource === "estimate" ? "tontrack-estimate-history" : "tontrack-combo-registry")
@@ -3078,6 +3093,7 @@ function giftFloorHistoryPointsFromPayload(detail, payload = {}) {
         timestamp: Number.isFinite(timestamp) ? timestamp : Date.now() - ((history.length - 1 - index) * 86400000),
         priceUsd: priceUsd || (priceTon * rate),
         priceTon,
+        estimate: point?.estimate === true,
       };
     })
     .filter((point) => Number(point.priceUsd || 0) > 0)
@@ -3086,6 +3102,17 @@ function giftFloorHistoryPointsFromPayload(detail, payload = {}) {
 
 function applyGiftFloorHistory(detail, payload = {}) {
   const floorHistoryPoints = giftFloorHistoryPointsFromPayload(detail, payload);
+  if (detail.floorStatus === "estimated" || detail.floorSource === "estimate") {
+    const latestEstimate = floorHistoryPoints.filter((point) => point.estimate).at(-1);
+    if (latestEstimate && Number(latestEstimate.priceTon || 0) > 0) {
+      detail.floorTon = Number(latestEstimate.priceTon || 0);
+      detail.floorUsd = Number(latestEstimate.priceUsd || 0);
+      detail.quickSellTon = detail.floorTon * 0.95;
+      detail.quickSellUsd = detail.floorUsd * 0.95;
+      detail.pnlUsd = detail.costBasis ? detail.floorUsd - detail.costBasis : 0;
+      detail.pnlPct = detail.costBasis ? ((detail.floorUsd - detail.costBasis) / detail.costBasis) * 100 : 0;
+    }
+  }
   if (floorHistoryPoints.length < 2) {
     const existingPoints = Array.isArray(detail.floorHistoryPoints) ? detail.floorHistoryPoints : [];
     if (existingPoints.length >= 2) {
@@ -6141,6 +6168,43 @@ function setCollectiblesBanner(kind, message) {
   banner.textContent = message;
 }
 
+function importedGiftDemandIntel(item = {}) {
+  const sales = Array.isArray(item.recentSales) ? item.recentSales : [];
+  const cutoff = Date.now() - 24 * 60 * 60 * 1000;
+  const recent = sales.filter((sale) => {
+    const timestamp = new Date(sale?.date || sale?.timestamp || 0).getTime();
+    return Number.isFinite(timestamp) && timestamp >= cutoff;
+  });
+  const timestamps = sales
+    .map((sale) => new Date(sale?.date || sale?.timestamp || 0).getTime())
+    .filter(Number.isFinite)
+    .sort((a, b) => a - b);
+  const velocityHours = timestamps.length > 1
+    ? timestamps.slice(1).reduce((sum, value, index) => sum + ((value - timestamps[index]) / 3600000), 0) / (timestamps.length - 1)
+    : 0;
+  const sales24h = Number(item.sales24h || recent.length || 0);
+  const volume24hTon = Number(item.volume24hTon || 0);
+  const volume24hUsd = Number(item.volume24hUsd || 0);
+  const listedCount = Number(item.listedCount || 0);
+  const totalSupply = Number(item.totalSupply || 0);
+  const change24hPct = Number(item.change24hPct || 0);
+  return {
+    trend: "",
+    badge: change24hPct > 20 ? "Heating Up" : (change24hPct < -20 ? "Cooling Down" : "Stable"),
+    change24hPct,
+    sales24h,
+    volume24h: volume24hUsd > 0 || volume24hTon > 0 ? collectibleValueLabel(volume24hUsd, volume24hTon) : "",
+    prior: change24hPct ? signedPct(change24hPct) : "",
+    daysToSell: velocityHours > 0 ? `${velocityHours.toFixed(1)} hours` : "",
+    listedSupply: listedCount,
+    listedCount,
+    totalSupply,
+    listingRate: totalSupply > 0 && listedCount > 0 ? `${((listedCount / totalSupply) * 100).toFixed(1)}%` : "",
+    velocityHours,
+    bestTime: item.marketPlatform || item.marketplace || "",
+  };
+}
+
 function liveCollectibleAsset(item, kind, index, options = {}) {
   const isGift = kind === "gift";
   const attrs = Array.isArray(item.attributes) ? item.attributes : [];
@@ -6233,7 +6297,7 @@ function liveCollectibleAsset(item, kind, index, options = {}) {
     floorHistoryAvailable: Array.isArray(item.floorHistory) && item.floorHistory.length >= 2,
     collectionStats: item.collectionStats || null,
     modelStats: item.modelStats || null,
-    intel: { trend: "▂▃▅▆▇", badge: "Live", sales24h: "—", volume24h: "—", prior: "—", daysToSell: "—", listedSupply: "—", listingRate: "—", bestTime: "—" },
+    intel: isGift ? importedGiftDemandIntel(item) : null,
     chart: floorUsd ? [floorUsd, floorUsd, floorUsd, floorUsd, floorUsd, floorUsd, floorUsd] : [],
     ...(isGift ? {} : {
       format: stickerMediaType === "lottie" ? "Animated" : (stickerMediaType === "video" ? "Video" : attrValue("format", "Static")),

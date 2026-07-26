@@ -35,6 +35,9 @@
 ## Gifts And Stickers
 
 - Gifts and NFT stickers are different asset types; do not classify ordinary NFTs as either.
+- Gift floor identity is always `collection + model + backdrop`.
+- Never include `symbol` in gift floor storage, lookup, matching, or display-price selection.
+- The estimation model is allowed only when the exact backdrop-level floor has `listedCount <= 1` (including a missing floor as zero listings). Never relax or replace this rule unless the user explicitly changes it.
 - Gift layered media uses verified local registry assets:
   - animated model: local Lottie JSON
   - symbol: local PNG

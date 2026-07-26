@@ -419,7 +419,22 @@ async function readCombos(env, pairs = []) {
     if (!row) return;
     rowMap.set(`${group.collectionKey}:${group.bucket}`, row);
   });
+  const estimateRowGroups = [];
+  const historyDatabase = floorSourcesDatabase(env);
+  for (let index = 0; index < grouped.length; index += 50) {
+    const chunk = grouped.slice(index, index + 50);
+    const chunkRows = await historyDatabase.batch(chunk.map((group) => (
+      historyDatabase.prepare(
+        `SELECT points_json
+         FROM gift_combo_history_segments
+         WHERE collection_key = ?1 AND bucket IN (-1, ?2)
+         ORDER BY day_start DESC`
+      ).bind(group.collectionKey, group.bucket)
+    )));
+    chunkRows.forEach((result, resultIndex) => estimateRowGroups.push({ result, group: chunk[resultIndex] }));
+  }
   const results = new Map();
+  const estimates = new Map();
   grouped.forEach((group) => {
     const row = rowMap.get(`${group.collectionKey}:${group.bucket}`);
     if (!row) return;
@@ -448,7 +463,37 @@ async function readCombos(env, pairs = []) {
       }
     });
   });
-  return { combinations: [...results.values()], coverage };
+  estimateRowGroups.forEach(({ result, group }) => {
+    const latestByTarget = new Map();
+    for (const row of result.results || []) {
+      for (const point of historySegmentBucketPoints(JSON.parse(row.points_json || "{}"), group.bucket)) {
+        if (!point.estimate) continue;
+        const current = latestByTarget.get(point.targetKey);
+        if (!current || new Date(point.timestamp) > new Date(current.timestamp)) {
+          latestByTarget.set(point.targetKey, point);
+        }
+      }
+    }
+    group.pairs.forEach((pair) => {
+      const point = latestByTarget.get(pair.targetKey);
+      if (!point) return;
+      const resultKey = [key(pair.collection), key(pair.model), key(pair.backdrop)].join(":");
+      const candidate = {
+        collection: rowMap.get(`${group.collectionKey}:${group.bucket}`)?.collection_name || pair.collection,
+        model: pair.model,
+        backdrop: pair.backdrop,
+        floorTon: Number(point.floorTon || 0),
+        listedCount: 0,
+        snapshotAt: point.timestamp,
+        source: "estimated-combo-value",
+      };
+      const current = estimates.get(resultKey);
+      if (!current || new Date(candidate.snapshotAt) > new Date(current.snapshotAt)) {
+        estimates.set(resultKey, candidate);
+      }
+    });
+  });
+  return { combinations: [...results.values()], estimates: [...estimates.values()], coverage };
 }
 
 async function readCollectionCombos(env, collections = []) {
@@ -531,12 +576,22 @@ async function readComboHistory(env, collection, model, backdrop, symbol) {
     const id = `${row.sampled_at}:${Number(entry.f || 0)}`;
     if (seen.has(id)) return null;
     seen.add(id);
-    return { timestamp: row.sampled_at, floorTon: Number(entry.f || 0), listedCount: Number(entry.l || 0) };
+    return {
+      timestamp: row.sampled_at,
+      floorTon: Number(entry.f || 0),
+      listedCount: Number(entry.l || 0),
+      estimate: String(entry.p || "") === "ESTIMATE",
+    };
   }).filter(Boolean));
   const compacted = segmentResults.flatMap((result) => (result.results || []).flatMap((row) => (
     historySegmentBucketPoints(JSON.parse(row.points_json || "{}"), bucket)
       .filter((point) => point.targetKey === targetKey)
-      .map((point) => ({ timestamp: point.timestamp, floorTon: point.floorTon, listedCount: point.listedCount }))
+      .map((point) => ({
+        timestamp: point.timestamp,
+        floorTon: point.floorTon,
+        listedCount: point.listedCount,
+        estimate: point.estimate,
+      }))
   )));
   return legacy.concat(compacted).filter((point) => {
     const id = `${point.timestamp}:${point.floorTon}`;
@@ -775,23 +830,27 @@ async function readEstimateHistoryTargets(request, env) {
   const limit = Math.max(1, Math.min(250, Number(url.searchParams.get("limit") || 100)));
   const dueBefore = String(url.searchParams.get("dueBefore") || new Date().toISOString());
   const result = await env.GIFT_REGISTRY.prepare(
-    `SELECT target_key, collection_name, model_name, backdrop_name, symbol_name, requested_at, last_evaluated_at
+    `SELECT target_key, collection_key, collection_name, model_key, model_name,
+       backdrop_key, backdrop_name, requested_at, last_evaluated_at
      FROM gift_estimate_history_targets
      WHERE last_evaluated_at = '' OR last_evaluated_at <= ?1
      ORDER BY last_evaluated_at ASC, requested_at ASC
      LIMIT ?2`
   ).bind(dueBefore, limit).all();
-  return json({
-    targets: (result.results || []).map((row) => ({
+  const unique = new Map();
+  (result.results || []).forEach((row) => {
+    const targetKey = `${row.collection_key}:${row.model_key}:${row.backdrop_key}`;
+    if (unique.has(targetKey)) return;
+    unique.set(targetKey, {
       targetKey: row.target_key,
       collection: row.collection_name,
       model: row.model_name,
       backdrop: row.backdrop_name,
-      symbol: row.symbol_name || "",
       requestedAt: row.requested_at,
       lastEvaluatedAt: row.last_evaluated_at,
-    })),
+    });
   });
+  return json({ targets: [...unique.values()] });
 }
 
 async function ingestEstimateHistoryTargetResult(request, env) {
@@ -1736,7 +1795,6 @@ async function ingestEstimateHistory(request, env) {
   const collectionName = String(body.collection || "").trim();
   const modelName = String(body.model || "").trim();
   const backdropName = String(body.backdrop || "").trim();
-  const symbolName = String(body.symbol || body.symbolName || "").trim();
   const collectionKey = key(collectionName);
   const targetKey = comboKey(modelName, backdropName);
   const floorTon = Number(body.floorTon || 0);
@@ -1749,7 +1807,7 @@ async function ingestEstimateHistory(request, env) {
   const entry = {
     m: modelName,
     b: backdropName,
-    y: symbolName,
+    y: "",
     f: floorTon,
     l: 0,
     p: "ESTIMATE",
@@ -1767,9 +1825,9 @@ async function ingestEstimateHistory(request, env) {
       backdrop_name=excluded.backdrop_name,
       symbol_name=excluded.symbol_name`
   ).bind(
-    `${collectionKey}:${key(modelName)}:${key(backdropName)}:${key(symbolName)}`,
+    `${collectionKey}:${key(modelName)}:${key(backdropName)}`,
     collectionKey, collectionName, key(modelName), modelName, key(backdropName), backdropName,
-    key(symbolName), symbolName, snapshotAt
+    "", "", snapshotAt
   ).run();
   const previous = await latestHistoryEntry(env, collectionKey, bucket, targetKey);
   const lastSampleAt = new Date(previous?.timestamp || 0).getTime() || 0;
@@ -1778,7 +1836,7 @@ async function ingestEstimateHistory(request, env) {
   const sampleDue = !lastSampleAt || (Number.isFinite(sampleAt) && sampleAt - lastSampleAt >= UNCHANGED_SAMPLE_MS);
   if (!valueChanged && !sampleDue) return json({ ok: true, skipped: true, reason: "unchanged-recent", snapshotAt });
   await appendHistorySegment(env, collectionKey, bucket, snapshotAt, { [targetKey]: entry });
-  return json({ ok: true, collection: collectionName, model: modelName, backdrop: backdropName, symbol: symbolName, floorTon, snapshotAt });
+  return json({ ok: true, collection: collectionName, model: modelName, backdrop: backdropName, floorTon, snapshotAt });
 }
 
 async function ingestStatus(request, env) {
