@@ -80,7 +80,14 @@ const giftComboHistoryRequests = new Map();
 const giftModelStatsCache = new Map();
 const giftModelStatsRequests = new Map();
 const giftCollectionStatsCache = new Map();
-const giftDetailPayloadVersion = "exact-combo-history-v4-explicit-traits";
+const giftDetailPayloadVersion = "exact-combo-detail-v5-resilient";
+const GIFT_DETAIL_CACHE_FRESH_MS = 10 * 60 * 1000;
+const GIFT_DETAIL_CACHE_STALE_MS = 7 * 24 * 60 * 60 * 1000;
+const GIFT_DETAIL_CACHE_STORAGE_KEY = `tontrack:gift-detail:${giftDetailPayloadVersion}`;
+const GIFT_DETAIL_CACHE_MAX_ENTRIES = 400;
+const giftDetailPersistentCache = new Map();
+let giftDetailPersistentCacheLoaded = false;
+let giftDetailPersistentWriteTimer = 0;
 const stickerDetailCache = new Map();
 const stickerDetailRequests = new Map();
 let activeTokenDetailRequest = 0;
@@ -93,7 +100,7 @@ const allocationState = { gifts: 0, tokens: 0, stickers: 0 };
 let detailWarmupQueue = [];
 let detailWarmupActive = 0;
 let detailWarmupGeneration = 0;
-const DETAIL_WARMUP_CONCURRENCY = 4;
+const DETAIL_WARMUP_CONCURRENCY = 6;
 let activeImportSessionId = 0;
 let importLoaderPulseTimer = 0;
 let allocationUiLocked = false;
@@ -1825,14 +1832,17 @@ function renderAssetDetail(assetId) {
   detailScreen?.classList.toggle("is-sticker-detail", detail.type === "sticker");
   toggleGiftDetailLayout(detail.type === "gift" || detail.type === "sticker");
   if (detail.type === "gift") {
-    const cachedGift = getGiftDetailCachedPayload(detail);
+    const cachedEntry = giftDetailCacheEntry(detail);
+    const cachedGift = cachedEntry?.value || null;
     if (cachedGift) {
       applyGiftDetailPayload(detail, cachedGift, { applyFloor: false });
-      renderGiftDetailPage(detail, { loading: !detail.floorHistoryAvailable });
-      if (!detail.floorHistoryAvailable) {
+      renderGiftDetailPage(detail, { loading: false });
+      if (!detail.floorHistoryAvailable || Number(cachedEntry.expiresAt || 0) <= Date.now()) {
         detail.floorHistoryLoading = true;
         setTimeout(() => {
-          if (currentDetailAssetId() === detail.id) loadGiftDetail(detail);
+          if (currentDetailAssetId() === detail.id) {
+            loadGiftDetail(detail, { forceRefresh: Number(cachedEntry.expiresAt || 0) <= Date.now() });
+          }
         }, 0);
       }
     } else {
@@ -2781,24 +2791,130 @@ async function loadStickerDetail(detail, { forceRefresh = false } = {}) {
   }
 }
 
-function giftDetailCacheKey(detail = {}) {
-  return `${giftDetailPayloadVersion}:${String(detail.tokenAddress || detail.id || detail.name || "")}:${giftDetailRange}`;
+function giftDetailComboIdentity(detail = {}) {
+  const collection = detail.collection || detail.creator || detail.name || "";
+  const model = giftModelTrait(detail) || detail.model || "";
+  const backdrop = giftTraitValue(detail, "Backdrop") || detail.backdrop || "";
+  const symbol = giftTraitValue(detail, "Symbol") || detail.symbol || "";
+  if (collection && model && backdrop) {
+    return [collection, model, backdrop, symbol].map(collectibleKey).join(":");
+  }
+  return `asset:${collectibleKey(detail.tokenAddress || detail.id || detail.name || "")}`;
 }
 
-async function fetchGiftDetailPayload(detail) {
+function giftDetailCacheKey(detail = {}) {
+  const identity = giftDetailComboIdentity(detail);
+  return identity ? `${giftDetailPayloadVersion}:${giftDetailRange}:${identity}` : "";
+}
+
+function loadPersistentGiftDetailCache() {
+  if (giftDetailPersistentCacheLoaded) return;
+  giftDetailPersistentCacheLoaded = true;
+  try {
+    const stored = JSON.parse(localStorage.getItem(GIFT_DETAIL_CACHE_STORAGE_KEY) || "{}");
+    Object.entries(stored).forEach(([key, entry]) => {
+      if (entry?.value && Number(entry.staleUntil || 0) > Date.now()) {
+        giftDetailPersistentCache.set(key, entry);
+      }
+    });
+  } catch {}
+}
+
+function flushPersistentGiftDetailCache() {
+  giftDetailPersistentWriteTimer = 0;
+  const entries = [...giftDetailPersistentCache.entries()]
+    .filter(([, entry]) => Number(entry?.staleUntil || 0) > Date.now())
+    .sort((a, b) => Number(b[1]?.cachedAt || 0) - Number(a[1]?.cachedAt || 0))
+    .slice(0, GIFT_DETAIL_CACHE_MAX_ENTRIES);
+  giftDetailPersistentCache.clear();
+  entries.forEach(([key, entry]) => giftDetailPersistentCache.set(key, entry));
+  try {
+    localStorage.setItem(GIFT_DETAIL_CACHE_STORAGE_KEY, JSON.stringify(Object.fromEntries(entries)));
+  } catch {
+    try {
+      localStorage.setItem(GIFT_DETAIL_CACHE_STORAGE_KEY, JSON.stringify(Object.fromEntries(entries.slice(0, 160))));
+    } catch {}
+  }
+}
+
+function schedulePersistentGiftDetailCacheWrite() {
+  if (giftDetailPersistentWriteTimer) return;
+  giftDetailPersistentWriteTimer = window.setTimeout(flushPersistentGiftDetailCache, 250);
+}
+
+function giftDetailCacheEntry(detail = {}) {
+  const key = giftDetailCacheKey(detail);
+  if (!key) return null;
+  const memory = giftDetailCache.get(key);
+  if (memory?.value && Number(memory.staleUntil || memory.expiresAt || 0) > Date.now()) return memory;
+  loadPersistentGiftDetailCache();
+  const persistent = giftDetailPersistentCache.get(key);
+  if (!persistent?.value || Number(persistent.staleUntil || 0) <= Date.now()) return null;
+  giftDetailCache.set(key, persistent);
+  return persistent;
+}
+
+function giftDetailStatsAvailable(stats = {}) {
+  return Object.entries(stats || {}).some(([key, value]) => (
+    key !== "source" && key !== "updatedAt" && Number(value || 0) > 0
+  ));
+}
+
+function mergeGiftDetailPayload(fresh = {}, stale = {}) {
+  const freshHistory = Array.isArray(fresh.floorHistory) ? fresh.floorHistory : [];
+  const staleHistory = Array.isArray(stale.floorHistory) ? stale.floorHistory : [];
+  const freshSales = Array.isArray(fresh.sales) ? fresh.sales : [];
+  const staleSales = Array.isArray(stale.sales) ? stale.sales : [];
+  return {
+    ...stale,
+    ...fresh,
+    floor: Number(fresh?.floor?.floorTon || fresh?.floor?.floorUsd || 0) > 0 ? fresh.floor : (stale.floor || fresh.floor || {}),
+    sales: freshSales.length ? freshSales : staleSales,
+    modelStats: giftDetailStatsAvailable(fresh.modelStats) ? fresh.modelStats : (stale.modelStats || fresh.modelStats || {}),
+    collectionStats: giftDetailStatsAvailable(fresh.collectionStats) ? fresh.collectionStats : (stale.collectionStats || fresh.collectionStats || {}),
+    floorHistory: freshHistory.length >= 2 ? freshHistory : staleHistory,
+    floorHistorySource: freshHistory.length >= 2
+      ? (fresh.floorHistorySource || "tontrack-combo-registry")
+      : (stale.floorHistorySource || ""),
+  };
+}
+
+function storeGiftDetailPayload(key, payload) {
+  const cachedAt = Date.now();
+  const previous = giftDetailCache.get(key)?.value || giftDetailPersistentCache.get(key)?.value || {};
+  const value = mergeGiftDetailPayload(payload, previous);
+  const hasCoreDetail = Boolean(
+    Number(value?.floor?.floorTon || value?.floor?.floorUsd || 0) > 0
+    && giftDetailStatsAvailable(value?.collectionStats)
+    && (giftDetailStatsAvailable(value?.modelStats) || Number(value?.floor?.totalSupply || 0) > 0)
+  );
+  const entry = {
+    value,
+    cachedAt,
+    expiresAt: cachedAt + (hasCoreDetail ? GIFT_DETAIL_CACHE_FRESH_MS : 45 * 1000),
+    staleUntil: cachedAt + GIFT_DETAIL_CACHE_STALE_MS,
+  };
+  giftDetailCache.set(key, entry);
+  loadPersistentGiftDetailCache();
+  giftDetailPersistentCache.set(key, entry);
+  schedulePersistentGiftDetailCacheWrite();
+  return value;
+}
+
+async function fetchGiftDetailPayload(detail, { forceRefresh = false } = {}) {
   const key = giftDetailCacheKey(detail);
   if (!key) return { floor: {}, sales: [], origin: {}, rarity: {}, links: {} };
-  const cached = giftDetailCache.get(key);
-  if (cached && cached.expiresAt > Date.now()) return cached.value;
+  const cached = giftDetailCacheEntry(detail);
+  if (!forceRefresh && cached?.expiresAt > Date.now()) return cached.value;
   if (giftDetailRequests.has(key)) return giftDetailRequests.get(key);
   const wallet = liveWalletAddress || liveWalletData?.account?.address || "";
   const nft = detail.tokenAddress || "";
-  if (!wallet && !nft) return { floor: {}, sales: [], origin: {}, rarity: {}, links: {} };
   const collectionAddress = detail.collectionAddress || "";
   const collectionName = detail.collection || detail.name || "";
   const model = giftModelTrait(detail) || detail.model || "";
   const backdrop = giftTraitValue(detail, "Backdrop") || detail.backdrop || "";
   const symbol = giftTraitValue(detail, "Symbol") || detail.symbol || "";
+  if (!collectionName || !model || !backdrop) return { floor: {}, sales: [], origin: {}, rarity: {}, links: {} };
   const detailParams = new URLSearchParams({
     wallet,
     nft,
@@ -2815,10 +2931,11 @@ async function fetchGiftDetailPayload(detail) {
   });
   const tgauth = telegramInitData();
   if (tgauth) detailParams.set("tgauth", tgauth);
-  const request = fetchJson(`/api/gift-detail-data?${detailParams.toString()}`)
-    .then((payload) => {
-      giftDetailCache.set(key, { value: payload, expiresAt: Date.now() + 5 * 60 * 1000 });
-      return payload;
+  const request = fetchJsonFast(`/api/gift-detail-data?${detailParams.toString()}`, 3600)
+    .then((payload) => storeGiftDetailPayload(key, payload))
+    .catch((error) => {
+      if (cached?.value) return cached.value;
+      throw error;
     })
     .finally(() => giftDetailRequests.delete(key));
   giftDetailRequests.set(key, request);
@@ -2892,8 +3009,21 @@ async function hydrateGiftDetailTraitRarities(detail = {}, requestId = activeGif
   const modelPayload = (payload?.models || [])[0];
   if (!modelPayload?.traitRarities || !Object.keys(modelPayload.traitRarities).length) return false;
   applyGiftTraitRarities(detail, modelPayload);
+  const modelMetric = modelPayload?.traitMetrics?.Model || modelPayload?.traitMetrics?.model || {};
+  if (Number(modelMetric.itemCount || 0) > 0 || Number(modelMetric.rarity || 0) > 0) {
+    applyGiftModelStats(detail, {
+      ...(detail.modelStats || {}),
+      modelCount: Number(detail.modelStats?.modelCount || modelMetric.itemCount || 0),
+      supplyPct: Number(detail.modelStats?.supplyPct || modelMetric.rarity || 0),
+      source: detail.modelStats?.source || "gift-attributes",
+      updatedAt: detail.modelStats?.updatedAt || modelMetric.updatedAt || "",
+    });
+  }
   const stored = assetDetails[detail.id];
-  if (stored && stored !== detail) applyGiftTraitRarities(stored, modelPayload);
+  if (stored && stored !== detail) {
+    applyGiftTraitRarities(stored, modelPayload);
+    if (detail.modelStats) applyGiftModelStats(stored, detail.modelStats);
+  }
   return true;
 }
 
@@ -3050,8 +3180,7 @@ async function fetchGiftComboHistoryPayload(detail = {}) {
 }
 
 function getGiftDetailCachedPayload(detail) {
-  const cached = giftDetailCache.get(giftDetailCacheKey(detail));
-  return cached && cached.expiresAt > Date.now() ? cached.value : null;
+  return giftDetailCacheEntry(detail)?.value || null;
 }
 
 function isVerifiedGiftFloor(floor = {}) {
@@ -3217,7 +3346,6 @@ async function loadGiftDetail(detail, { forceRefresh = false } = {}) {
   detail.floorHistoryLoading = !detail.floorHistoryAvailable;
   detail.salesLoading = !(detail.sales || []).length;
   refreshGiftDetailChrome(detail, { loading: false });
-  loadGiftSalesFast(detail, requestId);
   const traitRarityRequest = hydrateGiftDetailTraitRarities(detail, requestId).then((updated) => {
     if (requestId !== activeGiftDetailRequest) return;
     if (updated) refreshGiftDetailChrome(detail, { loading: false });
@@ -3226,33 +3354,33 @@ async function loadGiftDetail(detail, { forceRefresh = false } = {}) {
     if (requestId !== activeGiftDetailRequest) return;
     if (updated) refreshGiftDetailChrome(detail, { loading: false });
   });
-  const fastHistoryRequest = loadGiftComboHistoryFast(detail, requestId).then((hasHistory) => {
-    if (requestId !== activeGiftDetailRequest) return;
-    if (hasHistory) {
-      detail.floorHistoryLoading = false;
+  try {
+    const cachedEntry = giftDetailCacheEntry(detail);
+    const cachedPayload = cachedEntry?.value || null;
+    if (cachedPayload) {
+      applyGiftDetailPayload(detail, cachedPayload, { applyFloor: false });
       refreshGiftDetailChrome(detail, { loading: false });
     }
-  });
-  try {
-    const payload = forceRefresh ? await fetchGiftDetailPayload(detail) : (getGiftDetailCachedPayload(detail) || await fetchGiftDetailPayload(detail));
+    const needsRefresh = forceRefresh || !cachedPayload || Number(cachedEntry?.expiresAt || 0) <= Date.now();
+    const payload = needsRefresh
+      ? await fetchGiftDetailPayload(detail, { forceRefresh: true })
+      : cachedPayload;
     if (requestId !== activeGiftDetailRequest) return;
-    applyGiftDetailPayload(detail, payload, { applyFloor: true });
-    await traitRarityRequest;
-    await modelStatsRequest;
-    if (!detail.floorHistoryAvailable) {
-      await fastHistoryRequest;
-    }
+    // Import hydration is the sole pricing authority. Detail data enriches the
+    // cards and graph, but must never replace the resolved wallet/TG floor.
+    applyGiftDetailPayload(detail, payload, { applyFloor: false });
     detail.floorHistoryLoading = false;
     refreshGiftDetailChrome(detail, { loading: false });
   } catch (error) {
     console.warn("Gift detail load failed", error);
     if (requestId !== activeGiftDetailRequest) return;
-    await traitRarityRequest;
-    await modelStatsRequest;
-    await fastHistoryRequest;
+    detail.salesLoading = false;
     detail.floorHistoryLoading = false;
     refreshGiftDetailChrome(detail, { loading: false });
   }
+  Promise.allSettled([traitRarityRequest, modelStatsRequest]).then(() => {
+    if (requestId === activeGiftDetailRequest) refreshGiftDetailChrome(detail, { loading: false });
+  });
 }
 
 function buildStickerHistory(sales = []) {
@@ -3533,14 +3661,18 @@ function tokenChartQuery(detail, range = tokenDetailRange) {
   return `/api/token-detail-data?${params.toString()}`;
 }
 
-async function fetchJsonFast(url, timeoutMs = 3200) {
+async function requestJsonFast(url, options = {}, timeoutMs = 3200) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    return await requestJson(url, { signal: controller.signal }, "Request failed");
+    return await requestJson(url, { ...options, signal: controller.signal }, "Request failed");
   } finally {
     clearTimeout(timeout);
   }
+}
+
+function fetchJsonFast(url, timeoutMs = 3200) {
+  return requestJsonFast(url, {}, timeoutMs);
 }
 
 function normalizeTokenDetailChart(points = []) {
@@ -3773,6 +3905,51 @@ function syncCollectibleGroupFromChildren(group) {
 let giftDerivedUiRefreshTimer = 0;
 const giftPricePrefetchKeys = new Set();
 
+async function prefetchGiftStats(assets = giftAssets) {
+  const gifts = flattenCollectibleAssets(assets).filter((asset) => asset?.type === "gift");
+  const unique = new Map();
+  gifts.forEach((asset) => {
+    const collection = asset.collection || asset.name || "";
+    const model = giftModelTrait(asset);
+    if (!collection || !model) return;
+    const key = `${collectibleKey(collection)}:${collectibleKey(model)}`;
+    if (!unique.has(key)) unique.set(key, { collection, model });
+  });
+  const pairs = [...unique.values()];
+  for (let index = 0; index < pairs.length; index += 200) {
+    const chunk = pairs.slice(index, index + 200);
+    try {
+      const payload = await requestJsonFast("/api/gift-model-stats", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ pairs: chunk }),
+      }, 5000);
+      const models = new Map((payload?.models || []).map((stats) => [
+        `${collectibleKey(stats.collection)}:${collectibleKey(stats.model)}`,
+        stats,
+      ]));
+      const collections = new Map((payload?.collections || []).map((stats) => [
+        collectibleKey(stats.collection),
+        stats,
+      ]));
+      gifts.forEach((asset) => {
+        const modelKey = giftModelStatsCacheKey(asset);
+        const collectionKey = giftCollectionStatsCacheKey(asset);
+        const modelStats = models.get(modelKey);
+        const collectionStats = collections.get(collectionKey);
+        if (modelStats) {
+          giftModelStatsCache.set(modelKey, { value: modelStats, expiresAt: Date.now() + 15 * 60 * 1000 });
+          applyGiftModelStats(asset, modelStats);
+        }
+        if (collectionStats) {
+          giftCollectionStatsCache.set(collectionKey, { value: collectionStats, expiresAt: Date.now() + 15 * 60 * 1000 });
+          applyGiftCollectionStats(asset, collectionStats);
+        }
+      });
+    } catch {}
+  }
+}
+
 function scheduleGiftDerivedUiRefresh() {
   if (giftDerivedUiRefreshTimer) return;
   giftDerivedUiRefreshTimer = window.setTimeout(() => {
@@ -3782,7 +3959,9 @@ function scheduleGiftDerivedUiRefresh() {
 }
 
 function prefetchGiftDetails(assets = giftAssets) {
+  prefetchGiftStats(assets).catch(() => {});
   const entries = [];
+  const seenCombos = new Set();
   assets.forEach((group) => {
     const children = group.children?.length ? group.children : [group];
     const giftChildren = children.filter((asset) => asset.type === "gift");
@@ -3793,7 +3972,8 @@ function prefetchGiftDetails(assets = giftAssets) {
     .sort((a, b) => Number(b.representative) - Number(a.representative))
     .forEach(({ asset, group }) => {
         const key = giftDetailCacheKey(asset);
-        if (!key || giftPricePrefetchKeys.has(key)) return;
+        if (!key || seenCombos.has(key) || giftPricePrefetchKeys.has(key)) return;
+        seenCombos.add(key);
         giftPricePrefetchKeys.add(key);
         queueDetailWarmup(async () => {
           try {

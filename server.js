@@ -100,6 +100,10 @@ const giftComboFloorCache = new Map();
 const giftComboHistoryCache = new Map();
 const giftComboHistoryWarmJobs = new Set();
 const giftSalesRegistryCache = new Map();
+const giftDetailResponseCache = new Map();
+const giftDetailResponseRequests = new Map();
+const GIFT_DETAIL_RESPONSE_FRESH_MS = 5 * 60 * 1000;
+const GIFT_DETAIL_RESPONSE_STALE_MS = 24 * 60 * 60 * 1000;
 let duneGiftModelStatsCache = { rows: [], expiresAt: 0, promise: null };
 let duneGiftCollectionStatsCache = { rows: [], expiresAt: 0, promise: null };
 const duneGiftCollectionHolderCache = new Map();
@@ -8832,6 +8836,135 @@ async function fastExactLastSaleFloorForPair(pair = {}, tonRate = 0) {
   return lastSaleFloorFromSale(sale, tonRate);
 }
 
+function giftDetailResponseKey(collection = "", model = "", backdrop = "", symbol = "", range = "7d") {
+  return [
+    giftSnapshotKey(collection),
+    giftSnapshotKey(model),
+    giftSnapshotKey(backdrop),
+    giftSnapshotKey(symbol),
+    String(range || "7d").toLowerCase(),
+  ].join(":");
+}
+
+function giftDetailStatsAvailable(stats = {}) {
+  return Object.entries(stats || {}).some(([key, value]) => (
+    key !== "source" && key !== "updatedAt" && Number(value || 0) > 0
+  ));
+}
+
+function giftDetailCoreAvailable(payload = {}) {
+  return Boolean(
+    Number(payload?.floor?.floorTon || payload?.floor?.floorUsd || 0) > 0
+    && giftDetailStatsAvailable(payload?.collectionStats)
+    && (giftDetailStatsAvailable(payload?.modelStats) || Number(payload?.floor?.totalSupply || 0) > 0)
+  );
+}
+
+function mergeGiftDetailResponse(fresh = {}, stale = {}) {
+  const freshFloor = fresh.floor || {};
+  const staleFloor = stale.floor || {};
+  const freshHistory = Array.isArray(fresh.floorHistory) ? fresh.floorHistory : [];
+  const staleHistory = Array.isArray(stale.floorHistory) ? stale.floorHistory : [];
+  const freshSales = Array.isArray(fresh.sales) ? fresh.sales : [];
+  const staleSales = Array.isArray(stale.sales) ? stale.sales : [];
+  return {
+    ...stale,
+    ...fresh,
+    floor: Number(freshFloor.floorTon || freshFloor.floorUsd || 0) > 0 ? freshFloor : staleFloor,
+    sales: freshSales.length ? freshSales : staleSales,
+    salesScope: freshSales.length ? (fresh.salesScope || "same-traits") : (stale.salesScope || fresh.salesScope || "same-traits"),
+    modelStats: giftDetailStatsAvailable(fresh.modelStats) ? fresh.modelStats : (stale.modelStats || fresh.modelStats || {}),
+    collectionStats: giftDetailStatsAvailable(fresh.collectionStats) ? fresh.collectionStats : (stale.collectionStats || fresh.collectionStats || {}),
+    floorHistory: freshHistory.length >= 2 ? freshHistory : staleHistory,
+    floorHistorySource: freshHistory.length >= 2
+      ? (fresh.floorHistorySource || "tontrack-combo-registry")
+      : (stale.floorHistorySource || ""),
+  };
+}
+
+function giftDetailFloorFromCombo(combo = {}, tonRate = 0, history = []) {
+  const floorTon = Number(combo.floorTon || 0);
+  if (!(floorTon > 0)) return {};
+  const usableRate = Number(combo.tonUsdRate || tonRate || 0);
+  const first = history[0] || {};
+  const latest = history.at(-1) || {};
+  const firstTon = Number(first.floorTon || first.priceTon || 0);
+  const latestTon = Number(latest.floorTon || latest.priceTon || floorTon);
+  const change24hPct = firstTon > 0 && latestTon > 0 ? ((latestTon - firstTon) / firstTon) * 100 : 0;
+  return {
+    floorTon,
+    floorUsd: Number(combo.floorUsd || 0) || (usableRate > 0 ? floorTon * usableRate : 0),
+    tonUsdRate: usableRate,
+    listedCount: Number(combo.listedCount || 0),
+    totalSupply: Number(combo.totalSupply || combo.modelCount || 0),
+    change24hPct,
+    marketPlatform: combo.marketplace || combo.marketPlatform || "",
+    marketUrl: combo.listingUrl || combo.marketUrl || "",
+    marketUpdatedAt: combo.snapshotAt || combo.marketUpdatedAt || "",
+    source: "d1-backdrop-floor",
+  };
+}
+
+async function buildGiftDetailResponse({ collectionName = "", model = "", backdrop = "", symbol = "", range = "7d" }) {
+  const pair = { collection: collectionName, model, backdrop, symbol };
+  const hasPriceCombo = Boolean(collectionName && model && backdrop);
+  const hasSalesCombo = Boolean(hasPriceCombo && symbol);
+  if (!hasPriceCombo) {
+    return {
+      floor: {},
+      sales: [],
+      salesStats: { sales24h: 0, volume24hTon: 0, volume24hUsd: 0 },
+      salesScope: "same-traits",
+      modelStats: {},
+      collectionStats: {},
+      floorHistory: [],
+      floorHistorySource: "",
+      origin: {},
+      rarity: {},
+      links: {},
+    };
+  }
+
+  const [combo, history, sales, modelSnapshot, collectionSnapshot, rate] = await Promise.all([
+    settleWithin(d1GiftComboFloor(collectionName, model, backdrop), 1450, null),
+    settleWithin(d1GiftComboHistory(collectionName, model, backdrop, symbol, { preferDirect: true }), 1650, []),
+    hasSalesCombo ? settleWithin(d1GiftSales(collectionName, model, backdrop, symbol, 10), 1850, []) : Promise.resolve([]),
+    giftModelStatsSnapshotForPairs([pair]),
+    giftCollectionStatsSnapshotForPairs([pair]),
+    settleWithin(tonUsdRate(), 650, 0),
+  ]);
+  const floorHistory = Array.isArray(history) ? history : [];
+  const recentSales = Array.isArray(sales) ? sales : [];
+  const floor = giftDetailFloorFromCombo(combo || {}, rate, floorHistory);
+  const sales24hRows = recentSales.filter((sale) => {
+    const timestamp = new Date(sale.date || 0).getTime();
+    return Number.isFinite(timestamp) && timestamp >= Date.now() - 24 * 60 * 60 * 1000;
+  });
+  const modelStats = modelSnapshot[0] || {};
+  const collectionStats = collectionSnapshot[0] || {};
+  if (!Number(floor.totalSupply || 0) && Number(modelStats.modelCount || 0) > 0) {
+    floor.totalSupply = Number(modelStats.modelCount);
+  }
+  return {
+    floor,
+    sales: recentSales,
+    salesStats: {
+      sales24h: sales24hRows.length,
+      volume24hTon: sales24hRows.reduce((sum, sale) => sum + Number(sale.priceTon || 0), 0),
+      volume24hUsd: sales24hRows.reduce((sum, sale) => sum + Number(sale.priceUsd || 0), 0),
+    },
+    salesScope: "same-traits",
+    modelStats,
+    collectionStats,
+    onchainActivity: {},
+    floorHistory,
+    floorHistorySource: floorHistory.length >= 2 ? "tontrack-combo-registry" : "",
+    origin: {},
+    rarity: {},
+    links: {},
+  };
+}
+
 async function giftDetailData({ walletAddress, nftAddress, collectionAddress = "", collectionName = "", itemName = "", attributes = [], model = "", backdrop = "", symbol = "", tgauth = "", range = "7d" }) {
   const effectiveAttributes = Array.isArray(attributes) ? [...attributes] : [];
   const suppliedTraits = { model, backdrop, symbol };
@@ -8840,114 +8973,84 @@ async function giftDetailData({ walletAddress, nftAddress, collectionAddress = "
     const existing = effectiveAttributes.some((trait) => String(trait?.label || trait?.trait_type || "").toLowerCase() === label);
     if (!existing) effectiveAttributes.push({ label: label[0].toUpperCase() + label.slice(1), value: String(value).trim() });
   }
-  const traitPayload = JSON.stringify(effectiveAttributes);
   const traits = giftTraitLookup(effectiveAttributes);
   const exactCollectionName = collectionName || itemName || "";
   const exactModelName = traits.model || "";
   const exactBackdropName = traits.backdrop || "";
   const exactSymbolName = traits.symbol || "";
-  const hasExactGiftCombo = Boolean(exactCollectionName && exactModelName && exactBackdropName && exactSymbolName);
-  const giftLookup = collectionAddress || collectionName || itemName
-    ? { address: collectionAddress || collectionName || itemName, name: collectionName, item: itemName, kind: "gift", attributes: effectiveAttributes, tgauth, period: range }
-    : collectionName || itemName;
-  const extraTimeoutMs = hasExactGiftCombo ? 250 : 1200;
-  const floorPromise = collectibleFloor(giftLookup).catch(() => ({}));
-  const statsPromise = hasExactGiftCombo
-    ? Promise.all([
-      giftModelStatsForPairs([{ collection: exactCollectionName, model: exactModelName }]),
-      giftCollectionStatsForPairs([{ collection: exactCollectionName }]),
-    ]).catch(() => [[], []])
-    : Promise.resolve([[], []]);
-  const salesPromise = hasExactGiftCombo
-    ? collectibleSales(giftLookup, traitPayload).catch(() => [])
-    : settleWithin(collectibleSales(giftLookup, traitPayload), extraTimeoutMs, []);
-  const operationsPromise = settleWithin(accountNftHistory(walletAddress), extraTimeoutMs, []);
-  const itemActivityPromise = settleWithin(nftItemActivity(nftAddress, walletAddress), extraTimeoutMs, {});
-  let floor = await floorPromise;
-  const [sales, operations, itemActivity, [modelStatsRows, collectionStatsRows]] = await Promise.all([
-    salesPromise,
-    operationsPromise,
-    itemActivityPromise,
-    statsPromise,
-  ]);
-  const tonRate = Number(floor.tonUsdRate || 0) || await tonUsdRate();
-  const lastExactSale = exactTraitSale(sales, traits);
-  if (process.env.GIFT_LAST_SALE_AS_FLOOR === "1" && !activeListingFloor(floor) && lastExactSale && (Number(lastExactSale.priceTon || 0) > 0 || Number(lastExactSale.priceUsd || 0) > 0)) {
-    const saleTon = Number(lastExactSale.priceTon || 0) || (tonRate > 0 ? Number(lastExactSale.priceUsd || 0) / tonRate : 0);
-    const saleUsd = Number(lastExactSale.priceUsd || 0) || (saleTon * tonRate);
-    floor = {
-      ...floor,
-      floorTon: saleTon,
-      floorUsd: saleUsd,
-      marketPlatform: lastExactSale.marketplace ? `Last Sale Â· ${lastExactSale.marketplace}` : "Last Sale",
-      marketUrl: "",
-      source: "last-sale-exact",
-      listedCount: 0,
-      recentSales: sales,
-      lastSaleDate: lastExactSale.date || "",
-      tonUsdRate: tonRate,
+  const key = giftDetailResponseKey(exactCollectionName, exactModelName, exactBackdropName, exactSymbolName, range);
+  const cached = giftDetailResponseCache.get(key);
+  const now = Date.now();
+  if (cached?.expiresAt > now) {
+    return {
+      ...cached.value,
+      links: giftDetailLinks(collectionAddress, exactCollectionName, cached.value.floor || {}),
+      cacheStatus: "fresh",
     };
   }
-  const nftOps = operations.filter((operation) => sameAddress(operation?.item?.address, nftAddress)).sort((a, b) => Number(b.utime || 0) - Number(a.utime || 0));
-  const inbound = nftOps.find((operation) => sameAddress(operation?.destination?.address, walletAddress));
-  const senderAddress = inbound?.source?.address || "";
-  const senderName = inbound?.source?.name || (senderAddress ? await resolveTonName(senderAddress) : "");
-  const receivedOn = inbound?.utime ? new Date(Number(inbound.utime) * 1000).toISOString() : "";
-  const combo = estimatedGiftCombo(effectiveAttributes, Number(floor.totalSupply || 0));
+
+  const refresh = () => {
+    if (giftDetailResponseRequests.has(key)) return giftDetailResponseRequests.get(key);
+    const request = buildGiftDetailResponse({
+      collectionName: exactCollectionName,
+      model: exactModelName,
+      backdrop: exactBackdropName,
+      symbol: exactSymbolName,
+      range,
+    })
+      .then((fresh) => {
+        const value = mergeGiftDetailResponse(fresh, cached?.value || {});
+        const freshTtl = giftDetailCoreAvailable(value)
+          ? GIFT_DETAIL_RESPONSE_FRESH_MS
+          : 45 * 1000;
+        giftDetailResponseCache.set(key, {
+          value,
+          cachedAt: Date.now(),
+          expiresAt: Date.now() + freshTtl,
+          staleUntil: Date.now() + GIFT_DETAIL_RESPONSE_STALE_MS,
+        });
+        return value;
+      })
+      .finally(() => giftDetailResponseRequests.delete(key));
+    giftDetailResponseRequests.set(key, request);
+    return request;
+  };
+
+  if (cached?.value && cached.staleUntil > now) {
+    refresh().catch(() => {});
+    return {
+      ...cached.value,
+      links: giftDetailLinks(collectionAddress, exactCollectionName, cached.value.floor || {}),
+      cacheStatus: "stale",
+    };
+  }
+  const payload = await settleWithin(refresh(), 2100, cached?.value || {
+    floor: {},
+    sales: [],
+    salesStats: { sales24h: 0, volume24hTon: 0, volume24hUsd: 0 },
+    salesScope: "same-traits",
+    modelStats: {},
+    collectionStats: {},
+    floorHistory: [],
+    floorHistorySource: "",
+    origin: {},
+    rarity: {},
+  });
+  return {
+    ...payload,
+    links: giftDetailLinks(collectionAddress, exactCollectionName, payload.floor || {}),
+    cacheStatus: cached?.value ? "stale" : "miss",
+  };
+}
+
+function giftDetailLinks(collectionAddress = "", collectionName = "", floor = {}) {
   const fragmentUrl = firstMarketUrl(floor) && /fragment/i.test(String(floor.marketPlatform || "")) ? firstMarketUrl(floor) : "";
   const getgemsUrl = collectionAddress ? `https://getgems.io/collection/${encodeURIComponent(collectionAddress)}` : "";
   const xgiftUrl = collectionName ? `https://xgift.tg/?collection=${encodeURIComponent(collectionName)}` : "";
-  const sales24hRows = sales.filter((sale) => {
-    const timestamp = new Date(sale.date || 0).getTime();
-    return Number.isFinite(timestamp) && timestamp >= Date.now() - 24 * 60 * 60 * 1000;
-  });
-  let floorHistory = Array.isArray(floor.floorHistory) ? floor.floorHistory : [];
-  let floorHistorySource = floor.floorHistorySource || "";
-  if (hasExactGiftCombo) {
-    if (!(floorHistorySource === "tontrack-combo-registry" && floorHistory.length >= 2)) {
-      const exactHistory = await d1GiftComboHistory(exactCollectionName, exactModelName, exactBackdropName, exactSymbolName);
-      floorHistory = exactHistory.length >= 2 ? exactHistory : [];
-      floorHistorySource = exactHistory.length >= 2 ? "tontrack-combo-registry" : "";
-    }
-  } else if (floorHistory.length < 2) {
-    floorHistory = salesDerivedFloorHistory(sales, floor, range);
-    floorHistorySource = floorHistory.length >= 2 ? "sales-derived" : "";
-  }
-  if (!hasExactGiftCombo && floorHistory.length < 2) {
-    floorHistory = await giftSnapshotHistory(floor.canonicalName || collectionName || itemName, range);
-    floorHistorySource = floorHistory.length >= 2 ? "tontrack-snapshots" : "";
-  }
   return {
-    floor,
-    sales,
-    salesStats: {
-      sales24h: sales24hRows.length,
-      volume24hTon: sales24hRows.reduce((sum, sale) => sum + Number(sale.priceTon || 0), 0),
-      volume24hUsd: sales24hRows.reduce((sum, sale) => sum + Number(sale.priceUsd || 0), 0),
-    },
-    salesScope: sales.some((sale) => sale.exact) ? "same-traits" : "collection",
-    modelStats: modelStatsRows[0] || {},
-    collectionStats: collectionStatsRows[0] || {},
-    onchainActivity: itemActivity || {},
-    floorHistory,
-    floorHistorySource,
-    origin: {
-      senderAddress,
-      senderName,
-      receivedOn,
-      txHash: inbound?.transaction_hash || "",
-      sourceLabel: inbound ? "onchain-history" : "",
-    },
-    rarity: {
-      expectedComboCount: combo.expectedCount,
-      comboPercentile: combo.percentile,
-      totalSupply: Number(floor.totalSupply || 0),
-    },
-    links: {
-      xgift: xgiftUrl,
-      fragment: fragmentUrl,
-      getgems: getgemsUrl,
-    },
+    xgift: xgiftUrl,
+    fragment: fragmentUrl,
+    getgems: getgemsUrl,
   };
 }
 
@@ -9203,10 +9306,24 @@ async function handleApi(req, res, url) {
     try {
       const body = await readJsonBody(req);
       const pairs = requestedGiftModelPairs(body.pairs);
-      const [models, collections] = await Promise.all([
-        giftModelStatsForPairs(pairs),
-        giftCollectionStatsForPairs(pairs),
+      const [fullModels, fallbackModels, collections] = await Promise.all([
+        settleWithin(giftModelStatsForPairs(pairs), 1800, []),
+        giftModelStatsSnapshotForPairs(pairs, { waitMs: 350 }),
+        giftCollectionStatsSnapshotForPairs(pairs, { waitMs: 350 }),
       ]);
+      const fallbackByKey = new Map(fallbackModels.map((model) => [
+        `${giftSnapshotKey(model.collection)}:${giftSnapshotKey(model.model)}`,
+        model,
+      ]));
+      const models = pairs.map((pair) => {
+        const exact = fullModels.find((model) => (
+          giftSnapshotKey(model.collection) === pair.collectionKey
+          && giftSnapshotKey(model.model) === pair.modelKey
+        ));
+        return giftDetailStatsAvailable(exact)
+          ? exact
+          : (fallbackByKey.get(`${pair.collectionKey}:${pair.modelKey}`) || exact || {});
+      });
       return json(res, 200, {
         source: duneApiKey && duneGiftModelStatsQueryId ? "dune+gift-attributes" : "gift-attributes",
         models,
@@ -9461,8 +9578,13 @@ async function handleApi(req, res, url) {
     const wallet = url.searchParams.get("wallet");
     const nft = url.searchParams.get("nft");
     const tgauth = url.searchParams.get("tgauth") || "";
-    if (!nft || (!wallet && !tgauth)) return json(res, 400, { error: "Missing wallet or gift query parameter" });
-    if (!wallet) {
+    const requestedCollection = url.searchParams.get("collectionName") || url.searchParams.get("item") || url.searchParams.get("collection") || "";
+    const requestedModel = url.searchParams.get("model") || "";
+    const requestedBackdrop = url.searchParams.get("backdrop") || "";
+    if (!requestedCollection || !requestedModel || !requestedBackdrop) {
+      return json(res, 400, { error: "Missing gift combination" });
+    }
+    if (!wallet && tgauth) {
       try {
         verifyTelegramWebAppInitData(tgauth);
       } catch (error) {
@@ -9493,7 +9615,21 @@ async function handleApi(req, res, url) {
         range: url.searchParams.get("range") || "7d",
       }));
     } catch (error) {
-      return json(res, 502, { error: error.message });
+      console.warn(`[gift-detail] partial response after failure: ${error.message}`);
+      return json(res, 200, {
+        floor: {},
+        sales: [],
+        salesStats: { sales24h: 0, volume24hTon: 0, volume24hUsd: 0 },
+        salesScope: "same-traits",
+        modelStats: {},
+        collectionStats: {},
+        floorHistory: [],
+        floorHistorySource: "",
+        origin: {},
+        rarity: {},
+        links: {},
+        partial: true,
+      });
     }
   }
   if (url.pathname === "/api/asset-media") {
@@ -9779,6 +9915,9 @@ if (require.main === module) {
 module.exports = {
   collectGiftFloorSnapshotsNow,
   giftSnapshotHistory,
+  giftDetailResponseKey,
+  mergeGiftDetailResponse,
+  settleWithin,
   getGiftSnapshotCollectorState: () => ({ ...giftSnapshotCollectorState }),
   startGiftSnapshotWorker,
   refreshEstimatedGiftHistoryTargetsNow,
