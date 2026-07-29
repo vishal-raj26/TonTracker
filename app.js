@@ -100,7 +100,7 @@ const allocationState = { gifts: 0, tokens: 0, stickers: 0 };
 let detailWarmupQueue = [];
 let detailWarmupActive = 0;
 let detailWarmupGeneration = 0;
-const DETAIL_WARMUP_CONCURRENCY = 6;
+const DETAIL_WARMUP_CONCURRENCY = 5;
 let activeImportSessionId = 0;
 let importLoaderPulseTimer = 0;
 let allocationUiLocked = false;
@@ -2932,7 +2932,7 @@ async function fetchGiftDetailPayload(detail, { forceRefresh = false } = {}) {
   if (forceRefresh) detailParams.set("refresh", "1");
   const tgauth = telegramInitData();
   if (tgauth) detailParams.set("tgauth", tgauth);
-  const request = fetchJsonFast(`/api/gift-detail-data?${detailParams.toString()}`, 4200)
+  const request = fetchJsonFast(`/api/gift-detail-data?${detailParams.toString()}`, 5200)
     .then((payload) => storeGiftDetailPayload(key, payload))
     .catch((error) => {
       if (cached?.value) return cached.value;
