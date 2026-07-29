@@ -5770,6 +5770,7 @@ async function d1GiftComboFloor(collectionName = "", modelName = "", backdropNam
 async function d1GiftComboHistory(collectionName = "", modelName = "", backdropName = "", symbolName = "", options = {}) {
   if (!collectionName || !modelName || !backdropName) return [];
   const preferDirect = Boolean(options.preferDirect);
+  const directTimeoutMs = Math.max(500, Number(options.timeoutMs || (preferDirect ? 1500 : 8000)));
   if (!giftRegistryReadUrl && (!giftRegistryProxyUrl || preferDirect)) return [];
   const cacheKey = [
     ...giftCollectionAliasKeys(collectionName),
@@ -5780,7 +5781,7 @@ async function d1GiftComboHistory(collectionName = "", modelName = "", backdropN
   if (cached?.expiresAt > Date.now()) return cached.value;
   try {
     const params = new URLSearchParams({ collection: collectionName, model: modelName, backdrop: backdropName });
-    const payload = await d1RegistryJson(`/history?${params}`, {}, preferDirect ? 1500 : 8000);
+    const payload = await d1RegistryJson(`/history?${params}`, {}, directTimeoutMs);
     const history = Array.isArray(payload) ? payload : [];
     giftComboHistoryCache.set(cacheKey, { value: history, expiresAt: Date.now() + (history.length ? 5 * 60 * 1000 : 45 * 1000) });
     return history;
@@ -8927,8 +8928,8 @@ async function buildGiftDetailResponse({ collectionName = "", model = "", backdr
 
   const [combo, history, sales, modelSnapshot, collectionSnapshot, rate] = await Promise.all([
     settleWithin(d1GiftComboFloor(collectionName, model, backdrop), 1450, null),
-    settleWithin(d1GiftComboHistory(collectionName, model, backdrop, symbol, { preferDirect: true }), 1650, []),
-    hasSalesCombo ? settleWithin(d1GiftSales(collectionName, model, backdrop, symbol, 10), 1850, []) : Promise.resolve([]),
+    settleWithin(d1GiftComboHistory(collectionName, model, backdrop, symbol, { preferDirect: true, timeoutMs: 2400 }), 2500, []),
+    hasSalesCombo ? settleWithin(d1GiftSales(collectionName, model, backdrop, symbol, 10), 2550, []) : Promise.resolve([]),
     giftModelStatsSnapshotForPairs([pair]),
     giftCollectionStatsSnapshotForPairs([pair]),
     settleWithin(tonUsdRate(), 650, 0),
@@ -8965,7 +8966,7 @@ async function buildGiftDetailResponse({ collectionName = "", model = "", backdr
   };
 }
 
-async function giftDetailData({ walletAddress, nftAddress, collectionAddress = "", collectionName = "", itemName = "", attributes = [], model = "", backdrop = "", symbol = "", tgauth = "", range = "7d" }) {
+async function giftDetailData({ walletAddress, nftAddress, collectionAddress = "", collectionName = "", itemName = "", attributes = [], model = "", backdrop = "", symbol = "", tgauth = "", range = "7d", forceRefresh = false }) {
   const effectiveAttributes = Array.isArray(attributes) ? [...attributes] : [];
   const suppliedTraits = { model, backdrop, symbol };
   for (const [label, value] of Object.entries(suppliedTraits)) {
@@ -8981,7 +8982,7 @@ async function giftDetailData({ walletAddress, nftAddress, collectionAddress = "
   const key = giftDetailResponseKey(exactCollectionName, exactModelName, exactBackdropName, exactSymbolName, range);
   const cached = giftDetailResponseCache.get(key);
   const now = Date.now();
-  if (cached?.expiresAt > now) {
+  if (!forceRefresh && cached?.expiresAt > now) {
     return {
       ...cached.value,
       links: giftDetailLinks(collectionAddress, exactCollectionName, cached.value.floor || {}),
@@ -9016,7 +9017,7 @@ async function giftDetailData({ walletAddress, nftAddress, collectionAddress = "
     return request;
   };
 
-  if (cached?.value && cached.staleUntil > now) {
+  if (!forceRefresh && cached?.value && cached.staleUntil > now) {
     refresh().catch(() => {});
     return {
       ...cached.value,
@@ -9024,7 +9025,7 @@ async function giftDetailData({ walletAddress, nftAddress, collectionAddress = "
       cacheStatus: "stale",
     };
   }
-  const payload = await settleWithin(refresh(), 2100, cached?.value || {
+  const payload = await settleWithin(refresh(), 3000, cached?.value || {
     floor: {},
     sales: [],
     salesStats: { sales24h: 0, volume24hTon: 0, volume24hUsd: 0 },
@@ -9613,6 +9614,7 @@ async function handleApi(req, res, url) {
         symbol: url.searchParams.get("symbol") || "",
         tgauth,
         range: url.searchParams.get("range") || "7d",
+        forceRefresh: url.searchParams.get("refresh") === "1",
       }));
     } catch (error) {
       console.warn(`[gift-detail] partial response after failure: ${error.message}`);

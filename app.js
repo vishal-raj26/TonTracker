@@ -2929,9 +2929,10 @@ async function fetchGiftDetailPayload(detail, { forceRefresh = false } = {}) {
     v: giftDetailPayloadVersion,
     t: String(Date.now()),
   });
+  if (forceRefresh) detailParams.set("refresh", "1");
   const tgauth = telegramInitData();
   if (tgauth) detailParams.set("tgauth", tgauth);
-  const request = fetchJsonFast(`/api/gift-detail-data?${detailParams.toString()}`, 3600)
+  const request = fetchJsonFast(`/api/gift-detail-data?${detailParams.toString()}`, 4200)
     .then((payload) => storeGiftDetailPayload(key, payload))
     .catch((error) => {
       if (cached?.value) return cached.value;
@@ -3309,8 +3310,8 @@ function applyGiftDetailPayload(detail, payload = {}, options = {}) {
   detail.links = payload?.links || detail.links || {};
   detail.onchainActivity = payload?.onchainActivity || detail.onchainActivity || {};
   detail.salesScope = payload?.salesScope || detail.salesScope || "collection";
-  if (payload?.modelStats) applyGiftModelStats(detail, payload.modelStats);
-  if (payload?.collectionStats) applyGiftCollectionStats(detail, payload.collectionStats);
+  if (giftDetailStatsAvailable(payload?.modelStats)) applyGiftModelStats(detail, payload.modelStats);
+  if (giftDetailStatsAvailable(payload?.collectionStats)) applyGiftCollectionStats(detail, payload.collectionStats);
   if (options.applyFloor !== false) applyGiftVerifiedFloor(detail, payload);
   else applyGiftFloorHistory(detail, payload);
   if (sales.length || !detail.giftSalesRaw?.length) applyGiftSales(detail, sales, detail.salesScope);
