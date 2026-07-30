@@ -5791,14 +5791,47 @@ async function d1GiftComboHistory(collectionName = "", modelName = "", backdropN
   }
 }
 
-async function d1GiftSales(collectionName = "", modelName = "", backdropName = "", symbolName = "", limit = 5) {
-  if (!giftRegistryReadUrl || !collectionName || !modelName || !backdropName || !symbolName) return [];
-  const cacheKey = [
-    ...giftCollectionAliasKeys(collectionName),
-    giftSnapshotKey(modelName),
-    giftSnapshotKey(backdropName),
-    giftSnapshotKey(symbolName),
+function normalizedD1GiftSales(rows = [], pair = {}) {
+  const expectedModelKey = giftSnapshotKey(pair.model);
+  const expectedBackdropKey = giftSnapshotKey(pair.backdrop);
+  return (Array.isArray(rows) ? rows : []).map((sale) => ({
+    priceTon: Number(sale.priceTon || 0),
+    priceUsd: Number(sale.priceUsd || 0),
+    tonUsdRate: Number(sale.tonUsdRate || 0),
+    rateAt: sale.rateAt || "",
+    date: sale.date || "",
+    marketplace: marketSourceLabel(sale.marketplace || "GiftSatellite"),
+    buyer: "",
+    seller: "",
+    mint: Number(sale.mint || 0),
+    model: sale.model || pair.model || "",
+    backdrop: sale.backdrop || pair.backdrop || "",
+    symbol: sale.symbol || "",
+    giftUrl: sale.giftUrl || "",
+    saleId: sale.saleId || "",
+    exact: true,
+  })).filter((sale) => (
+    sale.priceTon > 0
+    && sale.date
+    && giftSnapshotKey(sale.model) === expectedModelKey
+    && giftSnapshotKey(sale.backdrop) === expectedBackdropKey
+  ));
+}
+
+function giftSalesCacheKey(pair = {}, limit = 5) {
+  return [
+    ...giftCollectionAliasKeys(pair.collection),
+    giftSnapshotKey(pair.model),
+    giftSnapshotKey(pair.backdrop),
     Math.max(1, Math.min(20, Number(limit || 5))),
+  ].filter(Boolean).join(":");
+}
+
+async function d1GiftSales(collectionName = "", modelName = "", backdropName = "", _symbolName = "", limit = 5) {
+  if (!giftRegistryReadUrl || !collectionName || !modelName || !backdropName) return [];
+  const pair = { collection: collectionName, model: modelName, backdrop: backdropName };
+  const cacheKey = [
+    giftSalesCacheKey(pair, limit),
   ].filter(Boolean).join(":");
   const cached = giftSalesRegistryCache.get(cacheKey);
   if (cached?.expiresAt > Date.now()) return cached.value;
@@ -5807,36 +5840,10 @@ async function d1GiftSales(collectionName = "", modelName = "", backdropName = "
       collection: collectionName,
       model: modelName,
       backdrop: backdropName,
-      symbol: symbolName,
       limit: String(Math.max(1, Math.min(20, Number(limit || 5)))),
     });
     const payload = await marketJson(`${giftRegistryReadUrl}/sales?${params}`, {}, 2500);
-    const expectedModelKey = giftSnapshotKey(modelName);
-    const expectedBackdropKey = giftSnapshotKey(backdropName);
-    const expectedSymbolKey = giftSnapshotKey(symbolName);
-    const rows = (Array.isArray(payload?.sales) ? payload.sales : []).map((sale) => ({
-      priceTon: Number(sale.priceTon || 0),
-      priceUsd: Number(sale.priceUsd || 0),
-      tonUsdRate: Number(sale.tonUsdRate || 0),
-      rateAt: sale.rateAt || "",
-      date: sale.date || "",
-      marketplace: marketSourceLabel(sale.marketplace || "GiftSatellite"),
-      buyer: "",
-      seller: "",
-      mint: Number(sale.mint || 0),
-      model: sale.model || modelName,
-      backdrop: sale.backdrop || backdropName,
-      symbol: sale.symbol || "",
-      giftUrl: sale.giftUrl || "",
-      saleId: sale.saleId || "",
-      exact: true,
-    })).filter((sale) => (
-      sale.priceTon > 0
-      && sale.date
-      && giftSnapshotKey(sale.model) === expectedModelKey
-      && giftSnapshotKey(sale.backdrop) === expectedBackdropKey
-      && giftSnapshotKey(sale.symbol) === expectedSymbolKey
-    ));
+    const rows = normalizedD1GiftSales(payload?.sales, pair);
     giftSalesRegistryCache.set(cacheKey, { value: rows, expiresAt: Date.now() + (rows.length ? 5 * 60 * 1000 : 60 * 1000) });
     return rows;
   } catch {
@@ -5845,18 +5852,73 @@ async function d1GiftSales(collectionName = "", modelName = "", backdropName = "
   }
 }
 
+async function d1GiftSalesBulk(pairs = [], limit = 10) {
+  if (!giftRegistryReadUrl || !pairs.length) return new Map();
+  const requestedLimit = Math.max(1, Math.min(20, Number(limit || 10)));
+  const unique = new Map();
+  pairs.forEach((pair) => {
+    if (!pair?.collection || !pair?.model || !pair?.backdrop) return;
+    const key = giftComboPairKey(pair);
+    if (key) unique.set(key, {
+      collection: pair.collection,
+      model: pair.model,
+      backdrop: pair.backdrop,
+    });
+  });
+  const results = new Map();
+  const missing = [];
+  unique.forEach((pair, pairKey) => {
+    const cached = giftSalesRegistryCache.get(giftSalesCacheKey(pair, requestedLimit));
+    if (cached?.expiresAt > Date.now()) results.set(pairKey, cached.value);
+    else missing.push({ pairKey, pair });
+  });
+  if (!missing.length) return results;
+  const chunks = Array.from(
+    { length: Math.ceil(missing.length / 500) },
+    (_, index) => missing.slice(index * 500, (index + 1) * 500),
+  );
+  for (let index = 0; index < chunks.length; index += 6) {
+    const batch = chunks.slice(index, index + 6);
+    const payloads = await Promise.all(batch.map(async (chunk) => {
+      try {
+        return await d1RegistryJson("/sales", {
+          method: "POST",
+          body: { pairs: chunk.map(({ pair }) => pair), limit: requestedLimit },
+        }, 3500);
+      } catch {
+        return null;
+      }
+    }));
+    batch.forEach((chunk, batchIndex) => {
+      const entries = Array.isArray(payloads[batchIndex]?.results) ? payloads[batchIndex].results : [];
+      const byKey = new Map(entries.map((entry) => [
+        giftComboPairKey(entry),
+        normalizedD1GiftSales(entry.sales, entry),
+      ]));
+      chunk.forEach(({ pairKey, pair }) => {
+        const rows = byKey.get(pairKey) || [];
+        results.set(pairKey, rows);
+        giftSalesRegistryCache.set(giftSalesCacheKey(pair, requestedLimit), {
+          value: rows,
+          expiresAt: Date.now() + (rows.length ? 5 * 60 * 1000 : 60 * 1000),
+        });
+      });
+    });
+  }
+  return results;
+}
+
 function queueD1GiftSalesTargets(pairs = []) {
   const registryUrl = d1GiftRegistryUrl || publicGiftRegistryUrl;
   if (!registryUrl || !d1GiftIngestSecret || !pairs.length) return;
   const unique = new Map();
   pairs.forEach((pair) => {
-    if (!pair?.collection || !pair?.model || !pair?.backdrop || !pair?.symbol) return;
+    if (!pair?.collection || !pair?.model || !pair?.backdrop) return;
     const targetKey = giftComboPairKey(pair);
     if (targetKey) unique.set(targetKey, {
       collection: pair.collection,
       model: pair.model,
       backdrop: pair.backdrop,
-      symbol: pair.symbol,
     });
   });
   const targets = [...unique.values()];
@@ -6450,6 +6512,7 @@ async function priceWalletGiftsFromD1(gifts = [], tonRate = 0, context = "wallet
   }
   const collectionStatsPromise = giftCollectionStatsSnapshotForPairs(pairs, { waitMs: 1200 });
   const modelStatsPromise = giftModelStatsSnapshotForPairs(pairs, { waitMs: 1200 });
+  const salesPromise = settleWithin(d1GiftSalesBulk(pairs, 10), 4200, new Map());
   const lookupStarted = Date.now();
   const lookup = await d1GiftComboFloors(pairs);
   const lookupMs = Date.now() - lookupStarted;
@@ -6586,7 +6649,11 @@ async function priceWalletGiftsFromD1(gifts = [], tonRate = 0, context = "wallet
     console.log(`[gift-import-pricing] ${context}: exactHealScheduled=${healingScheduled}`);
   }
   const batchCount = Math.ceil(Math.max(1, pairs.length) / 100);
-  const [collectionStats, modelStats] = await Promise.all([collectionStatsPromise, modelStatsPromise]);
+  const [collectionStats, modelStats, salesByPair] = await Promise.all([
+    collectionStatsPromise,
+    modelStatsPromise,
+    salesPromise,
+  ]);
   const collectionStatsByKey = new Map();
   collectionStats
     .filter((stats) => stats?.source === "dune")
@@ -6609,11 +6676,12 @@ async function priceWalletGiftsFromD1(gifts = [], tonRate = 0, context = "wallet
       : null;
     return {
       ...gift,
+      recentSales: pair ? (salesByPair.get(giftComboPairKey(pair)) || gift.recentSales || []) : (gift.recentSales || []),
       ...(stats ? { collectionStats: stats } : {}),
       ...(model ? { modelStats: model } : {}),
     };
   });
-  console.log(`[gift-import-pricing] ${context}: d1Batches=${batchCount} d1Ms=${lookupMs} resolved=${resolved} missing=${missing} collectionStats=${collectionStatsByKey.size} modelStats=${modelStatsByKey.size} totalMs=${Date.now() - started}`);
+  console.log(`[gift-import-pricing] ${context}: d1Batches=${batchCount} d1Ms=${lookupMs} resolved=${resolved} missing=${missing} salesCombos=${salesByPair.size} collectionStats=${collectionStatsByKey.size} modelStats=${modelStatsByKey.size} totalMs=${Date.now() - started}`);
   return enriched;
 }
 
@@ -8909,7 +8977,7 @@ function giftDetailFloorFromCombo(combo = {}, tonRate = 0, history = []) {
 async function buildGiftDetailResponse({ collectionName = "", model = "", backdrop = "", symbol = "", range = "7d" }) {
   const pair = { collection: collectionName, model, backdrop, symbol };
   const hasPriceCombo = Boolean(collectionName && model && backdrop);
-  const hasSalesCombo = Boolean(hasPriceCombo && symbol);
+  const hasSalesCombo = hasPriceCombo;
   if (!hasPriceCombo) {
     return {
       floor: {},
@@ -9419,6 +9487,11 @@ async function handleApi(req, res, url) {
       }).filter(Boolean));
       const pricedCount = priced.filter((gift) => gift.floorStatus === "priced").length;
       const unavailableCount = priced.filter((gift) => gift.floorStatus === "unavailable").length;
+      const salesReady = priced.filter((gift) => Array.isArray(gift.recentSales) && gift.recentSales.length).length;
+      const salesComboKeys = new Set(priced.filter((gift) => Array.isArray(gift.recentSales) && gift.recentSales.length).map((gift) => {
+        const pair = giftFloorPairFromItem(gift);
+        return pair ? giftComboPairKey(pair) : "";
+      }).filter(Boolean));
       return json(res, 200, {
         ok: true,
         sourceGifts: sourceGifts.length,
@@ -9426,6 +9499,8 @@ async function handleApi(req, res, url) {
         uniqueCombos: uniqueComboKeys.size,
         priced: pricedCount,
         unavailable: unavailableCount,
+        salesReady,
+        salesCombos: salesComboKeys.size,
         missingStatus: priced.filter((gift) => !gift.floorStatus).length,
         loading: priced.filter((gift) => gift.priceLoading).length,
         totalMs: Date.now() - started,

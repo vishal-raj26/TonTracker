@@ -866,9 +866,26 @@ function installNavigationSwipeGestures() {
   }, { passive: true });
 }
 
+function setScreenHeaderTitle(heading, value) {
+  if (!heading) return;
+  const title = String(value ?? "").trim();
+  heading.classList.remove("dot-matrix-text", "dot-matrix-title", "is-compact-title");
+  delete heading.dataset.dotText;
+  heading.dataset.headerTitle = title;
+  heading.textContent = title;
+  heading.setAttribute("aria-label", title);
+  heading.title = title;
+  heading.classList.toggle("is-compact-title", [...title].length > 18);
+}
+
 function setText(selector, value) {
   const element = document.querySelector(selector);
-  if (element) element.textContent = value;
+  if (!element) return;
+  if (element.matches(".page-header h1")) {
+    setScreenHeaderTitle(element, value);
+    return;
+  }
+  element.textContent = value;
 }
 
 function setIcon(container, iconName, tone) {
@@ -1244,7 +1261,7 @@ function renderGiftModelGroup(assetId) {
     .slice()
     .sort((a, b) => Number(b.floorUsd || 0) - Number(a.floorUsd || 0));
   children.forEach((child) => { assetDetails[child.id] = child; });
-  setText("#giftBrandTitle", group.collection || group.name || "Gift Model");
+  setText("#giftBrandTitle", giftBrandModelLabel(group));
   const summary = document.querySelector("#giftBrandSummary");
   if (summary) {
     const totalValue = children.reduce((sum, item) => sum + Number(item.floorUsd || 0), 0);
@@ -1830,6 +1847,14 @@ function renderAssetDetail(assetId) {
   detailScreen?.classList.toggle("is-token-detail", detail.type === "token");
   detailScreen?.classList.toggle("is-gift-detail", detail.type === "gift");
   detailScreen?.classList.toggle("is-sticker-detail", detail.type === "sticker");
+  setText(
+    '[data-screen="detail"] > .page-header h1',
+    detail.type === "gift"
+      ? giftDetailTitle(detail)
+      : detail.type === "sticker"
+        ? stickerPackLabel(detail)
+        : detail.name || detail.symbol || "Asset Detail",
+  );
   toggleGiftDetailLayout(detail.type === "gift" || detail.type === "sticker");
   if (detail.type === "gift") {
     const cachedEntry = giftDetailCacheEntry(detail);
@@ -5518,7 +5543,9 @@ function renderDotMatrixText(element, value, variant = "display") {
 function renderScreenHeaderDotMatrix(screen = document.querySelector(".screen.is-active")) {
   const heading = screen?.querySelector(":scope > .page-header h1");
   if (!heading) return;
-  renderDotMatrixText(heading, heading.dataset.dotText || heading.textContent.trim(), "title");
+  const title = heading.dataset.headerTitle || heading.dataset.dotText || heading.textContent.trim();
+  setScreenHeaderTitle(heading, title);
+  if ([...title].length <= 18) renderDotMatrixText(heading, title, "title");
 }
 
 function renderCollectibleSummaryDotMatrix(container) {

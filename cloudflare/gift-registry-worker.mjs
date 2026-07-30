@@ -665,6 +665,9 @@ function compactSalesDatabases(env) {
 const salesShardSizeCache = new Map();
 const SALES_SHARD_CACHE_MS = 5 * 60 * 1000;
 const DEFAULT_SALES_SHARD_LIMIT_BYTES = 400_000_000;
+const DEFAULT_SALES_PER_COMBO_LIMIT = 10;
+const DEFAULT_SALES_EVENTS_PER_SHARD_LIMIT = 400_000;
+const DEFAULT_SALES_PRUNE_BATCH = 25_000;
 
 function writableCompactSalesDatabaseConfigs(env, year) {
   const primary = year === 2025
@@ -706,8 +709,11 @@ function saleTimestamp(row = {}) {
 function mergeSalesRows(results = [], requestedLimit = 5) {
   const rows = new Map();
   results.flatMap((result) => result?.results || []).forEach((row) => {
-    if (!row.sale_id || rows.has(row.sale_id)) return;
-    rows.set(row.sale_id, row);
+    if (!row.sale_id) return;
+    const current = rows.get(row.sale_id);
+    const currentHasHistoricalUsd = Number(current?.price_usd || 0) > 0 && Number(current?.ton_usd_rate || 0) > 0;
+    const incomingHasHistoricalUsd = Number(row.price_usd || 0) > 0 && Number(row.ton_usd_rate || 0) > 0;
+    if (!current || (!currentHasHistoricalUsd && incomingHasHistoricalUsd)) rows.set(row.sale_id, row);
   });
   return [...rows.values()]
     .sort((left, right) => saleTimestamp(right) - saleTimestamp(left))
@@ -718,7 +724,6 @@ function compactSalesReadStatement(database, pair = {}, requestedLimit = 5, hist
   const collectionKeys = collectionAliasKeys(pair.collection).slice(0, 16);
   const modelKey = key(pair.model);
   const backdropKey = key(pair.backdrop);
-  const symbolKey = key(pair.symbol);
   if (!collectionKeys.length || !modelKey || !backdropKey) return null;
   const values = [...collectionKeys, modelKey, backdropKey];
   const collectionParams = collectionKeys.map((_, index) => `?${index + 1}`).join(",");
@@ -734,10 +739,6 @@ function compactSalesReadStatement(database, pair = {}, requestedLimit = 5, hist
      WHERE c.collection_key IN (${collectionParams})
        AND c.model_key = ?${values.length - 1}
        AND c.backdrop_key = ?${values.length}`;
-  if (symbolKey) {
-    values.push(symbolKey);
-    sql += ` AND c.symbol_key = ?${values.length}`;
-  }
   values.push(Math.max(1, Math.min(20, Number(requestedLimit || 5))));
   sql += ` ORDER BY e.sold_at DESC LIMIT ?${values.length}`;
   return database.prepare(sql).bind(...values);
@@ -747,7 +748,6 @@ function salesReadStatement(database, pair = {}, requestedLimit = 5) {
   const collectionKeys = collectionAliasKeys(pair.collection).slice(0, 16);
   const modelKey = key(pair.model);
   const backdropKey = key(pair.backdrop);
-  const symbolKey = key(pair.symbol);
   if (!collectionKeys.length || !modelKey || !backdropKey) return null;
   const values = [...collectionKeys, modelKey, backdropKey];
   const collectionParams = collectionKeys.map((_, index) => `?${index + 1}`).join(",");
@@ -757,32 +757,29 @@ function salesReadStatement(database, pair = {}, requestedLimit = 5) {
      WHERE collection_key IN (${collectionParams})
        AND model_key = ?${values.length - 1}
        AND backdrop_key = ?${values.length}`;
-  if (symbolKey) {
-    values.push(symbolKey);
-    sql += ` AND symbol_key = ?${values.length}`;
-  }
   values.push(Math.max(1, Math.min(20, Number(requestedLimit || 5))));
   sql += ` ORDER BY sold_at DESC LIMIT ?${values.length}`;
   return database.prepare(sql).bind(...values);
 }
 
 async function readSales(env, pair = {}, requestedLimit = 5) {
-  const statements = [
-    ...compactSalesDatabaseConfigs(env).map(({ database, historicalUsd }) => (
-      compactSalesReadStatement(database, pair, requestedLimit, historicalUsd)
-    )),
-    ...salesReadDatabases(env).map((database) => salesReadStatement(database, pair, requestedLimit)),
-  ].filter(Boolean);
-  if (!statements.length) return [];
-  const results = [];
-  // Sales history is sharded. Older shards may not yet have the compact schema,
-  // so one unavailable shard must not hide results held by the others.
-  for (const statement of statements) {
+  const compactResults = await Promise.all(compactSalesDatabaseConfigs(env).map(async ({ database, historicalUsd }) => {
     try {
-      results.push(await statement.all());
+      return await compactSalesReadStatement(database, pair, requestedLimit, historicalUsd)?.all();
     } catch {
-      // Continue with the remaining read replicas/shards.
+      return null;
     }
+  }));
+  let results = compactResults.filter(Boolean);
+  if (!mergeSalesRows(results, requestedLimit).length) {
+    const legacyResults = await Promise.all(salesReadDatabases(env).map(async (database) => {
+      try {
+        return await salesReadStatement(database, pair, requestedLimit)?.all();
+      } catch {
+        return null;
+      }
+    }));
+    results = results.concat(legacyResults.filter(Boolean));
   }
   return mergeSalesRows(results, requestedLimit).map(saleRow);
 }
@@ -791,14 +788,14 @@ async function readSalesBulk(env, pairs = [], requestedLimit = 5) {
   const unique = [];
   const seen = new Set();
   (Array.isArray(pairs) ? pairs : []).slice(0, 500).forEach((pair) => {
-    const id = [key(pair.collection), key(pair.model), key(pair.backdrop), key(pair.symbol)].join(":");
+    const id = [key(pair.collection), key(pair.model), key(pair.backdrop)].join(":");
     if (!key(pair.collection) || !key(pair.model) || !key(pair.backdrop) || seen.has(id)) return;
     seen.add(id);
     unique.push({
       collection: String(pair.collection || "").trim(),
       model: String(pair.model || "").trim(),
       backdrop: String(pair.backdrop || "").trim(),
-      symbol: String(pair.symbol || "").trim(),
+      symbol: "",
     });
   });
   const results = [];
@@ -806,24 +803,29 @@ async function readSalesBulk(env, pairs = [], requestedLimit = 5) {
   const compactDatabases = compactSalesDatabases(env);
   for (let index = 0; index < unique.length; index += 50) {
     const chunk = unique.slice(index, index + 50);
-    const batches = [];
-    for (const database of compactDatabases) {
+    const compactBatches = (await Promise.all(compactDatabases.map(async (database) => {
       try {
-        batches.push(await database.batch(chunk.map((pair) => compactSalesReadStatement(database, pair, requestedLimit))));
+        return await database.batch(chunk.map((pair) => compactSalesReadStatement(database, pair, requestedLimit)));
       } catch {
-        // This shard can be on the legacy schema; the normal sales table is
-        // queried below and remains a valid source for every requested pair.
+        return null;
       }
-    }
-    for (const database of databases) {
-      try {
-        batches.push(await database.batch(chunk.map((pair) => salesReadStatement(database, pair, requestedLimit))));
-      } catch {
-        // Keep healthy sales shards available even if one archive is offline.
-      }
-    }
+    }))).filter(Boolean);
+    const missingIndexes = chunk.map((_, resultIndex) => resultIndex)
+      .filter((resultIndex) => !mergeSalesRows(compactBatches.map((batch) => batch[resultIndex]), requestedLimit).length);
+    const legacyBatches = missingIndexes.length
+      ? (await Promise.all(databases.map(async (database) => {
+          try {
+            return await database.batch(missingIndexes.map((resultIndex) => salesReadStatement(database, chunk[resultIndex], requestedLimit)));
+          } catch {
+            return null;
+          }
+        }))).filter(Boolean)
+      : [];
     chunk.forEach((pair, resultIndex) => {
-      const rows = mergeSalesRows(batches.map((batch) => batch[resultIndex]), requestedLimit);
+      const compactRows = compactBatches.map((batch) => batch[resultIndex]);
+      const missingPosition = missingIndexes.indexOf(resultIndex);
+      const legacyRows = missingPosition >= 0 ? legacyBatches.map((batch) => batch[missingPosition]) : [];
+      const rows = mergeSalesRows(compactRows.concat(legacyRows), requestedLimit);
       results.push({ ...pair, sales: rows.map(saleRow) });
     });
   }
@@ -1169,9 +1171,6 @@ function normalizedSaleForIngest(input = {}, fallbackCollection = "", ingestedAt
     || !key(backdropName)
     || !Number.isFinite(soldAtMs)
     || !(priceTon > 0)
-    || !(priceUsd > 0)
-    || !(tonUsdRate > 0)
-    || !Number.isFinite(rateAtMs)
   ) return null;
   const soldAt = new Date(soldAtMs).toISOString();
   const originalValue = input.originalPrice ?? input.original_price ?? "";
@@ -1198,7 +1197,9 @@ function normalizedSaleForIngest(input = {}, fallbackCollection = "", ingestedAt
     priceTon,
     priceUsd,
     tonUsdRate,
-    rateAt: new Date(rateAtMs).toISOString(),
+    rateAt: Number.isFinite(rateAtMs) && tonUsdRate > 0 && priceUsd > 0
+      ? new Date(rateAtMs).toISOString()
+      : "",
     originalPrice,
     soldAt,
     giftUrl: String(input.giftUrl || (slug ? `https://t.me/nft/${encodeURIComponent(slug)}` : "")),
@@ -1207,10 +1208,93 @@ function normalizedSaleForIngest(input = {}, fallbackCollection = "", ingestedAt
 }
 
 function compactSaleComboKey(sale) {
-  return [sale.collectionKey, sale.modelKey, sale.backdropKey, sale.symbolKey].join("\u0001");
+  return [sale.collectionKey, sale.modelKey, sale.backdropKey].join("\u0001");
 }
 
-async function writeCompactSales(database, sales = []) {
+async function pruneTouchedSaleCombos(database, sales = [], perComboLimit = DEFAULT_SALES_PER_COMBO_LIMIT) {
+  const combos = [...new Map(sales.map((sale) => [compactSaleComboKey(sale), sale])).values()];
+  let deleted = 0;
+  for (let index = 0; index < combos.length; index += 25) {
+    const chunk = combos.slice(index, index + 25);
+    const results = await database.batch(chunk.map((sale) => database.prepare(
+      `DELETE FROM gift_sale_events
+       WHERE sale_id IN (
+         SELECT sale_id FROM (
+           SELECT e.sale_id,
+             ROW_NUMBER() OVER (ORDER BY e.sold_at DESC, e.sale_id DESC) AS position
+           FROM gift_sale_events e
+           JOIN gift_sale_combos c ON c.combo_id = e.combo_id
+           WHERE c.collection_key = ?1 AND c.model_key = ?2 AND c.backdrop_key = ?3
+         )
+         WHERE position > ?4
+       )`
+    ).bind(sale.collectionKey, sale.modelKey, sale.backdropKey, perComboLimit)));
+    deleted += results.reduce((sum, entry) => sum + Number(entry.meta?.changes || 0), 0);
+  }
+  return deleted;
+}
+
+async function pruneCompactSalesDatabase(database, options = {}) {
+  const maxEvents = Math.max(10_000, Number(options.maxEvents || DEFAULT_SALES_EVENTS_PER_SHARD_LIMIT));
+  const batchLimit = Math.max(100, Math.min(100_000, Number(options.batchLimit || DEFAULT_SALES_PRUNE_BATCH)));
+  const countRow = await database.prepare("SELECT COUNT(*) AS total FROM gift_sale_events").first();
+  const total = Number(countRow?.total || 0);
+  const removeCount = Math.max(0, Math.min(batchLimit, total - maxEvents));
+  let deletedEvents = 0;
+  if (removeCount > 0) {
+    // Remove older duplicates first. This preserves at least the newest known
+    // sale for low-volume combinations while high-volume combinations stay
+    // bounded by the per-combo limit.
+    const duplicateResult = await database.prepare(
+      `DELETE FROM gift_sale_events
+       WHERE sale_id IN (
+         SELECT sale_id FROM (
+           SELECT e.sale_id, e.sold_at,
+             ROW_NUMBER() OVER (
+               PARTITION BY c.collection_key, c.model_key, c.backdrop_key
+               ORDER BY e.sold_at DESC, e.sale_id DESC
+             ) AS position
+           FROM gift_sale_events e
+           JOIN gift_sale_combos c ON c.combo_id = e.combo_id
+         )
+         WHERE position > 1
+         ORDER BY sold_at ASC, sale_id ASC
+         LIMIT ?1
+       )`
+    ).bind(removeCount).run();
+    deletedEvents = Number(duplicateResult.meta?.changes || 0);
+    const remaining = removeCount - deletedEvents;
+    if (remaining > 0) {
+      const oldestResult = await database.prepare(
+        `DELETE FROM gift_sale_events
+         WHERE sale_id IN (
+           SELECT sale_id FROM gift_sale_events
+           ORDER BY sold_at ASC, sale_id ASC
+           LIMIT ?1
+         )`
+      ).bind(remaining).run();
+      deletedEvents += Number(oldestResult.meta?.changes || 0);
+    }
+  }
+  const orphanResult = await database.prepare(
+    `DELETE FROM gift_sale_combos
+     WHERE combo_id IN (
+       SELECT c.combo_id
+       FROM gift_sale_combos c
+       LEFT JOIN gift_sale_events e ON e.combo_id = c.combo_id
+       WHERE e.sale_id IS NULL
+       LIMIT ?1
+     )`
+  ).bind(batchLimit).run();
+  return {
+    before: total,
+    after: Math.max(0, total - deletedEvents),
+    deletedEvents,
+    deletedCombos: Number(orphanResult.meta?.changes || 0),
+  };
+}
+
+async function writeCompactSales(database, sales = [], perComboLimit = DEFAULT_SALES_PER_COMBO_LIMIT) {
   let inserted = 0;
   for (let index = 0; index < sales.length; index += 50) {
     const chunk = sales.slice(index, index + 50);
@@ -1219,15 +1303,15 @@ async function writeCompactSales(database, sales = []) {
       `INSERT OR IGNORE INTO gift_sale_combos (
         collection_key, collection_name, model_key, model_name,
         backdrop_key, backdrop_name, symbol_key, symbol_name
-      ) VALUES (?1,?2,?3,?4,?5,?6,?7,?8)`
+      ) VALUES (?1,?2,?3,?4,?5,?6,'','')`
     ).bind(
       sale.collectionKey, sale.collectionName, sale.modelKey, sale.modelName,
-      sale.backdropKey, sale.backdropName, sale.symbolKey, sale.symbolName
+      sale.backdropKey, sale.backdropName
     )));
     const comboResults = await database.batch(combos.map((sale) => database.prepare(
       `SELECT combo_id FROM gift_sale_combos
-       WHERE collection_key=?1 AND model_key=?2 AND backdrop_key=?3 AND symbol_key=?4`
-    ).bind(sale.collectionKey, sale.modelKey, sale.backdropKey, sale.symbolKey)));
+       WHERE collection_key=?1 AND model_key=?2 AND backdrop_key=?3 AND symbol_key=''`
+    ).bind(sale.collectionKey, sale.modelKey, sale.backdropKey)));
     const comboIds = new Map();
     combos.forEach((sale, comboIndex) => {
       const comboId = comboResults[comboIndex]?.results?.[0]?.combo_id;
@@ -1242,20 +1326,29 @@ async function writeCompactSales(database, sales = []) {
           price_nano, price_usd_micros, ton_usd_micros, rate_at, sold_at, ingested_at
         ) VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12)
         ON CONFLICT(sale_id) DO UPDATE SET
-          price_usd_micros=excluded.price_usd_micros,
-          ton_usd_micros=excluded.ton_usd_micros,
-          rate_at=excluded.rate_at`
+          combo_id=excluded.combo_id,
+          marketplace=excluded.marketplace,
+          slug=excluded.slug,
+          gift_id=excluded.gift_id,
+          gift_number=excluded.gift_number,
+          price_nano=excluded.price_nano,
+          price_usd_micros=CASE WHEN excluded.price_usd_micros > 0 THEN excluded.price_usd_micros ELSE gift_sale_events.price_usd_micros END,
+          ton_usd_micros=CASE WHEN excluded.ton_usd_micros > 0 THEN excluded.ton_usd_micros ELSE gift_sale_events.ton_usd_micros END,
+          rate_at=CASE WHEN excluded.rate_at > 0 THEN excluded.rate_at ELSE gift_sale_events.rate_at END,
+          sold_at=excluded.sold_at,
+          ingested_at=excluded.ingested_at`
       ).bind(
         sale.saleId, comboId, sale.marketplace, sale.slug, sale.giftId, sale.giftNumber,
         Math.round(sale.priceTon * 1_000_000_000),
-        Math.round(sale.priceUsd * 1_000_000),
-        Math.round(sale.tonUsdRate * 1_000_000),
-        Math.floor(new Date(sale.rateAt).getTime() / 1000),
+        Math.round(Math.max(0, sale.priceUsd) * 1_000_000),
+        Math.round(Math.max(0, sale.tonUsdRate) * 1_000_000),
+        sale.rateAt ? Math.floor(new Date(sale.rateAt).getTime() / 1000) : 0,
         Math.floor(new Date(sale.soldAt).getTime() / 1000),
         Math.floor(new Date(sale.ingestedAt).getTime() / 1000)
       )));
     inserted += result.reduce((sum, entry) => sum + Number(entry.meta?.changes || 0), 0);
   }
+  await pruneTouchedSaleCombos(database, sales, perComboLimit);
   return inserted;
 }
 
@@ -1281,6 +1374,7 @@ async function writeLegacySales(database, sales = []) {
 }
 
 async function writeSales(env, sales = []) {
+  const perComboLimit = Math.max(3, Math.min(20, Number(env.SALES_PER_COMBO_LIMIT || DEFAULT_SALES_PER_COMBO_LIMIT)));
   const byDatabase = new Map();
   const byYear = new Map();
   sales.forEach((sale) => {
@@ -1297,7 +1391,7 @@ async function writeSales(env, sales = []) {
   }
   let inserted = 0;
   for (const { config, rows } of byDatabase.values()) {
-    inserted += await writeCompactSales(config.database, rows);
+    inserted += await writeCompactSales(config.database, rows, perComboLimit);
     await salesShardSize(config, true);
   }
   return inserted;
@@ -2196,6 +2290,22 @@ export default {
       const body = await request.json().catch(() => ({}));
       return json({ ok: true, ...(await compactLegacyHistory(env, body.limit)) });
     }
+    if (url.pathname === "/maintenance/compact-sales" && request.method === "POST") {
+      if (!authorized(request, env)) return json({ error: "Unauthorized" }, 401);
+      const body = await request.json().catch(() => ({}));
+      const maxEvents = Math.max(10_000, Number(body.maxEvents || env.SALES_EVENTS_PER_SHARD_LIMIT || DEFAULT_SALES_EVENTS_PER_SHARD_LIMIT));
+      const batchLimit = Math.max(100, Math.min(100_000, Number(body.batchLimit || env.SALES_PRUNE_BATCH || DEFAULT_SALES_PRUNE_BATCH)));
+      const results = await Promise.all(compactSalesDatabaseConfigs(env)
+        .filter((config) => config.historicalUsd)
+        .map(async (config) => {
+          try {
+            return { name: config.name, ok: true, ...(await pruneCompactSalesDatabase(config.database, { maxEvents, batchLimit })) };
+          } catch (error) {
+            return { name: config.name, ok: false, error: String(error?.message || error).slice(0, 160) };
+          }
+        }));
+      return json({ ok: results.every((result) => result.ok), maxEvents, batchLimit, results });
+    }
     if (url.pathname === "/maintenance/retire-telegram-floors" && request.method === "POST") {
       if (!authorized(request, env)) return json({ error: "Unauthorized" }, 401);
       const body = await request.json().catch(() => ({}));
@@ -2212,6 +2322,12 @@ export default {
   async scheduled(_event, env) {
     const cutoff = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
     await compactLegacyHistory(env, 500);
+    await Promise.all(compactSalesDatabaseConfigs(env)
+      .filter((config) => config.historicalUsd)
+      .map((config) => pruneCompactSalesDatabase(config.database, {
+        maxEvents: Math.max(10_000, Number(env.SALES_EVENTS_PER_SHARD_LIMIT || DEFAULT_SALES_EVENTS_PER_SHARD_LIMIT)),
+        batchLimit: Math.max(100, Math.min(100_000, Number(env.SALES_PRUNE_BATCH || DEFAULT_SALES_PRUNE_BATCH))),
+      }).catch(() => null)));
     await Promise.all(historyDatabases(env).map((database) => database.prepare(
       `DELETE FROM gift_combo_history_buckets WHERE sampled_at < ?1`
     ).bind(cutoff).run()));

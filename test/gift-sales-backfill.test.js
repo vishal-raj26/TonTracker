@@ -91,6 +91,7 @@ test("sales worker checks latest first and checkpoints a 365-day backfill", asyn
       GIFT_SALES_REQUEST_TIMEOUT_MS: "5000",
       GIFT_SALES_BASELINE_PAGES: "1",
       GIFT_SALES_BACKFILL_PAGES_PER_COLLECTION: "2",
+      GIFT_SALES_BACKFILL_MODE: "chronological",
       GIFT_SALES_RETENTION_DAYS: "365",
       COINGECKO_API_BASE: rateBase,
       TELEGRAM_FLOOR_ENABLED: "0",
@@ -199,7 +200,7 @@ test("sales worker prioritizes exact wallet targets and avoids chronological pag
   assert.equal(satelliteCalls.some((call) => call.page > 0), false);
 });
 
-test("exact backfill resolves several backdrops with fewer provider requests", async (t) => {
+test("exact backfill requests and checkpoints every collection/model/backdrop combination", async (t) => {
   const uploads = [];
   const satelliteCalls = [];
   const pairs = ["Black", "Blue", "Gold", "Red"].map((backdrop) => ({
@@ -284,13 +285,13 @@ test("exact backfill resolves several backdrops with fewer provider requests", a
   assert.equal(exitCode, 0, stderr);
 
   const exactCalls = satelliteCalls.filter((call) => call.models.length);
-  assert.equal(exactCalls.length, 3);
+  assert.equal(exactCalls.length, 4);
   assert.deepEqual(exactCalls.map((call) => call.backdrops), [
-    ["Black", "Blue", "Gold", "Red"],
-    ["Gold", "Red"],
+    ["Black"],
+    ["Blue"],
+    ["Gold"],
     ["Red"],
   ]);
-  assert.ok(exactCalls.length < pairs.length);
   const backfill = uploads.find((upload) => upload.mode === "backfill");
   assert.equal(backfill.complete, true);
   assert.deepEqual(backfill.sales.map((sale) => sale.backdrop).sort(), ["Black", "Blue", "Gold"]);

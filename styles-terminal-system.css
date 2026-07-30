@@ -480,6 +480,9 @@ body.product-v2 .app-frame.has-wallet :is(
   z-index:18;
   display:grid;
   grid-template-columns:44px minmax(0,1fr) 44px;
+  width:100%;
+  min-width:0;
+  overflow:hidden;
   min-height:42px;
   margin:0 0 16px;
   padding:0;
@@ -493,7 +496,7 @@ body.product-v2 .app-frame.has-wallet :is(
 .app-frame.has-wallet .screen> .page-header h1{
   grid-column:2;
   grid-row:1;
-  justify-self:center;
+  justify-self:stretch;
   margin:0;
 }
 .app-frame.has-wallet .screen> .page-header> .icon-button:first-child{
@@ -512,6 +515,48 @@ body.product-v2 .app-frame.has-wallet :is(
   gap:3.86px;
   max-width:100%;
   justify-content:center;
+}
+.app-frame.has-wallet .screen> .page-header h1{
+  display:block!important;
+  width:100%;
+  min-inline-size:0;
+  max-inline-size:100%;
+  min-width:0;
+  max-width:100%;
+  overflow:hidden;
+  font-family:var(--ui-font);
+  font-size:clamp(17px,5.5vw,22px);
+  font-weight:700;
+  line-height:1.1;
+  letter-spacing:-.025em;
+  text-align:center;
+  text-overflow:ellipsis;
+  white-space:nowrap!important;
+  text-wrap:nowrap!important;
+  hyphens:none;
+  word-break:normal;
+  word-wrap:normal;
+  overflow-wrap:normal;
+  writing-mode:horizontal-tb;
+}
+.app-frame.has-wallet .screen> .page-header h1.is-compact-title{
+  font-size:clamp(14px,4.5vw,18px);
+  letter-spacing:-.018em;
+}
+.app-frame.has-wallet .screen> .page-header h1.dot-matrix-title{
+  display:flex!important;
+  width:100%;
+  min-width:0;
+  max-width:100%;
+  flex-flow:row nowrap;
+  justify-self:stretch;
+  justify-content:center;
+  overflow:hidden;
+  white-space:nowrap;
+}
+@media(max-width:359px){
+  .app-frame.has-wallet .screen> .page-header h1{font-size:20px}
+  .app-frame.has-wallet .screen> .page-header h1.is-compact-title{font-size:16px}
 }
 .app-frame.has-wallet [data-screen="detail"] .gift-detail-pill-row{
   display:grid;

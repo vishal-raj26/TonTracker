@@ -43,12 +43,13 @@ const backfillPagesPerCollection = Math.max(1, Math.min(100, Number(process.env.
 // Give every incomplete collection one persisted checkpoint per cycle. A deep
 // archive cannot monopolize the request budget while the rest make no progress.
 const backfillRequestBudget = Math.max(25, Math.min(10000, Number(process.env.GIFT_SALES_BACKFILL_REQUEST_BUDGET || 1200)));
-// The canonical archive must walk the source history. Current floor-registry
-// combinations are not a complete universe of variants that sold this year.
-// Exact scans require an explicit new mode so an old Railway environment value
-// cannot silently preserve the incomplete combination-only backfill.
-const exactBackfillEnabled = String(process.env.GIFT_SALES_BACKFILL_MODE || "").trim().toLowerCase() === "exact";
+// Product reads are exact collection/model/backdrop lookups. Exact coverage is
+// therefore the default: it fills the useful combinations in days at 1 RPS
+// instead of walking millions of irrelevant collection-wide archive rows.
+const backfillMode = String(process.env.GIFT_SALES_BACKFILL_MODE || "exact").trim().toLowerCase();
+const exactBackfillEnabled = backfillMode !== "chronological";
 const exactRequestBudget = Math.max(100, Number(process.env.GIFT_SALES_EXACT_REQUESTS_PER_CYCLE || 500));
+const salesPerComboTarget = Math.max(3, Math.min(20, Number(process.env.GIFT_SALES_PER_COMBO || 10)));
 // Keep exact checkpoints small so a deploy or provider interruption loses at
 // most a short slice of work instead of an entire long-running collection.
 const exactCollectionBatchSize = Math.max(25, Math.min(100, Number(process.env.GIFT_SALES_EXACT_COMBOS_PER_COLLECTION || 100)));
@@ -173,18 +174,28 @@ function closestHistoricalRate(points, soldAt = "") {
 }
 
 async function attachHistoricalUsd(sales = []) {
-  if (!sales.length) return sales;
-  const points = await historicalTonUsdPoints();
-  return sales.map((sale) => {
+  if (!sales.length) return { sales: [], pendingRates: 0 };
+  let points = [];
+  try {
+    points = await historicalTonUsdPoints();
+  } catch (error) {
+    console.warn(`[gift-sales] historical TON/USD temporarily unavailable; storing ${sales.length} TON sales without advancing checkpoints: ${String(error.message || error).slice(0, 140)}`);
+  }
+  let pendingRates = 0;
+  const enriched = sales.map((sale) => {
     const observed = closestHistoricalRate(points, sale.soldAt);
-    if (!observed) return null;
+    if (!observed) {
+      pendingRates += 1;
+      return { ...sale, tonUsdRate: 0, priceUsd: 0, rateAt: "" };
+    }
     return {
       ...sale,
       tonUsdRate: observed.rate,
       priceUsd: Number(sale.priceTon || 0) * observed.rate,
       rateAt: new Date(observed.timestamp).toISOString(),
     };
-  }).filter(Boolean);
+  });
+  return { sales: enriched, pendingRates };
 }
 
 let refreshedSatelliteInitData = satelliteInitData;
@@ -521,18 +532,31 @@ async function existingSalesForPairs(pairs = []) {
   if (!pairs.length) return new Set();
   const payload = await fetchJson(`${registryUrl}/sales`, {
     method: "POST",
-    body: { pairs, limit: 1 },
+    body: { pairs, limit: salesPerComboTarget },
   }, 3);
   return new Set((Array.isArray(payload?.results) ? payload.results : [])
-    .filter((entry) => Array.isArray(entry.sales) && entry.sales.length)
+    .filter((entry) => (
+      Array.isArray(entry.sales)
+      && entry.sales.length >= salesPerComboTarget
+      && entry.sales.every((sale) => (
+        Number(sale.priceUsd || 0) > 0
+        && Number(sale.tonUsdRate || 0) > 0
+        && sale.rateAt
+      ))
+    ))
     .map(exactPairKey));
 }
 
 async function prioritySalesTargets() {
-  const payload = await fetchJson(`${registryUrl}/sales-targets?limit=${exactPriorityTargetLimit}`, {
-    headers: { authorization: `Bearer ${ingestSecret}` },
-  }, 3);
-  return Array.isArray(payload?.targets) ? payload.targets : [];
+  try {
+    const payload = await fetchJson(`${registryUrl}/sales-targets?limit=${exactPriorityTargetLimit}`, {
+      headers: { authorization: `Bearer ${ingestSecret}` },
+    }, 3);
+    return Array.isArray(payload?.targets) ? payload.targets : [];
+  } catch (error) {
+    console.warn(`[gift-sales] priority targets unavailable; continuing persisted coverage: ${String(error.message || error).slice(0, 120)}`);
+    return [];
+  }
 }
 
 async function newestExactSale(pair = {}) {
@@ -553,50 +577,36 @@ async function newestExactSale(pair = {}) {
 }
 
 async function newestExactSalesForPairs(pairs = [], requestBudget = exactRequestBudget) {
-  const remaining = new Map((Array.isArray(pairs) ? pairs : [])
+  const ordered = [...new Map((Array.isArray(pairs) ? pairs : [])
     .filter((pair) => pair?.collection && pair?.model && pair?.backdrop)
-    .map((pair) => [exactPairKey(pair), pair]));
+    .map((pair) => [exactPairKey(pair), pair])).values()];
   const resolved = new Set();
   const sales = [];
+  const salesByPair = new Map();
   let requestsMade = 0;
   const cutoffMs = Date.now() - retentionDays * 86400000;
-
-  while (remaining.size && requestsMade < requestBudget) {
-    const group = [...remaining.values()];
-    const collection = group[0].collection;
-    const model = group[0].model;
-    const payload = await fetchSalesPage(collection, 0, {
-      models: [model],
-      backdrops: group.map((pair) => pair.backdrop),
+  for (const pair of ordered) {
+    if (requestsMade >= requestBudget) break;
+    const payload = await fetchSalesPage(pair.collection, 0, {
+      models: [pair.model],
+      backdrops: [pair.backdrop],
     });
     requestsMade += 1;
-
-    const newestByPair = new Map();
-    pageRows(payload).rows
-      .map((row) => satelliteSale(row, collection))
-      .filter(Boolean)
-      .forEach((sale) => {
-        const saleKey = exactPairKey(sale);
-        if (!remaining.has(saleKey) || newestByPair.has(saleKey)) return;
-        newestByPair.set(saleKey, sale);
-      });
-
-    if (!newestByPair.size) {
-      // The provider returned no sale for any remaining exact filter. Those
-      // combinations have no history and can share one negative lookup.
-      remaining.forEach((_, pairKey) => resolved.add(pairKey));
-      remaining.clear();
-      break;
-    }
-
-    newestByPair.forEach((sale, pairKey) => {
-      resolved.add(pairKey);
-      remaining.delete(pairKey);
-      if (new Date(sale.soldAt).getTime() >= cutoffMs) sales.push(sale);
-    });
+    const pairKey = exactPairKey(pair);
+    const rows = pageRows(payload).rows
+      .map((row) => satelliteSale(row, pair.collection))
+      .filter((sale) => (
+        sale
+        && exactPairKey(sale) === pairKey
+        && new Date(sale.soldAt).getTime() >= cutoffMs
+      ))
+      .sort((left, right) => new Date(right.soldAt) - new Date(left.soldAt))
+      .slice(0, salesPerComboTarget);
+    resolved.add(pairKey);
+    salesByPair.set(pairKey, rows);
+    sales.push(...rows);
   }
-
-  return { sales, resolved, requestsMade };
+  return { sales, salesByPair, resolved, requestsMade };
 }
 
 async function uploadStatus(status = {}) {
@@ -804,7 +814,7 @@ async function scanPriorityTargets(targets = [], requestBudget = exactRequestBud
     const result = await newestExactSalesForPairs(group, requestBudget - requestsMade);
     requestsMade += result.requestsMade;
     result.resolved.forEach((pairKey) => resolved.add(pairKey));
-    result.sales.forEach((sale) => sales.set(exactPairKey(sale), sale));
+    result.salesByPair.forEach((rows, pairKey) => sales.set(pairKey, rows));
   }
 
   return { ordered, resolved, sales, requestsMade };
@@ -813,17 +823,16 @@ async function scanPriorityTargets(targets = [], requestBudget = exactRequestBud
 async function uploadSales(snapshot) {
   if (dryRun) return { ok: true, inserted: 0, accepted: snapshot.sales.length, dryRun: true };
   const rawSales = Array.isArray(snapshot.sales) ? snapshot.sales : [];
-  const sales = await attachHistoricalUsd(rawSales);
-  if (sales.length !== rawSales.length) {
-    throw new Error(`Historical TON/USD unavailable for ${rawSales.length - sales.length}/${rawSales.length} sales; checkpoint preserved`);
-  }
+  const enriched = await attachHistoricalUsd(rawSales);
+  const sales = enriched.sales;
+  const pendingRates = Number(enriched.pendingRates || 0);
   const chunkSize = 40;
   const chunks = sales.length ? Array.from({ length: Math.ceil(sales.length / chunkSize) }, (_, index) => sales.slice(index * chunkSize, (index + 1) * chunkSize)) : [[]];
   let inserted = 0;
   let accepted = 0;
   let lastResult = null;
   for (let index = 0; index < chunks.length; index += 1) {
-    const commitState = index === chunks.length - 1;
+    const commitState = pendingRates === 0 && index === chunks.length - 1;
     const result = await fetchJson(`${registryUrl}/ingest/sales`, {
       method: "POST",
       headers: { authorization: `Bearer ${ingestSecret}` },
@@ -851,6 +860,11 @@ async function uploadSales(snapshot) {
     inserted += Number(result.inserted || 0);
     accepted += Number(result.accepted || chunks[index].length);
     lastResult = result;
+  }
+  if (pendingRates > 0) {
+    const error = new Error(`Historical TON/USD pending for ${pendingRates}/${sales.length} stored sales; checkpoint preserved for retry`);
+    error.ratePending = true;
+    throw error;
   }
   return {
     ...(lastResult || {}),
@@ -888,14 +902,14 @@ async function runCycle() {
         const pairKey = exactPairKey(target);
         if (!priority.resolved.has(pairKey)) continue;
         try {
-          const sale = priority.sales.get(pairKey) || null;
+          const pairSales = priority.sales.get(pairKey) || [];
           const result = await uploadSales({
             mode: "exact",
             collection: target.collection,
             target,
-            sales: sale ? [sale] : [],
+            sales: pairSales,
             pagesScanned: 0,
-            rowsSeen: sale ? 1 : 0,
+            rowsSeen: pairSales.length,
           });
           targetProcessed += 1;
           targetInserted += Number(result.inserted || 0);
@@ -959,9 +973,10 @@ async function runCycle() {
     }
   }
   const desiredCutoffMs = Date.now() - retentionDays * 86400000;
+  const selectedCoverageMode = exactBackfillEnabled ? "exact" : "chronological";
   const hasCurrentCoverage = (state) => Boolean(
     state?.completedAt
-    && state?.coverageMode === "chronological"
+    && state?.coverageMode === selectedCoverageMode
     && Number.isFinite(new Date(state.cutoffAt || 0).getTime())
     && new Date(state.cutoffAt).getTime() <= desiredCutoffMs
   );
@@ -991,7 +1006,7 @@ async function runCycle() {
     const savedBackfillState = backfillStates.get(collectionIdentity(collection)) || null;
     // Combination-based checkpoints have a combo index, not a chronological
     // source page. Never resume one as though it were page-based coverage.
-    const backfillState = savedBackfillState?.coverageMode === "chronological"
+    const backfillState = savedBackfillState?.coverageMode === selectedCoverageMode
       ? savedBackfillState
       : null;
     try {

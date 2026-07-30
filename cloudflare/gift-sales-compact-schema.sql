@@ -30,3 +30,5 @@ CREATE TABLE IF NOT EXISTS gift_sale_events (
 
 CREATE INDEX IF NOT EXISTS gift_sale_events_combo_time_idx
   ON gift_sale_events(combo_id, sold_at DESC);
+CREATE INDEX IF NOT EXISTS gift_sale_events_sold_at_idx
+  ON gift_sale_events(sold_at DESC);
