@@ -10,7 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="./styles.css?v=sticker-art-surface-20260724-1" />
   <link rel="stylesheet" href="./styles-product-v2.css?v=assets-led-20260725-8" />
-  <link rel="stylesheet" href="./styles-terminal-system.css?v=horizontal-headers-20260730-3" />
+  <link rel="stylesheet" href="./styles-terminal-system.css?v=identity-assets-20260730-2" />
     <script src="https://telegram.org/js/telegram-web-app.js?63"></script>
   </head>
   <body>
@@ -124,6 +124,8 @@
               <article role="button" tabindex="0" aria-pressed="false"><span class="legend-pill gift-dot"></span><div><b>Gifts</b><small>0%</small></div><strong>$0.00</strong></article>
               <article role="button" tabindex="0" aria-pressed="false"><span class="legend-pill token-dot"></span><div><b>TON Tokens</b><small>100%</small></div><strong>$0.00</strong></article>
               <article role="button" tabindex="0" aria-pressed="false"><span class="legend-pill sticker-dot"></span><div><b>Stickers</b><small>0%</small></div><strong>$0.00</strong></article>
+              <article role="button" tabindex="0" aria-pressed="false"><span class="legend-pill dns-dot"></span><div><b>TON DNS</b><small>0%</small></div><strong>$0.00</strong></article>
+              <article role="button" tabindex="0" aria-pressed="false"><span class="legend-pill number-dot"></span><div><b>Anon Numbers</b><small>0%</small></div><strong>$0.00</strong></article>
             </div>
           </div>
         </section>
@@ -168,6 +170,8 @@
           <article data-screen-target="tokens"><span class="asset-icon token-bg"><i data-lucide="coins"></i></span><div><b>TON Token Holdings</b><small>TON, Jettons, balances, prices</small></div><strong>$5.74K</strong></article>
           <article data-screen-target="gifts"><span class="asset-icon gift-bg"><i data-lucide="gift"></i></span><div><b>Telegram Gifts</b><small>Traits, tag numbers, floors, PnL</small></div><strong>$8.72K</strong></article>
           <article data-screen-target="stickers"><span class="asset-icon sticker-bg"><i data-lucide="sticker"></i></span><div><b>Sticker Packs</b><small>Formats, creators, floors, PnL</small></div><strong>$3.96K</strong></article>
+          <article data-screen-target="dns"><span class="asset-icon dns-bg"><i data-lucide="globe-2"></i></span><div><b>TON DNS</b><small>On-chain .ton domains</small></div><strong>$0.00</strong></article>
+          <article data-screen-target="anonymous-numbers"><span class="asset-icon number-bg"><i data-lucide="phone"></i></span><div><b>Anonymous Numbers</b><small>Fragment collectible numbers</small></div><strong>$0.00</strong></article>
         </section>
         <section class="mini-detail-card bottom-pad" data-screen-target="detail" data-asset="diamond-ring">
           <div class="section-heading"><h2>Top Asset</h2><button class="text-action" type="button">View</button></div>
@@ -265,6 +269,26 @@
         </section>
         <section class="search-card sticker-search-card"><i data-lucide="search"></i><input id="stickerSearch" type="search" placeholder="Search sticker packs" autocomplete="off" /><small id="stickerCountLabel">0 stickers</small></section>
         <section class="collectible-grid bottom-pad" id="stickerGrid"></section>
+      </main>
+
+      <main class="screen identity-assets-screen" data-screen="dns">
+        <header class="page-header"><button class="icon-button" type="button" data-screen-target="assets"><i data-lucide="arrow-left"></i></button><h1>TON DNS</h1><span class="header-spacer" aria-hidden="true"></span></header>
+        <section class="identity-summary-card">
+          <span class="identity-summary-icon dns-bg"><i data-lucide="globe-2"></i></span>
+          <div><small>Verified portfolio value</small><h2 id="dnsTotalValue">$0.00</h2><p id="dnsSummaryText">No domains imported</p></div>
+        </section>
+        <section class="search-card identity-search-card"><i data-lucide="search"></i><input id="dnsSearch" type="search" placeholder="Search .ton domains" autocomplete="off" /><small id="dnsCountLabel">0 domains</small></section>
+        <section class="identity-asset-list bottom-pad" id="dnsList"></section>
+      </main>
+
+      <main class="screen identity-assets-screen" data-screen="anonymous-numbers">
+        <header class="page-header"><button class="icon-button" type="button" data-screen-target="assets"><i data-lucide="arrow-left"></i></button><h1>Anonymous Numbers</h1><span class="header-spacer" aria-hidden="true"></span></header>
+        <section class="identity-summary-card">
+          <span class="identity-summary-icon number-bg"><i data-lucide="phone"></i></span>
+          <div><small>Verified portfolio value</small><h2 id="anonymousNumbersTotalValue">$0.00</h2><p id="anonymousNumbersSummaryText">No numbers imported</p></div>
+        </section>
+        <section class="search-card identity-search-card"><i data-lucide="search"></i><input id="anonymousNumbersSearch" type="search" placeholder="Search collectible numbers" autocomplete="off" /><small id="anonymousNumbersCountLabel">0 numbers</small></section>
+        <section class="identity-asset-list bottom-pad" id="anonymousNumbersList"></section>
       </main>
 
       <main class="screen" data-screen="sticker-brand">
@@ -504,7 +528,7 @@
     <script src="https://unpkg.com/@tonconnect/ui@2.4.4/dist/tonconnect-ui.min.js"></script>
     <script src="./node_modules/chart.js/dist/chart.umd.js"></script>
     <script src="./chart-platform.js?v=3"></script>
-  <script src="./app.js?v=horizontal-headers-20260730-1"></script>
-  <script src="./terminal-system.js?v=type-balance-20260725-5"></script>
+  <script src="./app.js?v=identity-assets-20260730-2"></script>
+  <script src="./terminal-system.js?v=identity-assets-20260730-2"></script>
   </body>
 </html>

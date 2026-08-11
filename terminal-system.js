@@ -17,14 +17,18 @@
     '[data-screen="assets"] .assets-header h1',
     '[data-screen="tokens"] .page-header h1',
     '[data-screen="gifts"] .page-header h1',
-    '[data-screen="stickers"] .page-header h1'
+    '[data-screen="stickers"] .page-header h1',
+    '[data-screen="dns"] .page-header h1',
+    '[data-screen="anonymous-numbers"] .page-header h1'
   ];
   const VALUE_SELECTORS = [
     '[data-screen="home"] .graph-head h1',
     '[data-screen="assets"] .portfolio-strip article:first-child b',
     '[data-screen="tokens"] .summary-card h2',
     '[data-screen="gifts"] .asset-total-banner h2',
-    '[data-screen="stickers"] .asset-total-banner h2'
+    '[data-screen="stickers"] .asset-total-banner h2',
+    '[data-screen="dns"] .identity-summary-card h2',
+    '[data-screen="anonymous-numbers"] .identity-summary-card h2'
   ];
   function sourceText(element) {
     if (!element) return "";

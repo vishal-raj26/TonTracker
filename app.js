@@ -96,7 +96,7 @@ let activeGiftDetailRequest = 0;
 let activeHistoryWalletKey = "";
 let homeEntrancePlayed = false;
 let latestCollectibleStatus = "";
-const allocationState = { gifts: 0, tokens: 0, stickers: 0 };
+const allocationState = { gifts: 0, tokens: 0, stickers: 0, dns: 0, anonymousNumbers: 0 };
 let detailWarmupQueue = [];
 let detailWarmupActive = 0;
 let detailWarmupGeneration = 0;
@@ -117,6 +117,8 @@ const SECTION_LABELS = {
   tokens: "Tokens",
   gifts: "Gifts",
   stickers: "Stickers",
+  dns: "TON DNS",
+  "anonymous-numbers": "Anonymous Numbers",
   activity: "Activity",
   graph: "Graph",
 };
@@ -127,6 +129,8 @@ const navGroup = {
   "gift-brand": "assets",
   stickers: "assets",
   "sticker-brand": "assets",
+  dns: "assets",
+  "anonymous-numbers": "assets",
   detail: "assets",
   activity: "home",
   wallets: "settings",
@@ -472,6 +476,9 @@ const stickerAssets = [
     chart: [378, 390, 402, 398, 407, 414, 410],
   },
 ];
+const dnsAssets = [];
+const anonymousNumberAssets = [];
+
 const tokenDetails = {
   toncoin: {
     id: "toncoin",
@@ -1836,6 +1843,153 @@ function marketSourceLabel(value = "") {
   return String(value || "");
 }
 
+function identityAssetId(item = {}, type = "identity", index = 0) {
+  const address = String(item.tokenAddress || item.address || "").trim().toLowerCase();
+  const suffix = address ? address.replace(/[^a-z0-9]/g, "").slice(-18) : String(index);
+  return `${type}-${suffix || index}`;
+}
+
+function normalizeIdentityAsset(item = {}, type = "ton_dns", index = 0) {
+  const isDns = type === "ton_dns";
+  const id = identityAssetId(item, type, index);
+  const floorTon = Number(item.floorTon || 0);
+  const floorUsd = Number(item.floorUsd || 0);
+  const hasVerifiedListing = item.floorStatus === "priced"
+    && item.valuationKind === "active-listing"
+    && floorTon > 0;
+  return {
+    id,
+    type,
+    name: isDns
+      ? String(item.domain || item.displayName || item.name || "TON domain")
+      : String(item.displayNumber || item.name || "Anonymous number"),
+    domain: String(item.domain || ""),
+    number: String(item.number || ""),
+    collection: String(item.collection || (isDns ? "TON DNS" : "Anonymous Numbers")),
+    tokenAddress: String(item.tokenAddress || item.address || ""),
+    image: resolveTokenImage(item.image || ""),
+    description: String(item.description || ""),
+    floorTon: hasVerifiedListing ? floorTon : 0,
+    floorUsd: hasVerifiedListing ? floorUsd : 0,
+    valueUsd: hasVerifiedListing ? floorUsd : 0,
+    floorStatus: hasVerifiedListing ? "priced" : "unavailable",
+    valuationKind: hasVerifiedListing ? "active-listing" : "unavailable",
+    listed: hasVerifiedListing,
+    listedCount: hasVerifiedListing ? 1 : 0,
+    marketPlatform: hasVerifiedListing ? String(item.marketPlatform || "Marketplace") : "",
+    marketUrl: String(item.marketUrl || ""),
+    manageUrl: String(item.manageUrl || ""),
+    verified: Boolean(item.verified),
+    icon: isDns ? "globe-2" : "phone",
+    tone: isDns ? "dns-bg" : "number-bg",
+  };
+}
+
+function identityAssetValue(asset = {}) {
+  return asset.floorStatus === "priced" && asset.valuationKind === "active-listing"
+    ? Number(asset.floorUsd || 0)
+    : 0;
+}
+
+function renderIdentityAssetRows(type, query = "") {
+  const isDns = type === "ton_dns";
+  const assets = isDns ? dnsAssets : anonymousNumberAssets;
+  const list = document.getElementById(isDns ? "dnsList" : "anonymousNumbersList");
+  if (!list) return;
+  const term = String(query || "").trim().toLowerCase();
+  const rows = [...assets]
+    .filter((asset) => !term || `${asset.name} ${asset.domain} ${asset.number}`.toLowerCase().includes(term))
+    .sort((a, b) => identityAssetValue(b) - identityAssetValue(a) || a.name.localeCompare(b.name));
+  if (!rows.length) {
+    list.innerHTML = `<div class="identity-empty-state"><i data-lucide="${isDns ? "globe-2" : "phone"}"></i><b>${term ? "No matching assets" : isDns ? "No TON domains found" : "No anonymous numbers found"}</b><small>${term ? "Try another search." : "Assets from the verified collection will appear after wallet import."}</small></div>`;
+    window.lucide?.createIcons();
+    return;
+  }
+  list.innerHTML = rows.map((asset) => {
+    const value = identityAssetValue(asset);
+    const art = asset.image
+      ? `<span class="identity-asset-art ${asset.tone}"><img src="${escapeHtml(asset.image)}" alt="" loading="lazy"></span>`
+      : `<span class="identity-asset-art ${asset.tone}"><i data-lucide="${asset.icon}"></i></span>`;
+    return `<article data-screen-target="detail" data-asset="${escapeHtml(asset.id)}">
+      ${art}
+      <div><b>${escapeHtml(asset.name)}</b><small>${asset.verified ? "Verified collection" : escapeHtml(asset.collection)}</small></div>
+      <aside><b>${value > 0 ? money(value) : "Unavailable"}</b><small>${value > 0 ? `${asset.floorTon.toLocaleString(undefined, { maximumFractionDigits: 2 })} GRAM listing` : "No verified GRAM listing"}</small></aside>
+    </article>`;
+  }).join("");
+  window.lucide?.createIcons();
+}
+
+function renderIdentityAssetScreens() {
+  const groups = [
+    { assets: dnsAssets, type: "ton_dns", valueId: "dnsTotalValue", summaryId: "dnsSummaryText", countId: "dnsCountLabel", noun: "domain" },
+    { assets: anonymousNumberAssets, type: "anonymous_number", valueId: "anonymousNumbersTotalValue", summaryId: "anonymousNumbersSummaryText", countId: "anonymousNumbersCountLabel", noun: "number" },
+  ];
+  groups.forEach(({ assets, type, valueId, summaryId, countId, noun }) => {
+    const total = assets.reduce((sum, asset) => sum + identityAssetValue(asset), 0);
+    const priced = assets.filter((asset) => identityAssetValue(asset) > 0).length;
+    setText(`#${valueId}`, money(total));
+    setText(`#${summaryId}`, `${assets.length} ${noun}${assets.length === 1 ? "" : "s"} · ${priced} priced`);
+    setText(`#${countId}`, `${assets.length} ${noun}${assets.length === 1 ? "" : "s"}`);
+    const search = document.getElementById(type === "ton_dns" ? "dnsSearch" : "anonymousNumbersSearch");
+    renderIdentityAssetRows(type, search?.value || "");
+  });
+}
+
+function updateIdentityAssetsFromWallet(data = {}) {
+  dnsAssets.splice(0, dnsAssets.length, ...(data?.assets?.dns || []).map((item, index) => normalizeIdentityAsset(item, "ton_dns", index)));
+  anonymousNumberAssets.splice(0, anonymousNumberAssets.length, ...(data?.assets?.anonymousNumbers || []).map((item, index) => normalizeIdentityAsset(item, "anonymous_number", index)));
+  [...dnsAssets, ...anonymousNumberAssets].forEach((asset) => {
+    assetDetails[asset.id] = asset;
+  });
+  renderIdentityAssetScreens();
+}
+
+function renderIdentityAssetDetail(detail) {
+  const isDns = detail.type === "ton_dns";
+  toggleGiftDetailLayout(true);
+  const detailScreen = document.querySelector('[data-screen="detail"]');
+  detailScreen?.classList.toggle("is-identity-detail", true);
+  setText('[data-screen="detail"] > .page-header h1', isDns ? "TON DNS" : "Anonymous Number");
+  const mount = document.getElementById("giftDetailMount");
+  const hasValue = identityAssetValue(detail) > 0;
+  const art = detail.image
+    ? `<div class="identity-detail-art ${detail.tone}"><img src="${escapeHtml(detail.image)}" alt="${escapeHtml(detail.name)}"></div>`
+    : `<div class="identity-detail-art ${detail.tone}"><i data-lucide="${detail.icon}"></i></div>`;
+  if (mount) {
+    mount.innerHTML = `<section class="identity-detail-layout">
+      <article class="identity-detail-hero">
+        ${art}
+        <small>${isDns ? "TON DNS domain" : "Telegram anonymous number"}</small>
+        <h2>${escapeHtml(detail.name)}</h2>
+        <div class="identity-detail-value">
+          <span>${hasValue ? "Active GRAM listing" : "Portfolio value"}</span>
+          <b>${hasValue ? money(detail.floorUsd) : "Unavailable"}</b>
+          <small>${hasValue ? `${detail.floorTon.toLocaleString(undefined, { maximumFractionDigits: 2 })} GRAM &middot; ${escapeHtml(detail.marketPlatform)}` : "No verified GRAM-denominated listing is available."}</small>
+        </div>
+      </article>
+      <article class="identity-detail-card">
+        <div class="section-heading"><h2>Asset details</h2><span class="text-action">On-chain</span></div>
+        <div class="identity-detail-row"><span>Collection</span><b>${isDns ? "TON DNS" : "Anonymous Numbers"}</b></div>
+        <div class="identity-detail-row"><span>Ownership</span><b>${detail.verified ? "Verified" : "On-chain"}</b></div>
+        <div class="identity-detail-row"><span>Valuation</span><b>${hasValue ? "Active listing" : "Unavailable"}</b></div>
+        <div class="identity-detail-row"><span>Marketplace</span><b>${hasValue ? escapeHtml(detail.marketPlatform) : isDns ? "Getgems" : "Fragment"}</b></div>
+      </article>
+      <article class="identity-detail-note">
+        <i data-lucide="shield-check"></i>
+        <div><b>Strict valuation</b><small>Only a verified active listing denominated in native GRAM is counted. Jettons and ambiguous prices are excluded.</small></div>
+      </article>
+    </section>`;
+  }
+  const externalButton = document.querySelector('[data-screen="detail"] .page-header .icon-button:last-child');
+  if (externalButton) {
+    externalButton.hidden = !detail.marketUrl;
+    externalButton.onclick = () => {
+      if (detail.marketUrl) window.open(detail.marketUrl, "_blank", "noopener,noreferrer");
+    };
+  }
+  window.lucide?.createIcons();
+}
+
 function renderAssetDetail(assetId) {
   const detail = assetDetails[assetId];
   if (!detail) {
@@ -1847,6 +2001,12 @@ function renderAssetDetail(assetId) {
   detailScreen?.classList.toggle("is-token-detail", detail.type === "token");
   detailScreen?.classList.toggle("is-gift-detail", detail.type === "gift");
   detailScreen?.classList.toggle("is-sticker-detail", detail.type === "sticker");
+  detailScreen?.classList.toggle("is-identity-detail", detail.type === "ton_dns" || detail.type === "anonymous_number");
+  if (detail.type === "ton_dns" || detail.type === "anonymous_number") {
+    renderIdentityAssetDetail(detail);
+    applyCurrencyDisplay();
+    return true;
+  }
   setText(
     '[data-screen="detail"] > .page-header h1',
     detail.type === "gift"
@@ -4334,6 +4494,8 @@ function clearStaticPortfolioPreview() {
   lastTonConnectAddress = "";
   giftAssets.splice(0, giftAssets.length);
   stickerAssets.splice(0, stickerAssets.length);
+  dnsAssets.splice(0, dnsAssets.length);
+  anonymousNumberAssets.splice(0, anonymousNumberAssets.length);
   resetWalletBoundUi();
   renderCollectibleGrids();
 }
@@ -4952,6 +5114,7 @@ async function restoreSavedWallet() {
 function applyImportedWallet(data, options = {}) {
   if (!hasTonWalletPortfolio()) return Promise.resolve();
   if (Number(data.summary?.tonUsdRate) > 0) usdTonRate = Number(data.summary.tonUsdRate);
+  updateIdentityAssetsFromWallet(data);
   const totalUsd = Number(data.summary?.totalUsd || 0);
   homePortfolioValue = totalUsd;
   homePortfolioDelta = 0;
@@ -5022,6 +5185,8 @@ function resetWalletSwitchState(nextAddress = "", options = {}) {
   collectiblePayloadRequests.clear();
   walletGiftGroups = [];
   walletStickerGroups = [];
+  dnsAssets.splice(0, dnsAssets.length);
+  anonymousNumberAssets.splice(0, anonymousNumberAssets.length);
   if (!preserveTelegram) {
     telegramGiftGroups = [];
     telegramStickerGroups = [];
@@ -5034,6 +5199,9 @@ function resetWalletSwitchState(nextAddress = "", options = {}) {
   allocationState.gifts = preserveTelegram ? collectibleTotals().gifts : 0;
   allocationState.tokens = 0;
   allocationState.stickers = preserveTelegram ? collectibleTotals().stickers : 0;
+  allocationState.dns = 0;
+  allocationState.anonymousNumbers = 0;
+  renderIdentityAssetScreens();
   document.querySelectorAll("[data-range]").forEach((button) => button.classList.remove("is-loading"));
   setCollectiblesBanner("gifts", preserveTelegram ? "" : (nextAddress ? "Loading wallet gifts..." : ""));
   setCollectiblesBanner("stickers", preserveTelegram ? "" : (nextAddress ? "Loading wallet stickers..." : ""));
@@ -5074,6 +5242,8 @@ function resetWalletBoundUi() {
   allocationState.gifts = 0;
   allocationState.tokens = 0;
   allocationState.stickers = 0;
+  allocationState.dns = 0;
+  allocationState.anonymousNumbers = 0;
   latestVisibleTokens = [];
   renderTokenEmptyState("Connect wallet to load tokens");
   resetPerformerCards();
@@ -5107,6 +5277,11 @@ async function disconnectWallet() {
   walletConnected = false;
   walletGiftGroups = [];
   walletStickerGroups = [];
+  dnsAssets.splice(0, dnsAssets.length);
+  anonymousNumberAssets.splice(0, anonymousNumberAssets.length);
+  allocationState.dns = 0;
+  allocationState.anonymousNumbers = 0;
+  renderIdentityAssetScreens();
   liveWalletData = null;
   liveWalletAddress = "";
   activeHistoryWalletKey = "";
@@ -5383,6 +5558,8 @@ function collectibleTotals() {
   return {
     gifts: giftAssets.reduce((sum, asset) => sum + liveValue(asset), 0),
     stickers: stickerAssets.reduce((sum, asset) => sum + liveValue(asset), 0),
+    dns: dnsAssets.reduce((sum, asset) => sum + identityAssetValue(asset), 0),
+    anonymousNumbers: anonymousNumberAssets.reduce((sum, asset) => sum + identityAssetValue(asset), 0),
   };
 }
 
@@ -5395,7 +5572,9 @@ function updateAllocationUi(force = false) {
   const totals = collectibleTotals();
   allocationState.gifts = totals.gifts;
   allocationState.stickers = totals.stickers;
-  const total = Math.max(0, allocationState.gifts + allocationState.tokens + allocationState.stickers);
+  allocationState.dns = totals.dns;
+  allocationState.anonymousNumbers = totals.anonymousNumbers;
+  const total = Math.max(0, allocationState.gifts + allocationState.tokens + allocationState.stickers + allocationState.dns + allocationState.anonymousNumbers);
   if (walletConnected || telegramConnected) {
     homePortfolioValue = total;
     if (liveWalletData?.summary) liveWalletData.summary.totalUsd = total;
@@ -5407,10 +5586,12 @@ function updateAllocationUi(force = false) {
     [1, allocationState.gifts],
     [2, allocationState.tokens],
     [3, allocationState.stickers],
+    [4, allocationState.dns],
+    [5, allocationState.anonymousNumbers],
   ].forEach(([index, value]) => {
     const strong = document.querySelector(`.allocation-list article:nth-child(${index}) strong`);
     const small = document.querySelector(`.allocation-list article:nth-child(${index}) small`);
-    const key = index === 1 ? "gifts" : index === 2 ? "tokens" : "stickers";
+    const key = index === 1 ? "gifts" : index === 2 ? "tokens" : index === 3 ? "stickers" : index === 4 ? "dns" : "anonymous-numbers";
     if (isSectionLoading(key) || (["gifts", "stickers"].includes(key) && value <= 0 && hasPendingCollectiblePrices(key))) {
       if (strong) strong.innerHTML = `<span class="metric-skeleton"></span>`;
       if (small) small.innerHTML = `<span class="metric-skeleton metric-skeleton-small"></span>`;
@@ -5427,6 +5608,8 @@ function updateCategoryAndTopAsset(tokenValue = allocationState.tokens) {
   const totals = collectibleTotals();
   const giftCategory = document.querySelector('[data-screen="assets"] .category-stack article[data-screen-target="gifts"] strong');
   const stickerCategory = document.querySelector('[data-screen="assets"] .category-stack article[data-screen-target="stickers"] strong');
+  const dnsCategory = document.querySelector('[data-screen="assets"] .category-stack article[data-screen-target="dns"] strong');
+  const numberCategory = document.querySelector('[data-screen="assets"] .category-stack article[data-screen-target="anonymous-numbers"] strong');
   const giftCount = giftAssets.reduce((sum, asset) => sum + Number(asset.count || 1), 0);
   const stickerCount = stickerAssets.reduce((sum, asset) => sum + stickerOwnedCount(asset), 0);
   if (giftCategory) {
@@ -5439,19 +5622,24 @@ function updateCategoryAndTopAsset(tokenValue = allocationState.tokens) {
     else if (isSectionLoading("stickers") || (totals.stickers <= 0 && hasPendingCollectiblePrices("stickers"))) stickerCategory.innerHTML = `<span class="metric-skeleton"></span>`;
     else stickerCategory.textContent = money(totals.stickers);
   }
+  if (dnsCategory) dnsCategory.textContent = totals.dns > 0 ? money(totals.dns) : `${dnsAssets.length} domain${dnsAssets.length === 1 ? "" : "s"}`;
+  if (numberCategory) numberCategory.textContent = totals.anonymousNumbers > 0 ? money(totals.anonymousNumbers) : `${anonymousNumberAssets.length} number${anonymousNumberAssets.length === 1 ? "" : "s"}`;
   const candidates = [
     ...latestVisibleTokens.map((token) => ({ id: token.id, name: token.name, category: "TON Token", value: Number(token.valueUsd || 0), icon: token.image, symbol: token.symbol })),
     ...giftAssets.map((asset) => ({ id: asset.id, name: asset.name, category: "Gift", value: Number(asset.floorUsd || 0), icon: asset.image, symbol: "GFT" })),
     ...stickerAssets.map((asset) => ({ id: asset.id, name: asset.name, category: "Sticker", value: Number(asset.floorUsd || 0), icon: asset.image, symbol: "STK" })),
+    ...dnsAssets.map((asset) => ({ id: asset.id, name: asset.name, category: "TON DNS", value: identityAssetValue(asset), icon: asset.image, symbol: "DNS" })),
+    ...anonymousNumberAssets.map((asset) => ({ id: asset.id, name: asset.name, category: "Anonymous Number", value: identityAssetValue(asset), icon: asset.image, symbol: "NUM" })),
   ].filter((asset) => asset.value > 0).sort((a, b) => b.value - a.value);
   const top = candidates[0];
   const card = document.querySelector('[data-screen="assets"] .mini-detail-card');
   if (card && top) {
     card.dataset.asset = top.id;
     const isToken = top.category === "TON Token";
+    const topTone = isToken ? "token-bg" : top.category === "Gift" ? "gift-bg" : top.category === "Sticker" ? "sticker-bg" : top.category === "TON DNS" ? "dns-bg" : "number-bg";
     const logo = top.icon
-      ? `<span class="asset-icon ${isToken ? "token-bg" : top.category === "Gift" ? "gift-bg" : "sticker-bg"}"><img src="${escapeHtml(resolveTokenImage(top.icon))}" alt="${escapeHtml(top.symbol || top.name)}" onerror="this.parentElement.textContent='${escapeHtml((top.symbol || top.category).slice(0,3))}'"></span>`
-      : `<span class="asset-icon ${isToken ? "token-bg" : top.category === "Gift" ? "gift-bg" : "sticker-bg"}">${escapeHtml((top.symbol || top.category).slice(0,3))}</span>`;
+      ? `<span class="asset-icon ${topTone}"><img src="${escapeHtml(resolveTokenImage(top.icon))}" alt="${escapeHtml(top.symbol || top.name)}" onerror="this.parentElement.textContent='${escapeHtml((top.symbol || top.category).slice(0,3))}'"></span>`
+      : `<span class="asset-icon ${topTone}">${escapeHtml((top.symbol || top.category).slice(0,3))}</span>`;
     const row = card.querySelector(".feature-asset");
     if (row) row.innerHTML = `${logo}<div><b>${escapeHtml(top.name)}</b><small>${escapeHtml(top.category)}</small></div><strong>${money(top.value)}</strong>`;
   }
@@ -5569,20 +5757,24 @@ function syncAssetsSummary(data = liveWalletData, tokens = latestVisibleTokens, 
   // portfolio total as a token value just because its token list is empty.
   const tokenValue = tokens.length
     ? tokens.reduce((sum, token) => sum + Number(token.valueUsd || 0), 0)
-    : (telegramConnected && !liveWalletAddress ? 0 : Number(fallbackUsd || 0));
+    : (telegramConnected && !liveWalletAddress
+      ? 0
+      : Number(data?.summary?.tonValueUsd || 0) + Number(data?.summary?.jettonsValueUsd || 0) || Number(fallbackUsd || 0));
   const tokenCount = tokens.length || Number(data?.summary?.tokenCount || 0);
   const readyGiftCount = giftAssets.length;
   const readyStickerCount = stickerAssets.length;
+  const readyDnsCount = dnsAssets.length;
+  const readyNumberCount = anonymousNumberAssets.length;
   const address = truncateWalletAddress(data?.account?.displayAddress || liveWalletAddress);
   if (strip) {
     const totals = collectibleTotals();
-    const knownTotal = tokenValue + totals.gifts + totals.stickers;
+    const knownTotal = tokenValue + totals.gifts + totals.stickers + totals.dns + totals.anonymousNumbers;
     const totalHtml = isSectionLoading("tokens") && !tokens.length
       ? `<span class="metric-skeleton"></span>`
       : money(knownTotal);
     const itemsHtml = isSectionLoading("tokens") && !tokens.length
       ? `<span class="metric-skeleton metric-skeleton-small"></span>`
-      : `${tokenCount + readyGiftCount + readyStickerCount}`;
+      : `${tokenCount + readyGiftCount + readyStickerCount + readyDnsCount + readyNumberCount}`;
     const portfolioChange = String(homePortfolioChange || "+0.00%");
     const portfolioChangeClass = portfolioChange.trim().startsWith("-") ? "negative" : "positive";
     strip.innerHTML = `<article><small>Portfolio value</small><b>${totalHtml}</b><strong class="${portfolioChangeClass}">${escapeHtml(portfolioChange)} <em>24H</em></strong></article><article><small>Total assets</small><b>${itemsHtml}</b><span>Items</span></article><article><small>Wallet</small><b>${escapeHtml(address)}</b></article><article><small>View</small><b class="assets-view-arrow">-&gt;</b></article>`;
@@ -6858,8 +7050,8 @@ function compactMoney(value) {
 function renderDonut(progress = 1) {
   const host = document.getElementById("donut-chart") || document.querySelector(".allocation-donut") || document.querySelector(".donut-chart");
   if (!host) return;
-  const values = [allocationState.gifts, allocationState.tokens, allocationState.stickers];
-  const labels = ["Gifts", "TON Tokens", "Stickers"];
+  const values = [allocationState.gifts, allocationState.tokens, allocationState.stickers, allocationState.dns, allocationState.anonymousNumbers];
+  const labels = ["Gifts", "TON Tokens", "Stickers", "TON DNS", "Anon Numbers"];
   const total = values.reduce((sum, value) => sum + Math.max(0, Number(value || 0)), 0);
   const selectedValue = selectedAllocation === null ? total : values[selectedAllocation];
   const centerValue = host.querySelector("span");
@@ -6872,7 +7064,7 @@ function renderDonut(progress = 1) {
     progress,
     selected: selectedAllocation,
     pixelRatio: window.devicePixelRatio || 1,
-    colors: ["--blue", "--mint", "--amber"].map((name) => styles.getPropertyValue(name).trim()),
+    colors: ["--blue", "--mint", "--amber", "--violet", "--coral"].map((name) => styles.getPropertyValue(name).trim()),
   });
   const legendItems = document.querySelectorAll(".allocation-list article");
   document.querySelector(".allocation-list")?.classList.toggle("is-filtered", selectedAllocation !== null);
@@ -7285,6 +7477,8 @@ document.querySelector("#giftSearch")?.addEventListener("input", renderGiftGrid)
 document.querySelector("#stickerSort")?.addEventListener("change", renderStickerGrid);
 document.querySelector("#stickerFilter")?.addEventListener("change", renderStickerGrid);
 document.querySelector("#stickerSearch")?.addEventListener("input", renderStickerGrid);
+document.querySelector("#dnsSearch")?.addEventListener("input", (event) => renderIdentityAssetRows("ton_dns", event.currentTarget.value));
+document.querySelector("#anonymousNumbersSearch")?.addEventListener("input", (event) => renderIdentityAssetRows("anonymous_number", event.currentTarget.value));
 const scrollTopButton = document.querySelector("#scrollTopButton");
 function updateScrollTopButton() {
   scrollTopButton?.classList.toggle("is-visible", window.scrollY > 420);
@@ -7319,7 +7513,7 @@ allocationDonut?.addEventListener("click", (event) => {
   const x = event.clientX - rect.left - rect.width / 2;
   const y = event.clientY - rect.top - rect.height / 2;
   const hit = Charts.donutHitIndex(
-    [allocationState.gifts, allocationState.tokens, allocationState.stickers],
+    [allocationState.gifts, allocationState.tokens, allocationState.stickers, allocationState.dns, allocationState.anonymousNumbers],
     x,
     y,
     rect.width,
@@ -7331,7 +7525,7 @@ allocationDonut?.addEventListener("keydown", (event) => {
   if (!["ArrowLeft", "ArrowRight", "Enter", " "].includes(event.key)) return;
   event.preventDefault();
   const direction = event.key === "ArrowLeft" ? -1 : 1;
-  selectAllocation(selectedAllocation === null ? 0 : (selectedAllocation + direction + 3) % 3);
+  selectAllocation(selectedAllocation === null ? 0 : (selectedAllocation + direction + 5) % 5);
 });
 document.querySelectorAll(".allocation-list article").forEach((item, index) => {
   item.addEventListener("click", (event) => {
