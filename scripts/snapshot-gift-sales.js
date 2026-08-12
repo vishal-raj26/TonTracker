@@ -77,6 +77,10 @@ const historicalRateMaxGapMs = Math.max(
   60 * 1000,
   Number(process.env.GIFT_SALES_HISTORICAL_RATE_MAX_GAP_MS || 2 * 60 * 60 * 1000)
 );
+const historicalRateInterpolationMaxGapMs = Math.max(
+  historicalRateMaxGapMs,
+  Number(process.env.GIFT_SALES_HISTORICAL_RATE_INTERPOLATION_MAX_GAP_MS || 26 * 60 * 60 * 1000)
+);
 let historicalTonUsdPointsPromise = null;
 
 const hasTelegramWebViewAuth = Boolean(telegramApiId && telegramApiHash && telegramSession);
@@ -125,6 +129,7 @@ async function historicalTonUsdPoints() {
         vs_currency: "usd",
         from: String(Math.floor(fromMs / 1000)),
         to: String(Math.ceil(toMs / 1000)),
+        interval: "hourly",
         precision: "full",
       });
       const payload = await fetchJson(
@@ -166,6 +171,20 @@ function closestHistoricalRate(points, soldAt = "") {
   }
   const after = points[low];
   const before = points[Math.max(0, low - 1)];
+  if (
+    before
+    && after
+    && before.timestamp <= target
+    && after.timestamp >= target
+    && after.timestamp > before.timestamp
+    && after.timestamp - before.timestamp <= historicalRateInterpolationMaxGapMs
+  ) {
+    const progress = (target - before.timestamp) / (after.timestamp - before.timestamp);
+    return {
+      timestamp: target,
+      rate: before.rate + (after.rate - before.rate) * progress,
+    };
+  }
   const closest = !before || Math.abs(after.timestamp - target) < Math.abs(before.timestamp - target)
     ? after
     : before;
@@ -175,12 +194,7 @@ function closestHistoricalRate(points, soldAt = "") {
 
 async function attachHistoricalUsd(sales = []) {
   if (!sales.length) return { sales: [], pendingRates: 0 };
-  let points = [];
-  try {
-    points = await historicalTonUsdPoints();
-  } catch (error) {
-    console.warn(`[gift-sales] historical TON/USD temporarily unavailable; storing ${sales.length} TON sales without advancing checkpoints: ${String(error.message || error).slice(0, 140)}`);
-  }
+  const points = await historicalTonUsdPoints();
   let pendingRates = 0;
   const enriched = sales.map((sale) => {
     const observed = closestHistoricalRate(points, sale.soldAt);
@@ -826,6 +840,9 @@ async function uploadSales(snapshot) {
   const enriched = await attachHistoricalUsd(rawSales);
   const sales = enriched.sales;
   const pendingRates = Number(enriched.pendingRates || 0);
+  if (pendingRates > 0) {
+    throw new Error(`Historical TON/USD pending for ${pendingRates}/${sales.length} sales; no rows or checkpoints committed`);
+  }
   const chunkSize = 40;
   const chunks = sales.length ? Array.from({ length: Math.ceil(sales.length / chunkSize) }, (_, index) => sales.slice(index * chunkSize, (index + 1) * chunkSize)) : [[]];
   let inserted = 0;
@@ -861,11 +878,6 @@ async function uploadSales(snapshot) {
     accepted += Number(result.accepted || chunks[index].length);
     lastResult = result;
   }
-  if (pendingRates > 0) {
-    const error = new Error(`Historical TON/USD pending for ${pendingRates}/${sales.length} stored sales; checkpoint preserved for retry`);
-    error.ratePending = true;
-    throw error;
-  }
   return {
     ...(lastResult || {}),
     inserted,
@@ -877,6 +889,10 @@ async function uploadSales(snapshot) {
 async function runCycle() {
   const startedAt = Date.now();
   const [collections, states, backfillStates] = await Promise.all([collectionNames(), salesStates(), salesBackfillStates()]);
+  // Conversion availability is a cycle prerequisite. If the rate provider is
+  // down, do not spend GiftSatellite's limited request budget on data whose
+  // checkpoints cannot be committed accurately.
+  await historicalTonUsdPoints();
   let completed = 0;
   let failed = 0;
   let inserted = 0;
@@ -1016,11 +1032,13 @@ async function runCycle() {
       const backfill = exactBackfillEnabled
         ? await scanExactBackfillCollection(collection, backfillState, budget)
         : await scanChronologicalBackfillCollection(collection, backfillState, budget);
-      const result = await uploadSales(backfill);
-      inserted += Number(result.inserted || 0);
       const usedRequests = Number(backfill.requestsMade || backfill.pagesScanned || 0);
+      // Charge source requests before conversion/upload. A downstream failure
+      // must not let the cycle exceed GiftSatellite's configured request cap.
       remainingBackfillRequests -= usedRequests;
       if (exactBackfillEnabled) remainingExactRequests -= usedRequests;
+      const result = await uploadSales(backfill);
+      inserted += Number(result.inserted || 0);
       const complete = Boolean(backfill.complete);
       if (complete) backfillCompleted += 1;
       console.log(`[gift-sales-${exactBackfillEnabled ? "exact" : "backfill"}] [${index + 1}/${pendingBackfills.length}] ${collection}: requests=${backfill.pagesScanned} next=${backfill.nextPage}${backfill.totalCombinations ? `/${backfill.totalCombinations}` : ""} accepted=${backfill.sales.length} inserted=${Number(result.inserted || 0)} complete=${complete} budgetLeft=${remainingBackfillRequests}`);

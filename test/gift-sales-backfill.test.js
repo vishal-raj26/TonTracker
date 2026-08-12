@@ -120,7 +120,8 @@ test("sales worker checks latest first and checkpoints a 365-day backfill", asyn
   assert.equal(uploads[1].nextPage, 2);
   assert.equal(uploads[1].sales.length, 20);
   assert.equal(uploads[1].sales[0].saleId, "new-0");
-  assert.match(uploads[1].cutoffAt, /^2025-07-/);
+  const expectedCutoff = Date.now() - 365 * 86400000;
+  assert.ok(Math.abs(new Date(uploads[1].cutoffAt).getTime() - expectedCutoff) < 60_000);
   assert.equal(statuses.at(-1).phase, "cycle_complete");
   assert.equal(statuses.at(-1).completedCollections, 1);
 });
@@ -295,4 +296,78 @@ test("exact backfill requests and checkpoints every collection/model/backdrop co
   const backfill = uploads.find((upload) => upload.mode === "backfill");
   assert.equal(backfill.complete, true);
   assert.deepEqual(backfill.sales.map((sale) => sale.backdrop).sort(), ["Black", "Blue", "Gold"]);
+});
+
+test("sales worker interpolates sparse historical TON/USD points and commits progress", async (t) => {
+  const uploads = [];
+  const registry = await listen(async (req, res) => {
+    const url = new URL(req.url, "http://registry.test");
+    if (url.pathname === "/collections") return sendJson(res, { collections: [{ collection_name: "Sparse Rates" }] });
+    if (url.pathname === "/sales-state" || url.pathname === "/sales-backfill-state") return sendJson(res, { states: [] });
+    if (url.pathname === "/ingest/status") return sendJson(res, { ok: true });
+    if (url.pathname === "/ingest/sales") {
+      const body = await readBody(req);
+      uploads.push(body);
+      return sendJson(res, { ok: true, inserted: body.sales.length, accepted: body.sales.length });
+    }
+    return sendJson(res, { error: "not found" }, 404);
+  });
+  t.after(() => registry.close());
+
+  const satellite = await listen(async (req, res) => {
+    const url = new URL(req.url, "http://satellite.test");
+    if (url.pathname === "/api/history/Sparse%20Rates") {
+      return sendJson(res, {
+        content: [{
+          _id: "sparse-rate-sale",
+          collectionName: "Sparse Rates",
+          modelName: "Model A",
+          backdropName: "Blue",
+          normalizedPrice: 10,
+          soldAt: "2026-07-14T12:00:00.000Z",
+          market: "MRKT",
+        }],
+        page: { number: 0, totalPages: 1 },
+      });
+    }
+    return sendJson(res, { error: "not found" }, 404);
+  });
+  t.after(() => satellite.close());
+
+  const rates = await listen((req, res) => sendJson(res, {
+    prices: [
+      [new Date("2026-07-14T00:00:00.000Z").getTime(), 2],
+      [new Date("2026-07-15T00:00:00.000Z").getTime(), 4],
+    ],
+  }));
+  t.after(() => rates.close());
+
+  const root = path.resolve(__dirname, "..");
+  const child = spawn(process.execPath, ["scripts/snapshot-gift-sales.js", "--collection", "Sparse Rates"], {
+    cwd: root,
+    env: {
+      ...process.env,
+      GIFT_SATELLITE_INIT_DATA: "test-init-data",
+      GIFT_SATELLITE_API_BASE: `http://127.0.0.1:${satellite.address().port}/api`,
+      D1_REGISTRY_URL: `http://127.0.0.1:${registry.address().port}`,
+      D1_INGEST_SECRET: "test-secret",
+      GIFT_SALES_REQUEST_INTERVAL_MS: "1",
+      GIFT_SALES_REQUEST_SAFETY_MS: "0",
+      GIFT_SALES_BACKFILL_MODE: "chronological",
+      GIFT_SALES_BACKFILL_PAGES_PER_COLLECTION: "1",
+      COINGECKO_API_BASE: `http://127.0.0.1:${rates.address().port}`,
+    },
+    stdio: ["ignore", "pipe", "pipe"],
+  });
+  let stderr = "";
+  child.stderr.on("data", (chunk) => { stderr += chunk; });
+  const exitCode = await new Promise((resolve) => child.on("exit", resolve));
+  assert.equal(exitCode, 0, stderr);
+
+  const sale = uploads.flatMap((upload) => upload.sales).find((row) => row.saleId === "sparse-rate-sale");
+  assert.ok(sale);
+  assert.equal(sale.tonUsdRate, 3);
+  assert.equal(sale.priceUsd, 30);
+  assert.equal(sale.rateAt, "2026-07-14T12:00:00.000Z");
+  assert.ok(uploads.some((upload) => upload.commitState === true));
 });
