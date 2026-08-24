@@ -69,6 +69,29 @@ function addComparableGroups(groups, sale) {
   addGroup(groups, groupKey("archetype", sale.primary_route, sale.length_bucket, sale.script, sale.scarcity_class), sale.price_usd);
 }
 
+function stableHash(value) {
+  let hash = 2166136261;
+  for (const character of String(value || "")) {
+    hash ^= character.charCodeAt(0);
+    hash = Math.imul(hash, 16777619);
+  }
+  return hash >>> 0;
+}
+
+function boundedTrainingSample(rows, limit = 2048) {
+  if (rows.length <= limit) return rows;
+  const highValueCount = Math.min(160, Math.max(32, Math.floor(limit * 0.08)));
+  const highValue = [...rows].sort((left, right) => Number(right.price_usd) - Number(left.price_usd)).slice(0, highValueCount);
+  const selected = new Map(highValue.map((row) => [String(row.sale_id || `${row.normalized_name}:${row.sold_at}:${row.price_usd}`), row]));
+  const remainder = rows
+    .map((row) => ({ row, key: String(row.sale_id || `${row.normalized_name}:${row.sold_at}:${row.price_usd}`) }))
+    .filter(({ key }) => !selected.has(key))
+    .sort((left, right) => stableHash(left.key) - stableHash(right.key))
+    .slice(0, limit - selected.size);
+  for (const { key, row } of remainder) selected.set(key, row);
+  return [...selected.values()];
+}
+
 function canonicalSale(kind, sale) {
   if (kind !== "dns") return sale;
   const classification = classifyTonDns(sale.normalized_name || "");
@@ -151,6 +174,7 @@ function exactValuation(kind, assetKey, evidence, options = {}) {
 }
 
 async function refreshKind(kind, options = {}) {
+  if (options.aggregateSource) return refreshKindFromAggregate(kind);
   const writeExactValuations = options.writeExactValuations !== false;
   const groups = new Map();
   const assets = new Map();
@@ -175,7 +199,8 @@ async function refreshKind(kind, options = {}) {
   } while (cursor);
 
   const estimatorVersion = kind === "dns" ? DNS_ESTIMATOR_VERSION : USERNAME_ESTIMATOR_VERSION;
-  const learnedModel = kind === "username" ? trainUsernameLearnedModel(learnedSales) : null;
+  const trainingSales = kind === "username" ? boundedTrainingSample(learnedSales) : [];
+  const learnedModel = kind === "username" ? trainUsernameLearnedModel(trainingSales) : null;
   const generatedAt = new Date().toISOString();
   const staleAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
   const baselines = [];
@@ -191,7 +216,7 @@ async function refreshKind(kind, options = {}) {
         chainConfirmationRequired: false,
         aggregation: "bounded-log-histogram-quantiles",
         historicalUsd: true,
-        ...(scope === "global" && learnedModel ? { learnedModel } : {}),
+        ...(scope === "global" && learnedModel ? { learnedModel: { ...learnedModel, ledgerSaleCount: sales } } : {}),
       },
     });
   }
@@ -204,6 +229,47 @@ async function refreshKind(kind, options = {}) {
   return { kind, sales, groups: baselines.length, exact: valuations.length, baselineWrites, valuationWrites };
 }
 
+async function refreshKindFromAggregate(kind) {
+  const source = await ledger().readBaselineSource(kind, 2048);
+  const estimatorVersion = kind === "dns" ? DNS_ESTIMATOR_VERSION : USERNAME_ESTIMATOR_VERSION;
+  const learnedModel = kind === "username" ? trainUsernameLearnedModel(source.training || []) : null;
+  const generatedAt = new Date().toISOString();
+  const staleAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+  const baselines = (source.groups || []).flatMap((row) => {
+    const midpointUsd = Number(row.midpoint_usd || 0);
+    const evidenceCount = Number(row.evidence_count || 0);
+    if (!(midpointUsd > 0) || evidenceCount < 3) return [];
+    return [{
+      assetKind: kind,
+      estimatorVersion,
+      scope: row.scope,
+      primaryRoute: row.primary_route,
+      lengthBucket: row.length_bucket,
+      script: row.script,
+      scarcityClass: row.scarcity_class,
+      midpointUsd,
+      rangeLowUsd: Number(row.range_low_usd || midpointUsd),
+      rangeHighUsd: Number(row.range_high_usd || midpointUsd),
+      evidenceCount,
+      effectiveCompCount: evidenceCount,
+      generatedAt,
+      staleAt,
+      provenance: {
+        publicCompletedMarketSalesOnly: true,
+        aggregation: "d1-window-quantiles",
+        historicalUsd: true,
+        ...(row.scope === "global" && learnedModel
+          ? { learnedModel: { ...learnedModel, ledgerSaleCount: Number(source.ledgerSaleCount || evidenceCount) } }
+          : {}),
+      },
+    }];
+  });
+  const baselineWrites = await ledger().ingestBaselines(baselines);
+  const sales = Number(source.groups?.find((row) => row.scope === "global")?.evidence_count || 0);
+  console.log(`[identity-baselines] aggregate kind=${kind} sales=${sales} groups=${baselines.length} training=${source.training?.length || 0} baselineWrites=${baselineWrites}`);
+  return { kind, sales, groups: baselines.length, exact: 0, baselineWrites, valuationWrites: 0, training: source.training?.length || 0 };
+}
+
 async function main() {
   for (const kind of kinds) await refreshKind(kind);
   await ledger().maintain();
@@ -214,4 +280,4 @@ if (require.main === module) main().catch((error) => {
   process.exit(1);
 });
 
-module.exports = { LogHistogram, addComparableGroups, canonicalSale, configureLedger, exactValuation, groupKey, refreshKind };
+module.exports = { LogHistogram, addComparableGroups, boundedTrainingSample, canonicalSale, configureLedger, exactValuation, groupKey, refreshKind, refreshKindFromAggregate };

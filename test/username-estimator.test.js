@@ -3,7 +3,7 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const { classifyTelegramUsername, normalizeTelegramUsername, ROUTES } = require("../lib/username-structural");
-const { estimateTelegramUsernameValue, lexicalSimilarity } = require("../lib/username-estimator");
+const { estimateTelegramUsernameValue, lexicalSimilarity, similarity } = require("../lib/username-estimator");
 const { trainUsernameLearnedModel } = require("../lib/username-learned-model");
 
 test("normalizes Telegram username identity without treating a display prefix as part of the name", () => {
@@ -65,7 +65,7 @@ test("learns distinct structural price levels from completed sales", () => {
   const numeric = estimateTelegramUsernameValue("777", events, { nowMs, learnedModel: model });
   const ordinary = estimateTelegramUsernameValue("anothername", events, { nowMs, learnedModel: model });
   assert.ok(numeric.estimateUsd > ordinary.estimateUsd * 3);
-  assert.equal(numeric.learnedModel.modelVersion, "username-learned-ridge-v2");
+  assert.equal(numeric.learnedModel.modelVersion, "username-learned-ridge-v3");
 });
 
 test("learns recurring market-name premiums from completed sales", () => {
@@ -92,7 +92,7 @@ test("uses recent segment sales to move older comparable evidence with the marke
     rising.push(sale(`olderword${suffix}`, 100 + index, 260 + index, nowMs));
     rising.push(sale(`recentword${suffix}`, 210 + index * 2, 15 + index, nowMs));
   }
-  const result = estimateTelegramUsernameValue("futureword", rising, { nowMs });
+  const result = estimateTelegramUsernameValue("nextword", rising, { nowMs });
   assert.equal(result.trend.direction, "up");
   assert.ok(result.trend.multiplier > 1.2);
   assert.ok(result.comparables.some((row) => row.adjustedPriceUsd > row.priceUsd));
@@ -126,6 +126,12 @@ test("rejects unrelated word usernames that only share coarse structural feature
   assert.ok(lexicalSimilarity("notgameston", "notgamescoin") >= 0.2);
   assert.equal(result.evidenceCount, 1);
   assert.equal(result.comparables[0].username, "notgamescoin");
+});
+
+test("requires shared meaning for semantically classified word usernames", () => {
+  assert.equal(similarity(classifyTelegramUsername("conviction"), classifyTelegramUsername("nanization")), 0);
+  assert.equal(similarity(classifyTelegramUsername("conviction"), classifyTelegramUsername("truthcredo")), 0);
+  assert.ok(similarity(classifyTelegramUsername("conviction"), classifyTelegramUsername("strongconviction")) > 0);
 });
 
 test("bounds broad evidence to the nearest comparable cohort", () => {

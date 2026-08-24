@@ -588,6 +588,59 @@ async function readIdentitySales(env, body = {}) {
   };
 }
 
+async function readIdentityBaselineSource(request, env) {
+  if (!authorized(request, env)) return json({ error: "Unauthorized" }, 401);
+  const database = valuationReadDatabase(env);
+  if (!database) return json({ error: "Valuation read model is not configured" }, 503);
+  const body = await request.json().catch(() => ({}));
+  const kind = String(body.assetKind || "").toLowerCase();
+  const trainingLimit = Math.max(256, Math.min(2500, Number(body.trainingLimit || 2048)));
+  if (!['dns', 'username'].includes(kind)) return json({ error: "Unsupported asset kind" }, 400);
+
+  const groups = await database.prepare(`WITH expanded AS (
+    SELECT 'global' AS scope,'*' AS primary_route,'*' AS length_bucket,'*' AS script,'*' AS scarcity_class,price_usd
+      FROM identity_sales WHERE asset_kind=?1
+    UNION ALL
+    SELECT 'route',primary_route,'*','*','*',price_usd FROM identity_sales WHERE asset_kind=?1
+    UNION ALL
+    SELECT 'route-length',primary_route,length_bucket,'*','*',price_usd FROM identity_sales WHERE asset_kind=?1
+    UNION ALL
+    SELECT 'archetype',primary_route,length_bucket,script,scarcity_class,price_usd FROM identity_sales WHERE asset_kind=?1
+  ), ranked AS (
+    SELECT *,ROW_NUMBER() OVER (
+      PARTITION BY scope,primary_route,length_bucket,script,scarcity_class ORDER BY price_usd
+    ) AS rank_index,COUNT(*) OVER (
+      PARTITION BY scope,primary_route,length_bucket,script,scarcity_class
+    ) AS evidence_count FROM expanded
+  ) SELECT scope,primary_route,length_bucket,script,scarcity_class,MAX(evidence_count) AS evidence_count,
+    MIN(CASE WHEN rank_index>=CAST((evidence_count-1)*0.2 AS INTEGER)+1 THEN price_usd END) AS range_low_usd,
+    MIN(CASE WHEN rank_index>=CAST((evidence_count-1)*0.5 AS INTEGER)+1 THEN price_usd END) AS midpoint_usd,
+    MIN(CASE WHEN rank_index>=CAST((evidence_count-1)*0.8 AS INTEGER)+1 THEN price_usd END) AS range_high_usd
+    FROM ranked GROUP BY scope,primary_route,length_bucket,script,scarcity_class
+    HAVING evidence_count>=3`).bind(kind).all();
+
+  let training = [];
+  if (kind === 'username') {
+    const highValueLimit = Math.min(160, Math.max(32, Math.floor(trainingLimit * 0.08)));
+    const evenLimit = trainingLimit - highValueLimit;
+    const results = await database.batch([
+      database.prepare(`SELECT sale_id,normalized_name,price_usd,sold_at,reliability_score
+        FROM identity_sales WHERE asset_kind='username' ORDER BY price_usd DESC LIMIT ?1`).bind(highValueLimit),
+      database.prepare(`WITH ordered AS (
+        SELECT sale_id,normalized_name,price_usd,sold_at,reliability_score,
+          ROW_NUMBER() OVER (ORDER BY sold_at,sale_id) AS row_index,
+          COUNT(*) OVER () AS total_count
+        FROM identity_sales WHERE asset_kind='username'
+      ) SELECT sale_id,normalized_name,price_usd,sold_at,reliability_score FROM ordered
+        WHERE row_index % MAX(1,CAST(total_count/?1 AS INTEGER))=0 LIMIT ?1`).bind(evenLimit),
+    ]);
+    const unique = new Map();
+    for (const result of results) for (const row of result.results || []) unique.set(row.sale_id, row);
+    training = [...unique.values()].slice(0, trainingLimit);
+  }
+  return json({ configured: true, assetKind: kind, groups: groups.results || [], training });
+}
+
 async function readUsernameEvidence(request, env) {
   if (!authorized(request, env)) return json({ error: "Unauthorized" }, 401);
   const database = valuationReadDatabase(env);
@@ -2838,6 +2891,9 @@ export default {
     if (url.pathname === "/identity/sales/read" && request.method === "POST") {
       const body = await request.json().catch(() => ({}));
       return json(await readIdentitySales(env, body));
+    }
+    if (url.pathname === "/identity/baseline-source/read" && request.method === "POST") {
+      return readIdentityBaselineSource(request, env);
     }
     if (url.pathname === "/identity/username-evidence/read" && request.method === "POST") {
       return readUsernameEvidence(request, env);

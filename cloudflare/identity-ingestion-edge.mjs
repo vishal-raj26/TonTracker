@@ -54,8 +54,8 @@ async function runRefreshCycle(force = false) {
   const startedAt = new Date(now).toISOString();
   await checkpointLedger.writeState(REFRESH_PIPELINE_KEY, { phase: "running", startedAt }, { status: "running", startedAt });
   try {
-    const username = await baselineModule.refreshKind("username", { writeExactValuations: false });
-    const dns = await baselineModule.refreshKind("dns", { writeExactValuations: false });
+    const username = await baselineModule.refreshKind("username", { aggregateSource: true, writeExactValuations: false });
+    const dns = await baselineModule.refreshKind("dns", { aggregateSource: true, writeExactValuations: false });
     const lastCompleted = new Date().toISOString();
     await checkpointLedger.writeState(REFRESH_PIPELINE_KEY, { phase: "complete", lastCompletedAt: lastCompleted }, {
       status: "complete", startedAt, lastCompletedAt: lastCompleted, usernameSales: username.sales, dnsSales: dns.sales,

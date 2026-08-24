@@ -37,7 +37,7 @@ test("checkpoints bounded baseline refreshes instead of rebuilding every cron", 
   assert.match(worker, /REFRESH_PIPELINE_KEY = "identity-baseline-refresh-v1"/);
   assert.match(worker, /runRefreshCycle\(false\)/);
   assert.match(worker, /url\.pathname === "\/run\/refresh"/);
-  assert.match(worker, /baselineModule\.refreshKind\("username", \{ writeExactValuations: false \}\)/);
-  assert.match(worker, /baselineModule\.refreshKind\("dns", \{ writeExactValuations: false \}\)/);
+  assert.match(worker, /baselineModule\.refreshKind\("username", \{ aggregateSource: true, writeExactValuations: false \}\)/);
+  assert.match(worker, /baselineModule\.refreshKind\("dns", \{ aggregateSource: true, writeExactValuations: false \}\)/);
   assert.match(config, /"IDENTITY_BASELINE_REFRESH_INTERVAL_MS": "21600000"/);
 });
