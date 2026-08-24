@@ -229,9 +229,12 @@ let geckoCoinsListPromise = null;
 let stonAssetsCache = null;
 let tonUsdRateCache = { value: usdTonRate, expiresAt: 0, promise: null };
 let tonApiQueue = Promise.resolve();
+let tonCenterQueue = Promise.resolve();
 let historyBuildQueue = Promise.resolve();
 let lastTonApiAt = 0;
+let lastTonCenterAt = 0;
 const tonApiMinDelay = tonApiKey ? 160 : 950;
+const tonCenterMinDelay = tonCenterApiKey ? 120 : 1100;
 const giftSnapshotIntervalMs = Number(process.env.GIFT_SNAPSHOT_INTERVAL_MS || 60 * 60 * 1000);
 const giftSnapshotUnchangedIntervalMs = Number(process.env.GIFT_SNAPSHOT_UNCHANGED_INTERVAL_MS || 23 * 60 * 60 * 1000);
 const giftSnapshotRetentionDays = Number(process.env.GIFT_SNAPSHOT_RETENTION_DAYS || 370);
@@ -894,15 +897,30 @@ async function resolveWalletAddress(input) {
     const cached = dnsNameCache.get(key);
     if (cached) return cached;
   }
+  const resolveWithTonCenter = async () => {
+    const payload = await tonCenter(`/dns/records?domain=${encodeURIComponent(value.toLowerCase())}&limit=10`);
+    const record = (payload?.records || []).find((item) => String(item?.domain || "").toLowerCase() === value.toLowerCase());
+    const resolved = parseTonAddress(record?.dns_wallet || record?.nft_item_owner || "");
+    dnsNameCache.set(key, resolved);
+    return resolved;
+  };
+  if (!tonApiKey) {
+    try { return await resolveWithTonCenter(); }
+    catch { throw new Error(`Could not resolve TON DNS name ${value}`); }
+  }
   try {
     const payload = await tonApi(`/dns/${encodeURIComponent(value)}/resolve`, { immediate: true });
     const address = payload?.wallet?.address || payload?.address || payload?.account?.address || payload?.item?.address || "";
     const resolved = parseTonAddress(address);
     dnsNameCache.set(key, resolved);
     return resolved;
-  } catch {
-    dnsNameCache.set(key, "");
-    throw new Error(`Could not resolve TON DNS name ${value}`);
+  } catch (tonApiError) {
+    try {
+      return await resolveWithTonCenter();
+    } catch {
+      dnsNameCache.set(key, "");
+      throw new Error(`Could not resolve TON DNS name ${value}: ${tonApiError.message}`);
+    }
   }
 }
 
@@ -993,14 +1011,7 @@ async function geckoFetch(pathname, timeoutMs = 5000) {
 }
 
 async function tonCenter(pathname) {
-  const response = await fetch(`https://toncenter.com/api/v3${pathname}`, {
-    headers: { accept: "application/json" },
-  });
-  if (!response.ok) {
-    const text = await response.text();
-    throw new Error(text || `TonCenter request failed (${response.status})`);
-  }
-  return response.json();
+  return tonCenterJson(pathname, 12_000);
 }
 
 async function stonAssetMap() {
@@ -1121,19 +1132,39 @@ async function externalJson(url, timeoutMs = 7000) {
 }
 
 async function tonCenterJson(pathname, timeoutMs = 5000) {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), timeoutMs);
-  const headers = { accept: "application/json" };
-  if (tonCenterApiKey) headers["x-api-key"] = tonCenterApiKey;
-  try {
-    const response = await fetch(`${tonCenterApiBase}${pathname}`, { headers, signal: controller.signal });
-    const text = await response.text();
-    const body = text ? JSON.parse(text) : null;
-    if (!response.ok) throw new Error(body?.error || body?.message || `TON Center failed (${response.status})`);
-    return body;
-  } finally {
-    clearTimeout(timeout);
-  }
+  const run = tonCenterQueue.then(async () => {
+    const wait = Math.max(0, tonCenterMinDelay - (Date.now() - lastTonCenterAt));
+    if (wait) await sleep(wait);
+    const headers = { accept: "application/json" };
+    if (tonCenterApiKey) headers["x-api-key"] = tonCenterApiKey;
+    let lastError = null;
+    try {
+      for (let attempt = 0; attempt < 3; attempt += 1) {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), timeoutMs);
+        try {
+          const response = await fetch(`${tonCenterApiBase}${pathname}`, { headers, signal: controller.signal });
+          const text = await response.text();
+          const body = text ? JSON.parse(text) : null;
+          if (response.ok) return body;
+          const message = body?.error || body?.message || `TON Center failed (${response.status})`;
+          lastError = new Error(message);
+          if (![429, 500, 502, 503, 504].includes(response.status) || attempt === 2) throw lastError;
+        } catch (error) {
+          lastError = error;
+          if (attempt === 2) throw error;
+        } finally {
+          clearTimeout(timeout);
+        }
+        await sleep(1100 * (attempt + 1));
+      }
+      throw lastError || new Error("TON Center request failed");
+    } finally {
+      lastTonCenterAt = Date.now();
+    }
+  });
+  tonCenterQueue = run.catch(() => {});
+  return run;
 }
 
 async function externalText(url, timeoutMs = 7000) {
@@ -4609,12 +4640,25 @@ async function resolveTonName(address) {
   if (!friendly) return "";
   const key = friendly.toLowerCase();
   if (dnsNameCache.has(key)) return dnsNameCache.get(key);
+  const resolveWithTonCenter = async () => {
+    const payload = await tonCenter(`/dns/records?wallet=${encodeURIComponent(friendly)}&limit=10`);
+    return (payload?.records || []).map((record) => String(record?.domain || "")).find((domain) => domain.endsWith(".ton")) || "";
+  };
+  if (!tonApiKey) {
+    try { dnsNameCache.set(key, await resolveWithTonCenter()); }
+    catch { dnsNameCache.set(key, ""); }
+    return dnsNameCache.get(key);
+  }
   try {
     const payload = await tonApi(`/accounts/${encodeURIComponent(friendly)}`);
     const name = payload?.name || payload?.dns || "";
     dnsNameCache.set(key, name && name.endsWith(".ton") ? name : "");
   } catch {
-    dnsNameCache.set(key, "");
+    try {
+      dnsNameCache.set(key, await resolveWithTonCenter());
+    } catch {
+      dnsNameCache.set(key, "");
+    }
   }
   return dnsNameCache.get(key);
 }
@@ -5580,9 +5624,20 @@ function startWalletHistoryJobs(address, currentTonBalance, jettons) {
 
 async function walletImport(address) {
   address = parseTonAddress(address);
-  const account = await tonApi(`/accounts/${encodeURIComponent(address)}`, { immediate: true });
+  let accountSource = "tonapi";
+  let account;
+  if (!tonApiKey) {
+    account = await tonCenter(`/walletInformation?address=${encodeURIComponent(address)}`);
+    accountSource = "toncenter";
+  } else try {
+    account = await tonApi(`/accounts/${encodeURIComponent(address)}`, { immediate: true });
+  } catch (tonApiError) {
+    account = await tonCenter(`/walletInformation?address=${encodeURIComponent(address)}`);
+    accountSource = "toncenter";
+    console.warn(`[wallet-import] TonAPI account fallback: ${tonApiError.message}`);
+  }
   const [jettonsResult, tonCenterJettonsResult] = await Promise.allSettled([
-    tonApi(`/accounts/${encodeURIComponent(address)}/jettons`, { immediate: true }),
+    tonApiKey ? tonApi(`/accounts/${encodeURIComponent(address)}/jettons`, { immediate: true }) : Promise.reject(new Error("TonAPI key is not configured")),
     tonCenter(`/jetton/wallets?owner_address=${encodeURIComponent(address)}&limit=500`),
   ]);
   const normalizedAccount = normalizeAccount(account, address);
@@ -5616,7 +5671,7 @@ async function walletImport(address) {
   const snapshot = saveWalletSnapshot(normalizedAccount.address || address, summary);
   startWalletHistoryJobs(normalizedAccount.address || address, normalizedAccount.balanceTon, jettons);
   return {
-    source: "tonapi",
+    source: accountSource,
     importedAt: new Date().toISOString(),
     account: normalizedAccount,
     summary,
@@ -7621,6 +7676,80 @@ function classifyNft(item = {}) {
   return "other";
 }
 
+function tonCenterMetadataInfo(payload = {}, addressValue = "", expectedType = "") {
+  const target = jettonAddressKey(addressValue);
+  if (!target) return {};
+  const entry = Object.entries(payload?.metadata || {}).find(([key]) => jettonAddressKey(key) === target)?.[1] || {};
+  const candidates = Array.isArray(entry?.token_info) ? entry.token_info : [];
+  return candidates.find((info) => !expectedType || info?.type === expectedType) || candidates[0] || {};
+}
+
+function tonCenterAttributes(info = {}) {
+  const value = info?.attributes || info?.extra?.attributes || [];
+  if (Array.isArray(value)) return value;
+  if (typeof value === "string") {
+    try {
+      const parsed = JSON.parse(value);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch { /* invalid provider metadata remains empty */ }
+  }
+  return [];
+}
+
+function tonCenterNftToTonApi(item = {}, payload = {}) {
+  const itemInfo = tonCenterMetadataInfo(payload, item.address, "nft_items");
+  const collectionInfo = tonCenterMetadataInfo(payload, item.collection_address, "nft_collections");
+  const itemExtra = itemInfo?.extra || {};
+  const collectionExtra = collectionInfo?.extra || {};
+  const image = itemInfo?.image || itemExtra?._image_medium || itemExtra?._image_small || "";
+  const animationUrl = itemInfo?.animation_url || itemExtra?.animation_url || itemExtra?.content_url || "";
+  const collectionImage = collectionInfo?.image || collectionExtra?._image_medium || collectionExtra?._image_small || "";
+  return {
+    address: item.address,
+    index: item.index,
+    owner: { address: item.real_owner || item.owner_address || "" },
+    collection: {
+      address: item.collection_address || item.collection?.address || "",
+      name: collectionInfo?.name || item.collection?.name || "Unknown collection",
+      description: collectionInfo?.description || "",
+      image: collectionImage,
+    },
+    metadata: {
+      name: itemInfo?.name || collectionInfo?.name || "Telegram Collectible",
+      description: itemInfo?.description || collectionInfo?.description || "",
+      image,
+      animation_url: animationUrl,
+      attributes: tonCenterAttributes(itemInfo),
+      buttons: Array.isArray(itemExtra?.buttons) ? itemExtra.buttons : [],
+    },
+    previews: [itemExtra?._image_small, itemExtra?._image_medium, itemExtra?._image_big]
+      .filter(Boolean)
+      .map((url, index) => ({ url, resolution: [128, 512, 1024][index] })),
+    approved_by: itemInfo?.valid && !itemInfo?.is_scam ? ["toncenter"] : [],
+    verified: Boolean(itemInfo?.valid && !itemInfo?.is_scam),
+    sale: item.sale || null,
+    content: item.content || {},
+    raw: { ...item, provider: "toncenter" },
+  };
+}
+
+async function tonCenterWalletNfts(address, limit = 5000) {
+  const rows = [];
+  const metadata = {};
+  const addressBook = {};
+  const pageSize = Math.min(1000, Math.max(1, Number(limit) || 1000));
+  for (let offset = 0; offset < limit; offset += pageSize) {
+    const payload = await tonCenter(`/nft/items?owner_address=${encodeURIComponent(address)}&limit=${pageSize}&offset=${offset}`);
+    const batch = Array.isArray(payload?.nft_items) ? payload.nft_items : [];
+    rows.push(...batch);
+    Object.assign(metadata, payload?.metadata || {});
+    Object.assign(addressBook, payload?.address_book || {});
+    if (batch.length < pageSize) break;
+  }
+  const payload = { nft_items: rows, metadata, address_book: addressBook };
+  return { nft_items: rows.map((item) => tonCenterNftToTonApi(item, payload)) };
+}
+
 function normalizeWalletNft(item = {}) {
   const collection = item?.collection?.name || "Unknown collection";
   const name = item?.metadata?.name || collection || "Telegram Collectible";
@@ -7687,17 +7816,33 @@ async function walletNftsByType(address) {
     const nameMatch = directNameMatch;
     return addressMatch || nameMatch || null;
   };
-  const [directPayload, indirectPayload] = await Promise.allSettled([
-    tonApi(`/accounts/${encodeURIComponent(address)}/nfts?limit=1000&indirect_ownership=false`),
-    tonApi(`/accounts/${encodeURIComponent(address)}/nfts?limit=1000&indirect_ownership=true`),
-  ]);
-  const mergedRows = [
+  const [directPayload, indirectPayload] = tonApiKey
+    ? await Promise.allSettled([
+      tonApi(`/accounts/${encodeURIComponent(address)}/nfts?limit=1000&indirect_ownership=false`),
+      tonApi(`/accounts/${encodeURIComponent(address)}/nfts?limit=1000&indirect_ownership=true`),
+    ])
+    : [
+      { status: "rejected", reason: new Error("TonAPI key is not configured") },
+      { status: "rejected", reason: new Error("TonAPI key is not configured") },
+    ];
+  let mergedRows = [
     ...(directPayload.status === "fulfilled" ? (directPayload.value?.nft_items || []) : []),
     ...(indirectPayload.status === "fulfilled" ? (indirectPayload.value?.nft_items || []) : []),
   ];
-  const discoveryError = directPayload.status === "rejected" && indirectPayload.status === "rejected"
+  let discoverySource = "tonapi-wallet";
+  let discoveryError = directPayload.status === "rejected" && indirectPayload.status === "rejected"
     ? [directPayload.reason, indirectPayload.reason].map((reason) => reason?.message).filter(Boolean).join("; ") || "TON NFT discovery failed"
     : "";
+  if (!mergedRows.length && discoveryError) {
+    try {
+      const fallback = await tonCenterWalletNfts(address);
+      mergedRows = fallback.nft_items || [];
+      discoverySource = "toncenter-wallet";
+      discoveryError = "";
+    } catch (error) {
+      discoveryError = `${discoveryError}; TON Center fallback: ${error.message}`;
+    }
+  }
   const uniqueRows = [...new Map(mergedRows.map((item) => [String(item?.address || `${item?.collection?.address || ""}:${item?.index || ""}`), item])).values()];
   const items = uniqueRows.map((item) => {
     const normalized = normalizeWalletNft(item);
@@ -7762,7 +7907,7 @@ async function walletNftsByType(address) {
     usernames: items.filter((item) => item.type === "telegram_username"),
     anonymousNumbers: items.filter((item) => item.type === "anonymous_number"),
     otherCount: items.filter((item) => item.type === "other").length,
-    source: "tonapi-wallet",
+    source: discoverySource,
     error: discoveryError || undefined,
   };
 }
@@ -10219,6 +10364,7 @@ module.exports = {
   refreshEstimatedGiftHistoryTargetsNow,
   startEstimateHistoryWorker,
   verifiedTonListing,
+  tonCenterNftToTonApi,
   dnsRuntime,
   usernameRuntime,
   startServer
