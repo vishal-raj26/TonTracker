@@ -1,5 +1,7 @@
 const fs = require("fs");
 const path = require("path");
+const { loadHistoricalGramUsd } = require("../lib/gram-usd-history");
+const { normalizePoints } = require("../lib/dns-historical-rates");
 
 const root = path.resolve(__dirname, "..");
 const envFile = path.join(root, ".env");
@@ -43,11 +45,13 @@ const backfillPagesPerCollection = Math.max(1, Math.min(100, Number(process.env.
 // Give every incomplete collection one persisted checkpoint per cycle. A deep
 // archive cannot monopolize the request budget while the rest make no progress.
 const backfillRequestBudget = Math.max(25, Math.min(10000, Number(process.env.GIFT_SALES_BACKFILL_REQUEST_BUDGET || 1200)));
-// Product reads are exact collection/model/backdrop lookups. Exact coverage is
-// therefore the default: it fills the useful combinations in days at 1 RPS
-// instead of walking millions of irrelevant collection-wide archive rows.
-const backfillMode = String(process.env.GIFT_SALES_BACKFILL_MODE || "exact").trim().toLowerCase();
-const exactBackfillEnabled = backfillMode !== "chronological";
+// GiftSatellite already returns the exact model/backdrop on every history row.
+// Scan that collection history once, store its exact identity, and let product
+// reads query that identity. Re-querying every possible combination is far more
+// expensive and repeatedly trips the provider rate limit. `exact` remains an
+// opt-in repair mode for a deliberately targeted run only.
+const backfillMode = String(process.env.GIFT_SALES_BACKFILL_MODE || "chronological").trim().toLowerCase();
+const exactBackfillEnabled = backfillMode === "exact";
 const exactRequestBudget = Math.max(100, Number(process.env.GIFT_SALES_EXACT_REQUESTS_PER_CYCLE || 500));
 const salesPerComboTarget = Math.max(3, Math.min(20, Number(process.env.GIFT_SALES_PER_COMBO || 10)));
 // Keep exact checkpoints small so a deploy or provider interruption loses at
@@ -70,7 +74,11 @@ const dryRun = process.argv.includes("--dry-run") || process.env.GIFT_SALES_DRY_
 const resetBaseline = process.argv.includes("--reset");
 const collectionArgIndex = process.argv.indexOf("--collection");
 const onlyCollection = collectionArgIndex >= 0 ? String(process.argv[collectionArgIndex + 1] || "").trim() : "";
-const lockFile = path.join(root, "data", "gift-sales-worker.lock");
+// Production uses one durable default lock. A separate explicit path is useful
+// for isolated local canaries and tests without weakening that default.
+const lockFile = process.env.GIFT_SALES_LOCK_FILE
+  ? path.resolve(process.env.GIFT_SALES_LOCK_FILE)
+  : path.join(root, "data", "gift-sales-worker.lock");
 const coinGeckoBase = String(process.env.COINGECKO_API_BASE || "https://api.coingecko.com/api/v3").replace(/\/+$/, "");
 const coinGeckoApiKey = String(process.env.COINGECKO_API_KEY || "").trim();
 const historicalRateMaxGapMs = Math.max(
@@ -82,6 +90,7 @@ const historicalRateInterpolationMaxGapMs = Math.max(
   Number(process.env.GIFT_SALES_HISTORICAL_RATE_INTERPOLATION_MAX_GAP_MS || 26 * 60 * 60 * 1000)
 );
 let historicalTonUsdPointsPromise = null;
+let historicalTonUsdCoverage = { fromMs: 0, toMs: 0 };
 
 const hasTelegramWebViewAuth = Boolean(telegramApiId && telegramApiHash && telegramSession);
 
@@ -116,11 +125,31 @@ function collectionIdentity(value = "") {
   return key(words.map(singularWord).join(" "));
 }
 
-async function historicalTonUsdPoints() {
-  if (historicalTonUsdPointsPromise) return historicalTonUsdPointsPromise;
+async function historicalTonUsdPoints(requestedFromMs, requestedToMs) {
+  const endMs = Math.max(Date.now() + 60 * 60 * 1000, Number(requestedToMs || 0));
+  const observableEndMs = Math.min(endMs, Date.now());
+  const startMs = Math.min(
+    Date.now() - retentionDays * 24 * 60 * 60 * 1000,
+    Number(requestedFromMs || Number.POSITIVE_INFINITY),
+  );
+  if (
+    historicalTonUsdPointsPromise
+    && historicalTonUsdCoverage.fromMs <= startMs
+    && historicalTonUsdCoverage.toMs >= observableEndMs
+  ) return historicalTonUsdPointsPromise;
   historicalTonUsdPointsPromise = (async () => {
-    const endMs = Date.now() + 60 * 60 * 1000;
-    const startMs = Date.now() - retentionDays * 24 * 60 * 60 * 1000;
+    const customCoinGecko = Boolean(process.env.COINGECKO_API_BASE
+      && !/^https:\/\/api\.coingecko\.com\/api\/v3\/?$/i.test(process.env.COINGECKO_API_BASE));
+    if (!customCoinGecko) {
+      const series = await loadHistoricalGramUsd(startMs, endMs, { logger: console });
+      if (series.points.length) {
+        const first = series.points[0].timestamp;
+        const last = series.points.at(-1).timestamp;
+        console.log(`[gift-sales] historical TON/USD series ready: ${series.points.length} ${series.source} points ${new Date(first).toISOString()}..${new Date(last).toISOString()}`);
+        historicalTonUsdCoverage = { fromMs: first, toMs: last };
+        return series.points;
+      }
+    }
     const chunkMs = 89 * 24 * 60 * 60 * 1000;
     const points = [];
     for (let fromMs = startMs; fromMs < endMs; fromMs += chunkMs) {
@@ -147,13 +176,16 @@ async function historicalTonUsdPoints() {
       });
       if (toMs < endMs) await sleep(1500);
     }
-    const deduped = [...new Map(points.map((point) => [point.timestamp, point])).values()]
-      .sort((left, right) => left.timestamp - right.timestamp);
+    const deduped = normalizePoints(points.map((point) => [point.timestamp, point.rate]));
     if (!deduped.length) throw new Error("Historical TON/USD series is empty");
-    console.log(`[gift-sales] historical TON/USD series ready: ${deduped.length} observed market points`);
+    const first = deduped[0].timestamp;
+    const last = deduped.at(-1).timestamp;
+    console.log(`[gift-sales] historical TON/USD series ready: ${deduped.length} observed market points ${new Date(first).toISOString()}..${new Date(last).toISOString()}`);
+    historicalTonUsdCoverage = { fromMs: first, toMs: last };
     return deduped;
   })().catch((error) => {
     historicalTonUsdPointsPromise = null;
+    historicalTonUsdCoverage = { fromMs: 0, toMs: 0 };
     throw error;
   });
   return historicalTonUsdPointsPromise;
@@ -194,7 +226,13 @@ function closestHistoricalRate(points, soldAt = "") {
 
 async function attachHistoricalUsd(sales = []) {
   if (!sales.length) return { sales: [], pendingRates: 0 };
-  const points = await historicalTonUsdPoints();
+  const saleTimes = sales.map((sale) => new Date(sale.soldAt).getTime()).filter(Number.isFinite);
+  // Checkpointed pages can be slightly older than the current rolling window.
+  // Load against the actual evidence timestamps, never the worker's start time.
+  const points = await historicalTonUsdPoints(
+    Math.min(...saleTimes) - 12 * 60 * 60 * 1000,
+    Math.max(...saleTimes) + 12 * 60 * 60 * 1000,
+  );
   let pendingRates = 0;
   const enriched = sales.map((sale) => {
     const observed = closestHistoricalRate(points, sale.soldAt);
@@ -641,6 +679,7 @@ async function scanCollection(collection, previousState = null) {
   const previousAt = new Date(previousState?.newestSoldAt || 0).getTime();
   const pageLimit = previousId || Number.isFinite(previousAt) && previousAt > 0 ? maxIncrementalPages : baselinePages;
   const sales = [];
+  const cutoffMs = Date.now() - retentionDays * 86400000;
   let pagesScanned = 0;
   let newestSaleId = "";
   let newestSoldAt = "";
@@ -658,7 +697,7 @@ async function scanCollection(collection, previousState = null) {
       const soldAt = new Date(sale.soldAt).getTime();
       if (previousId && sale.saleId === previousId) reachedWatermark = true;
       if (!previousId && Number.isFinite(previousAt) && previousAt > 0 && soldAt < previousAt) reachedWatermark = true;
-      if (!reachedWatermark) sales.push(sale);
+      if (!reachedWatermark && soldAt >= cutoffMs) sales.push(sale);
     });
     const lastSoldAt = normalized.length ? new Date(normalized[normalized.length - 1].soldAt).getTime() : 0;
     const passedPreviousTime = Number.isFinite(previousAt) && previousAt > 0 && lastSoldAt > 0 && lastSoldAt < previousAt;
@@ -943,6 +982,59 @@ async function runCycle() {
     }
   }
 
+  // Exact coverage is the durable source for the detail-page sales table.
+  // Run it before the broad latest-sales sweep: the latter is intentionally
+  // slow under GiftSatellite's rate limit and previously starved this work.
+  const desiredCutoffMs = Date.now() - retentionDays * 86400000;
+  const selectedCoverageMode = exactBackfillEnabled ? "exact" : "chronological";
+  const hasCurrentCoverage = (state) => Boolean(
+    state?.completedAt
+    && state?.coverageMode === selectedCoverageMode
+    && Number.isFinite(new Date(state.cutoffAt || 0).getTime())
+    && new Date(state.cutoffAt).getTime() <= desiredCutoffMs
+  );
+  const pendingExactBackfills = collections.filter((collection) => !hasCurrentCoverage(
+    backfillStates.get(collectionIdentity(collection)),
+  )).sort((left, right) => {
+    const leftState = backfillStates.get(collectionIdentity(left));
+    const rightState = backfillStates.get(collectionIdentity(right));
+    const leftProgress = Number(leftState?.nextPage || 0);
+    const rightProgress = Number(rightState?.nextPage || 0);
+    // Give the least-covered collection its next burst first. Ordering the
+    // deepest checkpoints first repeatedly starves untouched collections.
+    if (leftProgress !== rightProgress) return leftProgress - rightProgress;
+    const leftScannedAt = new Date(leftState?.lastScannedAt || 0).getTime();
+    const rightScannedAt = new Date(rightState?.lastScannedAt || 0).getTime();
+    if (leftScannedAt !== rightScannedAt) return leftScannedAt - rightScannedAt;
+    return left.localeCompare(right);
+  });
+  for (let index = 0; exactBackfillEnabled && remainingExactRequests > 0 && index < pendingExactBackfills.length; index += 1) {
+    const collection = pendingExactBackfills[index];
+    const savedState = backfillStates.get(collectionIdentity(collection)) || null;
+    const backfillState = savedState?.coverageMode === selectedCoverageMode ? savedState : null;
+    const budget = Math.min(exactCollectionBatchSize, remainingExactRequests, backfillRequestBudget);
+    try {
+      const backfill = await scanExactBackfillCollection(collection, backfillState, budget);
+      const usedRequests = Number(backfill.requestsMade || 0);
+      remainingExactRequests -= usedRequests;
+      const result = await uploadSales(backfill);
+      inserted += Number(result.inserted || 0);
+      if (backfill.complete) backfillCompleted += 1;
+      backfillStates.set(collectionIdentity(collection), {
+        ...(backfillState || {}),
+        coverageMode: selectedCoverageMode,
+        nextPage: backfill.nextPage,
+        cutoffAt: backfill.cutoffAt,
+        completedAt: backfill.complete ? new Date().toISOString() : null,
+      });
+      console.log(`[gift-sales-exact] priority-backfill [${index + 1}/${pendingExactBackfills.length}] ${collection}: requests=${usedRequests} next=${backfill.nextPage}/${backfill.totalCombinations} accepted=${backfill.sales.length} inserted=${Number(result.inserted || 0)} complete=${Boolean(backfill.complete)} remainingExact=${remainingExactRequests}`);
+    } catch (error) {
+      if (error.status === 401 || error.status === 403) throw error;
+      backfillFailed += 1;
+      console.warn(`[gift-sales-exact] priority-backfill ${collection} failed: ${String(error.message || error).slice(0, 180)}`);
+    }
+  }
+
   console.log(`[gift-sales] scanning ${collections.length} collections at ${requestIntervalMs}ms/request pageSize=${pageSize} coverage=${exactBackfillEnabled ? `exact budget=${exactRequestBudget}` : `chronological burst=${backfillPagesPerCollection}`}`);
   for (let index = 0; index < collections.length; index += 1) {
     const collection = collections[index];
@@ -988,26 +1080,20 @@ async function runCycle() {
       });
     }
   }
-  const desiredCutoffMs = Date.now() - retentionDays * 86400000;
-  const selectedCoverageMode = exactBackfillEnabled ? "exact" : "chronological";
-  const hasCurrentCoverage = (state) => Boolean(
-    state?.completedAt
-    && state?.coverageMode === selectedCoverageMode
-    && Number.isFinite(new Date(state.cutoffAt || 0).getTime())
-    && new Date(state.cutoffAt).getTime() <= desiredCutoffMs
-  );
   const pendingBackfills = collections.filter((collection) => {
     const state = backfillStates.get(collectionIdentity(collection));
     return !hasCurrentCoverage(state);
   }).sort((left, right) => {
     const leftState = backfillStates.get(collectionIdentity(left));
     const rightState = backfillStates.get(collectionIdentity(right));
-    // Prefer the deepest resumable checkpoint, but process just one burst per
-    // collection in this cycle so all collections advance together.
+    // Serve the shallowest/oldest checkpoint first so each collection moves
+    // forward before an already-started archive receives another burst.
     const leftProgress = Number(leftState?.nextPage || 0);
     const rightProgress = Number(rightState?.nextPage || 0);
-    if (leftProgress !== rightProgress) return rightProgress - leftProgress;
-    if (Boolean(leftState) !== Boolean(rightState)) return leftState ? -1 : 1;
+    if (leftProgress !== rightProgress) return leftProgress - rightProgress;
+    const leftScannedAt = new Date(leftState?.lastScannedAt || 0).getTime();
+    const rightScannedAt = new Date(rightState?.lastScannedAt || 0).getTime();
+    if (leftScannedAt !== rightScannedAt) return leftScannedAt - rightScannedAt;
     return left.localeCompare(right);
   });
   await uploadStatus({

@@ -150,23 +150,20 @@ async function appendHistorySegment(env, collectionKey, bucketIndex, snapshotAt,
   const existing = await database.prepare(
     `SELECT points_json FROM gift_combo_history_segments
      WHERE collection_key = ?1 AND day_start = ?2 AND bucket = ?3`
-  ).bind(collectionKey, dayStart, -1).first();
+  ).bind(collectionKey, dayStart, bucketIndex).first();
   const points = JSON.parse(existing?.points_json || "{}");
-  const bucketKey = String(bucketIndex);
-  const bucketPoints = points[bucketKey] && typeof points[bucketKey] === "object" ? points[bucketKey] : {};
   for (const [targetKey, entry] of entries) {
-    const rows = Array.isArray(bucketPoints[targetKey]) ? bucketPoints[targetKey] : [];
+    const rows = Array.isArray(points[targetKey]) ? points[targetKey] : [];
     const last = rows.at(-1);
     if (!last || JSON.stringify(last) !== JSON.stringify(entry)) rows.push(entry);
-    bucketPoints[targetKey] = rows;
+    points[targetKey] = rows;
   }
-  points[bucketKey] = bucketPoints;
   await database.prepare(
     `INSERT INTO gift_combo_history_segments (collection_key, day_start, bucket, points_json)
      VALUES (?1,?2,?3,?4)
      ON CONFLICT(collection_key, day_start, bucket) DO UPDATE SET
        points_json=excluded.points_json`
-  ).bind(collectionKey, dayStart, -1, JSON.stringify(points)).run();
+  ).bind(collectionKey, dayStart, bucketIndex, JSON.stringify(points)).run();
 }
 
 async function compactLegacyHistory(env, requestedLimit = 200) {
@@ -180,50 +177,18 @@ async function compactLegacyHistory(env, requestedLimit = 200) {
   ).bind(limit).all();
   const rows = result.results || [];
   if (!rows.length) return { compactedRows: 0, segments: 0 };
-  const groups = new Map();
+  const segmentKeys = new Set();
   for (const row of rows) {
-    const dayStart = historyDay(row.sampled_at);
-    const groupKey = `${row.collection_key}:${dayStart}`;
-    const group = groups.get(groupKey) || {
-      collectionKey: row.collection_key,
-      dayStart,
-      rows: [],
-    };
-    group.rows.push(row);
-    groups.set(groupKey, group);
-  }
-  for (const group of groups.values()) {
-    const existing = await database.prepare(
-      `SELECT points_json FROM gift_combo_history_segments
-       WHERE collection_key = ?1 AND day_start = ?2 AND bucket = ?3`
-    ).bind(group.collectionKey, group.dayStart, -1).first();
-    const points = JSON.parse(existing?.points_json || "{}");
-    for (const row of group.rows) {
-      const changes = JSON.parse(row.changes_json || "{}");
-      const bucketKey = String(row.bucket);
-      const bucketPoints = points[bucketKey] && typeof points[bucketKey] === "object" ? points[bucketKey] : {};
-      for (const [targetKey, entry] of Object.entries(changes)) {
-        const point = historySegmentEntry(row.sampled_at, entry);
-        if (!point) continue;
-        const targetRows = Array.isArray(bucketPoints[targetKey]) ? bucketPoints[targetKey] : [];
-        const last = targetRows.at(-1);
-        if (!last || JSON.stringify(last) !== JSON.stringify(point)) targetRows.push(point);
-        bucketPoints[targetKey] = targetRows;
-      }
-      points[bucketKey] = bucketPoints;
-    }
-    await database.prepare(
-      `INSERT INTO gift_combo_history_segments (collection_key, day_start, bucket, points_json)
-       VALUES (?1,?2,?3,?4)
-       ON CONFLICT(collection_key, day_start, bucket) DO UPDATE SET
-         points_json=excluded.points_json`
-    ).bind(group.collectionKey, group.dayStart, -1, JSON.stringify(points)).run();
+    const changes = JSON.parse(row.changes_json || "{}");
+    if (!Object.keys(changes).length) continue;
+    await appendHistorySegment(env, row.collection_key, Number(row.bucket), row.sampled_at, changes);
+    segmentKeys.add(`${row.collection_key}:${historyDay(row.sampled_at)}:${row.bucket}`);
   }
   await database.batch(rows.map((row) => database.prepare(
     `DELETE FROM gift_combo_history_buckets
      WHERE collection_key = ?1 AND sampled_at = ?2 AND bucket = ?3`
   ).bind(row.collection_key, row.sampled_at, row.bucket)));
-  return { compactedRows: rows.length, segments: groups.size };
+  return { compactedRows: rows.length, segments: segmentKeys.size };
 }
 
 async function retireTelegramFloors(env, body = {}) {
@@ -322,6 +287,533 @@ function authorized(request, env) {
 
 function floorSourcesDatabase(env) {
   return env.GIFT_FLOOR_SOURCES || env.GIFT_REGISTRY;
+}
+
+function valuationReadDatabase(env) {
+  return env.VALUATION_READ_MODEL || null;
+}
+
+function valuationRecord(row) {
+  return {
+    assetKind: row.asset_kind,
+    assetKey: row.asset_key,
+    displayName: row.display_name,
+    estimateUsd: Number(row.estimate_usd || 0),
+    rangeLowUsd: Number(row.range_low_usd || 0),
+    rangeHighUsd: Number(row.range_high_usd || 0),
+    confidenceScore: Number(row.confidence_score || 0),
+    confidenceBand: row.confidence_band || "low",
+    valuationStatus: row.valuation_status || "unavailable",
+    portfolioEligible: Boolean(row.portfolio_eligible),
+    evidenceCount: Number(row.evidence_count || 0),
+    effectiveCompCount: Number(row.effective_comp_count || 0),
+    ownSaleCount: Number(row.own_sale_count || 0),
+    currentListingGram: Number(row.current_listing_gram || 0),
+    currentBidGram: Number(row.current_bid_gram || 0),
+    marketPlatform: row.market_platform || "",
+    estimatorVersion: row.estimator_version || "",
+    calibrationVersion: row.calibration_version || "",
+    valuedAt: row.valued_at || null,
+    staleAt: row.stale_at || null,
+    explanation: JSON.parse(row.explanation_json || "{}"),
+  };
+}
+
+async function readValuationRecords(env, body = {}) {
+  const database = valuationReadDatabase(env);
+  if (!database) return { records: [], configured: false };
+  const kind = String(body.assetKind || "").trim().toLowerCase();
+  const keys = [...new Set((Array.isArray(body.assetKeys) ? body.assetKeys : [])
+    .map((value) => String(value || "").trim().toLowerCase()).filter(Boolean))].slice(0, 500);
+  const names = [...new Set((Array.isArray(body.assetNames) ? body.assetNames : [])
+    .map((value) => String(value || "").trim().toLowerCase().replace(/^@/, "")).filter(Boolean))].slice(0, 500);
+  if (!['dns', 'username'].includes(kind) || (!keys.length && !names.length)) return { records: [], configured: true };
+  const clauses = [];
+  const bindings = [kind];
+  if (keys.length) {
+    clauses.push(`asset_key IN (${keys.map(() => "?").join(",")})`);
+    bindings.push(...keys);
+  }
+  if (names.length) {
+    clauses.push(`asset_key IN (
+      SELECT asset_key FROM identity_assets
+      WHERE asset_kind = ? AND normalized_name IN (${names.map(() => "?").join(",")})
+    )`);
+    bindings.push(kind);
+    bindings.push(...names);
+  }
+  const result = await database.prepare(
+    `SELECT * FROM valuation_records WHERE asset_kind = ? AND (${clauses.join(" OR ")})`
+  ).bind(...bindings).all();
+  return { records: (result.results || []).map(valuationRecord), configured: true };
+}
+
+function compactJson(value, fallback) {
+  try { return JSON.stringify(value ?? fallback); } catch { return JSON.stringify(fallback); }
+}
+
+function unixSeconds(value) {
+  if (Number.isFinite(Number(value)) && Number(value) > 1_000_000_000) return Math.floor(Number(value));
+  const parsed = Date.parse(String(value || ""));
+  return Number.isFinite(parsed) ? Math.floor(parsed / 1000) : 0;
+}
+
+async function storagePolicy(database) {
+  return database.prepare("SELECT * FROM identity_storage_policy WHERE policy_key = 'primary'").first();
+}
+
+async function exactIdentityCount(database, table) {
+  if (!['identity_assets', 'identity_sales', 'valuation_records'].includes(table)) throw new Error("Unsupported identity table");
+  const row = await database.prepare(`SELECT COUNT(*) AS count FROM ${table}`).first();
+  return Number(row?.count || 0);
+}
+
+function storagePressure(policy, field, maximumField) {
+  const used = Math.max(0, Number(policy?.[field] || 0));
+  const maximum = Math.max(1, Number(policy?.[maximumField] || 1));
+  return { used, maximum, ratio: used / maximum };
+}
+
+async function ingestIdentityAssets(request, env) {
+  if (!authorized(request, env)) return json({ error: "Unauthorized" }, 401);
+  const database = valuationReadDatabase(env);
+  if (!database) return json({ error: "Valuation read model is not configured" }, 503);
+  const body = await request.json().catch(() => ({}));
+  const records = (Array.isArray(body.records) ? body.records : []).slice(0, 500);
+  const policy = await storagePolicy(database);
+  policy.tracked_assets = await exactIdentityCount(database, "identity_assets");
+  const pressure = storagePressure(policy, "tracked_assets", "max_assets");
+  if (pressure.ratio >= Number(policy?.stop_ratio || 0.9)) return json({ error: "Identity asset storage guard is active", pressure }, 507);
+  const statements = records.flatMap((record) => {
+    const assetKind = String(record.assetKind || record.asset_kind || "").toLowerCase();
+    const assetKey = String(record.assetKey || record.asset_key || "").toLowerCase();
+    const normalizedName = String(record.normalizedName || record.normalized_name || "").toLowerCase().replace(/^@/, "");
+    if (!['dns', 'username'].includes(assetKind) || !assetKey || !normalizedName) return [];
+    return [database.prepare(`INSERT INTO identity_assets (
+      asset_kind,asset_key,normalized_name,display_name,primary_route,length_bucket,script,scarcity_class,
+      feature_json,semantic_json,source_updated_at,updated_at
+    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,CURRENT_TIMESTAMP)
+    ON CONFLICT(asset_kind,asset_key) DO UPDATE SET
+      normalized_name=excluded.normalized_name,display_name=excluded.display_name,
+      primary_route=excluded.primary_route,length_bucket=excluded.length_bucket,script=excluded.script,
+      scarcity_class=excluded.scarcity_class,feature_json=excluded.feature_json,
+      semantic_json=excluded.semantic_json,source_updated_at=excluded.source_updated_at,updated_at=CURRENT_TIMESTAMP
+    WHERE excluded.source_updated_at >= identity_assets.source_updated_at`).bind(
+      assetKind, assetKey, normalizedName, String(record.displayName || record.display_name || normalizedName),
+      String(record.primaryRoute || record.primary_route || "residual"),
+      String(record.lengthBucket || record.length_bucket || "*"),
+      String(record.script || "Common"), String(record.scarcityClass || record.scarcity_class || "standard"),
+      compactJson(record.feature || record.feature_json, {}), compactJson(record.semantic || record.semantic_json, {}),
+      String(record.sourceUpdatedAt || record.source_updated_at || new Date().toISOString())
+    ), database.prepare(`UPDATE identity_asset_aliases SET asset_key=?1,last_seen_at=CURRENT_TIMESTAMP
+      WHERE asset_kind=?2 AND normalized_name=?3`).bind(assetKey, assetKind, normalizedName)];
+  });
+  const results = statements.length ? await database.batch(statements) : [];
+  const changed = results.reduce((sum, result) => sum + Number(result?.meta?.changes || 0), 0);
+  const trackedAssets = await exactIdentityCount(database, "identity_assets");
+  await database.prepare(`UPDATE identity_storage_policy SET tracked_assets=?1,updated_at=CURRENT_TIMESTAMP
+    WHERE policy_key='primary'`).bind(trackedAssets).run();
+  return json({ ok: true, accepted: statements.length, changed, pressure, trackedAssets });
+}
+
+async function ingestIdentityAliases(request, env) {
+  if (!authorized(request, env)) return json({ error: "Unauthorized" }, 401);
+  const database = valuationReadDatabase(env);
+  if (!database) return json({ error: "Valuation read model is not configured" }, 503);
+  const body = await request.json().catch(() => ({}));
+  const records = (Array.isArray(body.records) ? body.records : []).slice(0, 500);
+  const statements = records.flatMap((record) => {
+    const assetKind = String(record.assetKind || record.asset_kind || "").toLowerCase();
+    const aliasKey = String(record.aliasKey || record.alias_key || "").trim().toLowerCase();
+    const normalizedName = String(record.normalizedName || record.normalized_name || "").toLowerCase().replace(/^@/, "");
+    if (!['dns', 'username'].includes(assetKind) || !aliasKey || !normalizedName) return [];
+    const source = String(record.source || "wallet-import").slice(0, 80);
+    return [database.prepare(`INSERT INTO identity_asset_aliases (
+      asset_kind,alias_key,normalized_name,asset_key,source,last_seen_at
+    ) VALUES (?, ?, ?, (
+      SELECT asset_key FROM identity_assets WHERE asset_kind=? AND normalized_name=? LIMIT 1
+    ), ?, CURRENT_TIMESTAMP)
+    ON CONFLICT(asset_kind,alias_key) DO UPDATE SET
+      normalized_name=excluded.normalized_name,
+      asset_key=COALESCE(excluded.asset_key, identity_asset_aliases.asset_key),
+      source=excluded.source,last_seen_at=CURRENT_TIMESTAMP`).bind(
+      assetKind, aliasKey, normalizedName, assetKind, normalizedName, source
+    )];
+  });
+  const results = statements.length ? await database.batch(statements) : [];
+  const changed = results.reduce((sum, result) => sum + Number(result?.meta?.changes || 0), 0);
+  return json({ ok: true, accepted: statements.length, changed });
+}
+
+async function readIdentityAliases(env, body = {}) {
+  const database = valuationReadDatabase(env);
+  if (!database) return { records: [], configured: false };
+  const kind = String(body.assetKind || "").toLowerCase();
+  const names = [...new Set((Array.isArray(body.names) ? body.names : [])
+    .map((value) => String(value || "").toLowerCase().replace(/^@/, "").trim()).filter(Boolean))].slice(0, 500);
+  if (!['dns', 'username'].includes(kind) || !names.length) return { records: [], configured: true };
+  const result = await database.prepare(`SELECT * FROM identity_asset_aliases
+    WHERE asset_kind=? AND normalized_name IN (${names.map(() => "?").join(",")})`).bind(kind, ...names).all();
+  return { records: result.results || [], configured: true };
+}
+
+async function ingestIdentitySales(request, env) {
+  if (!authorized(request, env)) return json({ error: "Unauthorized" }, 401);
+  const database = valuationReadDatabase(env);
+  if (!database) return json({ error: "Valuation read model is not configured" }, 503);
+  const body = await request.json().catch(() => ({}));
+  const records = (Array.isArray(body.records) ? body.records : []).slice(0, 500);
+  // D1 reports a changed row for both INSERT and ON CONFLICT UPDATE. Reconcile
+  // here so repeated idempotent evidence writes cannot consume the sale quota.
+  const salesBefore = await exactIdentityCount(database, "identity_sales");
+  let policy = await storagePolicy(database);
+  if (Number(policy?.tracked_sales || 0) !== salesBefore) {
+    await database.prepare(`UPDATE identity_storage_policy
+      SET tracked_sales=?1,updated_at=CURRENT_TIMESTAMP WHERE policy_key='primary'`).bind(salesBefore).run();
+    policy = { ...policy, tracked_sales: salesBefore };
+  }
+  const pressure = storagePressure(policy, "tracked_sales", "max_sales");
+  if (pressure.ratio >= Number(policy?.stop_ratio || 0.9)) return json({ error: "Identity sale storage guard is active", pressure }, 507);
+  let rejected = 0;
+  const statements = records.flatMap((record) => {
+    const saleId = String(record.saleId || record.sale_id || record.eventId || "").trim();
+    const assetKind = String(record.assetKind || record.asset_kind || "").toLowerCase();
+    const assetKey = String(record.assetKey || record.asset_key || record.nftAddress || "").toLowerCase();
+    const normalizedName = String(record.normalizedName || record.normalized_name || record.username || record.domain || "").toLowerCase().replace(/^@/, "");
+    const soldAt = unixSeconds(record.soldAt || record.sold_at || record.eventTime);
+    const priceGram = Number(record.priceGram || record.price_gram || 0);
+    const historicalUsdRate = Number(record.historicalUsdRate || record.historical_usd_rate || 0);
+    const priceUsd = Number(record.priceUsd || record.price_usd || 0);
+    const usdError = priceUsd > 0 ? Math.abs((priceGram * historicalUsdRate) - priceUsd) / priceUsd : Infinity;
+    if (!saleId || !['dns', 'username'].includes(assetKind) || !assetKey || !normalizedName
+      || !soldAt || !(priceGram > 0) || !(historicalUsdRate > 0) || !(priceUsd > 0) || usdError > 0.03) {
+      rejected += 1;
+      return [];
+    }
+    return [database.prepare(`INSERT INTO identity_sales (
+      sale_id,asset_kind,asset_key,normalized_name,sold_at,price_gram,historical_usd_rate,price_usd,
+      marketplace,source,reliability_score,quality_flags_json,primary_route,length_bucket,script,scarcity_class
+    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+    ON CONFLICT(sale_id) DO UPDATE SET
+      source=CASE
+        WHEN excluded.source LIKE '%toncenter%' THEN excluded.source
+        WHEN excluded.source LIKE '%market-reported%' THEN excluded.source
+        ELSE identity_sales.source
+      END,
+      reliability_score=CASE
+        WHEN excluded.source LIKE '%toncenter%' THEN MAX(identity_sales.reliability_score, excluded.reliability_score)
+        WHEN excluded.source LIKE '%market-reported%' THEN MIN(identity_sales.reliability_score, excluded.reliability_score)
+        ELSE MAX(identity_sales.reliability_score, excluded.reliability_score)
+      END,
+      quality_flags_json=CASE
+        WHEN excluded.source LIKE '%toncenter%' OR excluded.source LIKE '%market-reported%' THEN excluded.quality_flags_json
+        ELSE identity_sales.quality_flags_json
+      END`).bind(
+      saleId, assetKind, assetKey, normalizedName, soldAt, priceGram, historicalUsdRate, priceUsd,
+      String(record.marketplace || "unknown"), String(record.source || "unknown"),
+      Math.max(0, Math.min(1, Number(record.reliabilityScore || record.reliability_score || 1))),
+      compactJson(record.qualityFlags || record.quality_flags_json, []),
+      String(record.primaryRoute || record.primary_route || "residual"),
+      String(record.lengthBucket || record.length_bucket || "*"),
+      String(record.script || "Common"), String(record.scarcityClass || record.scarcity_class || "standard")
+    )];
+  });
+  if (statements.length) await database.batch(statements);
+  const trackedSales = await exactIdentityCount(database, "identity_sales");
+  const inserted = Math.max(0, trackedSales - salesBefore);
+  const existing = Math.max(0, statements.length - inserted);
+  await database.prepare(`UPDATE identity_storage_policy
+    SET tracked_sales=?1,updated_at=CURRENT_TIMESTAMP WHERE policy_key='primary'`).bind(trackedSales).run();
+  return json({ ok: true, accepted: statements.length, inserted, existing, duplicates: 0, rejected, pressure, trackedSales });
+}
+
+async function ingestIdentityBaselines(request, env) {
+  if (!authorized(request, env)) return json({ error: "Unauthorized" }, 401);
+  const database = valuationReadDatabase(env);
+  if (!database) return json({ error: "Valuation read model is not configured" }, 503);
+  const body = await request.json().catch(() => ({}));
+  const records = (Array.isArray(body.records) ? body.records : []).slice(0, 500);
+  const statements = records.flatMap((record) => {
+    const kind = String(record.assetKind || record.asset_kind || "").toLowerCase();
+    const midpoint = Number(record.midpointUsd || record.midpoint_usd || 0);
+    if (!['dns', 'username'].includes(kind) || !(midpoint > 0)) return [];
+    return [database.prepare(`INSERT INTO identity_archetype_baselines (
+      asset_kind,estimator_version,scope,primary_route,length_bucket,script,scarcity_class,
+      midpoint_usd,range_low_usd,range_high_usd,evidence_count,effective_comp_count,
+      generated_at,stale_at,provenance_json
+    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+    ON CONFLICT(asset_kind,estimator_version,scope,primary_route,length_bucket,script,scarcity_class)
+    DO UPDATE SET midpoint_usd=excluded.midpoint_usd,range_low_usd=excluded.range_low_usd,
+      range_high_usd=excluded.range_high_usd,evidence_count=excluded.evidence_count,
+      effective_comp_count=excluded.effective_comp_count,generated_at=excluded.generated_at,
+      stale_at=excluded.stale_at,provenance_json=excluded.provenance_json
+    WHERE excluded.generated_at >= identity_archetype_baselines.generated_at`).bind(
+      kind, String(record.estimatorVersion || record.estimator_version || ""), String(record.scope || "global"),
+      String(record.primaryRoute || record.primary_route || "*"), String(record.lengthBucket || record.length_bucket || "*"),
+      String(record.script || "*"), String(record.scarcityClass || record.scarcity_class || "*"), midpoint,
+      Number(record.rangeLowUsd || record.range_low_usd || midpoint), Number(record.rangeHighUsd || record.range_high_usd || midpoint),
+      Math.max(0, Number(record.evidenceCount || record.evidence_count || 0)),
+      Math.max(0, Number(record.effectiveCompCount || record.effective_comp_count || 0)),
+      String(record.generatedAt || record.generated_at || new Date().toISOString()),
+      String(record.staleAt || record.stale_at || new Date(Date.now() + 86400000).toISOString()),
+      compactJson(record.provenance || record.provenance_json, { verifiedSalesOnly: true })
+    )];
+  });
+  if (statements.length) await database.batch(statements);
+  return json({ ok: true, written: statements.length });
+}
+
+async function readIdentitySales(env, body = {}) {
+  const database = valuationReadDatabase(env);
+  if (!database) return { records: [], configured: false };
+  const kind = String(body.assetKind || "").toLowerCase();
+  const limit = Math.max(1, Math.min(5000, Number(body.limit || 1000)));
+  const cursorSoldAt = Math.max(0, Number(body.cursor?.soldAt || 0));
+  const cursorSaleId = String(body.cursor?.saleId || "");
+  if (!['dns', 'username'].includes(kind)) return { records: [], configured: true, nextCursor: null };
+  const where = cursorSoldAt > 0
+    ? "asset_kind=?1 AND (sold_at < ?2 OR (sold_at = ?2 AND sale_id < ?3))"
+    : "asset_kind=?1";
+  const statement = database.prepare(`SELECT * FROM identity_sales WHERE ${where}
+    ORDER BY sold_at DESC, sale_id DESC LIMIT ?${cursorSoldAt > 0 ? 4 : 2}`);
+  const result = cursorSoldAt > 0
+    ? await statement.bind(kind, cursorSoldAt, cursorSaleId, limit).all()
+    : await statement.bind(kind, limit).all();
+  const records = result.results || [];
+  const last = records.at(-1);
+  return {
+    configured: true,
+    records,
+    nextCursor: records.length === limit && last ? { soldAt: Number(last.sold_at), saleId: last.sale_id } : null,
+  };
+}
+
+async function readUsernameEvidence(request, env) {
+  if (!authorized(request, env)) return json({ error: "Unauthorized" }, 401);
+  const database = valuationReadDatabase(env);
+  if (!database) return json({ error: "Valuation read model is not configured" }, 503);
+  const body = await request.json().catch(() => ({}));
+  const targets = (Array.isArray(body.targets) ? body.targets : []).slice(0, 100).map((target) => ({
+    normalizedName: String(target.normalizedName || target.username || "").toLowerCase().replace(/^@/, ""),
+    primaryRoute: String(target.primaryRoute || "residual"),
+    lengthBucket: String(target.lengthBucket || "*"),
+  })).filter((target) => target.normalizedName);
+  if (!targets.length) return json({ configured: true, records: [] });
+
+  const columns = `sale_id,asset_key,normalized_name,sold_at,price_usd,reliability_score,
+    quality_flags_json,primary_route,length_bucket,script,scarcity_class`;
+  const cutoff = Math.floor(Date.now() / 1000) - (10 * 365 * 86400);
+  const names = [...new Set(targets.map((target) => target.normalizedName))];
+  const groups = [...new Map(targets.map((target) => [
+    `${target.primaryRoute}|${target.lengthBucket}`, target,
+  ])).values()].slice(0, 40);
+  const statements = [
+    database.prepare(`SELECT ${columns} FROM identity_sales
+      WHERE asset_kind='username' AND sold_at>=?1
+      ORDER BY sold_at DESC LIMIT 2500`).bind(cutoff),
+    database.prepare(`SELECT ${columns} FROM identity_sales
+      WHERE asset_kind='username' AND normalized_name IN (${names.map(() => "?").join(",")})
+      ORDER BY sold_at DESC LIMIT 1000`).bind(...names),
+    ...groups.map((group) => database.prepare(`SELECT ${columns} FROM identity_sales
+      WHERE asset_kind='username' AND primary_route=?1 AND length_bucket=?2 AND sold_at>=?3
+      ORDER BY sold_at DESC LIMIT 750`).bind(group.primaryRoute, group.lengthBucket, cutoff)),
+  ];
+  const results = await database.batch(statements);
+  const records = new Map();
+  for (const result of results) {
+    for (const row of result.results || []) {
+      if (!records.has(row.sale_id)) records.set(row.sale_id, row);
+      if (records.size >= 8000) break;
+    }
+    if (records.size >= 8000) break;
+  }
+  return json({ configured: true, records: [...records.values()] });
+}
+
+async function readIdentityAssets(env, body = {}) {
+  const database = valuationReadDatabase(env);
+  if (!database) return { records: [], configured: false, nextCursor: null };
+  const kind = String(body.assetKind || "").toLowerCase();
+  const limit = Math.max(1, Math.min(5000, Number(body.limit || 1000)));
+  const cursor = String(body.cursor || "").toLowerCase();
+  if (!['dns', 'username'].includes(kind)) return { records: [], configured: true, nextCursor: null };
+  const result = cursor
+    ? await database.prepare(`SELECT asset_key,normalized_name,display_name,source_updated_at
+        FROM identity_assets WHERE asset_kind=?1 AND asset_key>?2 ORDER BY asset_key LIMIT ?3`)
+      .bind(kind, cursor, limit).all()
+    : await database.prepare(`SELECT asset_key,normalized_name,display_name,source_updated_at
+        FROM identity_assets WHERE asset_kind=?1 ORDER BY asset_key LIMIT ?2`)
+      .bind(kind, limit).all();
+  const records = result.results || [];
+  const last = records.at(-1);
+  return { configured: true, records, nextCursor: records.length === limit && last ? last.asset_key : null };
+}
+
+async function ingestIdentityMarket(request, env) {
+  if (!authorized(request, env)) return json({ error: "Unauthorized" }, 401);
+  const database = valuationReadDatabase(env);
+  if (!database) return json({ error: "Valuation read model is not configured" }, 503);
+  const body = await request.json().catch(() => ({}));
+  const records = (Array.isArray(body.records) ? body.records : []).slice(0, 500);
+  const statements = records.flatMap((record) => {
+    const kind = String(record.assetKind || record.asset_kind || "").toLowerCase();
+    const assetKey = String(record.assetKey || record.asset_key || "").toLowerCase();
+    const observedAt = String(record.observedAt || record.observed_at || "");
+    if (!['dns', 'username'].includes(kind) || !assetKey || !Number.isFinite(Date.parse(observedAt))) return [];
+    return [database.prepare(`INSERT INTO identity_current_market (
+      asset_kind,asset_key,lowest_ask_gram,highest_bid_gram,marketplace,verified,observed_at,stale_at,updated_at
+    ) VALUES (?,?,?,?,?,?,?,?,CURRENT_TIMESTAMP)
+    ON CONFLICT(asset_kind,asset_key) DO UPDATE SET lowest_ask_gram=excluded.lowest_ask_gram,
+      highest_bid_gram=excluded.highest_bid_gram,marketplace=excluded.marketplace,verified=excluded.verified,
+      observed_at=excluded.observed_at,stale_at=excluded.stale_at,updated_at=CURRENT_TIMESTAMP
+    WHERE excluded.observed_at >= identity_current_market.observed_at`).bind(
+      kind, assetKey, Number(record.lowestAskGram || record.lowest_ask_gram || 0) || null,
+      Number(record.highestBidGram || record.highest_bid_gram || 0) || null,
+      String(record.marketplace || ""), record.verified ? 1 : 0, observedAt,
+      String(record.staleAt || record.stale_at || "") || null
+    )];
+  });
+  if (statements.length) await database.batch(statements);
+  return json({ ok: true, written: statements.length });
+}
+
+async function readIdentityState(env, keyValue) {
+  const database = valuationReadDatabase(env);
+  if (!database) return { configured: false, state: null };
+  const pipelineKey = String(keyValue || "").trim();
+  if (!pipelineKey) return { configured: true, state: null };
+  const row = await database.prepare("SELECT * FROM identity_pipeline_state WHERE pipeline_key=?1").bind(pipelineKey).first();
+  return { configured: true, state: row ? {
+    pipelineKey: row.pipeline_key,
+    cursor: JSON.parse(row.cursor_json || "{}"),
+    metadata: JSON.parse(row.metadata_json || "{}"),
+    updatedAt: row.updated_at,
+  } : null };
+}
+
+async function ingestIdentityState(request, env) {
+  if (!authorized(request, env)) return json({ error: "Unauthorized" }, 401);
+  const database = valuationReadDatabase(env);
+  if (!database) return json({ error: "Valuation read model is not configured" }, 503);
+  const body = await request.json().catch(() => ({}));
+  const pipelineKey = String(body.pipelineKey || "").trim();
+  if (!pipelineKey) return json({ error: "pipelineKey is required" }, 400);
+  await database.prepare(`INSERT INTO identity_pipeline_state (pipeline_key,cursor_json,metadata_json,updated_at)
+    VALUES (?1,?2,?3,CURRENT_TIMESTAMP) ON CONFLICT(pipeline_key) DO UPDATE SET
+    cursor_json=excluded.cursor_json,metadata_json=excluded.metadata_json,updated_at=CURRENT_TIMESTAMP`)
+    .bind(pipelineKey, compactJson(body.cursor, {}), compactJson(body.metadata, {})).run();
+  return json({ ok: true, pipelineKey });
+}
+
+async function readIdentityBaselines(env, body = {}) {
+  const database = valuationReadDatabase(env);
+  if (!database) return { records: [], configured: false };
+  const kind = String(body.assetKind || "").toLowerCase();
+  const version = String(body.estimatorVersion || "");
+  if (!['dns', 'username'].includes(kind) || !version) return { records: [], configured: true };
+  const result = await database.prepare(`SELECT * FROM identity_archetype_baselines
+    WHERE asset_kind=?1 AND estimator_version=?2 AND stale_at > ?3`).bind(kind, version, new Date().toISOString()).all();
+  return { configured: true, records: result.results || [] };
+}
+
+async function maintainIdentityStorage(env) {
+  const database = valuationReadDatabase(env);
+  if (!database) return { configured: false };
+  const cutoff = new Date(Date.now() - 30 * 86400000).toISOString();
+  const aliasCutoff = new Date(Date.now() - 90 * 86400000).toISOString();
+  await database.prepare("DELETE FROM identity_current_market WHERE stale_at IS NOT NULL AND stale_at < ?1").bind(cutoff).run();
+  await database.prepare("DELETE FROM identity_asset_aliases WHERE last_seen_at < ?1").bind(aliasCutoff).run();
+  const counts = await database.prepare(`SELECT
+    (SELECT COUNT(*) FROM identity_assets) AS assets,
+    (SELECT COUNT(*) FROM identity_sales) AS sales,
+    (SELECT COUNT(*) FROM valuation_records) AS valuations`).first();
+  await database.prepare(`UPDATE identity_storage_policy SET tracked_assets=?1,tracked_sales=?2,
+    tracked_valuations=?3,updated_at=CURRENT_TIMESTAMP WHERE policy_key='primary'`)
+    .bind(Number(counts?.assets || 0), Number(counts?.sales || 0), Number(counts?.valuations || 0)).run();
+  const policy = await storagePolicy(database);
+  return { configured: true, policy, pressure: {
+    assets: storagePressure(policy, "tracked_assets", "max_assets"),
+    sales: storagePressure(policy, "tracked_sales", "max_sales"),
+    valuations: storagePressure(policy, "tracked_valuations", "max_valuations"),
+  } };
+}
+
+async function ingestValuationRecords(request, env) {
+  if (!authorized(request, env)) return json({ error: "Unauthorized" }, 401);
+  const database = valuationReadDatabase(env);
+  if (!database) return json({ error: "Valuation read model is not configured" }, 503);
+  const body = await request.json().catch(() => ({}));
+  const records = (Array.isArray(body.records) ? body.records : []).slice(0, 500);
+  const policy = await storagePolicy(database);
+  policy.tracked_valuations = await exactIdentityCount(database, "valuation_records");
+  const pressure = storagePressure(policy, "tracked_valuations", "max_valuations");
+  if (pressure.ratio >= Number(policy?.stop_ratio || 0.9)) {
+    return json({ error: "Identity valuation storage guard is active", pressure }, 507);
+  }
+  const statements = [];
+  for (const record of records) {
+    const assetKind = String(record.asset_kind || record.assetKind || "").trim().toLowerCase();
+    const assetKey = String(record.asset_key || record.assetKey || "").trim().toLowerCase();
+    const estimatorVersion = String(record.estimator_version || record.estimatorVersion || "").trim();
+    if (!['dns', 'username'].includes(assetKind) || !assetKey || !estimatorVersion) continue;
+    statements.push(database.prepare(
+      `INSERT INTO valuation_records (
+        asset_kind, asset_key, display_name, estimate_usd, range_low_usd, range_high_usd,
+        confidence_score, confidence_band, valuation_status, portfolio_eligible,
+        evidence_count, effective_comp_count, own_sale_count, current_listing_gram,
+        current_bid_gram, market_platform, estimator_version, calibration_version,
+        valued_at, stale_at, explanation_json, updated_at
+      ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,CURRENT_TIMESTAMP)
+      ON CONFLICT(asset_kind, asset_key) DO UPDATE SET
+        display_name=excluded.display_name, estimate_usd=excluded.estimate_usd,
+        range_low_usd=excluded.range_low_usd, range_high_usd=excluded.range_high_usd,
+        confidence_score=excluded.confidence_score, confidence_band=excluded.confidence_band,
+        valuation_status=excluded.valuation_status, portfolio_eligible=excluded.portfolio_eligible,
+        evidence_count=excluded.evidence_count, effective_comp_count=excluded.effective_comp_count,
+        own_sale_count=excluded.own_sale_count, current_listing_gram=excluded.current_listing_gram,
+        current_bid_gram=excluded.current_bid_gram, market_platform=excluded.market_platform,
+        estimator_version=excluded.estimator_version, calibration_version=excluded.calibration_version,
+        valued_at=excluded.valued_at, stale_at=excluded.stale_at,
+        explanation_json=excluded.explanation_json, updated_at=CURRENT_TIMESTAMP
+      WHERE excluded.valued_at >= valuation_records.valued_at
+        AND (
+          excluded.estimator_version = valuation_records.estimator_version
+          OR (
+            instr(excluded.estimator_version, '-v') > 0
+            AND instr(valuation_records.estimator_version, '-v') > 0
+            AND substr(excluded.estimator_version, 1, instr(excluded.estimator_version, '-v')) =
+                substr(valuation_records.estimator_version, 1, instr(valuation_records.estimator_version, '-v'))
+            AND CAST(substr(excluded.estimator_version, instr(excluded.estimator_version, '-v') + 2) AS INTEGER) >
+                CAST(substr(valuation_records.estimator_version, instr(valuation_records.estimator_version, '-v') + 2) AS INTEGER)
+          )
+        )`
+    ).bind(
+      assetKind, assetKey, String(record.display_name || record.displayName || assetKey),
+      Number(record.estimate_usd || record.estimateUsd || 0) || null,
+      Number(record.range_low_usd || record.rangeLowUsd || 0) || null,
+      Number(record.range_high_usd || record.rangeHighUsd || 0) || null,
+      Number(record.confidence_score || record.confidenceScore || 0),
+      String(record.confidence_band || record.confidenceBand || "low"),
+      String(record.valuation_status || record.valuationStatus || "unavailable"),
+      record.portfolio_eligible || record.portfolioEligible ? 1 : 0,
+      Number(record.evidence_count || record.evidenceCount || 0),
+      Number(record.effective_comp_count || record.effectiveCompCount || 0),
+      Number(record.own_sale_count || record.ownSaleCount || 0),
+      Number(record.current_listing_gram || record.currentListingGram || 0) || null,
+      Number(record.current_bid_gram || record.currentBidGram || 0) || null,
+      String(record.market_platform || record.marketPlatform || ""),
+      estimatorVersion,
+      String(record.calibration_version || record.calibrationVersion || ""),
+      String(record.valued_at || record.valuedAt || new Date().toISOString()),
+      String(record.stale_at || record.staleAt || new Date().toISOString()),
+      JSON.stringify(record.explanation_json || record.explanation || {})
+    ));
+  }
+  if (statements.length) await database.batch(statements);
+  const trackedValuations = await exactIdentityCount(database, "valuation_records");
+  await database.prepare(`UPDATE identity_storage_policy SET tracked_valuations=?1,updated_at=CURRENT_TIMESTAMP
+    WHERE policy_key='primary'`).bind(trackedValuations).run();
+  return json({ ok: true, written: statements.length, pressure, trackedValuations });
 }
 
 function historyDatabases(env) {
@@ -668,6 +1160,8 @@ const DEFAULT_SALES_SHARD_LIMIT_BYTES = 400_000_000;
 const DEFAULT_SALES_PER_COMBO_LIMIT = 10;
 const DEFAULT_SALES_EVENTS_PER_SHARD_LIMIT = 400_000;
 const DEFAULT_SALES_PRUNE_BATCH = 25_000;
+const HISTORICAL_USD_MAX_RATE_DRIFT_MS = 26 * 60 * 60 * 1000;
+const HISTORICAL_USD_MAX_RELATIVE_ERROR = 0.03;
 
 function writableCompactSalesDatabaseConfigs(env, year) {
   const primary = year === 2025
@@ -1151,7 +1645,7 @@ async function readSalesBackfillState(env, collection = "") {
   return [...merged.values()];
 }
 
-function normalizedSaleForIngest(input = {}, fallbackCollection = "", ingestedAt = "") {
+export function normalizedSaleForIngest(input = {}, fallbackCollection = "", ingestedAt = "") {
   const collectionName = String(input.collection || input.collectionName || fallbackCollection || "").trim();
   const modelName = String(input.model || input.modelName || "").trim();
   const backdropName = String(input.backdrop || input.backdropName || "").trim();
@@ -1173,6 +1667,13 @@ function normalizedSaleForIngest(input = {}, fallbackCollection = "", ingestedAt
     || !(priceTon > 0)
   ) return null;
   const soldAt = new Date(soldAtMs).toISOString();
+  const expectedUsd = priceTon * tonUsdRate;
+  const historicalUsdIsVerified = Number.isFinite(rateAtMs)
+    && priceUsd > 0
+    && tonUsdRate > 0
+    && Math.abs(rateAtMs - soldAtMs) <= HISTORICAL_USD_MAX_RATE_DRIFT_MS
+    && expectedUsd > 0
+    && Math.abs(expectedUsd - priceUsd) / expectedUsd <= HISTORICAL_USD_MAX_RELATIVE_ERROR;
   const originalValue = input.originalPrice ?? input.original_price ?? "";
   const originalPrice = typeof originalValue === "object" && originalValue !== null
     ? JSON.stringify(originalValue)
@@ -1195,9 +1696,11 @@ function normalizedSaleForIngest(input = {}, fallbackCollection = "", ingestedAt
     giftId,
     giftNumber: Number(input.mint || input.number || input.giftNumber || 0),
     priceTon,
-    priceUsd,
-    tonUsdRate,
-    rateAt: Number.isFinite(rateAtMs) && tonUsdRate > 0 && priceUsd > 0
+    // A sale without a coherent event-time rate remains valid TON evidence.
+    // It must never become a dollar amount using an ingestion-time quote.
+    priceUsd: historicalUsdIsVerified ? priceUsd : 0,
+    tonUsdRate: historicalUsdIsVerified ? tonUsdRate : 0,
+    rateAt: historicalUsdIsVerified
       ? new Date(rateAtMs).toISOString()
       : "",
     originalPrice,
@@ -1643,14 +2146,41 @@ async function latestHistoryEntry(env, collectionKey, bucketIndex, targetKey) {
   return candidates.sort((left, right) => new Date(right.timestamp) - new Date(left.timestamp))[0] || null;
 }
 
+async function collectionHistorySampleTimes(env, collectionKey) {
+  const rows = await floorSourcesDatabase(env).prepare(
+    `SELECT bucket, points_json
+     FROM gift_combo_history_segments
+     WHERE collection_key = ?1
+     ORDER BY day_start DESC`
+  ).bind(collectionKey).all();
+  const latest = new Map();
+  for (const row of rows.results || []) {
+    const bucket = Number(row.bucket);
+    if (!Number.isInteger(bucket) || bucket < 0 || bucket >= BUCKET_COUNT) continue;
+    const bucketLatest = latest.get(bucket) || new Map();
+    for (const point of historySegmentPoints(JSON.parse(row.points_json || "{}"))) {
+      const sampledAt = new Date(point.timestamp || 0).getTime();
+      if (!Number.isFinite(sampledAt)) continue;
+      bucketLatest.set(point.targetKey, Math.max(bucketLatest.get(point.targetKey) || 0, sampledAt));
+    }
+    latest.set(bucket, bucketLatest);
+  }
+  return latest;
+}
+
 async function ingestCollection(request, env) {
   if (!authorized(request, env)) return json({ error: "Unauthorized" }, 401);
   const body = await request.json();
   const collectionName = String(body.collection || "").trim();
   const collectionKey = key(collectionName);
   const snapshotAt = String(body.snapshotAt || new Date().toISOString());
-  const source = String(body.source || "thermos").trim() || "thermos";
-  const buckets = Array.isArray(body.buckets) ? body.buckets : [];
+  const suppliedSource = String(body.source || "thermos").trim() || "thermos";
+  const source = sourceKey(suppliedSource);
+  const rawBuckets = Array.isArray(body.buckets) ? body.buckets : [];
+  const buckets = rawBuckets.map((bucket) => backdropComboBucket(bucket || {}));
+  if (source !== "thermos") {
+    return json({ error: "Only Thermos floor snapshots are accepted" }, 410);
+  }
   if (!collectionKey || buckets.length !== BUCKET_COUNT) {
     return json({ error: `Expected collection and ${BUCKET_COUNT} buckets` }, 400);
   }
@@ -1679,18 +2209,17 @@ async function ingestCollection(request, env) {
       Number(body.listingCount || 0),
       Number(body.combinationCount || 0),
       BUCKET_COUNT,
-      source
+      suppliedSource
     ),
   ];
-  const historyStatements = [];
+  const historyChanges = [];
   let changedBuckets = 0;
   buckets.forEach((bucket, index) => {
     const combinationsJson = JSON.stringify(bucket || {});
     const previousJson = previousRows[index]?.results?.[0]?.combinations_json || "";
-    if (previousJson === combinationsJson) return;
-    changedBuckets += 1;
-    historyStatements.push(
-      floorSourcesDatabase(env).prepare(
+    if (previousJson !== combinationsJson) changedBuckets += 1;
+    statements.push(
+      env.GIFT_REGISTRY.prepare(
         `INSERT INTO gift_combo_buckets (collection_key, bucket, snapshot_at, combinations_json)
          VALUES (?1,?2,?3,?4)
          ON CONFLICT(collection_key,bucket) DO UPDATE SET
@@ -1698,16 +2227,28 @@ async function ingestCollection(request, env) {
            combinations_json=excluded.combinations_json`
       ).bind(collectionKey, index, snapshotAt, combinationsJson)
     );
-    statements.push(
-      env.GIFT_REGISTRY.prepare(
-        `INSERT INTO gift_combo_history_buckets (
-          collection_key, sampled_at, bucket, changes_json
-        ) VALUES (?1,?2,?3,?4)`
-      ).bind(collectionKey, snapshotAt, index, combinationsJson)
-    );
+    historyChanges.push({
+      bucket: index,
+      previous: backdropComboBucket(JSON.parse(previousJson || "{}")),
+      current: bucket,
+    });
   });
   await env.GIFT_REGISTRY.batch(statements);
-  if (historyStatements.length) await floorSourcesDatabase(env).batch(historyStatements);
+  const sampleAt = new Date(snapshotAt || Date.now()).getTime();
+  const lastSamples = await collectionHistorySampleTimes(env, collectionKey);
+  await Promise.all(historyChanges.map(async ({ bucket, previous, current }) => {
+    const changes = {};
+    const samples = lastSamples.get(bucket) || new Map();
+    for (const [targetKey, entry] of Object.entries(current)) {
+      const valueChanged = !sameHistoryPoint(previous[targetKey], entry);
+      const lastSampleAt = samples.get(targetKey) || 0;
+      const sampleDue = !lastSampleAt || (Number.isFinite(sampleAt) && sampleAt - lastSampleAt >= UNCHANGED_SAMPLE_MS);
+      if (valueChanged || sampleDue) changes[targetKey] = historyPoint(entry);
+    }
+    if (Object.keys(changes).length) {
+      await appendHistorySegment(env, collectionKey, bucket, snapshotAt, changes);
+    }
+  }));
   return json({
     ok: true,
     collection: collectionName,
@@ -1762,8 +2303,8 @@ async function ingestCollectionBucket(request, env) {
     ON CONFLICT(collection_key) DO UPDATE SET
       collection_name=excluded.collection_name,
       snapshot_at=excluded.snapshot_at,
-      listing_count=MAX(gift_combo_collections.listing_count, excluded.listing_count),
-      combination_count=MAX(gift_combo_collections.combination_count, excluded.combination_count),
+      listing_count=excluded.listing_count,
+      combination_count=excluded.combination_count,
       bucket_count=excluded.bucket_count,
       source=excluded.source`
   ).bind(
@@ -2102,6 +2643,13 @@ export default {
     const url = new URL(request.url);
     if (url.pathname === "/health") return json({ ok: true, service: "tontrack-gift-registry" });
     if (url.pathname === "/stats") {
+      // The floor worker calls this after every cycle. Keep the default health
+      // response on the active state and compact shards; legacy archives are
+      // only needed for an explicit forensic audit and can be much slower.
+      const includeLegacySales = url.searchParams.get("includeLegacy") === "1";
+      const statsSalesDatabases = includeLegacySales
+        ? salesReadDatabases(env)
+        : [salesDatabase(env)].filter(Boolean);
       const stats = await env.GIFT_REGISTRY.prepare(
         `SELECT COUNT(*) AS collections,
           COALESCE(SUM(listing_count),0) AS listings,
@@ -2113,7 +2661,7 @@ export default {
       let salesBackfill = {};
       let salesShards = [];
       try {
-        const salesParts = await Promise.all(salesReadDatabases(env).map((database) => database.prepare(
+        const salesParts = await Promise.all(statsSalesDatabases.map((database) => database.prepare(
           `SELECT COUNT(*) AS sales,
             COUNT(DISTINCT collection_key) AS sales_collections,
             COUNT(DISTINCT collection_key || ':' || model_key || ':' || backdrop_key) AS sales_combinations,
@@ -2137,7 +2685,7 @@ export default {
         sales = {};
       }
       try {
-        const backfillParts = await Promise.all(salesReadDatabases(env).map((database) => database.prepare(
+        const backfillParts = await Promise.all(statsSalesDatabases.map((database) => database.prepare(
           `SELECT collection_key, completed_at, oldest_sold_at, last_scanned_at
            FROM gift_sales_backfill_state`
         ).all().catch(() => ({ results: [] }))));
@@ -2175,6 +2723,7 @@ export default {
       );
       return json({
         ...(stats || {}),
+        sales_stats_scope: includeLegacySales ? "all-readable-shards" : "active-shard-plus-compact",
         ...sales,
         ...salesBackfill,
         sales_backfill_total_collections: backfillTotal,
@@ -2232,6 +2781,57 @@ export default {
       const body = await request.json();
       const collections = Array.isArray(body.collections) ? body.collections.slice(0, 100) : [];
       return json(await readCollectionCombos(env, collections));
+    }
+    if (url.pathname === "/valuations/read" && request.method === "POST") {
+      const body = await request.json().catch(() => ({}));
+      return json(await readValuationRecords(env, body));
+    }
+    if (url.pathname === "/ingest/valuations" && request.method === "POST") {
+      return ingestValuationRecords(request, env);
+    }
+    if (url.pathname === "/identity/baselines/read" && request.method === "POST") {
+      const body = await request.json().catch(() => ({}));
+      return json(await readIdentityBaselines(env, body));
+    }
+    if (url.pathname === "/identity/sales/read" && request.method === "POST") {
+      const body = await request.json().catch(() => ({}));
+      return json(await readIdentitySales(env, body));
+    }
+    if (url.pathname === "/identity/username-evidence/read" && request.method === "POST") {
+      return readUsernameEvidence(request, env);
+    }
+    if (url.pathname === "/identity/assets/read" && request.method === "POST") {
+      const body = await request.json().catch(() => ({}));
+      return json(await readIdentityAssets(env, body));
+    }
+    if (url.pathname === "/identity/aliases/read" && request.method === "POST") {
+      const body = await request.json().catch(() => ({}));
+      return json(await readIdentityAliases(env, body));
+    }
+    if (url.pathname === "/identity/state" && request.method === "GET") {
+      return json(await readIdentityState(env, url.searchParams.get("key")));
+    }
+    if (url.pathname === "/ingest/identity-assets" && request.method === "POST") {
+      return ingestIdentityAssets(request, env);
+    }
+    if (url.pathname === "/ingest/identity-aliases" && request.method === "POST") {
+      return ingestIdentityAliases(request, env);
+    }
+    if (url.pathname === "/ingest/identity-sales" && request.method === "POST") {
+      return ingestIdentitySales(request, env);
+    }
+    if (url.pathname === "/ingest/identity-baselines" && request.method === "POST") {
+      return ingestIdentityBaselines(request, env);
+    }
+    if (url.pathname === "/ingest/identity-market" && request.method === "POST") {
+      return ingestIdentityMarket(request, env);
+    }
+    if (url.pathname === "/ingest/identity-state" && request.method === "POST") {
+      return ingestIdentityState(request, env);
+    }
+    if (url.pathname === "/maintenance/identity-storage" && request.method === "POST") {
+      if (!authorized(request, env)) return json({ error: "Unauthorized" }, 401);
+      return json({ ok: true, ...(await maintainIdentityStorage(env)) });
     }
     if (url.pathname === "/sales" && request.method === "GET") {
       const sales = await readSales(env, {
@@ -2334,6 +2934,7 @@ export default {
     await floorSourcesDatabase(env).prepare(
       `DELETE FROM gift_combo_history_segments WHERE day_start < ?1`
     ).bind(cutoff.slice(0, 10)).run();
+    await maintainIdentityStorage(env).catch(() => null);
     if (new Date().getUTCHours() === 2) {
       const salesRetentionDays = Math.max(30, Number(env.SALES_RETENTION_DAYS || 365));
       const salesCutoff = new Date(Date.now() - salesRetentionDays * 24 * 60 * 60 * 1000).toISOString();
