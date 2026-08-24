@@ -111,3 +111,18 @@ test("rejects unrelated word usernames that only share coarse structural feature
   assert.equal(result.evidenceCount, 1);
   assert.equal(result.comparables[0].username, "notgamescoin");
 });
+
+test("bounds broad evidence to the nearest comparable cohort", () => {
+  const nowMs = Date.parse("2026-08-24T00:00:00Z");
+  const events = Array.from({ length: 140 }, (_, index) => sale(
+    `marketname${String.fromCharCode(97 + (index % 26))}${String.fromCharCode(97 + Math.floor(index / 26))}`,
+    100 + index,
+    index + 1,
+    nowMs,
+    `cohort-${index}`
+  ));
+  const result = estimateTelegramUsernameValue("marketname", events, { nowMs });
+
+  assert.equal(result.evidenceCount, 80);
+  assert.ok(result.effectiveCompCount <= 80);
+});
