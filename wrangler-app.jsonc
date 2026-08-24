@@ -1,0 +1,26 @@
+{
+  "name": "tontrack-app-edge",
+  "main": "cloudflare/tontrack-app-edge.mjs",
+  "compatibility_date": "2026-08-24",
+  "compatibility_flags": ["nodejs_compat", "nodejs_compat_populate_process_env", "enable_nodejs_http_server_modules"],
+  "vars": {
+    "TONTRACK_MODE": "app-server",
+    "REGISTRY_PRELOAD": "0",
+    "GIFT_SNAPSHOT_AUTORUN": "0",
+    "D1_REGISTRY_URL": "https://tontrack-gift-registry.vishu-vishal264.workers.dev",
+    "VALUATION_READ_MODEL_URL": "https://tontrack-gift-registry.vishu-vishal264.workers.dev",
+    "DNS_PORTFOLIO_ESTIMATES_ENABLED": "1",
+    "USERNAME_PORTFOLIO_ESTIMATES_ENABLED": "1"
+  },
+  "services": [
+    {
+      "binding": "REGISTRY_SERVICE",
+      "service": "tontrack-gift-registry"
+    }
+  ],
+  "assets": {
+    "directory": ".edge-static",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application"
+  }
+}
