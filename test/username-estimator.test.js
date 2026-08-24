@@ -3,7 +3,7 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const { classifyTelegramUsername, normalizeTelegramUsername, ROUTES } = require("../lib/username-structural");
-const { estimateTelegramUsernameValue } = require("../lib/username-estimator");
+const { estimateTelegramUsernameValue, lexicalSimilarity } = require("../lib/username-estimator");
 const { trainUsernameLearnedModel } = require("../lib/username-learned-model");
 
 test("normalizes Telegram username identity without treating a display prefix as part of the name", () => {
@@ -72,8 +72,9 @@ test("uses recent segment sales to move older comparable evidence with the marke
   const nowMs = Date.parse("2026-08-24T00:00:00Z");
   const rising = [];
   for (let index = 0; index < 8; index += 1) {
-    rising.push(sale(`olderword${index}`, 100 + index, 260 + index, nowMs));
-    rising.push(sale(`recentword${index}`, 210 + index * 2, 15 + index, nowMs));
+    const suffix = String.fromCharCode(97 + index);
+    rising.push(sale(`olderword${suffix}`, 100 + index, 260 + index, nowMs));
+    rising.push(sale(`recentword${suffix}`, 210 + index * 2, 15 + index, nowMs));
   }
   const result = estimateTelegramUsernameValue("futureword", rising, { nowMs });
   assert.equal(result.trend.direction, "up");
@@ -97,4 +98,16 @@ test("discounts an unsupported non-exact sale outlier", () => {
   const result = estimateTelegramUsernameValue("marketname", events, { nowMs });
   assert.ok(result.estimateUsd < 500);
   assert.ok(result.comparables.some((row) => row.outlierDiscounted));
+});
+
+test("rejects unrelated word usernames that only share coarse structural features", () => {
+  const nowMs = Date.parse("2026-08-24T00:00:00Z");
+  const result = estimateTelegramUsernameValue("notgameston", [
+    sale("maloybrother", 80, 2, nowMs),
+    sale("notgamescoin", 240, 3, nowMs),
+  ], { nowMs });
+
+  assert.ok(lexicalSimilarity("notgameston", "notgamescoin") >= 0.2);
+  assert.equal(result.evidenceCount, 1);
+  assert.equal(result.comparables[0].username, "notgamescoin");
 });
