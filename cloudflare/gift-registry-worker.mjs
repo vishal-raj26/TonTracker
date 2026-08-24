@@ -1329,6 +1329,45 @@ async function readSalesBulk(env, pairs = [], requestedLimit = 5) {
   return { results };
 }
 
+async function readPendingHistoricalSaleRates(request, env) {
+  if (!authorized(request, env)) return json({ error: "Unauthorized" }, 401);
+  const url = new URL(request.url);
+  const limit = Math.max(1, Math.min(1000, Number(url.searchParams.get("limit") || 500)));
+  const retentionDays = Math.max(30, Math.min(365, Number(env.SALES_RETENTION_DAYS || 365)));
+  const cutoff = Math.floor((Date.now() - retentionDays * 86400000) / 1000);
+  const results = await Promise.all(compactSalesDatabaseConfigs(env)
+    .filter((config) => config.historicalUsd)
+    .map(async (config) => {
+      try {
+        return await config.database.prepare(
+          `SELECT e.sale_id, c.collection_name, c.model_name, c.backdrop_name, c.symbol_name,
+              e.marketplace, e.slug, e.gift_id, e.gift_number,
+              (e.price_nano / 1000000000.0) AS price_ton,
+              0 AS price_usd, 0 AS ton_usd_rate, 0 AS rate_at_unix,
+              e.sold_at AS sold_at_unix
+           FROM gift_sale_events e
+           JOIN gift_sale_combos c ON c.combo_id = e.combo_id
+           WHERE e.sold_at >= ?1
+             AND (e.price_usd_micros <= 0 OR e.ton_usd_micros <= 0 OR e.rate_at <= 0)
+           ORDER BY e.ingested_at ASC, e.sold_at DESC
+           LIMIT ?2`
+        ).bind(cutoff, limit).all();
+      } catch {
+        return { results: [] };
+      }
+    }));
+  const sales = [];
+  const seen = new Set();
+  for (const row of results.flatMap((result) => result?.results || [])) {
+    const sale = saleRow(row);
+    if (!sale.saleId || seen.has(sale.saleId)) continue;
+    seen.add(sale.saleId);
+    sales.push(sale);
+    if (sales.length >= limit) break;
+  }
+  return json({ sales, limit, retentionDays });
+}
+
 function normalizedSalesTarget(input = {}) {
   const collectionName = String(input.collection || input.collectionName || "").trim();
   const modelName = String(input.model || input.modelName || "").trim();
@@ -2848,6 +2887,9 @@ export default {
     if (url.pathname === "/sales" && request.method === "POST") {
       const body = await request.json();
       return json(await readSalesBulk(env, body.pairs, body.limit || 5));
+    }
+    if (url.pathname === "/ingest/sales-pending-rates" && request.method === "GET") {
+      return readPendingHistoricalSaleRates(request, env);
     }
     if (url.pathname === "/sales-state" && request.method === "GET") {
       return json({ states: await readSalesState(env, url.searchParams.get("collection") || "") });

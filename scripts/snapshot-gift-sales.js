@@ -89,6 +89,10 @@ const historicalRateInterpolationMaxGapMs = Math.max(
   historicalRateMaxGapMs,
   Number(process.env.GIFT_SALES_HISTORICAL_RATE_INTERPOLATION_MAX_GAP_MS || 26 * 60 * 60 * 1000)
 );
+const historicalRateRetryLimit = Math.max(
+  1,
+  Math.min(1000, Number(process.env.GIFT_SALES_HISTORICAL_RATE_RETRY_LIMIT || 500))
+);
 let historicalTonUsdPointsPromise = null;
 let historicalTonUsdCoverage = { fromMs: 0, toMs: 0 };
 
@@ -611,6 +615,23 @@ async function prioritySalesTargets() {
   }
 }
 
+async function pendingHistoricalRateSales() {
+  try {
+    const payload = await fetchJson(
+      `${registryUrl}/ingest/sales-pending-rates?limit=${historicalRateRetryLimit}`,
+      { headers: { authorization: `Bearer ${ingestSecret}` } },
+      3
+    );
+    return Array.isArray(payload?.sales) ? payload.sales : [];
+  } catch (error) {
+    // Keep compatibility during a rolling registry deployment.
+    if (error.status !== 404) {
+      console.warn(`[gift-sales] pending historical-rate queue unavailable: ${String(error.message || error).slice(0, 140)}`);
+    }
+    return [];
+  }
+}
+
 async function newestExactSale(pair = {}) {
   const cutoffMs = Date.now() - retentionDays * 86400000;
   const payload = await fetchSalesPage(pair.collection, 0, {
@@ -889,7 +910,7 @@ async function uploadSales(snapshot) {
   let accepted = 0;
   let lastResult = null;
   for (let index = 0; index < chunks.length; index += 1) {
-    const commitState = index === chunks.length - 1;
+    const commitState = snapshot.commitState !== false && index === chunks.length - 1;
     const result = await fetchJson(`${registryUrl}/ingest/sales`, {
       method: "POST",
       headers: { authorization: `Bearer ${ingestSecret}` },
@@ -927,6 +948,28 @@ async function uploadSales(snapshot) {
   };
 }
 
+async function retryPendingHistoricalUsd() {
+  const pending = await pendingHistoricalRateSales();
+  if (!pending.length) return { pending: 0, resolved: 0 };
+  const enriched = await attachHistoricalUsd(pending);
+  const resolved = enriched.sales.filter((sale) => (
+    Number(sale.priceUsd || 0) > 0
+    && Number(sale.tonUsdRate || 0) > 0
+    && sale.rateAt
+  ));
+  if (resolved.length) {
+    await uploadSales({
+      mode: "rate-retry",
+      collection: "",
+      sales: resolved,
+      rowsSeen: resolved.length,
+      commitState: false,
+    });
+  }
+  console.log(`[gift-sales] historical-rate retry: pending=${pending.length} resolved=${resolved.length}`);
+  return { pending: pending.length, resolved: resolved.length };
+}
+
 async function runCycle() {
   const startedAt = Date.now();
   const [collections, states, backfillStates] = await Promise.all([collectionNames(), salesStates(), salesBackfillStates()]);
@@ -934,6 +977,7 @@ async function runCycle() {
   // down, do not spend GiftSatellite's limited request budget on data whose
   // checkpoints cannot be committed accurately.
   await historicalTonUsdPoints();
+  await retryPendingHistoricalUsd();
   let completed = 0;
   let failed = 0;
   let inserted = 0;

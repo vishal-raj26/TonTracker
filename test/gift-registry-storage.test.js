@@ -78,3 +78,14 @@ test("registry keeps TON evidence but rejects a current rate attached to an old 
   assert.equal(sale.tonUsdRate, 0);
   assert.equal(sale.rateAt, "");
 });
+
+test("pending historical-rate rows have a bounded authenticated retry route", () => {
+  const source = fs.readFileSync(
+    path.join(__dirname, "..", "cloudflare", "gift-registry-worker.mjs"),
+    "utf8"
+  );
+  assert.match(source, /readPendingHistoricalSaleRates\(request, env\)/);
+  assert.match(source, /e\.price_usd_micros <= 0 OR e\.ton_usd_micros <= 0 OR e\.rate_at <= 0/);
+  assert.match(source, /Math\.min\(1000, Number\(url\.searchParams\.get\("limit"\)/);
+  assert.match(source, /"\/ingest\/sales-pending-rates"/);
+});
