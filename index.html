@@ -9,8 +9,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="./styles.css?v=sticker-art-surface-20260724-1" />
-  <link rel="stylesheet" href="./styles-product-v2.css?v=assets-led-20260725-8" />
-  <link rel="stylesheet" href="./styles-terminal-system.css?v=identity-assets-20260730-2" />
+  <link rel="stylesheet" href="./styles-product-v2.css?v=icon-clarity-20260814-1" />
+  <link rel="stylesheet" href="./styles-terminal-system.css?v=icon-clarity-20260814-1" />
     <script src="https://telegram.org/js/telegram-web-app.js?63"></script>
   </head>
   <body>
@@ -92,13 +92,6 @@
           </div>
           <div class="value-graph" aria-label="Portfolio value graph">
             <canvas role="img" aria-label="Portfolio value over time"></canvas>
-            <div class="portfolio-chart-state" role="status" aria-live="polite">
-              <span class="portfolio-chart-state-mark" aria-hidden="true"><i data-lucide="chart-no-axes-combined"></i></span>
-              <div>
-                <b>History starts here</b>
-                <small>Your next snapshot unlocks the trend.</small>
-              </div>
-            </div>
           </div>
           <div class="portfolio-chart-footer">
             <div class="range-selector" aria-label="Portfolio time range">
@@ -110,13 +103,26 @@
           </div>
         </section>
 
+        <section class="featured-collectibles" aria-labelledby="featuredCollectiblesTitle" hidden>
+          <div class="featured-collectibles-heading">
+            <div>
+              <p class="section-eyebrow">Portfolio highlights</p>
+              <h2 id="featuredCollectiblesTitle">Featured assets</h2>
+            </div>
+            <span class="ui-icon-cue is-live" role="img" aria-label="Live portfolio ranking" title="Live portfolio ranking"><i data-lucide="activity"></i></span>
+          </div>
+          <div class="featured-collectibles-viewport" aria-label="Featured portfolio assets">
+            <div class="featured-collectibles-track"></div>
+          </div>
+        </section>
+
         <section class="allocation-card">
           <div class="section-heading">
             <div>
               <p class="section-eyebrow">Portfolio mix</p>
               <h2>Allocation</h2>
             </div>
-            <small>Tap to isolate</small>
+            <span class="ui-icon-cue" role="img" aria-label="Tap a segment to isolate it" title="Tap a segment to isolate it"><i data-lucide="focus"></i></span>
           </div>
           <div class="donut-layout">
             <div class="donut-chart" role="button" tabindex="0" aria-label="Select portfolio allocation segment"><span>$0.00</span></div>
@@ -126,6 +132,7 @@
               <article role="button" tabindex="0" aria-pressed="false"><span class="legend-pill sticker-dot"></span><div><b>Stickers</b><small>0%</small></div><strong>$0.00</strong></article>
               <article role="button" tabindex="0" aria-pressed="false"><span class="legend-pill dns-dot"></span><div><b>TON DNS</b><small>0%</small></div><strong>$0.00</strong></article>
               <article role="button" tabindex="0" aria-pressed="false"><span class="legend-pill number-dot"></span><div><b>Anon Numbers</b><small>0%</small></div><strong>$0.00</strong></article>
+              <article role="button" tabindex="0" aria-pressed="false"><span class="legend-pill username-dot"></span><div><b>Usernames</b><small>0%</small></div><strong>$0.00</strong></article>
             </div>
           </div>
         </section>
@@ -136,7 +143,7 @@
               <p class="section-eyebrow">Token movement</p>
               <h2>Today</h2>
             </div>
-            <small>24 hour change</small>
+            <span class="ui-scope-cue" aria-label="24 hour change" title="24 hour change"><i data-lucide="clock-3"></i><span>24H</span></span>
           </div>
           <div class="performer-row">
             <article data-screen-target="detail" data-asset="toncoin"><small>Top Performer</small><b>TON Tokens</b><strong class="positive">+0.0%</strong></article>
@@ -150,7 +157,7 @@
               <p class="section-eyebrow">TON wallet</p>
               <h2>Recent activity</h2>
             </div>
-            <button class="text-action" type="button" data-screen-target="activity">See all</button>
+            <button class="text-action ui-icon-action" type="button" data-screen-target="activity" aria-label="Open all activity" title="Open all activity"><i data-lucide="arrow-up-right"></i></button>
           </div>
           <article class="activity-row"><span class="activity-dot token-bg"><i data-lucide="clock-3"></i></span><div><b>Wallet history</b><small>Synced</small><small>No TON activity found yet</small></div><aside><strong></strong></aside></article>
         </section>
@@ -164,17 +171,18 @@
           <article><small>Portfolio value</small><b>$0.00</b><strong class="positive">+0.00% <em>24H</em></strong></article>
           <article><small>Total assets</small><b>148</b><span>Items</span></article>
           <article><small>Wallet</small><b>Connected</b></article>
-          <article><small>View</small><b class="assets-view-arrow">-&gt;</b></article>
+          <article aria-label="Portfolio details"><small class="visually-hidden">Portfolio details</small><b class="assets-view-arrow" aria-hidden="true"><i data-lucide="arrow-up-right"></i></b></article>
         </section>
         <section class="category-stack" aria-label="Asset categories">
-          <article data-screen-target="tokens"><span class="asset-icon token-bg"><i data-lucide="coins"></i></span><div><b>TON Token Holdings</b><small>TON, Jettons, balances, prices</small></div><strong>$5.74K</strong></article>
-          <article data-screen-target="gifts"><span class="asset-icon gift-bg"><i data-lucide="gift"></i></span><div><b>Telegram Gifts</b><small>Traits, tag numbers, floors, PnL</small></div><strong>$8.72K</strong></article>
-          <article data-screen-target="stickers"><span class="asset-icon sticker-bg"><i data-lucide="sticker"></i></span><div><b>Sticker Packs</b><small>Formats, creators, floors, PnL</small></div><strong>$3.96K</strong></article>
-          <article data-screen-target="dns"><span class="asset-icon dns-bg"><i data-lucide="globe-2"></i></span><div><b>TON DNS</b><small>On-chain .ton domains</small></div><strong>$0.00</strong></article>
-          <article data-screen-target="anonymous-numbers"><span class="asset-icon number-bg"><i data-lucide="phone"></i></span><div><b>Anonymous Numbers</b><small>Fragment collectible numbers</small></div><strong>$0.00</strong></article>
+          <article data-screen-target="tokens"><span class="asset-icon token-bg"><i data-lucide="coins"></i></span><div><b>TON Token Holdings</b><small>TON &amp; Jettons</small></div><strong>$5.74K</strong></article>
+          <article data-screen-target="gifts"><span class="asset-icon gift-bg"><i data-lucide="gift"></i></span><div><b>Telegram Gifts</b><small>Traits &amp; floors</small></div><strong>$8.72K</strong></article>
+          <article data-screen-target="stickers"><span class="asset-icon sticker-bg"><i data-lucide="sticker"></i></span><div><b>Sticker Packs</b><small>Packs &amp; floors</small></div><strong>$3.96K</strong></article>
+          <article data-screen-target="dns"><span class="asset-icon dns-bg"><i data-lucide="globe-2"></i></span><div><b>TON DNS</b><small>.ton domains</small></div><strong>$0.00</strong></article>
+          <article data-screen-target="anonymous-numbers"><span class="asset-icon number-bg"><i data-lucide="phone"></i></span><div><b>Anonymous Numbers</b><small>Fragment numbers</small></div><strong>$0.00</strong></article>
+          <article data-screen-target="usernames"><span class="asset-icon username-bg"><i data-lucide="at-sign"></i></span><div><b>Telegram Usernames</b><small>Fragment identities</small></div><strong>$0.00</strong></article>
         </section>
         <section class="mini-detail-card bottom-pad" data-screen-target="detail" data-asset="diamond-ring">
-          <div class="section-heading"><h2>Top Asset</h2><button class="text-action" type="button">View</button></div>
+          <div class="section-heading"><h2>Top Asset</h2><button class="text-action ui-icon-action" type="button" aria-label="Open top asset" title="Open top asset"><i data-lucide="arrow-up-right"></i></button></div>
           <article class="feature-asset"><span class="asset-icon gift-bg"><i data-lucide="gem"></i></span><div><b>Diamond Ring</b><small>#4821 · +$840 PnL</small></div><strong>$2,840</strong></article>
         </section>
       </main>
@@ -230,7 +238,7 @@
         <section class="asset-total-banner" id="giftBrandSummary">
           <small>Collection gifts</small>
           <div><h2>$0.00</h2><span>0 gifts</span></div>
-          <strong>Open a gift to see details</strong>
+          <strong class="summary-open-cue"><span class="ui-icon-cue" role="img" aria-label="Open a gift" title="Open a gift"><i data-lucide="arrow-up-right"></i></span></strong>
         </section>
         <section class="collectible-grid bottom-pad" id="giftBrandGrid"></section>
       </main>
@@ -291,12 +299,22 @@
         <section class="identity-asset-list bottom-pad" id="anonymousNumbersList"></section>
       </main>
 
+      <main class="screen identity-assets-screen" data-screen="usernames">
+        <header class="page-header"><button class="icon-button" type="button" data-screen-target="assets"><i data-lucide="arrow-left"></i></button><h1>Telegram Usernames</h1><span class="header-spacer" aria-hidden="true"></span></header>
+        <section class="identity-summary-card">
+          <span class="identity-summary-icon username-bg"><i data-lucide="at-sign"></i></span>
+          <div><small>Portfolio value</small><h2 id="usernamesTotalValue">$0.00</h2><p id="usernamesSummaryText">No usernames imported</p></div>
+        </section>
+        <section class="search-card identity-search-card"><i data-lucide="search"></i><input id="usernamesSearch" type="search" placeholder="Search @usernames" autocomplete="off" /><small id="usernamesCountLabel">0 usernames</small></section>
+        <section class="identity-asset-list bottom-pad" id="usernamesList"></section>
+      </main>
+
       <main class="screen" data-screen="sticker-brand">
         <header class="page-header"><button class="icon-button" type="button" data-screen-target="stickers"><i data-lucide="arrow-left"></i></button><h1 id="stickerBrandTitle">Sticker Brand</h1><button class="icon-button"><i data-lucide="sticker"></i></button></header>
         <section class="asset-total-banner" id="stickerBrandSummary">
           <small>Brand stickers</small>
           <div><h2>$0.00</h2><span>0 stickers</span></div>
-          <strong>Open a sticker to see details</strong>
+          <strong class="summary-open-cue"><span class="ui-icon-cue" role="img" aria-label="Open a sticker" title="Open a sticker"><i data-lucide="arrow-up-right"></i></span></strong>
         </section>
         <section class="collectible-grid bottom-pad" id="stickerBrandGrid"></section>
       </main>
@@ -528,7 +546,7 @@
     <script src="https://unpkg.com/@tonconnect/ui@2.4.4/dist/tonconnect-ui.min.js"></script>
     <script src="./node_modules/chart.js/dist/chart.umd.js"></script>
     <script src="./chart-platform.js?v=3"></script>
-  <script src="./app.js?v=identity-assets-20260730-2"></script>
+  <script src="./app.js?v=icon-clarity-20260814-1"></script>
   <script src="./terminal-system.js?v=identity-assets-20260730-2"></script>
   </body>
 </html>

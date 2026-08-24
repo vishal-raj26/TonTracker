@@ -26,7 +26,7 @@
 /* Home: one continuous portfolio composition. */
 .app-frame.has-wallet [data-screen="home"]{padding-bottom:calc(116px + env(safe-area-inset-bottom))}
 .app-frame.has-wallet [data-screen="home"] :is(.app-header,.page-header){border:0;background:transparent;box-shadow:none}
-.app-frame.has-wallet [data-screen="home"] :is(.graph-card,.allocation-card,.movement-panel,.activity-panel){margin-inline:18px;padding:22px 0;border:0;border-bottom:1px solid var(--terminal-line);border-radius:0;background:transparent;box-shadow:none}
+.app-frame.has-wallet [data-screen="home"] :is(.graph-card,.featured-collectibles,.allocation-card,.movement-panel,.activity-panel){margin-inline:18px;padding:22px 0;border:0;border-bottom:1px solid var(--terminal-line);border-radius:0;background:transparent;box-shadow:none}
 .app-frame.has-wallet [data-screen="home"] .graph-card{padding-top:16px}
 .app-frame.has-wallet [data-screen="home"] .graph-head h1{font-variant-numeric:tabular-nums}
 .app-frame.has-wallet [data-screen="home"] .value-graph{min-height:188px;margin-inline:-4px}
@@ -362,7 +362,7 @@ body.product-v2 .app-frame.has-wallet .dock button.active span{display:block}
 .app-frame:is(.has-wallet,.is-home-screen) [data-screen="home"]{padding-inline:var(--screen-gutter)}
 .app-frame.has-wallet :is([data-screen="assets"],[data-screen="tokens"],[data-screen="gifts"],[data-screen="gift-brand"],[data-screen="stickers"],[data-screen="sticker-brand"],[data-screen="detail"],[data-screen="analytics"],[data-screen="watchlist"],[data-screen="activity"],[data-screen="wallets"],[data-screen="settings"]){padding-inline:var(--screen-gutter)}
 .app-frame.has-wallet [data-screen="assets"] :is(.portfolio-strip,.category-stack,.mini-detail-card){margin-inline:0}
-.app-frame.has-wallet [data-screen="home"] :is(.graph-card,.allocation-card,.movement-panel,.activity-panel){margin-inline:0}
+.app-frame.has-wallet [data-screen="home"] :is(.graph-card,.featured-collectibles,.allocation-card,.movement-panel,.activity-panel){margin-inline:0}
 .app-frame.has-wallet [data-screen="detail"] :is(.gift-traits-card,.gift-floor-card,.gift-sales-card,.gift-demand-card,.gift-origin-card,.price-panel,.sales-panel,.market-intel,.trait-panel,.financial-grid){margin-inline:0}
 
 /* Category screens inherit the Assets gutter; child sections must not add it again. */
@@ -410,14 +410,375 @@ body.product-v2 .app-frame.has-wallet .dock button.active span{display:block}
   .app-frame.has-wallet [data-screen="assets"] .category-stack strong{width:92px;font-size:15px}
 }
 
-/* Verified identity assets: TON DNS and Fragment anonymous numbers */
+/* Compact semantic icon language. Keep financial values and state labels textual. */
+.visually-hidden{
+  position:absolute!important;
+  width:1px!important;
+  height:1px!important;
+  padding:0!important;
+  margin:-1px!important;
+  overflow:hidden!important;
+  clip:rect(0,0,0,0)!important;
+  white-space:nowrap!important;
+  border:0!important;
+}
+.app-frame.has-wallet .ui-icon-cue,
+.app-frame.has-wallet .ui-scope-cue{
+  display:inline-flex;
+  flex:0 0 auto;
+  align-items:center;
+  justify-content:center;
+  color:var(--ui-muted);
+}
+.app-frame.has-wallet .ui-icon-cue{
+  width:30px;
+  height:30px;
+  border:1px solid rgba(255,255,255,.09);
+  border-radius:999px;
+  background:rgba(255,255,255,.035);
+}
+.app-frame.has-wallet .ui-icon-cue svg,
+.app-frame.has-wallet .ui-scope-cue svg,
+.app-frame.has-wallet .ui-icon-action svg,
+.app-frame.has-wallet .assets-view-arrow svg{
+  width:17px;
+  height:17px;
+  stroke-width:1.8;
+}
+.app-frame.has-wallet .ui-scope-cue{
+  min-height:30px;
+  gap:6px;
+  padding:0 9px;
+  border:1px solid rgba(255,255,255,.09);
+  border-radius:999px;
+  background:rgba(255,255,255,.035);
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:.06em;
+}
+.app-frame.has-wallet button.ui-icon-action{
+  display:inline-grid;
+  width:36px;
+  min-width:36px;
+  height:36px;
+  min-height:36px;
+  padding:0;
+  place-items:center;
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:999px;
+  background:rgba(255,255,255,.04);
+  color:var(--ui-text);
+}
+.app-frame.has-wallet .ui-icon-cue.is-live{
+  position:relative;
+  color:var(--ui-positive);
+}
+.app-frame.has-wallet .ui-icon-cue.is-live::after{
+  position:absolute;
+  right:3px;
+  bottom:3px;
+  width:5px;
+  height:5px;
+  border:2px solid #090909;
+  border-radius:50%;
+  background:currentColor;
+  content:"";
+}
+.app-frame.has-wallet .summary-state-cue,
+.app-frame.has-wallet .summary-open-cue{
+  display:inline-flex;
+  width:max-content;
+  align-items:center;
+}
+.app-frame.has-wallet .summary-inline-metric{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.app-frame.has-wallet .summary-inline-metric .ui-icon-cue{
+  width:24px;
+  height:24px;
+}
+.app-frame.has-wallet .summary-inline-metric .ui-icon-cue svg{
+  width:14px;
+  height:14px;
+}
+.app-frame.has-wallet .assets-view-arrow{
+  display:inline-grid;
+  place-items:center;
+}
+.app-frame.has-wallet .assets-view-arrow .ui-icon-cue{
+  border:0;
+  background:transparent;
+}
+.app-frame.has-wallet button.ui-icon-action:active svg,
+.app-frame.has-wallet [data-screen-target]:active .assets-view-arrow svg,
+.app-frame.has-wallet [data-screen-target]:active>.ui-icon-cue svg{
+  animation:tt-icon-nudge .24s cubic-bezier(.2,.8,.2,1);
+}
+.app-frame.has-wallet .ui-icon-cue.is-loading svg{
+  animation:tt-icon-spin .9s linear infinite;
+}
+@keyframes tt-icon-nudge{
+  0%{transform:scale(1)}
+  45%{transform:translate(1px,-1px) scale(.88)}
+  100%{transform:scale(1)}
+}
+@keyframes tt-icon-spin{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){
+  .app-frame.has-wallet .ui-icon-cue.is-loading svg,
+  .app-frame.has-wallet button.ui-icon-action:active svg,
+  .app-frame.has-wallet [data-screen-target]:active .assets-view-arrow svg,
+  .app-frame.has-wallet [data-screen-target]:active>.ui-icon-cue svg{animation:none}
+}
+
+/* Home history and the continuously ranked portfolio ribbon. */
+.app-frame.has-wallet [data-screen="home"] .graph-card.is-history-hidden{
+  padding-bottom:18px;
+}
+.app-frame.has-wallet [data-screen="home"] .graph-card.is-history-hidden :is(.value-graph,.portfolio-chart-footer){
+  display:none;
+}
+.app-frame.has-wallet [data-screen="home"] .featured-collectibles[hidden]{
+  display:none!important;
+}
+.app-frame.has-wallet [data-screen="home"] .featured-collectibles{
+  position:relative;
+  padding-top:18px;
+  padding-bottom:20px;
+  overflow:hidden;
+}
+.app-frame.has-wallet [data-screen="home"] .featured-collectibles-heading{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:16px;
+  margin-bottom:14px;
+}
+.app-frame.has-wallet [data-screen="home"] .featured-collectibles-heading h2{
+  margin:0;
+  color:var(--terminal-ink);
+  font-family:var(--ui-font);
+  font-size:17px;
+  font-weight:700;
+  line-height:1.2;
+  letter-spacing:-.025em;
+}
+.app-frame.has-wallet [data-screen="home"] .featured-collectibles-heading>small{
+  color:var(--terminal-muted);
+  font-family:var(--terminal-mono);
+  font-size:9px;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+}
+.app-frame.has-wallet [data-screen="home"] .featured-collectibles-viewport{
+  width:calc(100% + (var(--screen-gutter) * 2));
+  margin-inline:calc(var(--screen-gutter) * -1);
+  overflow:hidden;
+  -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 7%,#000 93%,transparent 100%);
+  mask-image:linear-gradient(90deg,transparent 0,#000 7%,#000 93%,transparent 100%);
+}
+.app-frame.has-wallet [data-screen="home"] .featured-collectibles-track{
+  display:flex;
+  width:max-content;
+  will-change:transform;
+  animation:featured-assets-flow var(--featured-duration,44s) linear infinite;
+}
+.app-frame.has-wallet [data-screen="home"] .featured-collectibles-viewport:is(:hover,:focus-within,.is-paused) .featured-collectibles-track{
+  animation-play-state:paused;
+}
+.app-frame.has-wallet [data-screen="home"] .featured-collectibles-sequence{
+  display:flex;
+  align-items:stretch;
+  gap:10px;
+  margin-right:10px;
+  padding:0;
+}
+.app-frame.has-wallet [data-screen="home"] .featured-asset-card{
+  position:relative;
+  width:148px;
+  min-height:196px;
+  display:grid;
+  grid-template-rows:112px auto auto;
+  gap:10px;
+  padding:9px;
+  border:1px solid rgba(255,255,255,.13);
+  border-radius:16px;
+  background:linear-gradient(155deg,rgba(255,255,255,.065),rgba(255,255,255,.016) 52%,rgba(255,255,255,.045));
+  color:var(--terminal-ink);
+  text-align:left;
+  overflow:hidden;
+  transition:border-color .2s ease,transform .2s ease,background-color .2s ease;
+}
+.app-frame.has-wallet [data-screen="home"] button.featured-asset-card{
+  appearance:none;
+  font:inherit;
+  cursor:pointer;
+}
+.app-frame.has-wallet [data-screen="home"] .featured-asset-card:nth-child(3n+2){
+  transform:translateY(6px);
+}
+.app-frame.has-wallet [data-screen="home"] .featured-asset-card:nth-child(3n){
+  transform:translateY(2px);
+}
+.app-frame.has-wallet [data-screen="home"] button.featured-asset-card:active{
+  transform:translateY(2px) scale(.975);
+}
+.app-frame.has-wallet [data-screen="home"] .featured-asset-visual{
+  position:relative;
+  min-width:0;
+  display:grid;
+  place-items:center;
+  border-radius:12px;
+  background:
+    radial-gradient(circle at 50% 34%,rgba(255,255,255,.14),transparent 42%),
+    #0b0b0b;
+  overflow:hidden;
+}
+.app-frame.has-wallet [data-screen="home"] .featured-asset-visual::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:inherit;
+  pointer-events:none;
+}
+.app-frame.has-wallet [data-screen="home"] .featured-asset-art,
+.app-frame.has-wallet [data-screen="home"] .featured-asset-art img,
+.app-frame.has-wallet [data-screen="home"] .featured-asset-visual>.asset-icon{
+  width:92px;
+  height:92px;
+}
+.app-frame.has-wallet [data-screen="home"] .featured-asset-art{
+  display:grid;
+  place-items:center;
+  border-radius:12px;
+  overflow:hidden;
+}
+.app-frame.has-wallet [data-screen="home"] .featured-asset-art img{
+  display:block;
+  object-fit:contain;
+}
+.app-frame.has-wallet [data-screen="home"] .featured-asset-art :is(.animated-art,.gift-layered-art,.gift-layered-stage){
+  width:92px;
+  height:92px;
+}
+.app-frame.has-wallet [data-screen="home"] .featured-asset-art svg{
+  width:28px;
+  height:28px;
+}
+.app-frame.has-wallet [data-screen="home"] .featured-asset-visual>.asset-icon{
+  display:grid;
+  place-items:center;
+  border:0;
+  background:transparent;
+  font-size:16px;
+}
+.app-frame.has-wallet [data-screen="home"] .featured-asset-visual>.asset-icon img{
+  width:84px!important;
+  height:84px!important;
+}
+.app-frame.has-wallet [data-screen="home"] .featured-estimated{
+  position:absolute;
+  right:7px;
+  top:7px;
+  z-index:2;
+  padding:4px 6px;
+  border-radius:999px;
+  background:rgba(5,5,5,.78);
+  color:#d7c56a;
+  font-size:7px;
+  font-weight:800;
+  letter-spacing:.04em;
+  text-transform:uppercase;
+  backdrop-filter:blur(8px);
+}
+.app-frame.has-wallet [data-screen="home"] :is(.featured-asset-copy,.featured-asset-value){
+  min-width:0;
+  display:block;
+}
+.app-frame.has-wallet [data-screen="home"] .featured-asset-copy small{
+  display:block;
+  color:var(--terminal-muted);
+  font-family:var(--terminal-mono);
+  font-size:7px;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+}
+.app-frame.has-wallet [data-screen="home"] .featured-asset-copy b{
+  display:block;
+  margin-top:4px;
+  overflow:hidden;
+  color:var(--terminal-ink);
+  font-size:12px;
+  font-weight:700;
+  line-height:1.25;
+  letter-spacing:-.025em;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.app-frame.has-wallet [data-screen="home"] .featured-asset-copy em{
+  display:block;
+  margin-top:3px;
+  overflow:hidden;
+  color:#85857f;
+  font-size:8px;
+  font-style:normal;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.app-frame.has-wallet [data-screen="home"] .featured-asset-value{
+  display:flex;
+  align-items:baseline;
+  justify-content:space-between;
+  gap:7px;
+}
+.app-frame.has-wallet [data-screen="home"] .featured-asset-value strong{
+  color:var(--terminal-ink);
+  font-size:12px;
+  font-weight:750;
+  font-variant-numeric:tabular-nums;
+}
+.app-frame.has-wallet [data-screen="home"] .featured-asset-value small{
+  max-width:62px;
+  overflow:hidden;
+  color:#777772;
+  font-size:7px;
+  text-align:right;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+@keyframes featured-assets-flow{
+  to{transform:translate3d(-50%,0,0)}
+}
+@media(hover:hover){
+  .app-frame.has-wallet [data-screen="home"] button.featured-asset-card:hover{
+    border-color:rgba(255,255,255,.28);
+    background:linear-gradient(155deg,rgba(255,255,255,.1),rgba(255,255,255,.02) 52%,rgba(255,255,255,.065));
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  .app-frame.has-wallet [data-screen="home"] .featured-collectibles-viewport{
+    overflow-x:auto;
+    scrollbar-width:none;
+    -webkit-mask-image:none;
+    mask-image:none;
+  }
+  .app-frame.has-wallet [data-screen="home"] .featured-collectibles-viewport::-webkit-scrollbar{display:none}
+  .app-frame.has-wallet [data-screen="home"] .featured-collectibles-track{animation:none}
+  .app-frame.has-wallet [data-screen="home"] .featured-collectibles-sequence[aria-hidden="true"]{display:none}
+}
+
+/* Verified identity assets: TON DNS, Telegram usernames, and Fragment anonymous numbers */
 .app-frame.has-wallet .dns-bg,
+.app-frame.has-wallet .username-bg,
 .app-frame.has-wallet .number-bg{
   background:#0b0c0c;
   border:1px solid rgba(255,255,255,.12);
   color:#f5f5f2;
 }
 .app-frame.has-wallet .dns-dot{background:#8b7cff}
+.app-frame.has-wallet .username-dot{background:#64d6d2}
 .app-frame.has-wallet .number-dot{background:#ef8c73}
 .app-frame.has-wallet .identity-assets-screen{
   background:radial-gradient(circle at 88% -8%,rgba(255,255,255,.04),transparent 28%),var(--terminal-bg);
@@ -568,6 +929,35 @@ body.product-v2 .app-frame.has-wallet .dock button.active span{display:block}
 .app-frame.has-wallet .identity-detail-note b,
 .app-frame.has-wallet .identity-detail-note small{display:block}
 .app-frame.has-wallet .identity-detail-note small{margin-top:4px;color:var(--ui-muted);font-size:10px;line-height:1.5}
+.app-frame.has-wallet .identity-estimate-pill{
+  display:inline-flex;
+  width:max-content;
+  align-items:center;
+  justify-content:center;
+  margin-top:6px;
+  padding:3px 7px;
+  border:1px solid #4a4a46;
+  border-radius:999px;
+  color:#d8d8d3;
+  background:#171715;
+  font-size:8px;
+  font-style:normal;
+  font-weight:700;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+}
+.app-frame.has-wallet .identity-asset-list>article aside .identity-estimate-pill{margin-left:auto}
+.app-frame.has-wallet .identity-range{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);
+  gap:8px;
+  align-items:center;
+  padding:14px 0 12px;
+  border-bottom:1px solid var(--terminal-line);
+}
+.app-frame.has-wallet .identity-range b{font-size:16px;font-weight:650}
+.app-frame.has-wallet .identity-range b:last-child{text-align:right}
+.app-frame.has-wallet .identity-range span{color:var(--ui-muted);font-size:9px;text-transform:uppercase}
 
 /* Every Assets descendant uses the same page canvas and title line as Assets. */
 .app-frame.has-wallet :is(

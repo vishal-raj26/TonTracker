@@ -96,7 +96,7 @@ let activeGiftDetailRequest = 0;
 let activeHistoryWalletKey = "";
 let homeEntrancePlayed = false;
 let latestCollectibleStatus = "";
-const allocationState = { gifts: 0, tokens: 0, stickers: 0, dns: 0, anonymousNumbers: 0 };
+const allocationState = { gifts: 0, tokens: 0, stickers: 0, dns: 0, anonymousNumbers: 0, usernames: 0 };
 let detailWarmupQueue = [];
 let detailWarmupActive = 0;
 let detailWarmupGeneration = 0;
@@ -119,6 +119,7 @@ const SECTION_LABELS = {
   stickers: "Stickers",
   dns: "TON DNS",
   "anonymous-numbers": "Anonymous Numbers",
+  usernames: "Telegram Usernames",
   activity: "Activity",
   graph: "Graph",
 };
@@ -131,6 +132,7 @@ const navGroup = {
   "sticker-brand": "assets",
   dns: "assets",
   "anonymous-numbers": "assets",
+  usernames: "assets",
   detail: "assets",
   activity: "home",
   wallets: "settings",
@@ -478,6 +480,7 @@ const stickerAssets = [
 ];
 const dnsAssets = [];
 const anonymousNumberAssets = [];
+const usernameAssets = [];
 
 const tokenDetails = {
   toncoin: {
@@ -621,6 +624,22 @@ function escapeHtml(value) {
     '"': "&quot;",
     "'": "&#39;",
   }[char]));
+}
+
+function iconCueHtml(icon, label, className = "") {
+  return `<span class="ui-icon-cue ${className}" role="img" aria-label="${escapeHtml(label)}" title="${escapeHtml(label)}"><i data-lucide="${escapeHtml(icon)}"></i></span>`;
+}
+
+function scopeCueHtml(icon, label, value = "") {
+  return `<span class="ui-scope-cue" aria-label="${escapeHtml(label)}" title="${escapeHtml(label)}"><i data-lucide="${escapeHtml(icon)}"></i>${value ? `<span>${escapeHtml(value)}</span>` : ""}</span>`;
+}
+
+function setIconAction(element, icon, label) {
+  if (!element) return;
+  element.classList.add("ui-icon-action");
+  element.setAttribute("aria-label", label);
+  element.title = label;
+  element.innerHTML = `<i data-lucide="${escapeHtml(icon)}"></i>`;
 }
 
 function escapeRegExp(value) {
@@ -906,6 +925,7 @@ function renderCollectibleGrids() {
   updateCollectibleSummaryBanner("stickers");
   renderGiftGrid();
   renderStickerGrid();
+  renderFeaturedCollectibles();
 }
 
 function updateCollectibleSummaryBanner(kind) {
@@ -921,7 +941,8 @@ function updateCollectibleSummaryBanner(kind) {
   const label = kind === "gifts" ? "Total Gifts Value" : "Total Stickers Value";
   if (!priced.length) {
     const pending = hasPendingCollectiblePrices(kind);
-    banner.innerHTML = `<small>${label}</small><div><h2>${pending ? "Price loading" : "Price unavailable"}</h2><span>${assets.length} item${assets.length === 1 ? "" : "s"}</span></div><strong>${pending ? "Market prices are loading in the background" : "No market prices available yet"}</strong><p></p>`;
+    banner.innerHTML = `<small>${label}</small><div><h2>${pending ? "Price loading" : "Price unavailable"}</h2><span>${assets.length} item${assets.length === 1 ? "" : "s"}</span></div><strong class="summary-state-cue">${iconCueHtml(pending ? "refresh-cw" : "circle-slash-2", pending ? "Loading market prices" : "Market price unavailable", pending ? "is-loading" : "")}</strong><p></p>`;
+    window.lucide?.createIcons();
     return;
   }
   const total = priced.reduce((sum, asset) => sum + Number(asset.floorUsd || 0), 0);
@@ -933,8 +954,9 @@ function updateCollectibleSummaryBanner(kind) {
   const pnlPct = pnlBase ? (pnl / pnlBase) * 100 : 0;
   const dailyClass = daily < 0 ? "negative" : "positive";
   const pnlClass = pnl < 0 ? "negative" : "positive";
-  banner.innerHTML = `<small>${label}</small><div><h2>${money(total)}</h2><span>${compactNumber(totalTon)} TON</span></div><strong class="${dailyClass}">${signedMoney(daily)} · ${signedPct(dailyPct)} 24h</strong><p>${kind === "gifts" ? "Gift" : "Sticker"} unrealized PnL: <b class="${pnlClass}">${signedMoney(pnl)} · ${signedPct(pnlPct)}</b></p>`;
+  banner.innerHTML = `<small>${label}</small><div><h2>${money(total)}</h2><span>${compactNumber(totalTon)} TON</span></div><strong class="${dailyClass}">${signedMoney(daily)} · ${signedPct(dailyPct)} 24h</strong><p class="summary-inline-metric">${iconCueHtml("chart-no-axes-combined", "Unrealized PnL")}<b class="${pnlClass}">${signedMoney(pnl)} · ${signedPct(pnlPct)}</b></p>`;
   renderCollectibleSummaryDotMatrix(banner);
+  window.lucide?.createIcons();
 }
 
 function renderGiftGrid() {
@@ -1129,7 +1151,7 @@ function renderGiftBrand(assetId) {
     const pnl = init ? totalValue - init : 0;
     const valueLabel = totalValue > 0 ? money(totalValue) : "Price unavailable";
     const countLabel = `${count} gift${count === 1 ? "" : "s"}`;
-    summary.innerHTML = `<small>${escapeHtml(brand.creator || brand.collection || "Gift collection")}</small><div><h2>${valueLabel}</h2><span>${escapeHtml(countLabel)}</span></div><strong class="${pnl < 0 ? "negative" : "positive"}">${init && totalValue > 0 ? `${signedMoney(pnl)} · ${signedPct((pnl / init) * 100)}` : "Tap a gift to open details"}</strong>`;
+    summary.innerHTML = `<small>${escapeHtml(brand.creator || brand.collection || "Gift collection")}</small><div><h2>${valueLabel}</h2><span>${escapeHtml(countLabel)}</span></div><strong class="${init && totalValue > 0 ? (pnl < 0 ? "negative" : "positive") : "summary-open-cue"}">${init && totalValue > 0 ? `${signedMoney(pnl)} · ${signedPct((pnl / init) * 100)}` : iconCueHtml("arrow-up-right", "Open a gift")}</strong>`;
     renderCollectibleSummaryDotMatrix(summary);
   }
   const grid = document.querySelector("#giftBrandGrid");
@@ -1238,7 +1260,7 @@ function groupGiftBrandChildren(children = []) {
 function renderGiftBrandItem(asset) {
   if (asset.priceLoading && !(Number(asset.floorUsd || 0) > 0)) return renderCollectiblePriceSkeletonCard(asset, "gift");
   const hasPrice = Number(asset.floorUsd) > 0;
-  const floorNote = hasPrice ? floorSourceLine(asset) : (asset.marketPlatform ? `Floor · ${escapeHtml(asset.marketPlatform)}` : "Open details");
+  const floorNote = hasPrice ? floorSourceLine(asset) : (asset.marketPlatform ? `Floor · ${escapeHtml(asset.marketPlatform)}` : iconCueHtml("arrow-up-right", "Open details"));
   const count = Number(asset.count || asset.children?.length || 1);
   const imageStack = count > 1 ? giftBrandImageStack(asset) : "";
   const modelLabel = giftBrandModelLabel(asset);
@@ -1272,7 +1294,7 @@ function renderGiftModelGroup(assetId) {
   const summary = document.querySelector("#giftBrandSummary");
   if (summary) {
     const totalValue = children.reduce((sum, item) => sum + Number(item.floorUsd || 0), 0);
-    summary.innerHTML = `<small>${escapeHtml(giftBrandModelLabel(group))}</small><div><h2>${money(totalValue)}</h2><span>${children.length} gift${children.length === 1 ? "" : "s"}</span></div><strong class="positive">Tap a gift to open details</strong>`;
+    summary.innerHTML = `<small>${escapeHtml(giftBrandModelLabel(group))}</small><div><h2>${money(totalValue)}</h2><span>${children.length} gift${children.length === 1 ? "" : "s"}</span></div><strong class="summary-open-cue">${iconCueHtml("arrow-up-right", "Open a gift")}</strong>`;
     renderCollectibleSummaryDotMatrix(summary);
   }
   const grid = document.querySelector("#giftBrandGrid");
@@ -1790,6 +1812,181 @@ function collectibleArtHtml(asset, fallback = "gift") {
     : `<span class="${artClass}"><i data-lucide="${icon}"></i></span>`;
 }
 
+const FEATURED_ASSET_LIMIT = 18;
+const FEATURED_ASSET_MIN_LOOP_SIZE = 6;
+
+function featuredAssetRarity(asset = {}) {
+  const values = (asset.traits || [])
+    .map((trait) => Number.parseFloat(String(trait.rarity || "")))
+    .filter((value) => Number.isFinite(value) && value > 0);
+  return values.length ? Math.min(...values) : Number.POSITIVE_INFINITY;
+}
+
+function featuredAssetKey(asset = {}, type = "asset") {
+  return `${type}:${String(asset.tokenAddress || asset.address || asset.collectionAddress || asset.id || asset.name || "")}`.toLowerCase();
+}
+
+function featuredAssetPricingTier(asset = {}, type = "asset") {
+  if (type === "token") return Number(asset.priceUsd || 0) > 0 ? 3 : 1;
+  if (type === "ton_dns" || type === "anonymous_number" || type === "telegram_username") return identityAssetValue(asset) > 0 ? 3 : 1;
+  if (isEstimatedAsset(asset)) return 2;
+  return asset.floorStatus === "priced" || asset.marketVerified || asset.marketPlatform ? 3 : 1;
+}
+
+function featuredAssetCandidate(asset = {}, type = "asset") {
+  const valueUsd = type === "token"
+    ? Number(asset.valueUsd || 0)
+    : (type === "ton_dns" || type === "anonymous_number" || type === "telegram_username")
+      ? identityAssetValue(asset)
+      : Number(asset.floorUsd || 0);
+  if (!(valueUsd > 0) || !asset.id) return null;
+  const labels = {
+    token: "TON token",
+    gift: "Telegram Gift",
+    sticker: "Sticker",
+    ton_dns: "TON DNS",
+    anonymous_number: "Anonymous Number",
+    telegram_username: "Telegram Username",
+  };
+  const title = type === "gift"
+    ? giftDetailTitle(asset)
+    : type === "sticker"
+      ? (stickerPackLabel(asset) || asset.name || "Sticker")
+      : (asset.name || asset.symbol || labels[type] || "Asset");
+  const subtitle = type === "gift"
+    ? [giftModelTrait(asset), giftBackdropTrait(asset)].filter(Boolean).join(" \u00b7 ")
+    : type === "sticker"
+      ? (asset.creator || asset.collection || labels[type])
+      : type === "token"
+        ? (asset.symbol || labels[type])
+        : (asset.collection || labels[type]);
+  return {
+    key: featuredAssetKey(asset, type),
+    asset,
+    assetId: asset.id,
+    type,
+    title,
+    subtitle,
+    category: labels[type] || "Asset",
+    valueUsd,
+    changePct: Number(type === "token" ? asset.change24h : asset.dailyPct || 0),
+    rarityPct: featuredAssetRarity(asset),
+    pricingTier: featuredAssetPricingTier(asset, type),
+    estimated: isEstimatedAsset(asset),
+  };
+}
+
+function featuredAssetCandidates() {
+  const sources = [
+    ["gift", groupedAssetChildren(giftAssets)],
+    ["sticker", groupedAssetChildren(stickerAssets)],
+    ["token", latestVisibleTokens],
+    ["ton_dns", dnsAssets],
+    ["anonymous_number", anonymousNumberAssets],
+    ["telegram_username", usernameAssets],
+  ];
+  const seen = new Set();
+  const buckets = sources.map(([type, assets]) => {
+    const items = assets
+      .map((asset) => featuredAssetCandidate(asset, type))
+      .filter((candidate) => {
+        if (!candidate || seen.has(candidate.key)) return false;
+        seen.add(candidate.key);
+        return true;
+      })
+      .sort((a, b) => b.pricingTier - a.pricingTier
+        || b.valueUsd - a.valueUsd
+        || b.changePct - a.changePct
+        || a.rarityPct - b.rarityPct
+        || a.key.localeCompare(b.key));
+    return items;
+  }).filter((items) => items.length);
+
+  const selected = [];
+  while (selected.length < FEATURED_ASSET_LIMIT && buckets.some((items) => items.length)) {
+    buckets.forEach((items) => {
+      if (items.length && selected.length < FEATURED_ASSET_LIMIT) selected.push(items.shift());
+    });
+  }
+  return selected;
+}
+
+function featuredAssetArtHtml(candidate) {
+  const { asset, type, title } = candidate;
+  if (type === "token") return renderTokenLogo(asset);
+  if (type === "gift") {
+    return `<span class="featured-asset-art is-gift">${collectibleArtHtml(asset, "gift")}</span>`;
+  }
+  if (type === "sticker") {
+    const media = stickerMediaDescriptor({ ...asset, animatedImage: "", animationUrl: "", animatedUrl: "", mediaUrl: "" });
+    if (media.url) {
+      return `<span class="featured-asset-art is-sticker"><img src="${escapeHtml(media.url)}" alt="${escapeHtml(title)}" loading="eager" decoding="async"></span>`;
+    }
+    return `<span class="featured-asset-art is-sticker"><i data-lucide="sticker"></i></span>`;
+  }
+  const image = resolveTokenImage(asset.image || "");
+  return image
+    ? `<span class="featured-asset-art is-identity"><img src="${escapeHtml(image)}" alt="${escapeHtml(title)}" loading="eager" decoding="async"></span>`
+    : `<span class="featured-asset-art is-identity"><i data-lucide="${escapeHtml(asset.icon || (type === "ton_dns" ? "globe-2" : type === "telegram_username" ? "at-sign" : "phone"))}"></i></span>`;
+}
+
+function renderFeaturedAssetCard(candidate, interactive = true) {
+  const tag = interactive ? "button" : "article";
+  const route = interactive ? ` type="button" data-screen-target="detail" data-asset="${escapeHtml(candidate.assetId)}"` : ` aria-hidden="true"`;
+  const rarity = Number.isFinite(candidate.rarityPct) ? `${candidate.rarityPct.toLocaleString(undefined, { maximumFractionDigits: 2 })}% rare` : "";
+  const signal = rarity || (Number.isFinite(candidate.changePct) && candidate.changePct !== 0 ? `${signedPct(candidate.changePct)} 24h` : candidate.category);
+  return `<${tag} class="featured-asset-card is-${escapeHtml(candidate.type)}"${route}>
+    <span class="featured-asset-visual">${featuredAssetArtHtml(candidate)}${candidate.estimated ? '<small class="featured-estimated">Estimated</small>' : ""}</span>
+    <span class="featured-asset-copy"><small>${escapeHtml(candidate.category)}</small><b>${escapeHtml(candidate.title)}</b><em>${escapeHtml(candidate.subtitle || signal)}</em></span>
+    <span class="featured-asset-value"><strong>${money(candidate.valueUsd)}</strong><small>${escapeHtml(signal)}</small></span>
+  </${tag}>`;
+}
+
+function renderFeaturedCollectibles() {
+  const section = document.querySelector('[data-screen="home"] .featured-collectibles');
+  const viewport = section?.querySelector(".featured-collectibles-viewport");
+  const track = section?.querySelector(".featured-collectibles-track");
+  if (!section || !viewport || !track) return;
+  const candidates = featuredAssetCandidates();
+  section.hidden = !candidates.length;
+  if (!candidates.length) {
+    track.replaceChildren();
+    return;
+  }
+  const loopItems = [];
+  while (loopItems.length < Math.max(FEATURED_ASSET_MIN_LOOP_SIZE, candidates.length)) {
+    loopItems.push(...candidates);
+  }
+  loopItems.length = Math.max(FEATURED_ASSET_MIN_LOOP_SIZE, candidates.length);
+  const primary = loopItems.map((candidate) => renderFeaturedAssetCard(candidate, true)).join("");
+  const duplicate = loopItems.map((candidate) => renderFeaturedAssetCard(candidate, false)).join("");
+  track.style.setProperty("--featured-duration", `${Math.max(34, loopItems.length * 4)}s`);
+  track.innerHTML = `<div class="featured-collectibles-sequence">${primary}</div><div class="featured-collectibles-sequence" aria-hidden="true">${duplicate}</div>`;
+  if (!viewport.dataset.motionBound) {
+    viewport.dataset.motionBound = "1";
+    viewport.addEventListener("pointerdown", () => viewport.classList.add("is-paused"));
+    window.addEventListener("pointerup", () => viewport.classList.remove("is-paused"));
+    window.addEventListener("pointercancel", () => viewport.classList.remove("is-paused"));
+  }
+  window.lucide?.createIcons();
+  initCollectibleAnimations(track);
+}
+
+function openFeaturedAsset(target) {
+  const assetId = target?.dataset.asset || "";
+  if (!assetId) return false;
+  const route = { screen: "detail", asset: assetId };
+  const currentRoute = currentNavigationRoute();
+  if (navigationRouteKey(currentRoute) !== navigationRouteKey(route)) {
+    navigationStack.push(currentRoute);
+    forwardNavigationStack.length = 0;
+  }
+  detailReturnScreen = currentRoute.screen || "home";
+  closeGiftPfpTray();
+  applyNavigationRoute(route, { restoreScroll: false });
+  return true;
+}
+
 function renderStickerBrand(assetId) {
   const brand = stickerAssets.find((asset) => asset.id === assetId) || stickerAssets[0];
   if (!brand) return;
@@ -1849,71 +2046,129 @@ function identityAssetId(item = {}, type = "identity", index = 0) {
   return `${type}-${suffix || index}`;
 }
 
+function identityTypeMeta(type = "ton_dns") {
+  if (type === "telegram_username") return { key: "usernames", listId: "usernamesList", searchId: "usernamesSearch", valueId: "usernamesTotalValue", summaryId: "usernamesSummaryText", countId: "usernamesCountLabel", noun: "username", collection: "Telegram Usernames", label: "Telegram username", icon: "at-sign", tone: "username-bg", empty: "No Telegram usernames found" };
+  if (type === "anonymous_number") return { key: "anonymousNumbers", listId: "anonymousNumbersList", searchId: "anonymousNumbersSearch", valueId: "anonymousNumbersTotalValue", summaryId: "anonymousNumbersSummaryText", countId: "anonymousNumbersCountLabel", noun: "number", collection: "Anonymous Numbers", label: "Telegram anonymous number", icon: "phone", tone: "number-bg", empty: "No anonymous numbers found" };
+  return { key: "dns", listId: "dnsList", searchId: "dnsSearch", valueId: "dnsTotalValue", summaryId: "dnsSummaryText", countId: "dnsCountLabel", noun: "domain", collection: "TON DNS", label: "TON DNS domain", icon: "globe-2", tone: "dns-bg", empty: "No TON domains found" };
+}
+
 function normalizeIdentityAsset(item = {}, type = "ton_dns", index = 0) {
   const isDns = type === "ton_dns";
+  const isUsername = type === "telegram_username";
+  const meta = identityTypeMeta(type);
   const id = identityAssetId(item, type, index);
   const floorTon = Number(item.floorTon || 0);
   const floorUsd = Number(item.floorUsd || 0);
-  const hasVerifiedListing = item.floorStatus === "priced"
-    && item.valuationKind === "active-listing"
-    && floorTon > 0;
+  const valuationKind = String(item.valuationKind || "");
+  const hasAcceptedValue = item.floorStatus === "priced"
+    && ((valuationKind === "active-listing" && floorTon > 0)
+      || (isDns && valuationKind === "dns-estimate" && floorTon > 0)
+      || (isUsername && valuationKind === "username-estimate" && floorUsd > 0));
+  const hasDnsEstimate = isDns && Number(item.estimatedGram || 0) > 0;
+  const hasUsernameEstimate = isUsername && Number(item.estimatedUsd || item.floorUsd || 0) > 0;
+  const hasEstimate = hasDnsEstimate || hasUsernameEstimate;
+  const listingGram = Number(item.currentListingGram || (valuationKind === "active-listing" ? floorTon : 0) || 0);
   return {
     id,
     type,
     name: isDns
       ? String(item.domain || item.displayName || item.name || "TON domain")
-      : String(item.displayNumber || item.name || "Anonymous number"),
+      : isUsername
+        ? String(item.displayName || item.username || item.name || "Telegram username").replace(/^@?/, "@")
+        : String(item.displayNumber || item.name || "Anonymous number"),
     domain: String(item.domain || ""),
     number: String(item.number || ""),
-    collection: String(item.collection || (isDns ? "TON DNS" : "Anonymous Numbers")),
+    username: String(item.username || item.displayName || item.name || "").replace(/^@+/, ""),
+    collection: String(item.collection || meta.collection),
     tokenAddress: String(item.tokenAddress || item.address || ""),
     image: resolveTokenImage(item.image || ""),
     description: String(item.description || ""),
-    floorTon: hasVerifiedListing ? floorTon : 0,
-    floorUsd: hasVerifiedListing ? floorUsd : 0,
-    valueUsd: hasVerifiedListing ? floorUsd : 0,
-    floorStatus: hasVerifiedListing ? "priced" : "unavailable",
-    valuationKind: hasVerifiedListing ? "active-listing" : "unavailable",
-    listed: hasVerifiedListing,
-    listedCount: hasVerifiedListing ? 1 : 0,
-    marketPlatform: hasVerifiedListing ? String(item.marketPlatform || "Marketplace") : "",
+    floorTon: hasAcceptedValue ? floorTon : 0,
+    floorUsd: hasAcceptedValue ? floorUsd : 0,
+    valueUsd: hasAcceptedValue ? floorUsd : 0,
+    floorStatus: hasAcceptedValue ? "priced" : hasEstimate ? "estimated-low" : "unavailable",
+    valuationKind: hasAcceptedValue ? valuationKind : hasDnsEstimate ? "dns-estimate-low" : hasUsernameEstimate ? "username-estimate-low" : "unavailable",
+    listed: listingGram > 0,
+    listedCount: listingGram > 0 ? 1 : 0,
+    marketPlatform: listingGram > 0 ? String(item.marketPlatform || "Getgems") : "",
     marketUrl: String(item.marketUrl || ""),
     manageUrl: String(item.manageUrl || ""),
     verified: Boolean(item.verified),
-    icon: isDns ? "globe-2" : "phone",
-    tone: isDns ? "dns-bg" : "number-bg",
+    icon: meta.icon,
+    tone: meta.tone,
+    estimatedGram: Number(item.estimatedGram || 0),
+    estimatedUsd: Number(item.estimatedUsd || 0),
+    rangeLowGram: Number(item.rangeLowGram || 0),
+    rangeHighGram: Number(item.rangeHighGram || 0),
+    rangeLowUsd: Number(item.rangeLowUsd || 0),
+    rangeHighUsd: Number(item.rangeHighUsd || 0),
+    confidenceScore: Number(item.confidenceScore || 0),
+    confidenceBand: String(item.confidenceBand || ""),
+    portfolioEligible: Boolean(item.portfolioEligible),
+    evidenceCount: Number(item.evidenceCount || 0),
+    effectiveCompCount: Number(item.effectiveCompCount || 0),
+    currentListingGram: listingGram,
+    currentListingUsd: Number(item.currentListingUsd || listingGram * usdTonRate || 0),
+    currentBidGram: Number(item.currentBidGram || 0),
+    currentBidUsd: Number(item.currentBidUsd || 0),
+    dnsValuationStatus: String(item.dnsValuationStatus || ""),
+    usernameValuationStatus: String(item.usernameValuationStatus || ""),
+    estimatorVersion: String(item.estimatorVersion || ""),
+    valuedAt: item.valuedAt || null,
+    valuationStale: Boolean(item.valuationStale),
+    valuationExplanation: item.valuationExplanation || {},
   };
 }
 
 function identityAssetValue(asset = {}) {
-  return asset.floorStatus === "priced" && asset.valuationKind === "active-listing"
+  return asset.floorStatus === "priced"
+    && (asset.valuationKind === "active-listing" || asset.valuationKind === "dns-estimate" || asset.valuationKind === "username-estimate")
     ? Number(asset.floorUsd || 0)
     : 0;
 }
 
 function renderIdentityAssetRows(type, query = "") {
+  const typeMeta = identityTypeMeta(type);
   const isDns = type === "ton_dns";
-  const assets = isDns ? dnsAssets : anonymousNumberAssets;
-  const list = document.getElementById(isDns ? "dnsList" : "anonymousNumbersList");
+  const isUsername = type === "telegram_username";
+  const assets = isDns ? dnsAssets : isUsername ? usernameAssets : anonymousNumberAssets;
+  const list = document.getElementById(typeMeta.listId);
   if (!list) return;
   const term = String(query || "").trim().toLowerCase();
   const rows = [...assets]
-    .filter((asset) => !term || `${asset.name} ${asset.domain} ${asset.number}`.toLowerCase().includes(term))
+    .filter((asset) => !term || `${asset.name} ${asset.domain} ${asset.number} ${asset.username}`.toLowerCase().includes(term))
     .sort((a, b) => identityAssetValue(b) - identityAssetValue(a) || a.name.localeCompare(b.name));
   if (!rows.length) {
-    list.innerHTML = `<div class="identity-empty-state"><i data-lucide="${isDns ? "globe-2" : "phone"}"></i><b>${term ? "No matching assets" : isDns ? "No TON domains found" : "No anonymous numbers found"}</b><small>${term ? "Try another search." : "Assets from the verified collection will appear after wallet import."}</small></div>`;
+    list.innerHTML = `<div class="identity-empty-state"><i data-lucide="${typeMeta.icon}"></i><b>${term ? "No matching assets" : typeMeta.empty}</b><small>${term ? "Try another search." : "Assets from the verified collection will appear after wallet import."}</small></div>`;
     window.lucide?.createIcons();
     return;
   }
   list.innerHTML = rows.map((asset) => {
     const value = identityAssetValue(asset);
+    const estimate = Number(asset.estimatedUsd || 0);
+    const isEstimate = asset.valuationKind === "dns-estimate" || asset.valuationKind === "dns-estimate-low" || asset.valuationKind === "username-estimate" || asset.valuationKind === "username-estimate-low";
+    const isIndicative = asset.dnsValuationStatus === "indicative"
+      || asset.usernameValuationStatus === "indicative"
+      || asset.valuationExplanation?.provenance === "broad-verified-sales-baseline"
+      || asset.valuationExplanation?.provenance === "verified-sales-archetype-baseline";
+    const displayValue = value > 0 ? value : estimate;
+    const valuationState = asset.usernameValuationStatus || asset.dnsValuationStatus;
+    const meta = isEstimate
+      ? isUsername
+        ? `${isIndicative ? "market baseline" : "sale-based estimate"} · ${asset.confidenceBand || "low"} confidence`
+        : `${asset.estimatedGram.toLocaleString(undefined, { maximumFractionDigits: 2 })} GRAM ${isIndicative ? "market baseline" : "estimate"} · ${asset.confidenceBand || "low"} confidence`
+      : value > 0
+        ? `${asset.floorTon.toLocaleString(undefined, { maximumFractionDigits: 2 })} GRAM listing`
+        : valuationState === "processing"
+          ? "Valuation is processing"
+          : "No verified market evidence";
     const art = asset.image
       ? `<span class="identity-asset-art ${asset.tone}"><img src="${escapeHtml(asset.image)}" alt="" loading="lazy"></span>`
       : `<span class="identity-asset-art ${asset.tone}"><i data-lucide="${asset.icon}"></i></span>`;
     return `<article data-screen-target="detail" data-asset="${escapeHtml(asset.id)}">
       ${art}
       <div><b>${escapeHtml(asset.name)}</b><small>${asset.verified ? "Verified collection" : escapeHtml(asset.collection)}</small></div>
-      <aside><b>${value > 0 ? money(value) : "Unavailable"}</b><small>${value > 0 ? `${asset.floorTon.toLocaleString(undefined, { maximumFractionDigits: 2 })} GRAM listing` : "No verified GRAM listing"}</small></aside>
+      <aside><b>${displayValue > 0 ? money(displayValue) : valuationState === "processing" ? "Processing" : "Unavailable"}</b><small>${escapeHtml(meta)}</small>${isEstimate ? `<em class="identity-estimate-pill">${isIndicative ? "Indicative" : "Estimated"}</em>` : ""}</aside>
     </article>`;
   }).join("");
   window.lucide?.createIcons();
@@ -1923,6 +2178,7 @@ function renderIdentityAssetScreens() {
   const groups = [
     { assets: dnsAssets, type: "ton_dns", valueId: "dnsTotalValue", summaryId: "dnsSummaryText", countId: "dnsCountLabel", noun: "domain" },
     { assets: anonymousNumberAssets, type: "anonymous_number", valueId: "anonymousNumbersTotalValue", summaryId: "anonymousNumbersSummaryText", countId: "anonymousNumbersCountLabel", noun: "number" },
+    { assets: usernameAssets, type: "telegram_username", valueId: "usernamesTotalValue", summaryId: "usernamesSummaryText", countId: "usernamesCountLabel", noun: "username" },
   ];
   groups.forEach(({ assets, type, valueId, summaryId, countId, noun }) => {
     const total = assets.reduce((sum, asset) => sum + identityAssetValue(asset), 0);
@@ -1930,15 +2186,22 @@ function renderIdentityAssetScreens() {
     setText(`#${valueId}`, money(total));
     setText(`#${summaryId}`, `${assets.length} ${noun}${assets.length === 1 ? "" : "s"} · ${priced} priced`);
     setText(`#${countId}`, `${assets.length} ${noun}${assets.length === 1 ? "" : "s"}`);
-    const search = document.getElementById(type === "ton_dns" ? "dnsSearch" : "anonymousNumbersSearch");
+    const search = document.getElementById(identityTypeMeta(type).searchId);
     renderIdentityAssetRows(type, search?.value || "");
   });
+  renderFeaturedCollectibles();
 }
 
-function updateIdentityAssetsFromWallet(data = {}) {
-  dnsAssets.splice(0, dnsAssets.length, ...(data?.assets?.dns || []).map((item, index) => normalizeIdentityAsset(item, "ton_dns", index)));
-  anonymousNumberAssets.splice(0, anonymousNumberAssets.length, ...(data?.assets?.anonymousNumbers || []).map((item, index) => normalizeIdentityAsset(item, "anonymous_number", index)));
-  [...dnsAssets, ...anonymousNumberAssets].forEach((asset) => {
+function updateIdentityAssetsFromWallet(data = {}, options = {}) {
+  const replaceAssets = (target, incoming, type) => {
+    if (!Array.isArray(incoming)) return;
+    if (options.preserveExistingOnEmpty && !incoming.length && target.length) return;
+    target.splice(0, target.length, ...incoming.map((item, index) => normalizeIdentityAsset(item, type, index)));
+  };
+  replaceAssets(dnsAssets, data?.assets?.dns, "ton_dns");
+  replaceAssets(anonymousNumberAssets, data?.assets?.anonymousNumbers, "anonymous_number");
+  replaceAssets(usernameAssets, data?.assets?.usernames, "telegram_username");
+  [...dnsAssets, ...anonymousNumberAssets, ...usernameAssets].forEach((asset) => {
     assetDetails[asset.id] = asset;
   });
   renderIdentityAssetScreens();
@@ -1946,12 +2209,23 @@ function updateIdentityAssetsFromWallet(data = {}) {
 
 function renderIdentityAssetDetail(detail) {
   const isDns = detail.type === "ton_dns";
+  const isUsername = detail.type === "telegram_username";
+  const typeMeta = identityTypeMeta(detail.type);
   toggleGiftDetailLayout(true);
   const detailScreen = document.querySelector('[data-screen="detail"]');
   detailScreen?.classList.toggle("is-identity-detail", true);
-  setText('[data-screen="detail"] > .page-header h1', isDns ? "TON DNS" : "Anonymous Number");
+  setText('[data-screen="detail"] > .page-header h1', isDns ? "TON DNS" : isUsername ? "Telegram Username" : "Anonymous Number");
   const mount = document.getElementById("giftDetailMount");
   const hasValue = identityAssetValue(detail) > 0;
+  const hasEstimate = (isDns && Number(detail.estimatedGram || 0) > 0) || (isUsername && Number(detail.estimatedUsd || detail.floorUsd || 0) > 0);
+  const isEstimate = detail.valuationKind === "dns-estimate" || detail.valuationKind === "dns-estimate-low" || detail.valuationKind === "username-estimate" || detail.valuationKind === "username-estimate-low";
+  const isIndicative = detail.dnsValuationStatus === "indicative"
+    || detail.usernameValuationStatus === "indicative"
+    || detail.valuationExplanation?.provenance === "broad-verified-sales-baseline"
+    || detail.valuationExplanation?.provenance === "verified-sales-archetype-baseline";
+  const valuationState = detail.usernameValuationStatus || detail.dnsValuationStatus;
+  const heroUsd = hasValue ? detail.floorUsd : hasEstimate ? detail.estimatedUsd : 0;
+  const heroGram = isEstimate ? detail.estimatedGram : detail.floorTon;
   const art = detail.image
     ? `<div class="identity-detail-art ${detail.tone}"><img src="${escapeHtml(detail.image)}" alt="${escapeHtml(detail.name)}"></div>`
     : `<div class="identity-detail-art ${detail.tone}"><i data-lucide="${detail.icon}"></i></div>`;
@@ -1959,24 +2233,36 @@ function renderIdentityAssetDetail(detail) {
     mount.innerHTML = `<section class="identity-detail-layout">
       <article class="identity-detail-hero">
         ${art}
-        <small>${isDns ? "TON DNS domain" : "Telegram anonymous number"}</small>
+        <small>${typeMeta.label}</small>
         <h2>${escapeHtml(detail.name)}</h2>
         <div class="identity-detail-value">
-          <span>${hasValue ? "Active GRAM listing" : "Portfolio value"}</span>
-          <b>${hasValue ? money(detail.floorUsd) : "Unavailable"}</b>
-          <small>${hasValue ? `${detail.floorTon.toLocaleString(undefined, { maximumFractionDigits: 2 })} GRAM &middot; ${escapeHtml(detail.marketPlatform)}` : "No verified GRAM-denominated listing is available."}</small>
+          <span>${isIndicative ? "Indicative market value" : isEstimate ? "Estimated value" : hasValue ? "Active GRAM listing" : "Portfolio value"}</span>
+          <b>${heroUsd > 0 ? money(heroUsd) : valuationState === "processing" ? "Processing" : "Unavailable"}</b>
+          <small>${isUsername && isEstimate ? `${escapeHtml(detail.confidenceBand || "low")} confidence &middot; ${detail.evidenceCount.toLocaleString()} comparable sales` : heroGram > 0 ? `${heroGram.toLocaleString(undefined, { maximumFractionDigits: 2 })} GRAM${isEstimate ? ` &middot; ${escapeHtml(detail.confidenceBand || "low")} confidence` : ` &middot; ${escapeHtml(detail.marketPlatform)}`}` : "Verified market evidence is still being processed."}</small>
         </div>
       </article>
+      ${hasEstimate ? `<article class="identity-detail-card identity-estimate-card">
+        <div class="section-heading"><h2>Valuation range</h2><span class="identity-estimate-pill">${isIndicative ? "Indicative" : "Estimated"}</span></div>
+        <div class="identity-range"><b>${isUsername ? money(detail.rangeLowUsd) : `${detail.rangeLowGram.toLocaleString(undefined, { maximumFractionDigits: 2 })} GRAM`}</b><span>to</span><b>${isUsername ? money(detail.rangeHighUsd) : `${detail.rangeHighGram.toLocaleString(undefined, { maximumFractionDigits: 2 })} GRAM`}</b></div>
+        <div class="identity-detail-row"><span>Confidence</span><b>${escapeHtml((detail.confidenceBand || "low").replace(/^./, (letter) => letter.toUpperCase()))}</b></div>
+        <div class="identity-detail-row"><span>Comparable sales</span><b>${detail.evidenceCount.toLocaleString()}</b></div>
+        <div class="identity-detail-row"><span>Last valued</span><b>${detail.valuedAt ? new Date(detail.valuedAt).toLocaleString([], { dateStyle: "medium", timeStyle: "short" }) : "Processing"}</b></div>
+      </article>` : ""}
+      ${(isDns || isUsername) && (detail.currentListingGram > 0 || detail.currentBidGram > 0) ? `<article class="identity-detail-card">
+        <div class="section-heading"><h2>Current market</h2>${iconCueHtml("radio", "Live market signals", "is-live")}</div>
+        ${detail.currentListingGram > 0 ? `<div class="identity-detail-row"><span>Verified ask</span><b>${detail.currentListingGram.toLocaleString(undefined, { maximumFractionDigits: 2 })} GRAM</b></div>` : ""}
+        ${detail.currentBidGram > 0 ? `<div class="identity-detail-row"><span>Verified bid</span><b>${detail.currentBidGram.toLocaleString(undefined, { maximumFractionDigits: 2 })} GRAM</b></div>` : ""}
+      </article>` : ""}
       <article class="identity-detail-card">
         <div class="section-heading"><h2>Asset details</h2><span class="text-action">On-chain</span></div>
-        <div class="identity-detail-row"><span>Collection</span><b>${isDns ? "TON DNS" : "Anonymous Numbers"}</b></div>
+        <div class="identity-detail-row"><span>Collection</span><b>${typeMeta.collection}</b></div>
         <div class="identity-detail-row"><span>Ownership</span><b>${detail.verified ? "Verified" : "On-chain"}</b></div>
-        <div class="identity-detail-row"><span>Valuation</span><b>${hasValue ? "Active listing" : "Unavailable"}</b></div>
-        <div class="identity-detail-row"><span>Marketplace</span><b>${hasValue ? escapeHtml(detail.marketPlatform) : isDns ? "Getgems" : "Fragment"}</b></div>
+        <div class="identity-detail-row"><span>Valuation</span><b>${isIndicative ? "Sale-only market baseline" : isEstimate ? "Comparable estimate" : hasValue ? "Active listing" : valuationState === "processing" ? "Processing" : "Unavailable"}</b></div>
+        <div class="identity-detail-row"><span>Marketplace</span><b>${detail.currentListingGram > 0 || (hasValue && !isEstimate) ? escapeHtml(detail.marketPlatform || "Getgems") : isDns ? "Getgems" : "Fragment"}</b></div>
       </article>
       <article class="identity-detail-note">
         <i data-lucide="shield-check"></i>
-        <div><b>Strict valuation</b><small>Only a verified active listing denominated in native GRAM is counted. Jettons and ambiguous prices are excluded.</small></div>
+        <div><b>Evidence-based valuation</b><small>${isUsername ? "Only finalized native-GRAM username sales with the historical GRAM/USD rate are comparable evidence. Asks and bids are shown separately and cannot set the estimate." : isDns ? "Completed native-GRAM sales set the estimate. Verified asks and bids are shown separately and cannot dictate the midpoint." : "Only a verified active listing denominated in native GRAM is counted. Jettons and ambiguous prices are excluded."}</small></div>
       </article>
     </section>`;
   }
@@ -2001,8 +2287,8 @@ function renderAssetDetail(assetId) {
   detailScreen?.classList.toggle("is-token-detail", detail.type === "token");
   detailScreen?.classList.toggle("is-gift-detail", detail.type === "gift");
   detailScreen?.classList.toggle("is-sticker-detail", detail.type === "sticker");
-  detailScreen?.classList.toggle("is-identity-detail", detail.type === "ton_dns" || detail.type === "anonymous_number");
-  if (detail.type === "ton_dns" || detail.type === "anonymous_number") {
+  detailScreen?.classList.toggle("is-identity-detail", detail.type === "ton_dns" || detail.type === "anonymous_number" || detail.type === "telegram_username");
+  if (detail.type === "ton_dns" || detail.type === "anonymous_number" || detail.type === "telegram_username") {
     renderIdentityAssetDetail(detail);
     applyCurrencyDisplay();
     return true;
@@ -2164,8 +2450,10 @@ function renderCollectibleDetail(detail, tone) {
     attribute: "data-sticker-detail-range",
   });
   setDetailHeading(".price-panel", isGift ? "Price Movement" : "Floor Price", "USD");
-  setDetailHeading(".sales-panel", "Recent Sales", isGift ? "Exact Variant" : "This Pack");
-  setDetailHeading(".market-intel", "Market Intel", "Live");
+  setDetailHeading(".sales-panel", "Recent Sales", isGift
+    ? { icon: "focus", label: "Exact variant" }
+    : { icon: "sticker", label: "This pack" });
+  setDetailHeading(".market-intel", "Market Intel", { icon: "radio", label: "Live market data", className: "is-live" });
   setText("#detailStatOneLabel", "Current Floor");
   setText("#detailStatOne", collectibleValueLabel(detail.floorUsd, detail.floorTon));
   setText("#detailStatTwoLabel", "Cost Basis");
@@ -2434,9 +2722,9 @@ function renderGiftDetailPage(detail, { loading = false } = {}) {
         <div class="section-heading">
           <div class="gift-detail-heading-lockup">
             <span class="gift-detail-section-icon"><i data-lucide="receipt-text"></i></span>
-            <div><h2>Last Sales</h2><small>Recent market evidence</small></div>
+            <div><h2>Last Sales</h2></div>
           </div>
-          <button class="text-action" type="button">${detail.salesScope === "same-traits" ? "Exact variant · 365D" : "Collection-wide · 365D"}</button>
+          ${scopeCueHtml(detail.salesScope === "same-traits" ? "focus" : "layers-3", detail.salesScope === "same-traits" ? "Exact variant, 365 days" : "Collection-wide, 365 days", "365D")}
         </div>
         <div class="sales-table">${salesRows}</div>
       </article>
@@ -2445,7 +2733,7 @@ function renderGiftDetailPage(detail, { loading = false } = {}) {
         <div class="section-heading">
           <div class="gift-detail-heading-lockup">
             <span class="gift-detail-section-icon"><i data-lucide="activity"></i></span>
-            <div><h2>Demand Intel</h2><small>Model-level signals</small></div>
+            <div><h2>Demand Intel</h2></div>
           </div>
           ${loading ? "" : giftDemandBadge(detail.intel)}
         </div>
@@ -2456,7 +2744,7 @@ function renderGiftDetailPage(detail, { loading = false } = {}) {
         <div class="section-heading">
           <div class="gift-detail-heading-lockup">
             <span class="gift-detail-section-icon"><i data-lucide="route"></i></span>
-            <div><h2>Origin</h2><small>Ownership provenance</small></div>
+            <div><h2>Origin</h2></div>
           </div>
         </div>
         <div class="gift-origin-list">${giftOriginRows(detail, upgradeState, eligibility)}</div>
@@ -2546,9 +2834,9 @@ function stickerDetailIntelSections(detail) {
   const description = String(about.description || "").trim();
   const emojis = Array.isArray(about.emojiSet) ? about.emojiSet : [];
   return `
-    ${aboutRows || description || emojis.length ? `<article class="card gift-detail-card sticker-intel-card"><div class="section-heading"><h2>About</h2>${about.official ? `<span class="text-action">Official</span>` : ""}</div>${description ? `<p class="sticker-detail-description">${escapeHtml(description)}</p>` : ""}${aboutRows}${emojis.length ? `<div class="sticker-emoji-row" aria-label="Sticker emoji set">${emojis.map((emoji) => `<span>${escapeHtml(emoji)}</span>`).join("")}</div>` : ""}</article>` : ""}
+    ${aboutRows || description || emojis.length ? `<article class="card gift-detail-card sticker-intel-card"><div class="section-heading"><h2>About</h2>${about.official ? iconCueHtml("shield-check", "Official collection") : ""}</div>${description ? `<p class="sticker-detail-description">${escapeHtml(description)}</p>` : ""}${aboutRows}${emojis.length ? `<div class="sticker-emoji-row" aria-label="Sticker emoji set">${emojis.map((emoji) => `<span>${escapeHtml(emoji)}</span>`).join("")}</div>` : ""}</article>` : ""}
     ${supplyRows ? `<article class="card gift-detail-card"><div class="section-heading"><h2>Supply</h2></div>${supplyRows}</article>` : ""}
-    ${marketRows ? `<article class="card gift-detail-card"><div class="section-heading"><h2>Market Activity</h2><span class="text-action">Pack-wide</span></div>${marketRows}</article>` : ""}`;
+    ${marketRows ? `<article class="card gift-detail-card"><div class="section-heading"><h2>Market Activity</h2>${iconCueHtml("layers-3", "Pack-wide activity")}</div>${marketRows}</article>` : ""}`;
 }
 
 function renderStickerDetailSalesRows(detail, loading = false) {
@@ -2613,14 +2901,14 @@ function renderStickerDetailPage(detail, { loading = false } = {}) {
       </article>
 
       <article class="card gift-detail-card">
-        <div class="section-heading"><h2>Pack Stats</h2><span class="text-action">Live</span></div>
+        <div class="section-heading"><h2>Pack Stats</h2>${iconCueHtml("radio", "Live pack statistics", "is-live")}</div>
         ${stickerDetailStatsRows(detail)}
       </article>
 
       ${stickerDetailIntelSections(detail)}
 
       <article class="card gift-detail-card">
-        <div class="section-heading"><h2>Recent Sales</h2><span class="text-action">This pack</span></div>
+        <div class="section-heading"><h2>Recent Sales</h2>${iconCueHtml("sticker", "This pack")}</div>
         ${renderStickerDetailSalesRows(detail, loading)}
       </article>
     </section>`;
@@ -3156,8 +3444,7 @@ function giftComboHistoryCandidates(detail = {}) {
   return [detail, ...(Array.isArray(detail.children) ? detail.children : [])].flatMap((item) => {
     const model = String(giftModelTrait(item) || giftModelTrait(detail) || item.model || detail.model || "").trim();
     const backdrop = String(giftTraitValue(item, "Backdrop") || giftTraitValue(detail, "Backdrop") || item.backdrop || detail.backdrop || "").trim();
-    const symbol = String(giftTraitValue(item, "Symbol") || giftTraitValue(detail, "Symbol") || item.symbol || detail.symbol || "").trim();
-    if (!model || !backdrop || !symbol) return [];
+    if (!model || !backdrop) return [];
     return [item.collection, detail.collection, item.creator, detail.creator, item.name, detail.name]
       .filter(Boolean)
       .flatMap((value) => {
@@ -3165,19 +3452,19 @@ function giftComboHistoryCandidates(detail = {}) {
         return [name, /s$/i.test(name) ? name.slice(0, -1) : `${name}s`];
       })
       .filter((collection) => {
-        const key = `${collectibleKey(collection)}:${collectibleKey(model)}:${collectibleKey(backdrop)}:${collectibleKey(symbol)}`;
+        const key = `${collectibleKey(collection)}:${collectibleKey(model)}:${collectibleKey(backdrop)}`;
         if (!collection || seen.has(key)) return false;
         seen.add(key);
         return true;
       })
-      .map((collection) => ({ collection, model, backdrop, symbol }));
+      .map((collection) => ({ collection, model, backdrop }));
   });
 }
 
 function giftComboHistoryCacheKey(detail = {}) {
   const candidate = giftComboHistoryCandidates(detail)[0];
   if (!candidate) return "";
-  return `${giftDetailRange}:${collectibleKey(candidate.collection)}:${collectibleKey(candidate.model)}:${collectibleKey(candidate.backdrop)}:${collectibleKey(candidate.symbol)}`;
+  return `${giftDetailRange}:${collectibleKey(candidate.collection)}:${collectibleKey(candidate.model)}:${collectibleKey(candidate.backdrop)}`;
 }
 
 async function hydrateGiftDetailTraitRarities(detail = {}, requestId = activeGiftDetailRequest) {
@@ -3586,9 +3873,18 @@ function setDetailHeading(panelSelector, title, action = "") {
   const button = panel.querySelector(".section-heading button");
   if (heading) heading.textContent = title;
   if (button) {
-    button.textContent = action;
+    button.classList.remove("ui-icon-action", "is-live");
+    button.removeAttribute("aria-label");
+    button.removeAttribute("title");
+    if (action && typeof action === "object") {
+      setIconAction(button, action.icon, action.label);
+      if (action.className) button.classList.add(action.className);
+    } else {
+      button.textContent = action;
+    }
     button.style.display = action ? "" : "none";
   }
+  window.lucide?.createIcons();
 }
 
 
@@ -3619,8 +3915,9 @@ function renderTokenActivity(detail) {
   if (!table) return;
   const headingAction = document.querySelector('.sales-panel .section-heading .text-action');
   if (headingAction) {
-    headingAction.textContent = "See all";
+    setIconAction(headingAction, "arrow-up-right", "Open all activity");
     headingAction.dataset.tokenActivitySeeAll = detail.symbol || detail.name || "";
+    window.lucide?.createIcons();
   }
   const matches = fullActivityEvents.filter((event) => {
     if (!tokenActivityMatches(detail, event)) return false;
@@ -3771,7 +4068,7 @@ function renderTonNetworkHighlights(network = {}) {
     ["Inflation", network.annualInflationPct ? `${network.annualInflationPct}%` : "—"],
   ];
   return `<section class="ton-network-card">
-    <div class="section-heading"><h2>TON Network</h2><span class="network-live-badge"><i></i>Live</span></div>
+    <div class="section-heading"><h2>TON Network</h2>${iconCueHtml("radio", "Live network data", "is-live")}</div>
     <div class="token-metric-grid ton-network-grid">
       ${items.map(([label, value]) => `<article class="card token-metric-card"><small>${escapeHtml(label)}</small><b>${escapeHtml(value)}</b></article>`).join("")}
     </div>
@@ -4309,7 +4606,7 @@ function renderTokenDetail(detail, tone) {
   document.querySelector("#detailMetaStack").innerHTML = "";
   setText("#detailAcquiredLabel", "");
   setDetailHeading(".price-panel", "Price Movement", "");
-  setDetailHeading(".sales-panel", "Recent Activity", "See all");
+  setDetailHeading(".sales-panel", "Recent Activity", { icon: "arrow-up-right", label: "Open all activity" });
   setDetailHeading(".market-intel", "Market Stats", "");
   renderTokenChartControls();
   const { pressureHost, tonNetworkHost } = ensureTokenDetailSections();
@@ -4496,6 +4793,7 @@ function clearStaticPortfolioPreview() {
   stickerAssets.splice(0, stickerAssets.length);
   dnsAssets.splice(0, dnsAssets.length);
   anonymousNumberAssets.splice(0, anonymousNumberAssets.length);
+  usernameAssets.splice(0, usernameAssets.length);
   resetWalletBoundUi();
   renderCollectibleGrids();
 }
@@ -5187,6 +5485,7 @@ function resetWalletSwitchState(nextAddress = "", options = {}) {
   walletStickerGroups = [];
   dnsAssets.splice(0, dnsAssets.length);
   anonymousNumberAssets.splice(0, anonymousNumberAssets.length);
+  usernameAssets.splice(0, usernameAssets.length);
   if (!preserveTelegram) {
     telegramGiftGroups = [];
     telegramStickerGroups = [];
@@ -5201,6 +5500,7 @@ function resetWalletSwitchState(nextAddress = "", options = {}) {
   allocationState.stickers = preserveTelegram ? collectibleTotals().stickers : 0;
   allocationState.dns = 0;
   allocationState.anonymousNumbers = 0;
+  allocationState.usernames = 0;
   renderIdentityAssetScreens();
   document.querySelectorAll("[data-range]").forEach((button) => button.classList.remove("is-loading"));
   setCollectiblesBanner("gifts", preserveTelegram ? "" : (nextAddress ? "Loading wallet gifts..." : ""));
@@ -5244,6 +5544,7 @@ function resetWalletBoundUi() {
   allocationState.stickers = 0;
   allocationState.dns = 0;
   allocationState.anonymousNumbers = 0;
+  allocationState.usernames = 0;
   latestVisibleTokens = [];
   renderTokenEmptyState("Connect wallet to load tokens");
   resetPerformerCards();
@@ -5279,8 +5580,10 @@ async function disconnectWallet() {
   walletStickerGroups = [];
   dnsAssets.splice(0, dnsAssets.length);
   anonymousNumberAssets.splice(0, anonymousNumberAssets.length);
+  usernameAssets.splice(0, usernameAssets.length);
   allocationState.dns = 0;
   allocationState.anonymousNumbers = 0;
+  allocationState.usernames = 0;
   renderIdentityAssetScreens();
   liveWalletData = null;
   liveWalletAddress = "";
@@ -5560,6 +5863,7 @@ function collectibleTotals() {
     stickers: stickerAssets.reduce((sum, asset) => sum + liveValue(asset), 0),
     dns: dnsAssets.reduce((sum, asset) => sum + identityAssetValue(asset), 0),
     anonymousNumbers: anonymousNumberAssets.reduce((sum, asset) => sum + identityAssetValue(asset), 0),
+    usernames: usernameAssets.reduce((sum, asset) => sum + identityAssetValue(asset), 0),
   };
 }
 
@@ -5574,7 +5878,8 @@ function updateAllocationUi(force = false) {
   allocationState.stickers = totals.stickers;
   allocationState.dns = totals.dns;
   allocationState.anonymousNumbers = totals.anonymousNumbers;
-  const total = Math.max(0, allocationState.gifts + allocationState.tokens + allocationState.stickers + allocationState.dns + allocationState.anonymousNumbers);
+  allocationState.usernames = totals.usernames;
+  const total = Math.max(0, allocationState.gifts + allocationState.tokens + allocationState.stickers + allocationState.dns + allocationState.anonymousNumbers + allocationState.usernames);
   if (walletConnected || telegramConnected) {
     homePortfolioValue = total;
     if (liveWalletData?.summary) liveWalletData.summary.totalUsd = total;
@@ -5588,10 +5893,11 @@ function updateAllocationUi(force = false) {
     [3, allocationState.stickers],
     [4, allocationState.dns],
     [5, allocationState.anonymousNumbers],
+    [6, allocationState.usernames],
   ].forEach(([index, value]) => {
     const strong = document.querySelector(`.allocation-list article:nth-child(${index}) strong`);
     const small = document.querySelector(`.allocation-list article:nth-child(${index}) small`);
-    const key = index === 1 ? "gifts" : index === 2 ? "tokens" : index === 3 ? "stickers" : index === 4 ? "dns" : "anonymous-numbers";
+    const key = index === 1 ? "gifts" : index === 2 ? "tokens" : index === 3 ? "stickers" : index === 4 ? "dns" : index === 5 ? "anonymous-numbers" : "usernames";
     if (isSectionLoading(key) || (["gifts", "stickers"].includes(key) && value <= 0 && hasPendingCollectiblePrices(key))) {
       if (strong) strong.innerHTML = `<span class="metric-skeleton"></span>`;
       if (small) small.innerHTML = `<span class="metric-skeleton metric-skeleton-small"></span>`;
@@ -5610,6 +5916,7 @@ function updateCategoryAndTopAsset(tokenValue = allocationState.tokens) {
   const stickerCategory = document.querySelector('[data-screen="assets"] .category-stack article[data-screen-target="stickers"] strong');
   const dnsCategory = document.querySelector('[data-screen="assets"] .category-stack article[data-screen-target="dns"] strong');
   const numberCategory = document.querySelector('[data-screen="assets"] .category-stack article[data-screen-target="anonymous-numbers"] strong');
+  const usernameCategory = document.querySelector('[data-screen="assets"] .category-stack article[data-screen-target="usernames"] strong');
   const giftCount = giftAssets.reduce((sum, asset) => sum + Number(asset.count || 1), 0);
   const stickerCount = stickerAssets.reduce((sum, asset) => sum + stickerOwnedCount(asset), 0);
   if (giftCategory) {
@@ -5624,19 +5931,21 @@ function updateCategoryAndTopAsset(tokenValue = allocationState.tokens) {
   }
   if (dnsCategory) dnsCategory.textContent = totals.dns > 0 ? money(totals.dns) : `${dnsAssets.length} domain${dnsAssets.length === 1 ? "" : "s"}`;
   if (numberCategory) numberCategory.textContent = totals.anonymousNumbers > 0 ? money(totals.anonymousNumbers) : `${anonymousNumberAssets.length} number${anonymousNumberAssets.length === 1 ? "" : "s"}`;
+  if (usernameCategory) usernameCategory.textContent = totals.usernames > 0 ? money(totals.usernames) : `${usernameAssets.length} username${usernameAssets.length === 1 ? "" : "s"}`;
   const candidates = [
     ...latestVisibleTokens.map((token) => ({ id: token.id, name: token.name, category: "TON Token", value: Number(token.valueUsd || 0), icon: token.image, symbol: token.symbol })),
     ...giftAssets.map((asset) => ({ id: asset.id, name: asset.name, category: "Gift", value: Number(asset.floorUsd || 0), icon: asset.image, symbol: "GFT" })),
     ...stickerAssets.map((asset) => ({ id: asset.id, name: asset.name, category: "Sticker", value: Number(asset.floorUsd || 0), icon: asset.image, symbol: "STK" })),
     ...dnsAssets.map((asset) => ({ id: asset.id, name: asset.name, category: "TON DNS", value: identityAssetValue(asset), icon: asset.image, symbol: "DNS" })),
     ...anonymousNumberAssets.map((asset) => ({ id: asset.id, name: asset.name, category: "Anonymous Number", value: identityAssetValue(asset), icon: asset.image, symbol: "NUM" })),
+    ...usernameAssets.map((asset) => ({ id: asset.id, name: asset.name, category: "Telegram Username", value: identityAssetValue(asset), icon: asset.image, symbol: "@" })),
   ].filter((asset) => asset.value > 0).sort((a, b) => b.value - a.value);
   const top = candidates[0];
   const card = document.querySelector('[data-screen="assets"] .mini-detail-card');
   if (card && top) {
     card.dataset.asset = top.id;
     const isToken = top.category === "TON Token";
-    const topTone = isToken ? "token-bg" : top.category === "Gift" ? "gift-bg" : top.category === "Sticker" ? "sticker-bg" : top.category === "TON DNS" ? "dns-bg" : "number-bg";
+    const topTone = isToken ? "token-bg" : top.category === "Gift" ? "gift-bg" : top.category === "Sticker" ? "sticker-bg" : top.category === "TON DNS" ? "dns-bg" : top.category === "Telegram Username" ? "username-bg" : "number-bg";
     const logo = top.icon
       ? `<span class="asset-icon ${topTone}"><img src="${escapeHtml(resolveTokenImage(top.icon))}" alt="${escapeHtml(top.symbol || top.name)}" onerror="this.parentElement.textContent='${escapeHtml((top.symbol || top.category).slice(0,3))}'"></span>`
       : `<span class="asset-icon ${topTone}">${escapeHtml((top.symbol || top.category).slice(0,3))}</span>`;
@@ -5768,7 +6077,7 @@ function syncAssetsSummary(data = liveWalletData, tokens = latestVisibleTokens, 
   const address = truncateWalletAddress(data?.account?.displayAddress || liveWalletAddress);
   if (strip) {
     const totals = collectibleTotals();
-    const knownTotal = tokenValue + totals.gifts + totals.stickers + totals.dns + totals.anonymousNumbers;
+    const knownTotal = tokenValue + totals.gifts + totals.stickers + totals.dns + totals.anonymousNumbers + totals.usernames;
     const totalHtml = isSectionLoading("tokens") && !tokens.length
       ? `<span class="metric-skeleton"></span>`
       : money(knownTotal);
@@ -5777,8 +6086,9 @@ function syncAssetsSummary(data = liveWalletData, tokens = latestVisibleTokens, 
       : `${tokenCount + readyGiftCount + readyStickerCount + readyDnsCount + readyNumberCount}`;
     const portfolioChange = String(homePortfolioChange || "+0.00%");
     const portfolioChangeClass = portfolioChange.trim().startsWith("-") ? "negative" : "positive";
-    strip.innerHTML = `<article><small>Portfolio value</small><b>${totalHtml}</b><strong class="${portfolioChangeClass}">${escapeHtml(portfolioChange)} <em>24H</em></strong></article><article><small>Total assets</small><b>${itemsHtml}</b><span>Items</span></article><article><small>Wallet</small><b>${escapeHtml(address)}</b></article><article><small>View</small><b class="assets-view-arrow">-&gt;</b></article>`;
+    strip.innerHTML = `<article><small>Portfolio value</small><b>${totalHtml}</b><strong class="${portfolioChangeClass}">${escapeHtml(portfolioChange)} <em>24H</em></strong></article><article><small>Total assets</small><b>${itemsHtml}</b><span>Items</span></article><article><small>Wallet</small><b>${escapeHtml(address)}</b></article><article aria-label="Portfolio details"><small class="visually-hidden">Portfolio details</small><b class="assets-view-arrow" aria-hidden="true"><i data-lucide="arrow-up-right"></i></b></article>`;
     renderAssetsDotMatrix();
+    window.lucide?.createIcons();
   }
   const tokenCategory = document.querySelector('[data-screen="assets"] .category-stack article[data-screen-target="tokens"] strong');
   if (tokenCategory) {
@@ -5989,6 +6299,7 @@ function renderTokenRows(tokens) {
   syncAssetsSummary(liveWalletData, sortedTokens);
   updateAllocationUi();
   updateHomeTokenWidgets(sortedTokens);
+  renderFeaturedCollectibles();
   prefetchVisibleTokenDetails(sortedTokens);
   window.lucide?.createIcons();
 }
@@ -6155,7 +6466,7 @@ function fetchWalletCollectiblesPayload(walletAddress, options = {}) {
   if (!options.force && collectiblePayloadRequests.has(key)) return collectiblePayloadRequests.get(key);
   const request = fetchJson(`/api/collectibles?address=${encodeURIComponent(walletAddress)}&t=${Date.now()}`)
     .then((payload) => {
-      collectiblePayloadCache.set(key, payload);
+      if (!payload?.error) collectiblePayloadCache.set(key, payload);
       return payload;
     })
     .finally(() => collectiblePayloadRequests.delete(key));
@@ -6181,8 +6492,16 @@ function updateCollectiblesFromWallet(data, options = {}) {
   const walletAddress = liveWalletAddress || data?.account?.address;
   if (!walletAddress) return Promise.resolve([]);
   const hasSnapshot = renderImportedCollectiblesSnapshot(data?.assets?.collectibles);
+  const identityReady = fetchWalletCollectiblesPayload(walletAddress, { force: true }).then((payload) => {
+    if (!isCurrentImportSession(options.importSessionId)) return payload;
+    updateIdentityAssetsFromWallet({ assets: payload }, { preserveExistingOnEmpty: true });
+    syncAssetsSummary();
+    updateAllocationUi();
+    return payload;
+  });
   return Promise.allSettled([
-    updateGiftsFromWallet(walletAddress, { loading: !hasSnapshot, importSessionId: options.importSessionId, force: true }),
+    identityReady,
+    updateGiftsFromWallet(walletAddress, { loading: !hasSnapshot, importSessionId: options.importSessionId }),
     updateStickersFromWallet(walletAddress, { loading: !hasSnapshot, importSessionId: options.importSessionId }),
   ]).then(() => {
     if (!isCurrentImportSession(options.importSessionId)) return [];
@@ -7050,8 +7369,8 @@ function compactMoney(value) {
 function renderDonut(progress = 1) {
   const host = document.getElementById("donut-chart") || document.querySelector(".allocation-donut") || document.querySelector(".donut-chart");
   if (!host) return;
-  const values = [allocationState.gifts, allocationState.tokens, allocationState.stickers, allocationState.dns, allocationState.anonymousNumbers];
-  const labels = ["Gifts", "TON Tokens", "Stickers", "TON DNS", "Anon Numbers"];
+  const values = [allocationState.gifts, allocationState.tokens, allocationState.stickers, allocationState.dns, allocationState.anonymousNumbers, allocationState.usernames];
+  const labels = ["Gifts", "TON Tokens", "Stickers", "TON DNS", "Anon Numbers", "Usernames"];
   const total = values.reduce((sum, value) => sum + Math.max(0, Number(value || 0)), 0);
   const selectedValue = selectedAllocation === null ? total : values[selectedAllocation];
   const centerValue = host.querySelector("span");
@@ -7064,7 +7383,15 @@ function renderDonut(progress = 1) {
     progress,
     selected: selectedAllocation,
     pixelRatio: window.devicePixelRatio || 1,
-    colors: ["--blue", "--mint", "--amber", "--violet", "--coral"].map((name) => styles.getPropertyValue(name).trim()),
+    labels,
+    colors: [
+      styles.getPropertyValue("--blue").trim() || "#2e79ff",
+      styles.getPropertyValue("--mint").trim() || "#68d69d",
+      styles.getPropertyValue("--amber").trim() || "#d6bd68",
+      "#8b7cff",
+      "#ef8c73",
+      "#64d6d2",
+    ],
   });
   const legendItems = document.querySelectorAll(".allocation-list article");
   document.querySelector(".allocation-list")?.classList.toggle("is-filtered", selectedAllocation !== null);
@@ -7101,20 +7428,13 @@ function renderPortfolioGraph(range = "1D", animate = false) {
     && isGraphHistoryLoadingEnabled()
     && (loadingPortfolioRanges.has(range) || ["queued", "building", "partial"].includes(rangeState.status));
   const hasFailed = !hasHistory && rangeState.status === "failed";
-  const state = graph.querySelector(".portfolio-chart-state");
-  const stateTitle = state?.querySelector("b");
-  const stateText = state?.querySelector("small");
   graph.classList.toggle("is-history-ready", hasHistory);
+  graph.classList.toggle("is-history-hidden", !hasHistory);
   graph.classList.toggle("is-history-loading", isLoading);
   graph.classList.toggle("is-history-empty", !hasHistory && !isLoading && !hasFailed);
   graph.classList.toggle("is-history-failed", hasFailed);
   graph.dataset.historyState = hasHistory ? "ready" : isLoading ? "loading" : hasFailed ? "failed" : "empty";
   canvas.setAttribute("aria-hidden", String(!hasHistory));
-  if (state) state.hidden = hasHistory;
-  if (stateTitle) stateTitle.textContent = isLoading ? "Building your trend" : hasFailed ? "History unavailable" : "History starts here";
-  if (stateText) stateText.textContent = isLoading
-    ? "Refreshing your saved snapshots."
-    : hasFailed ? "Your current portfolio value is still available." : "Your next snapshot unlocks the trend.";
   Charts.renderConfigured("portfolio", hasHistory ? points : [], {
     element: canvas,
     duration: animate ? 320 : 0,
@@ -7205,6 +7525,7 @@ function setCurrency(currency) {
   displayCurrency = currency;
   priceMode = currency;
   renderCollectibleGrids();
+  renderFeaturedCollectibles();
   const activeAsset = document.querySelector("#detailName")?.dataset.asset;
   if (document.querySelector('[data-screen="detail"].is-active') && activeAsset) renderAssetDetail(activeAsset);
   renderPortfolioGraph(document.querySelector("[data-range].is-active")?.dataset.range || "1D");
@@ -7345,6 +7666,7 @@ document.addEventListener("click", (event) => {
     return;
   }
   if (!target) return;
+  if (target.classList.contains("featured-asset-card") && openFeaturedAsset(target)) return;
   closeWalletActionSheet();
   const nextRoute = routeFromTarget(target);
   const currentScreen = document.querySelector(".screen.is-active")?.dataset.screen;
@@ -7479,6 +7801,7 @@ document.querySelector("#stickerFilter")?.addEventListener("change", renderStick
 document.querySelector("#stickerSearch")?.addEventListener("input", renderStickerGrid);
 document.querySelector("#dnsSearch")?.addEventListener("input", (event) => renderIdentityAssetRows("ton_dns", event.currentTarget.value));
 document.querySelector("#anonymousNumbersSearch")?.addEventListener("input", (event) => renderIdentityAssetRows("anonymous_number", event.currentTarget.value));
+document.querySelector("#usernamesSearch")?.addEventListener("input", (event) => renderIdentityAssetRows("telegram_username", event.currentTarget.value));
 const scrollTopButton = document.querySelector("#scrollTopButton");
 function updateScrollTopButton() {
   scrollTopButton?.classList.toggle("is-visible", window.scrollY > 420);
@@ -7513,7 +7836,7 @@ allocationDonut?.addEventListener("click", (event) => {
   const x = event.clientX - rect.left - rect.width / 2;
   const y = event.clientY - rect.top - rect.height / 2;
   const hit = Charts.donutHitIndex(
-    [allocationState.gifts, allocationState.tokens, allocationState.stickers, allocationState.dns, allocationState.anonymousNumbers],
+    [allocationState.gifts, allocationState.tokens, allocationState.stickers, allocationState.dns, allocationState.anonymousNumbers, allocationState.usernames],
     x,
     y,
     rect.width,
@@ -7525,7 +7848,7 @@ allocationDonut?.addEventListener("keydown", (event) => {
   if (!["ArrowLeft", "ArrowRight", "Enter", " "].includes(event.key)) return;
   event.preventDefault();
   const direction = event.key === "ArrowLeft" ? -1 : 1;
-  selectAllocation(selectedAllocation === null ? 0 : (selectedAllocation + direction + 5) % 5);
+  selectAllocation(selectedAllocation === null ? 0 : (selectedAllocation + direction + 6) % 6);
 });
 document.querySelectorAll(".allocation-list article").forEach((item, index) => {
   item.addEventListener("click", (event) => {

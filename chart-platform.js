@@ -103,7 +103,7 @@
     const selected = Number.isInteger(options.selected) ? options.selected : -1;
     const chart = replaceChart(canvas, {
       type: "doughnut",
-      data: { labels: ["Gifts", "TON Tokens", "Stickers"], datasets: [{ data: normalized, backgroundColor: options.colors, borderWidth: 0, spacing: 2, offset: normalized.map((_, index) => index === selected ? 7 : 0) }] },
+      data: { labels: options.labels || ["Gifts", "TON Tokens", "Stickers"], datasets: [{ data: normalized, backgroundColor: options.colors, borderWidth: 0, spacing: 2, offset: normalized.map((_, index) => index === selected ? 7 : 0) }] },
       options: { responsive: true, maintainAspectRatio: false, cutout: "64%", radius: "86%", circumference: 360 * finite(options.progress, 1), rotation: -90, animation: { duration: reducedMotion() ? 0 : 220 }, plugins: { legend: { display: false } } },
     });
     return { segments, canvas, chart };
