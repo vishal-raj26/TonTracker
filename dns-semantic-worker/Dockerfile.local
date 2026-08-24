@@ -1,0 +1,19 @@
+FROM python:3.12.11-slim-bookworm
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    HF_HOME=/models/huggingface
+
+WORKDIR /app
+
+COPY requirements-local.txt requirements.txt ./
+RUN pip install --no-cache-dir -r requirements-local.txt
+
+COPY dns_semantic_worker ./dns_semantic_worker
+
+RUN useradd --create-home --uid 10001 worker && mkdir -p /models/huggingface \
+    && chown -R worker:worker /app /models
+USER worker
+
+ENTRYPOINT ["python", "-m", "dns_semantic_worker.main"]
