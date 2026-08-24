@@ -10,6 +10,7 @@ const { predictUsernameLearnedModel, trainUsernameLearnedModel } = require("../l
 const { createValuationLedgerClient } = require("../lib/valuation-ledger-client");
 
 function loadLocalEnv() {
+  if (typeof __dirname === "undefined") return;
   const envPath = path.join(__dirname, "..", ".env");
   if (!fs.existsSync(envPath)) return;
   for (const line of fs.readFileSync(envPath, "utf8").split(/\r?\n/)) {
@@ -28,6 +29,7 @@ loadLocalEnv();
 
 let ledgerClient = null;
 function ledger() { return ledgerClient || (ledgerClient = createValuationLedgerClient()); }
+function configureLedger(options = {}) { ledgerClient = createValuationLedgerClient(options); }
 const kinds = process.argv.includes("--dns") ? ["dns"] : process.argv.includes("--username") ? ["username"] : ["dns", "username"];
 
 class LogHistogram {
@@ -126,7 +128,7 @@ function exactValuation(kind, assetKey, evidence, options = {}) {
     confidenceScore: confidenceBand === "high" ? 0.82 : confidenceBand === "medium" ? 0.62 : 0.38,
     confidenceBand,
     valuationStatus: "estimated",
-    portfolioEligible: confidenceBand !== "low",
+    portfolioEligible: kind === "username" ? midpoint > 0 : confidenceBand !== "low",
     evidenceCount: evidence.count,
     effectiveCompCount: Math.min(evidence.count, 20),
     ownSaleCount: evidence.count,
@@ -148,7 +150,8 @@ function exactValuation(kind, assetKey, evidence, options = {}) {
   };
 }
 
-async function refreshKind(kind) {
+async function refreshKind(kind, options = {}) {
+  const writeExactValuations = options.writeExactValuations !== false;
   const groups = new Map();
   const assets = new Map();
   const learnedSales = [];
@@ -159,8 +162,13 @@ async function refreshKind(kind) {
     for (const sourceSale of page.records || []) {
       const sale = canonicalSale(kind, sourceSale);
       addComparableGroups(groups, sale);
-      rememberOwnSale(assets, sale);
-      if (kind === "username") learnedSales.push(sale);
+      if (writeExactValuations) rememberOwnSale(assets, sale);
+      if (kind === "username") learnedSales.push({
+        normalized_name: sale.normalized_name,
+        price_usd: Number(sale.price_usd),
+        sold_at: Number(sale.sold_at),
+        reliability_score: Number(sale.reliability_score ?? 1),
+      });
       sales += 1;
     }
     cursor = page.nextCursor;
@@ -187,10 +195,13 @@ async function refreshKind(kind) {
       },
     });
   }
-  const valuations = [...assets].map(([assetKey, evidence]) => exactValuation(kind, assetKey, evidence, { learnedModel }));
+  const valuations = writeExactValuations
+    ? [...assets].map(([assetKey, evidence]) => exactValuation(kind, assetKey, evidence, { learnedModel }))
+    : [];
   const baselineWrites = await ledger().ingestBaselines(baselines);
-  const valuationWrites = await ledger().ingestValuations(valuations);
+  const valuationWrites = valuations.length ? await ledger().ingestValuations(valuations) : 0;
   console.log(`[identity-baselines] kind=${kind} sales=${sales} groups=${baselines.length} exact=${valuations.length} baselineWrites=${baselineWrites} valuationWrites=${valuationWrites}`);
+  return { kind, sales, groups: baselines.length, exact: valuations.length, baselineWrites, valuationWrites };
 }
 
 async function main() {
@@ -203,4 +214,4 @@ if (require.main === module) main().catch((error) => {
   process.exit(1);
 });
 
-module.exports = { LogHistogram, addComparableGroups, canonicalSale, exactValuation, groupKey, refreshKind };
+module.exports = { LogHistogram, addComparableGroups, canonicalSale, configureLedger, exactValuation, groupKey, refreshKind };
