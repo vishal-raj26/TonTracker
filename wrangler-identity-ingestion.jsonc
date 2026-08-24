@@ -1,0 +1,25 @@
+{
+  "name": "tontrack-identity-ingestion",
+  "main": "cloudflare/identity-ingestion-edge.mjs",
+  "compatibility_date": "2026-08-24",
+  "compatibility_flags": ["nodejs_compat", "nodejs_compat_populate_process_env"],
+  "triggers": {
+    "crons": ["*/15 * * * *"]
+  },
+  "services": [
+    {
+      "binding": "REGISTRY",
+      "service": "tontrack-gift-registry"
+    }
+  ],
+  "vars": {
+    "D1_REGISTRY_URL": "https://tontrack-gift-registry.vishu-vishal264.workers.dev",
+    "VALUATION_READ_MODEL_URL": "https://tontrack-gift-registry.vishu-vishal264.workers.dev",
+    "USERNAME_FRAGMENT_MAX_SEARCH_REQUESTS_PER_PAGE": "1",
+    "USERNAME_FRAGMENT_REQUEST_DELAY_MS": "1500",
+    "USERNAME_TONCENTER_VERIFY_BATCH_SIZE": "2",
+    "USERNAME_FRAGMENT_IDENTITY_RESOLVE_BATCH_SIZE": "1",
+    "DNS_TONCENTER_PAGE_LIMIT": "100",
+    "DNS_TONCENTER_HISTORY_DAYS": "730"
+  }
+}

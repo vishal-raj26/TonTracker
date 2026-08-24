@@ -65,7 +65,23 @@ test("learns distinct structural price levels from completed sales", () => {
   const numeric = estimateTelegramUsernameValue("777", events, { nowMs, learnedModel: model });
   const ordinary = estimateTelegramUsernameValue("anothername", events, { nowMs, learnedModel: model });
   assert.ok(numeric.estimateUsd > ordinary.estimateUsd * 3);
-  assert.equal(numeric.learnedModel.modelVersion, "username-learned-ridge-v1");
+  assert.equal(numeric.learnedModel.modelVersion, "username-learned-ridge-v2");
+});
+
+test("learns recurring market-name premiums from completed sales", () => {
+  const nowMs = Date.parse("2026-08-24T00:00:00Z");
+  const events = [];
+  for (let index = 0; index < 30; index += 1) {
+    const suffix = `${String.fromCharCode(97 + (index % 26))}${String.fromCharCode(97 + Math.floor(index / 26))}`;
+    events.push(sale(`gramtrade${suffix}`, 900 + index * 8, index + 1, nowMs));
+    events.push(sale(`plainword${suffix}`, 90 + index, index + 1, nowMs));
+  }
+  const model = trainUsernameLearnedModel(events, { nowMs });
+  const ecosystem = estimateTelegramUsernameValue("gramfuture", [], { nowMs, learnedModel: model });
+  const ordinary = estimateTelegramUsernameValue("plainfuture", [], { nowMs, learnedModel: model });
+
+  assert.ok(ecosystem.estimateUsd > ordinary.estimateUsd * 1.5);
+  assert.ok(ecosystem.learnedModel.marketPatternEvidence > 0);
 });
 
 test("uses recent segment sales to move older comparable evidence with the market", () => {

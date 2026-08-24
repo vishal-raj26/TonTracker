@@ -14,7 +14,7 @@ const continuous = process.argv.includes("--continuous");
 const source = createFragmentUsernameSource();
 const publicSettlementSourceUrl = String(process.env.USERNAME_PUBLIC_SETTLEMENT_SOURCE_URL || "").trim();
 const publicSettlementSource = publicSettlementSourceUrl ? createPublicSettlementSource() : null;
-const ledger = createValuationLedgerClient();
+let ledger = createValuationLedgerClient();
 const chainVerificationEnabled = !/^(0|false|no)$/i.test(String(process.env.USERNAME_TONCENTER_VERIFY_ENABLED || ""));
 const chainVerificationBatchSize = Math.max(0, Math.min(10, Number(process.env.USERNAME_TONCENTER_VERIFY_BATCH_SIZE || 2)));
 const identityResolveBatchSize = Math.max(0, Math.min(3, Number(process.env.USERNAME_FRAGMENT_IDENTITY_RESOLVE_BATCH_SIZE || 1)));
@@ -178,6 +178,10 @@ async function runPage() {
     : { hasMore: !page.historyOnly, delayMs: page.historyOnly ? 6 * 60 * 60 * 1000 : fragmentPageDelayMs };
 }
 
+function configureLedger(options = {}) {
+  ledger = createValuationLedgerClient(options);
+}
+
 async function main() {
   do {
     const result = await runPage();
@@ -191,4 +195,4 @@ if (require.main === module) main().catch((error) => {
   process.exit(1);
 });
 
-module.exports = { PIPELINE_KEY, compactAsset, compactSale, enrichChainEvidence, resolveDiscoveredItemIdentity, runPage };
+module.exports = { PIPELINE_KEY, compactAsset, compactSale, enrichChainEvidence, resolveDiscoveredItemIdentity, runPage, configureLedger };
