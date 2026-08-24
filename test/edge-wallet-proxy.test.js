@@ -9,8 +9,19 @@ const config = fs.readFileSync(path.join(root, "wrangler-app.jsonc"), "utf8");
 
 test("proxies only the CPU-heavy wallet aggregate while retaining edge APIs", () => {
   assert.match(worker, /pathname === "\/api\/wallet" && request\.method === "GET"/);
-  assert.match(worker, /proxyHeavyWalletImport\(request, env\) \|\| nodeHandler\.fetch/);
+  assert.match(worker, /await proxyHeavyWalletImport\(request, env, ctx\)/);
+  assert.match(worker, /return proxied \|\| nodeHandler\.fetch/);
   assert.doesNotMatch(worker, /pathname\.startsWith\("\/api\/"\).*proxyHeavyWalletImport/s);
+});
+
+test("revalues proxied identity assets with the current edge runtimes", () => {
+  assert.match(worker, /await warmValuationRuntimes\(\)/);
+  assert.match(worker, /dnsRuntime\.valueAssets/);
+  assert.match(worker, /usernameRuntime\.valueAssets/);
+  assert.match(worker, /payload\.summary\.identityValueUsd = identityValue/);
+  assert.match(worker, /payload\.summary\.totalUsd = Math\.max/);
+  assert.match(worker, /dnsRuntime\.enqueueAssets/);
+  assert.match(worker, /usernameRuntime\.enqueueAssets/);
 });
 
 test("declares a stable heavy API origin", () => {
