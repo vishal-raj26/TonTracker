@@ -1233,6 +1233,9 @@ function compactSalesReadStatement(database, pair = {}, requestedLimit = 5, hist
      WHERE c.collection_key IN (${collectionParams})
        AND c.model_key = ?${values.length - 1}
        AND c.backdrop_key = ?${values.length}`;
+  // A raw TON sale may be stored while its event-time USD conversion is being
+  // retried. It is valid evidence, but must not surface as a fabricated $0.
+  if (historicalUsd) sql += " AND e.price_usd_micros > 0 AND e.ton_usd_micros > 0";
   values.push(Math.max(1, Math.min(20, Number(requestedLimit || 5))));
   sql += ` ORDER BY e.sold_at DESC LIMIT ?${values.length}`;
   return database.prepare(sql).bind(...values);

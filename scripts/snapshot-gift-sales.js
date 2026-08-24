@@ -879,16 +879,17 @@ async function uploadSales(snapshot) {
   const enriched = await attachHistoricalUsd(rawSales);
   const sales = enriched.sales;
   const pendingRates = Number(enriched.pendingRates || 0);
-  if (pendingRates > 0) {
-    throw new Error(`Historical TON/USD pending for ${pendingRates}/${sales.length} sales; no rows or checkpoints committed`);
-  }
+  // Keep the underlying TON sale durable even when a historical USD point is
+  // temporarily unavailable. The registry accepts zero USD only as a pending
+  // conversion, never as a displayed dollar value; a later re-ingest upgrades
+  // the same sale id once the event-time rate is available.
   const chunkSize = 40;
   const chunks = sales.length ? Array.from({ length: Math.ceil(sales.length / chunkSize) }, (_, index) => sales.slice(index * chunkSize, (index + 1) * chunkSize)) : [[]];
   let inserted = 0;
   let accepted = 0;
   let lastResult = null;
   for (let index = 0; index < chunks.length; index += 1) {
-    const commitState = pendingRates === 0 && index === chunks.length - 1;
+    const commitState = index === chunks.length - 1;
     const result = await fetchJson(`${registryUrl}/ingest/sales`, {
       method: "POST",
       headers: { authorization: `Bearer ${ingestSecret}` },
@@ -921,6 +922,7 @@ async function uploadSales(snapshot) {
     ...(lastResult || {}),
     inserted,
     accepted,
+    pendingRates,
     chunks: chunks.length,
   };
 }
