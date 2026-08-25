@@ -4387,16 +4387,39 @@ function identityAssetFields(item = {}, type = "", tonRate = 0) {
     priceSource: "none",
   };
   if (type === "ton_dns") {
+    const domain = [
+      item?.content?.domain,
+      item?.raw?.content?.domain,
+      item?.raw?.raw?.content?.domain,
+      item?.metadata?.domain,
+      name,
+    ].map((value) => String(value || "").trim().toLocaleLowerCase("und").replace(/\.+$/u, ""))
+      .find((value) => value.endsWith(".ton")) || "";
     return {
       ...(listing || unavailable),
-      domain: name,
-      displayName: name || "TON domain",
+      domain,
+      displayName: domain || "TON domain",
       manageUrl,
       marketUrl: tokenAddress ? `https://getgems.io/nft/${encodeURIComponent(tokenAddress)}` : "https://getgems.io/collection/ton-dns",
     };
   }
   if (type === "telegram_username") {
-    const username = name.replace(/^@+/u, "").trim();
+    const username = [
+      item?.content?.username,
+      item?.content?.domain,
+      item?.raw?.content?.username,
+      item?.raw?.content?.domain,
+      item?.raw?.raw?.content?.username,
+      item?.raw?.raw?.content?.domain,
+      item?.metadata?.username,
+      item?.metadata?.domain,
+      name,
+    ].map((value) => String(value || "").trim().toLocaleLowerCase("und")
+      .replace(/^https?:\/\/(?:www\.)?(?:t\.me|telegram\.me)\//u, "")
+      .replace(/^@+/u, "")
+      .replace(/\.(?:t\.me|telegram\.me)$/u, "")
+      .replace(/\/+$/u, ""))
+      .find((value) => /^[a-z0-9_]{4,32}$/u.test(value) && value !== "telegram_username") || "";
     return {
       ...(listing || unavailable),
       username,
@@ -7920,8 +7943,10 @@ async function getCollectibles(address) {
   const classified = await walletNftsByType(address);
   console.log(`[gift-import-pricing] collectibles:${canonicalAddressKey(address)}: tonapiGifts=${classified.gifts?.length || 0} stickers=${classified.stickers?.length || 0}`);
   classified.gifts = await priceWalletGiftsFromD1(classified.gifts || [], tonRate, `collectibles:${canonicalAddressKey(address)}`);
-  classified.dns = await dnsRuntime.valueAssets(classified.dns || [], tonRate);
-  classified.usernames = await usernameRuntime.valueAssets(classified.usernames || []);
+  [classified.dns, classified.usernames] = await Promise.all([
+    dnsRuntime.valueAssets(classified.dns || [], tonRate),
+    usernameRuntime.valueAssets(classified.usernames || []),
+  ]);
   dnsRuntime.enqueueAssets(classified.dns).catch((error) => {
     console.warn(`[dns-estimator] wallet refresh queue failed: ${error.message}`);
   });
@@ -7955,6 +7980,9 @@ async function getCollectibles(address) {
         totalSupply: Number(floor.totalSupply || item.totalSupply || 0),
       };
     });
+    const identityNeedsRefresh = withFloors.some((item) =>
+      (item.type === "ton_dns" && item.dnsValuationStatus === "processing")
+      || (item.type === "telegram_username" && item.usernameValuationStatus === "processing"));
     return setCachedMapValue(collectiblesCache, key, {
       gifts: withFloors.filter((item) => item.type === "gift"),
       stickers: withFloors.filter((item) => item.type === "sticker"),
@@ -7969,7 +7997,7 @@ async function getCollectibles(address) {
         },
       },
       source: "tonapi-wallet",
-    }, 5 * 60 * 1000);
+    }, identityNeedsRefresh ? 15 * 1000 : 5 * 60 * 1000);
   }
 
   const query = `query WalletNfts($owner: String!) {
@@ -10367,5 +10395,6 @@ module.exports = {
   tonCenterNftToTonApi,
   dnsRuntime,
   usernameRuntime,
+  identityAssetFields,
   startServer
 };

@@ -11,9 +11,10 @@ const config = fs.readFileSync(path.join(root, "wrangler-identity-ingestion.json
 
 test("runs the resumable username ledger from a bounded Cloudflare schedule", () => {
   assert.match(worker, /usernameLedger\.runPage\(\)/);
-  assert.match(worker, /ctx\.waitUntil\(runIdentityCycle\(\)/);
-  assert.match(worker, /const username = await runUsernameCycle\(\)/);
-  assert.match(config, /"crons": \["\*\/15 \* \* \* \*"\]/);
+  assert.match(worker, /ctx\.waitUntil\(run\(\)\.catch/);
+  assert.match(worker, /username: \(\) => runUsernameCycle\(\)/);
+  assert.match(worker, /await Promise\.all\(Object\.entries\(jobs\)/);
+  assert.match(config, /"crons": \["\*\/15 \* \* \* \*", "\* \* \* \* \*"\]/);
   assert.match(config, /"USERNAME_FRAGMENT_MAX_SEARCH_REQUESTS_PER_PAGE": "1"/);
   assert.match(config, /"USERNAME_TONCENTER_VERIFY_BATCH_SIZE": "2"/);
 });
@@ -22,6 +23,15 @@ test("protects the manual ingestion trigger", () => {
   assert.match(worker, /url\.pathname === "\/run\/username"/);
   assert.match(worker, /if \(!authorized\(request, env\)\)/);
   assert.match(worker, /env\.IDENTITY_TRIGGER_SECRET \|\| env\.D1_INGEST_SECRET/);
+});
+
+test("exposes authenticated knowledge and full-cycle diagnostics", () => {
+  assert.match(worker, /url\.pathname === "\/run\/knowledge"/);
+  assert.match(worker, /url\.pathname === "\/run\/all"/);
+  assert.match(worker, /await runKnowledgeCycle\(env\)/);
+  assert.match(worker, /await runIdentityCycle\(env\)/);
+  assert.match(worker, /String\(controller\.cron \|\| ""\) === "\* \* \* \* \*"/);
+  assert.match(worker, /scheduledSeparately: true/);
 });
 
 test("runs verified TON Center DNS history in the same scheduled cycle", () => {

@@ -1,10 +1,12 @@
 import usernameLedger from "../scripts/rebuild-username-ledger.js";
 import dnsLedgerModule from "../lib/dns-toncenter-ledger.js";
 import baselineModule from "../scripts/refresh-identity-baselines.js";
+import usernameKnowledgeModule from "../lib/username-knowledge.js";
 
 let dnsLedger = dnsLedgerModule.createDnsTonCenterLedger();
 let checkpointLedger = dnsLedgerModule.createLedgerClient();
 const REFRESH_PIPELINE_KEY = "identity-baseline-refresh-v1";
+const { resolveUsernameKnowledge } = usernameKnowledgeModule;
 
 function configureRuntime(env) {
   if (!env.REGISTRY) return;
@@ -69,11 +71,43 @@ async function runRefreshCycle(force = false) {
   }
 }
 
-async function runIdentityCycle() {
-  const username = await runUsernameCycle();
-  const dns = await runDnsCycle();
-  const refresh = await runRefreshCycle(false);
-  return { ok: username.ok && dns.ok && refresh.ok, username, dns, refresh };
+async function runKnowledgeCycle(env) {
+  const headers = { "content-type": "application/json", authorization: `Bearer ${env.D1_INGEST_SECRET}` };
+  const queued = await env.REGISTRY.fetch("https://registry/identity/knowledge/queue", {
+    method: "POST", headers, body: JSON.stringify({ limit: 4 }),
+  });
+  if (!queued.ok) throw new Error(`knowledge queue ${queued.status}`);
+  const payload = await queued.json();
+  const records = [];
+  for (const row of payload.records || []) {
+    const knowledge = await resolveUsernameKnowledge(row.normalized_name, { fetch });
+    records.push({ assetKey: row.asset_key, knowledge });
+    await new Promise((resolve) => setTimeout(resolve, 650));
+  }
+  if (records.length) {
+    const write = await env.REGISTRY.fetch("https://registry/ingest/identity-knowledge", {
+      method: "POST", headers, body: JSON.stringify({ records }),
+    });
+    if (!write.ok) throw new Error(`knowledge ingest ${write.status}`);
+  }
+  return { ok: true, inspected: (payload.records || []).length, written: records.length };
+}
+
+async function runIdentityCycle(env) {
+  const jobs = {
+    username: () => runUsernameCycle(),
+    dns: () => runDnsCycle(),
+    refresh: () => runRefreshCycle(false),
+  };
+  const entries = await Promise.all(Object.entries(jobs).map(async ([name, run]) => {
+    try { return [name, await run()]; }
+    catch (error) {
+      console.error(`[identity-ingestion] ${name} failed: ${error?.stack || error}`);
+      return [name, { ok: false, error: String(error?.message || error).slice(0, 300) }];
+    }
+  }));
+  const result = Object.fromEntries(entries);
+  return { ok: Object.values(result).every((row) => row?.ok !== false), ...result };
 }
 
 export default {
@@ -107,12 +141,27 @@ export default {
         return json({ ok: false, pipeline: REFRESH_PIPELINE_KEY, error: String(error?.message || error).slice(0, 300) }, 503);
       }
     }
+    if (url.pathname === "/run/knowledge" && request.method === "POST") {
+      if (!authorized(request, env)) return json({ error: "Unauthorized" }, 401);
+      try {
+        return json(await runKnowledgeCycle(env));
+      } catch (error) {
+        return json({ ok: false, pipeline: "username-knowledge-v3", error: String(error?.message || error).slice(0, 300) }, 503);
+      }
+    }
+    if (url.pathname === "/run/all" && request.method === "POST") {
+      if (!authorized(request, env)) return json({ error: "Unauthorized" }, 401);
+      return json({ ...(await runIdentityCycle(env)), knowledge: { ok: true, scheduledSeparately: true } });
+    }
     return json({ error: "Not found" }, 404);
   },
 
-  async scheduled(_controller, env, ctx) {
+  async scheduled(controller, env, ctx) {
     configureRuntime(env);
-    ctx.waitUntil(runIdentityCycle().catch((error) => {
+    const run = String(controller.cron || "") === "* * * * *"
+      ? () => runKnowledgeCycle(env)
+      : () => runIdentityCycle(env);
+    ctx.waitUntil(run().catch((error) => {
       console.error(`[identity-ingestion] cycle failed: ${error?.stack || error}`);
     }));
   },

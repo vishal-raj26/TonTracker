@@ -328,28 +328,35 @@ async function readValuationRecords(env, body = {}) {
   const names = [...new Set((Array.isArray(body.assetNames) ? body.assetNames : [])
     .map((value) => String(value || "").trim().toLowerCase().replace(/^@/, "")).filter(Boolean))].slice(0, 500);
   if (!['dns', 'username'].includes(kind) || (!keys.length && !names.length)) return { records: [], configured: true };
-  const clauses = [];
-  const bindings = [kind];
-  if (keys.length) {
-    clauses.push(`asset_key IN (${keys.map(() => "?").join(",")})`);
-    bindings.push(...keys);
+  const records = new Map();
+  for (let index = 0; index < keys.length; index += 50) {
+    const chunk = keys.slice(index, index + 50);
+    const result = await database.prepare(`SELECT * FROM valuation_records
+      WHERE asset_kind=? AND asset_key IN (${chunk.map(() => "?").join(",")})`).bind(kind, ...chunk).all();
+    for (const row of result.results || []) records.set(row.asset_key, row);
   }
-  if (names.length) {
-    clauses.push(`asset_key IN (
+  for (let index = 0; index < names.length; index += 50) {
+    const chunk = names.slice(index, index + 50);
+    const result = await database.prepare(`SELECT * FROM valuation_records WHERE asset_kind=? AND asset_key IN (
       SELECT asset_key FROM identity_assets
-      WHERE asset_kind = ? AND normalized_name IN (${names.map(() => "?").join(",")})
-    )`);
-    bindings.push(kind);
-    bindings.push(...names);
+      WHERE asset_kind=? AND normalized_name IN (${chunk.map(() => "?").join(",")})
+    )`).bind(kind, kind, ...chunk).all();
+    for (const row of result.results || []) records.set(row.asset_key, row);
   }
-  const result = await database.prepare(
-    `SELECT * FROM valuation_records WHERE asset_kind = ? AND (${clauses.join(" OR ")})`
-  ).bind(...bindings).all();
-  return { records: (result.results || []).map(valuationRecord), configured: true };
+  return { records: [...records.values()].map(valuationRecord), configured: true };
 }
 
 function compactJson(value, fallback) {
   try { return JSON.stringify(value ?? fallback); } catch { return JSON.stringify(fallback); }
+}
+
+async function runD1StatementBatches(database, statements, batchSize = 75) {
+  const rows = Array.isArray(statements) ? statements : [];
+  const results = [];
+  for (let index = 0; index < rows.length; index += batchSize) {
+    results.push(...await database.batch(rows.slice(index, index + batchSize)));
+  }
+  return results;
 }
 
 function unixSeconds(value) {
@@ -393,7 +400,7 @@ async function ingestIdentityAssets(request, env) {
       asset_kind,asset_key,normalized_name,display_name,primary_route,length_bucket,script,scarcity_class,
       feature_json,semantic_json,source_updated_at,updated_at
     ) VALUES (?,?,?,?,?,?,?,?,?,?,?,CURRENT_TIMESTAMP)
-    ON CONFLICT(asset_kind,asset_key) DO UPDATE SET
+    ON CONFLICT DO UPDATE SET
       normalized_name=excluded.normalized_name,display_name=excluded.display_name,
       primary_route=excluded.primary_route,length_bucket=excluded.length_bucket,script=excluded.script,
       scarcity_class=excluded.scarcity_class,feature_json=excluded.feature_json,
@@ -405,10 +412,12 @@ async function ingestIdentityAssets(request, env) {
       String(record.script || "Common"), String(record.scarcityClass || record.scarcity_class || "standard"),
       compactJson(record.feature || record.feature_json, {}), compactJson(record.semantic || record.semantic_json, {}),
       String(record.sourceUpdatedAt || record.source_updated_at || new Date().toISOString())
-    ), database.prepare(`UPDATE identity_asset_aliases SET asset_key=?1,last_seen_at=CURRENT_TIMESTAMP
-      WHERE asset_kind=?2 AND normalized_name=?3`).bind(assetKey, assetKind, normalizedName)];
+    ), database.prepare(`UPDATE identity_asset_aliases SET asset_key=(
+        SELECT asset_key FROM identity_assets WHERE asset_kind=?1 AND normalized_name=?2 LIMIT 1
+      ),last_seen_at=CURRENT_TIMESTAMP
+      WHERE asset_kind=?1 AND normalized_name=?2`).bind(assetKind, normalizedName)];
   });
-  const results = statements.length ? await database.batch(statements) : [];
+  const results = statements.length ? await runD1StatementBatches(database, statements) : [];
   const changed = results.reduce((sum, result) => sum + Number(result?.meta?.changes || 0), 0);
   const trackedAssets = await exactIdentityCount(database, "identity_assets");
   await database.prepare(`UPDATE identity_storage_policy SET tracked_assets=?1,updated_at=CURRENT_TIMESTAMP
@@ -440,7 +449,7 @@ async function ingestIdentityAliases(request, env) {
       assetKind, aliasKey, normalizedName, assetKind, normalizedName, source
     )];
   });
-  const results = statements.length ? await database.batch(statements) : [];
+  const results = statements.length ? await runD1StatementBatches(database, statements) : [];
   const changed = results.reduce((sum, result) => sum + Number(result?.meta?.changes || 0), 0);
   return json({ ok: true, accepted: statements.length, changed });
 }
@@ -452,9 +461,14 @@ async function readIdentityAliases(env, body = {}) {
   const names = [...new Set((Array.isArray(body.names) ? body.names : [])
     .map((value) => String(value || "").toLowerCase().replace(/^@/, "").trim()).filter(Boolean))].slice(0, 500);
   if (!['dns', 'username'].includes(kind) || !names.length) return { records: [], configured: true };
-  const result = await database.prepare(`SELECT * FROM identity_asset_aliases
-    WHERE asset_kind=? AND normalized_name IN (${names.map(() => "?").join(",")})`).bind(kind, ...names).all();
-  return { records: result.results || [], configured: true };
+  const records = [];
+  for (let index = 0; index < names.length; index += 50) {
+    const chunk = names.slice(index, index + 50);
+    const result = await database.prepare(`SELECT * FROM identity_asset_aliases
+      WHERE asset_kind=? AND normalized_name IN (${chunk.map(() => "?").join(",")})`).bind(kind, ...chunk).all();
+    records.push(...(result.results || []));
+  }
+  return { records, configured: true };
 }
 
 async function ingestIdentitySales(request, env) {
@@ -518,7 +532,7 @@ async function ingestIdentitySales(request, env) {
       String(record.script || "Common"), String(record.scarcityClass || record.scarcity_class || "standard")
     )];
   });
-  if (statements.length) await database.batch(statements);
+  if (statements.length) await runD1StatementBatches(database, statements);
   const trackedSales = await exactIdentityCount(database, "identity_sales");
   const inserted = Math.max(0, trackedSales - salesBefore);
   const existing = Math.max(0, statements.length - inserted);
@@ -559,7 +573,7 @@ async function ingestIdentityBaselines(request, env) {
       compactJson(record.provenance || record.provenance_json, { verifiedSalesOnly: true })
     )];
   });
-  if (statements.length) await database.batch(statements);
+  if (statements.length) await runD1StatementBatches(database, statements);
   return json({ ok: true, written: statements.length });
 }
 
@@ -620,25 +634,40 @@ async function readIdentityBaselineSource(request, env) {
     HAVING evidence_count>=3`).bind(kind).all();
 
   let training = [];
+  let premiumCohorts = [];
+  let marketPremiumRate = null;
   if (kind === 'username') {
     const highValueLimit = Math.min(160, Math.max(32, Math.floor(trainingLimit * 0.08)));
     const evenLimit = trainingLimit - highValueLimit;
     const results = await database.batch([
-      database.prepare(`SELECT sale_id,normalized_name,price_usd,sold_at,reliability_score
-        FROM identity_sales WHERE asset_kind='username' ORDER BY price_usd DESC LIMIT ?1`).bind(highValueLimit),
+      database.prepare(`SELECT s.sale_id,s.normalized_name,s.price_usd,s.sold_at,s.reliability_score,a.semantic_json
+        FROM identity_sales s LEFT JOIN identity_assets a ON a.asset_kind=s.asset_kind AND a.asset_key=s.asset_key
+        WHERE s.asset_kind='username' ORDER BY s.price_usd DESC LIMIT ?1`).bind(highValueLimit),
       database.prepare(`WITH ordered AS (
-        SELECT sale_id,normalized_name,price_usd,sold_at,reliability_score,
-          ROW_NUMBER() OVER (ORDER BY sold_at,sale_id) AS row_index,
+        SELECT s.sale_id,s.normalized_name,s.price_usd,s.sold_at,s.reliability_score,a.semantic_json,
+          ROW_NUMBER() OVER (ORDER BY s.sold_at,s.sale_id) AS row_index,
           COUNT(*) OVER () AS total_count
-        FROM identity_sales WHERE asset_kind='username'
-      ) SELECT sale_id,normalized_name,price_usd,sold_at,reliability_score FROM ordered
+        FROM identity_sales s LEFT JOIN identity_assets a ON a.asset_kind=s.asset_kind AND a.asset_key=s.asset_key
+        WHERE s.asset_kind='username'
+      ) SELECT sale_id,normalized_name,price_usd,sold_at,reliability_score,semantic_json FROM ordered
         WHERE row_index % MAX(1,CAST(total_count/?1 AS INTEGER))=0 LIMIT ?1`).bind(evenLimit),
     ]);
     const unique = new Map();
     for (const result of results) for (const row of result.results || []) unique.set(row.sale_id, row);
     training = [...unique.values()].slice(0, trainingLimit);
+    const premium = await database.prepare(`SELECT primary_route,length_bucket,script,
+      COUNT(*) AS total_count,SUM(CASE WHEN price_usd>=100 THEN 1 ELSE 0 END) AS premium_count
+      FROM identity_sales WHERE asset_kind='username' AND sold_at>=unixepoch()-180*86400
+      GROUP BY primary_route,length_bucket,script`).all();
+    premiumCohorts = premium.results || [];
+    const recentMarket = await database.prepare(`SELECT COUNT(*) AS total_count,
+      SUM(CASE WHEN price_usd>=100 THEN 1 ELSE 0 END) AS premium_count
+      FROM identity_sales WHERE asset_kind='username' AND sold_at>=unixepoch()-90*86400`).first();
+    marketPremiumRate = Number(recentMarket?.total_count || 0)
+      ? Number(recentMarket.premium_count || 0) / Number(recentMarket.total_count)
+      : null;
   }
-  return json({ configured: true, assetKind: kind, groups: groups.results || [], training });
+  return json({ configured: true, assetKind: kind, groups: groups.results || [], training, premiumCohorts, marketPremiumRate });
 }
 
 async function readUsernameEvidence(request, env) {
@@ -656,20 +685,62 @@ async function readUsernameEvidence(request, env) {
   const columns = `sale_id,asset_key,normalized_name,sold_at,price_usd,reliability_score,
     quality_flags_json,primary_route,length_bucket,script,scarcity_class`;
   const cutoff = Math.floor(Date.now() / 1000) - (10 * 365 * 86400);
-  const names = [...new Set(targets.map((target) => target.normalizedName))];
+  const names = [...new Set(targets.map((target) => target.normalizedName))].slice(0, 50);
   const groups = [...new Map(targets.map((target) => [
     `${target.primaryRoute}|${target.lengthBucket}`, target,
   ])).values()].slice(0, 40);
+  const cohortLimit = Math.max(120, Math.min(500, Math.floor(5_000 / Math.max(1, groups.length))));
   const statements = [
     database.prepare(`SELECT ${columns} FROM identity_sales
       WHERE asset_kind='username' AND sold_at>=?1
-      ORDER BY sold_at DESC LIMIT 2500`).bind(cutoff),
+      ORDER BY sold_at DESC LIMIT 500`).bind(cutoff),
     database.prepare(`SELECT ${columns} FROM identity_sales
       WHERE asset_kind='username' AND normalized_name IN (${names.map(() => "?").join(",")})
       ORDER BY sold_at DESC LIMIT 1000`).bind(...names),
     ...groups.map((group) => database.prepare(`SELECT ${columns} FROM identity_sales
       WHERE asset_kind='username' AND primary_route=?1 AND length_bucket=?2 AND sold_at>=?3
-      ORDER BY sold_at DESC LIMIT 750`).bind(group.primaryRoute, group.lengthBucket, cutoff)),
+      ORDER BY sold_at DESC LIMIT ?4`).bind(group.primaryRoute, group.lengthBucket, cutoff, cohortLimit)),
+  ];
+  const results = await database.batch(statements);
+  const records = new Map();
+  for (const result of results) {
+    for (const row of result.results || []) {
+      if (!records.has(row.sale_id)) records.set(row.sale_id, row);
+      if (records.size >= 6500) break;
+    }
+    if (records.size >= 6500) break;
+  }
+  const knowledge = await database.prepare(`SELECT normalized_name,semantic_json FROM identity_assets
+    WHERE asset_kind='username' AND normalized_name IN (${names.map(() => "?").join(",")})`).bind(...names).all();
+  return json({ configured: true, records: [...records.values()], knowledge: knowledge.results || [] });
+}
+
+async function readDnsEvidence(request, env) {
+  if (!authorized(request, env)) return json({ error: "Unauthorized" }, 401);
+  const database = valuationReadDatabase(env);
+  if (!database) return json({ error: "Valuation read model is not configured" }, 503);
+  const body = await request.json().catch(() => ({}));
+  const targets = (Array.isArray(body.targets) ? body.targets : []).slice(0, 100).map((target) => ({
+    normalizedName: String(target.normalizedName || target.domain || "").toLowerCase().replace(/\.+$/u, ""),
+    primaryRoute: String(target.primaryRoute || "residual"),
+    lengthBucket: String(target.lengthBucket || "*"),
+  })).filter((target) => target.normalizedName.endsWith(".ton"));
+  if (!targets.length) return json({ configured: true, records: [] });
+
+  const columns = `sale_id,asset_key,normalized_name,sold_at,price_gram,historical_usd_rate,price_usd,
+    reliability_score,quality_flags_json,primary_route,length_bucket,script,scarcity_class`;
+  const cutoff = Math.floor(Date.now() / 1000) - (10 * 365 * 86400);
+  const names = [...new Set(targets.map((target) => target.normalizedName))].slice(0, 50);
+  const groups = [...new Map(targets.map((target) => [
+    `${target.primaryRoute}|${target.lengthBucket}`, target,
+  ])).values()].slice(0, 40);
+  const statements = [
+    database.prepare(`SELECT ${columns} FROM identity_sales
+      WHERE asset_kind='dns' AND normalized_name IN (${names.map(() => "?").join(",")})
+      ORDER BY sold_at DESC LIMIT 1000`).bind(...names),
+    ...groups.map((group) => database.prepare(`SELECT ${columns} FROM identity_sales
+      WHERE asset_kind='dns' AND primary_route=?1 AND length_bucket=?2 AND sold_at>=?3
+      ORDER BY sold_at DESC LIMIT 1000`).bind(group.primaryRoute, group.lengthBucket, cutoff)),
   ];
   const results = await database.batch(statements);
   const records = new Map();
@@ -691,15 +762,44 @@ async function readIdentityAssets(env, body = {}) {
   const cursor = String(body.cursor || "").toLowerCase();
   if (!['dns', 'username'].includes(kind)) return { records: [], configured: true, nextCursor: null };
   const result = cursor
-    ? await database.prepare(`SELECT asset_key,normalized_name,display_name,source_updated_at
+      ? await database.prepare(`SELECT asset_key,normalized_name,display_name,semantic_json,source_updated_at
         FROM identity_assets WHERE asset_kind=?1 AND asset_key>?2 ORDER BY asset_key LIMIT ?3`)
       .bind(kind, cursor, limit).all()
-    : await database.prepare(`SELECT asset_key,normalized_name,display_name,source_updated_at
+    : await database.prepare(`SELECT asset_key,normalized_name,display_name,semantic_json,source_updated_at
         FROM identity_assets WHERE asset_kind=?1 ORDER BY asset_key LIMIT ?2`)
       .bind(kind, limit).all();
   const records = result.results || [];
   const last = records.at(-1);
   return { configured: true, records, nextCursor: records.length === limit && last ? last.asset_key : null };
+}
+
+async function readIdentityKnowledgeQueue(env, body = {}) {
+  const database = valuationReadDatabase(env);
+  if (!database) return { records: [], configured: false };
+  const limit = Math.max(1, Math.min(50, Number(body.limit || 8)));
+  const result = await database.prepare(`SELECT asset_key,normalized_name,semantic_json,source_updated_at
+    FROM identity_assets WHERE asset_kind='username'
+      AND (semantic_json IS NULL OR semantic_json='{}'
+        OR json_extract(semantic_json,'$.schemaVersion')!='username-knowledge-v3'
+        OR json_extract(semantic_json,'$.entityLookupComplete') IS NOT 1)
+    ORDER BY source_updated_at DESC LIMIT ?1`).bind(limit).all();
+  return { configured: true, records: result.results || [] };
+}
+
+async function ingestIdentityKnowledge(request, env) {
+  if (!authorized(request, env)) return json({ error: "Unauthorized" }, 401);
+  const database = valuationReadDatabase(env);
+  if (!database) return json({ error: "Valuation read model is not configured" }, 503);
+  const body = await request.json().catch(() => ({}));
+  const records = (Array.isArray(body.records) ? body.records : []).slice(0, 50);
+  const statements = records.flatMap((record) => {
+    const assetKey = String(record.assetKey || record.asset_key || "").toLowerCase();
+    if (!assetKey) return [];
+    return [database.prepare(`UPDATE identity_assets SET semantic_json=?1,updated_at=CURRENT_TIMESTAMP
+      WHERE asset_kind='username' AND asset_key=?2`).bind(compactJson(record.knowledge || record.semantic || {}, {}), assetKey)];
+  });
+  if (statements.length) await runD1StatementBatches(database, statements);
+  return json({ ok: true, written: statements.length });
 }
 
 async function ingestIdentityMarket(request, env) {
@@ -726,7 +826,7 @@ async function ingestIdentityMarket(request, env) {
       String(record.staleAt || record.stale_at || "") || null
     )];
   });
-  if (statements.length) await database.batch(statements);
+  if (statements.length) await runD1StatementBatches(database, statements);
   return json({ ok: true, written: statements.length });
 }
 
@@ -862,7 +962,7 @@ async function ingestValuationRecords(request, env) {
       JSON.stringify(record.explanation_json || record.explanation || {})
     ));
   }
-  if (statements.length) await database.batch(statements);
+  if (statements.length) await runD1StatementBatches(database, statements);
   const trackedValuations = await exactIdentityCount(database, "valuation_records");
   await database.prepare(`UPDATE identity_storage_policy SET tracked_valuations=?1,updated_at=CURRENT_TIMESTAMP
     WHERE policy_key='primary'`).bind(trackedValuations).run();
@@ -2898,9 +2998,17 @@ export default {
     if (url.pathname === "/identity/username-evidence/read" && request.method === "POST") {
       return readUsernameEvidence(request, env);
     }
+    if (url.pathname === "/identity/dns-evidence/read" && request.method === "POST") {
+      return readDnsEvidence(request, env);
+    }
     if (url.pathname === "/identity/assets/read" && request.method === "POST") {
       const body = await request.json().catch(() => ({}));
       return json(await readIdentityAssets(env, body));
+    }
+    if (url.pathname === "/identity/knowledge/queue" && request.method === "POST") {
+      if (!authorized(request, env)) return json({ error: "Unauthorized" }, 401);
+      const body = await request.json().catch(() => ({}));
+      return json(await readIdentityKnowledgeQueue(env, body));
     }
     if (url.pathname === "/identity/aliases/read" && request.method === "POST") {
       const body = await request.json().catch(() => ({}));
@@ -2911,6 +3019,9 @@ export default {
     }
     if (url.pathname === "/ingest/identity-assets" && request.method === "POST") {
       return ingestIdentityAssets(request, env);
+    }
+    if (url.pathname === "/ingest/identity-knowledge" && request.method === "POST") {
+      return ingestIdentityKnowledge(request, env);
     }
     if (url.pathname === "/ingest/identity-aliases" && request.method === "POST") {
       return ingestIdentityAliases(request, env);

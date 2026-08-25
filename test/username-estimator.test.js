@@ -4,7 +4,7 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 const { classifyTelegramUsername, normalizeTelegramUsername, ROUTES } = require("../lib/username-structural");
 const { estimateTelegramUsernameValue, lexicalSimilarity, similarity } = require("../lib/username-estimator");
-const { trainUsernameLearnedModel } = require("../lib/username-learned-model");
+const { predictUsernameLearnedModel, trainUsernameLearnedModel } = require("../lib/username-learned-model");
 
 test("normalizes Telegram username identity without treating a display prefix as part of the name", () => {
   assert.equal(normalizeTelegramUsername(" https://t.me/Kick/ "), "kick");
@@ -27,7 +27,7 @@ test("uses only finalized native sales with historical USD labels", () => {
   assert.equal(estimated.confidenceBand, "low");
 });
 
-test("keeps feature-only and one-sale username estimates out of portfolio confidence", () => {
+test("publishes a learned estimate only when its structural cohort is prepared", () => {
   const nowMs = Date.parse("2026-08-24T00:00:00Z");
   const learned = trainUsernameLearnedModel(Array.from({ length: 30 }, (_, index) => (
     sale(`ordinaryname${index}`, 100 + index, index + 1, nowMs)
@@ -37,7 +37,7 @@ test("keeps feature-only and one-sale username estimates out of portfolio confid
     sale("singleusername", 250, 4, nowMs),
   ], { nowMs });
 
-  assert.equal(featureOnly.status, "indicative");
+  assert.equal(featureOnly.status, "estimated");
   assert.equal(featureOnly.confidenceBand, "low");
   assert.equal(oneSale.status, "estimated");
   assert.equal(oneSale.ownSaleCount, 1);
@@ -65,7 +65,7 @@ test("learns distinct structural price levels from completed sales", () => {
   const numeric = estimateTelegramUsernameValue("777", events, { nowMs, learnedModel: model });
   const ordinary = estimateTelegramUsernameValue("anothername", events, { nowMs, learnedModel: model });
   assert.ok(numeric.estimateUsd > ordinary.estimateUsd * 3);
-  assert.equal(numeric.learnedModel.modelVersion, "username-learned-ridge-v3");
+  assert.equal(numeric.learnedModel.modelVersion, "username-learned-ridge-v10");
 });
 
 test("learns recurring market-name premiums from completed sales", () => {
@@ -82,6 +82,22 @@ test("learns recurring market-name premiums from completed sales", () => {
 
   assert.ok(ecosystem.estimateUsd > ordinary.estimateUsd * 1.5);
   assert.ok(ecosystem.learnedModel.marketPatternEvidence > 0);
+});
+
+test("uses population premium rates instead of the stratified training ratio", () => {
+  const nowMs = Date.parse("2026-08-24T00:00:00Z");
+  const events = Array.from({ length: 30 }, (_, index) => sale(`wordname${String.fromCharCode(97 + (index % 26))}${String.fromCharCode(97 + Math.floor(index / 26))}`, index < 15 ? 500 : 20, index + 1, nowMs));
+  const model = trainUsernameLearnedModel(events, {
+    nowMs,
+    marketPremiumRate: 0.08,
+    cohortStats: { "word|Latin|9-12": { premiumRate: 0.05, populationCount: 400, medianUsd: 18, upperUsd: 45 } },
+  });
+  const prediction = predictUsernameLearnedModel(model, "newword");
+
+  assert.equal(model.premiumClassifier.positiveRate, 0.08);
+  assert.equal(model.cohortStats["word|Latin|9-12"].premiumRate, 0.05);
+  assert.equal(model.cohortStats["word|Latin|9-12"].populationCount, 400);
+  assert.ok(prediction.estimateUsd < 200);
 });
 
 test("uses recent segment sales to move older comparable evidence with the market", () => {

@@ -41,10 +41,18 @@ async function readSales(limit = 20_000) {
   }));
 }
 
-loadLocalEnv();
-(async () => {
+function applyKnowledge(rows) {
+  const cachePath = path.join(__dirname, "..", "data", "username-knowledge-cache.json");
+  if (!fs.existsSync(cachePath)) return rows;
+  let cache = {};
+  try { cache = JSON.parse(fs.readFileSync(cachePath, "utf8")); } catch { return rows; }
+  return rows.map((row) => ({ ...row, knowledge: cache[String(row.username || "").toLowerCase()] || {} }));
+}
+
+async function main() {
   const rows = await readSales(Math.max(100, Number(process.env.USERNAME_BACKTEST_MAX_SALES || 20_000)));
-  const summary = backtestTelegramUsernameSales(rows, {
+  const enriched = applyKnowledge(rows);
+  const summary = backtestTelegramUsernameSales(enriched, {
     maxEvaluations: Math.max(1, Number(process.env.USERNAME_BACKTEST_MAX_EVALUATIONS || 500)),
     maxHistory: Math.max(1, Number(process.env.USERNAME_BACKTEST_MAX_HISTORY || 1_500)),
   });
@@ -58,8 +66,16 @@ loadLocalEnv();
     coverage: summary.coverage,
     byRoute: summary.byRoute,
     byConfidence: summary.byConfidence,
+    byPriceBand: summary.byPriceBand,
+    bySemanticCategory: summary.bySemanticCategory,
     byOwnSaleHistory: summary.byOwnSaleHistory,
+    largestMisses: summary.largestMisses,
   }, null, 2));
-})().catch((error) => { console.error(error.stack || error.message); process.exit(1); });
+}
 
-module.exports = { readSales };
+if (require.main === module) {
+  loadLocalEnv();
+  main().catch((error) => { console.error(error.stack || error.message); process.exit(1); });
+}
+
+module.exports = { applyKnowledge, loadLocalEnv, main, readSales };

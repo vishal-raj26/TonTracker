@@ -212,6 +212,7 @@ async function refreshKind(kind, options = {}) {
       midpointUsd: histogram.quantile(0.5), rangeLowUsd: histogram.quantile(0.2), rangeHighUsd: histogram.quantile(0.8),
       evidenceCount: histogram.count, effectiveCompCount: histogram.count, generatedAt, staleAt,
       provenance: {
+        verifiedSalesOnly: true,
         publicCompletedMarketSalesOnly: true,
         chainConfirmationRequired: false,
         aggregation: "bounded-log-histogram-quantiles",
@@ -232,7 +233,32 @@ async function refreshKind(kind, options = {}) {
 async function refreshKindFromAggregate(kind) {
   const source = await ledger().readBaselineSource(kind, 2048);
   const estimatorVersion = kind === "dns" ? DNS_ESTIMATOR_VERSION : USERNAME_ESTIMATOR_VERSION;
-  const learnedModel = kind === "username" ? trainUsernameLearnedModel(source.training || []) : null;
+  const marketPremiumRate = Number(source.marketPremiumRate || 0);
+  const premiumRates = new Map((source.premiumCohorts || []).map((row) => {
+    const populationCount = Number(row.total_count || 0);
+    const premiumCount = Number(row.premium_count || 0);
+    const priorWeight = 24;
+    return [
+      `${row.primary_route}|${row.length_bucket}|${row.script}`,
+      {
+        premiumRate: populationCount
+          ? (premiumCount + marketPremiumRate * priorWeight) / (populationCount + priorWeight)
+          : marketPremiumRate,
+        populationCount,
+      },
+    ];
+  }));
+  const cohortOverrides = Object.fromEntries((source.groups || []).filter((row) => row.scope === "archetype").map((row) => {
+    const key = `${row.primary_route}|${row.script}|${row.length_bucket}`;
+    return [key, {
+      ...(premiumRates.get(`${row.primary_route}|${row.length_bucket}|${row.script}`) || {}),
+      medianUsd: Number(row.midpoint_usd || 0), upperUsd: Number(row.range_high_usd || 0),
+    }];
+  }));
+  const learnedModel = kind === "username" ? trainUsernameLearnedModel(source.training || [], {
+    marketPremiumRate: source.marketPremiumRate,
+    cohortStats: cohortOverrides,
+  }) : null;
   const generatedAt = new Date().toISOString();
   const staleAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
   const baselines = (source.groups || []).flatMap((row) => {
@@ -255,6 +281,7 @@ async function refreshKindFromAggregate(kind) {
       generatedAt,
       staleAt,
       provenance: {
+        verifiedSalesOnly: true,
         publicCompletedMarketSalesOnly: true,
         aggregation: "d1-window-quantiles",
         historicalUsd: true,

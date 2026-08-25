@@ -2065,7 +2065,7 @@ function normalizeIdentityAsset(item = {}, type = "ton_dns", index = 0) {
       || (isDns && valuationKind === "dns-estimate" && floorTon > 0)
       || (isUsername && valuationKind === "username-estimate" && floorUsd > 0));
   const hasDnsEstimate = isDns && Number(item.estimatedGram || 0) > 0;
-  const hasUsernameEstimate = isUsername && Number(item.estimatedUsd || item.floorUsd || 0) > 0;
+  const hasUsernameEstimate = isUsername && item.floorStatus === "priced" && valuationKind === "username-estimate" && Number(item.floorUsd || 0) > 0;
   const hasEstimate = hasDnsEstimate || hasUsernameEstimate;
   const listingGram = Number(item.currentListingGram || (valuationKind === "active-listing" ? floorTon : 0) || 0);
   return {
@@ -2151,12 +2151,12 @@ function renderIdentityAssetRows(type, query = "") {
       || asset.usernameValuationStatus === "indicative"
       || asset.valuationExplanation?.provenance === "broad-verified-sales-baseline"
       || asset.valuationExplanation?.provenance === "verified-sales-archetype-baseline";
-    const displayValue = value > 0 ? value : estimate;
+    const displayValue = value > 0 ? value : isUsername ? 0 : estimate;
     const valuationState = asset.usernameValuationStatus || asset.dnsValuationStatus;
     const meta = isEstimate
       ? isUsername
-        ? `${isIndicative ? "market baseline" : "sale-based estimate"} · ${asset.confidenceBand || "low"} confidence`
-        : `${asset.estimatedGram.toLocaleString(undefined, { maximumFractionDigits: 2 })} GRAM ${isIndicative ? "market baseline" : "estimate"} · ${asset.confidenceBand || "low"} confidence`
+        ? "Market estimate"
+        : `${asset.estimatedGram.toLocaleString(undefined, { maximumFractionDigits: 2 })} GRAM ${isIndicative ? "market baseline" : "estimate"}`
       : value > 0
         ? `${asset.floorTon.toLocaleString(undefined, { maximumFractionDigits: 2 })} GRAM listing`
         : valuationState === "processing"
@@ -2168,7 +2168,7 @@ function renderIdentityAssetRows(type, query = "") {
     return `<article data-screen-target="detail" data-asset="${escapeHtml(asset.id)}">
       ${art}
       <div><b>${escapeHtml(asset.name)}</b><small>${asset.verified ? "Verified collection" : escapeHtml(asset.collection)}</small></div>
-      <aside><b>${displayValue > 0 ? money(displayValue) : valuationState === "processing" ? "Processing" : "Unavailable"}</b><small>${escapeHtml(meta)}</small>${isEstimate ? `<em class="identity-estimate-pill">${isIndicative ? "Indicative" : "Estimated"}</em>` : ""}</aside>
+      <aside><b>${displayValue > 0 ? money(displayValue) : isUsername || valuationState === "processing" ? "Evaluating" : "Unavailable"}</b><small>${escapeHtml(meta)}</small>${isEstimate && !isUsername ? `<em class="identity-estimate-pill">${isIndicative ? "Indicative" : "Estimated"}</em>` : ""}</aside>
     </article>`;
   }).join("");
   window.lucide?.createIcons();
@@ -2236,15 +2236,15 @@ function renderIdentityAssetDetail(detail) {
         <small>${typeMeta.label}</small>
         <h2>${escapeHtml(detail.name)}</h2>
         <div class="identity-detail-value">
-          <span>${isIndicative ? "Indicative market value" : isEstimate ? "Estimated value" : hasValue ? "Active GRAM listing" : "Portfolio value"}</span>
-          <b>${heroUsd > 0 ? money(heroUsd) : valuationState === "processing" ? "Processing" : "Unavailable"}</b>
-          <small>${isUsername && isEstimate ? `${escapeHtml(detail.confidenceBand || "low")} confidence &middot; ${detail.evidenceCount.toLocaleString()} comparable sales` : heroGram > 0 ? `${heroGram.toLocaleString(undefined, { maximumFractionDigits: 2 })} GRAM${isEstimate ? ` &middot; ${escapeHtml(detail.confidenceBand || "low")} confidence` : ` &middot; ${escapeHtml(detail.marketPlatform)}`}` : "Verified market evidence is still being processed."}</small>
+          <span>${isUsername && isEstimate ? "Portfolio value" : isIndicative ? "Indicative market value" : isEstimate ? "Estimated value" : hasValue ? "Active GRAM listing" : "Portfolio value"}</span>
+          <b>${heroUsd > 0 ? money(heroUsd) : isUsername || valuationState === "processing" ? "Evaluating" : "Unavailable"}</b>
+          <small>${isUsername && isEstimate ? `${detail.evidenceCount.toLocaleString()} completed sales considered` : heroGram > 0 ? `${heroGram.toLocaleString(undefined, { maximumFractionDigits: 2 })} GRAM${isEstimate ? "" : ` &middot; ${escapeHtml(detail.marketPlatform)}`}` : "Verified market evidence is still being processed."}</small>
         </div>
       </article>
       ${hasEstimate ? `<article class="identity-detail-card identity-estimate-card">
-        <div class="section-heading"><h2>Valuation range</h2><span class="identity-estimate-pill">${isIndicative ? "Indicative" : "Estimated"}</span></div>
+        <div class="section-heading"><h2>Valuation range</h2>${isUsername ? "" : `<span class="identity-estimate-pill">${isIndicative ? "Indicative" : "Estimated"}</span>`}</div>
         <div class="identity-range"><b>${isUsername ? money(detail.rangeLowUsd) : `${detail.rangeLowGram.toLocaleString(undefined, { maximumFractionDigits: 2 })} GRAM`}</b><span>to</span><b>${isUsername ? money(detail.rangeHighUsd) : `${detail.rangeHighGram.toLocaleString(undefined, { maximumFractionDigits: 2 })} GRAM`}</b></div>
-        <div class="identity-detail-row"><span>Confidence</span><b>${escapeHtml((detail.confidenceBand || "low").replace(/^./, (letter) => letter.toUpperCase()))}</b></div>
+        ${isUsername ? "" : `<div class="identity-detail-row"><span>Confidence</span><b>${escapeHtml((detail.confidenceBand || "low").replace(/^./, (letter) => letter.toUpperCase()))}</b></div>`}
         <div class="identity-detail-row"><span>Comparable sales</span><b>${detail.evidenceCount.toLocaleString()}</b></div>
         <div class="identity-detail-row"><span>Last valued</span><b>${detail.valuedAt ? new Date(detail.valuedAt).toLocaleString([], { dateStyle: "medium", timeStyle: "short" }) : "Processing"}</b></div>
       </article>` : ""}
@@ -2257,7 +2257,7 @@ function renderIdentityAssetDetail(detail) {
         <div class="section-heading"><h2>Asset details</h2><span class="text-action">On-chain</span></div>
         <div class="identity-detail-row"><span>Collection</span><b>${typeMeta.collection}</b></div>
         <div class="identity-detail-row"><span>Ownership</span><b>${detail.verified ? "Verified" : "On-chain"}</b></div>
-        <div class="identity-detail-row"><span>Valuation</span><b>${isIndicative ? "Sale-only market baseline" : isEstimate ? "Comparable estimate" : hasValue ? "Active listing" : valuationState === "processing" ? "Processing" : "Unavailable"}</b></div>
+        <div class="identity-detail-row"><span>Valuation</span><b>${isUsername && isEstimate ? "Market estimate" : isIndicative ? "Sale-only market baseline" : isEstimate ? "Comparable estimate" : hasValue ? "Active listing" : valuationState === "processing" ? "Evaluating" : "Unavailable"}</b></div>
         <div class="identity-detail-row"><span>Marketplace</span><b>${detail.currentListingGram > 0 || (hasValue && !isEstimate) ? escapeHtml(detail.marketPlatform || "Getgems") : isDns ? "Getgems" : "Fragment"}</b></div>
       </article>
       <article class="identity-detail-note">

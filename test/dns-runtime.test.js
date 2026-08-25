@@ -3,6 +3,7 @@
 const assert = require("node:assert/strict");
 const test = require("node:test");
 const { createDnsRuntime } = require("../lib/dns-runtime");
+const { DNS_ESTIMATOR_VERSION } = require("../lib/dns-engine");
 
 function runtimeWith(rows) {
   const pool = {
@@ -35,7 +36,7 @@ test("uses one batch query and includes medium estimates in portfolio value", as
         own_sale_count: 1,
         current_listing_gram: "150",
         current_bid_gram: "90",
-        estimator_version: "dns-market-v2",
+        estimator_version: DNS_ESTIMATOR_VERSION,
         calibration_version: "dns-calibration-v1",
         explanation_json: { route: "dictionary-compound" },
         valued_at: new Date(),
@@ -275,6 +276,43 @@ test("hydrates a first-import DNS from compact D1 without PostgreSQL", async () 
   assert.equal(asset.dnsValuationStatus, "indicative");
 });
 
+test("scores and caches a fresh DNS from completed D1 sales in historical USD", async () => {
+  const now = Date.now();
+  let written = null;
+  const runtime = createDnsRuntime({
+    valuationReadModelUrl: "https://registry.example",
+    valuationReadModelSecret: "secret",
+    portfolioEstimatesEnabled: true,
+    fetch: async (url, init = {}) => {
+      if (url.endsWith("/valuations/read")) return new Response(JSON.stringify({ records: [] }), { status: 200 });
+      if (url.endsWith("/identity/dns-evidence/read")) return new Response(JSON.stringify({ records: Array.from({ length: 12 }, (_, index) => ({
+        sale_id: `dns-sale-${index}`,
+        asset_key: `0:${String(index + 1).padStart(64, "0")}`,
+        normalized_name: `${1700 + index}.ton`,
+        sold_at: Math.floor((now - index * 86_400_000) / 1000),
+        price_gram: 40 + index,
+        historical_usd_rate: 2,
+        price_usd: 80 + index * 2,
+        reliability_score: 1,
+        quality_flags_json: "[]",
+      })) }), { status: 200 });
+      if (url.endsWith("/ingest/valuations")) {
+        written = JSON.parse(init.body).records[0];
+        return new Response(JSON.stringify({ written: 1 }), { status: 200 });
+      }
+      if (url.endsWith("/identity/baselines/read")) return new Response(JSON.stringify({ records: [] }), { status: 200 });
+      return new Response("not found", { status: 404 });
+    },
+  });
+  const nftAddress = `0:${"a".repeat(64)}`;
+  const [asset] = await runtime.valueAssets([{ tokenAddress: nftAddress, name: "1662.ton" }], 2);
+  assert.ok(asset.floorUsd > 0);
+  assert.equal(asset.portfolioEligible, true);
+  assert.equal(asset.estimatorVersion, DNS_ESTIMATOR_VERSION);
+  assert.equal(written.estimatorVersion, DNS_ESTIMATOR_VERSION);
+  assert.equal(written.explanation.historicalUsd, true);
+});
+
 test("reads DNS detail and status from compact D1 without PostgreSQL", async () => {
   const runtime = createDnsRuntime({
     valuationReadModelUrl: "https://registry.example",
@@ -292,12 +330,31 @@ test("remaps a prepared DNS name valuation onto a different wallet NFT address",
     valuationReadModelUrl: "https://registry.example",
     portfolioEstimatesEnabled: true,
     fetch: async (url) => new Response(JSON.stringify(url.endsWith("/valuations/read")
-      ? { records: [{ assetKey: "0:catalog", displayName: "alpha.ton", estimateUsd: 120, confidenceBand: "high", portfolioEligible: true, valuationStatus: "estimated", estimatorVersion: "ton-dns-market-v1", staleAt: new Date(Date.now() + 60_000).toISOString() }] }
+      ? { records: [{ assetKey: "0:catalog", displayName: "alpha.ton", estimateUsd: 120, confidenceBand: "high", portfolioEligible: true, valuationStatus: "estimated", estimatorVersion: DNS_ESTIMATOR_VERSION, staleAt: new Date(Date.now() + 60_000).toISOString() }] }
       : { records: [] }), { status: 200, headers: { "content-type": "application/json" } }),
   });
   const [asset] = await runtime.valueAssets([{ tokenAddress: "0:wallet", domain: "alpha.ton" }], 3);
   assert.equal(asset.floorUsd, 120);
   assert.equal(asset.valuationKind, "dns-estimate");
+});
+
+test("fails closed for stale or obsolete DNS valuation rows", async () => {
+  for (const valuation of [
+    { estimatorVersion: DNS_ESTIMATOR_VERSION, staleAt: new Date(Date.now() - 60_000).toISOString() },
+    { estimatorVersion: "dns-market-v1", staleAt: new Date(Date.now() + 60_000).toISOString() },
+  ]) {
+    const runtime = createDnsRuntime({
+      valuationReadModelUrl: "https://registry.example",
+      portfolioEstimatesEnabled: true,
+      fetch: async (url) => new Response(JSON.stringify(url.endsWith("/valuations/read")
+        ? { records: [{ assetKey: "0:catalog", displayName: "alpha.ton", estimateUsd: 120, confidenceBand: "high", portfolioEligible: true, valuationStatus: "estimated", ...valuation }] }
+        : { records: [] }), { status: 200, headers: { "content-type": "application/json" } }),
+    });
+    const [asset] = await runtime.valueAssets([{ tokenAddress: "0:wallet", domain: "alpha.ton" }], 3);
+    assert.equal(asset.floorUsd, 0);
+    assert.equal(asset.portfolioEligible, false);
+    assert.equal(asset.valuationStale, true);
+  }
 });
 
 test("records a wallet DNS NFT alias in D1 even without PostgreSQL", async () => {

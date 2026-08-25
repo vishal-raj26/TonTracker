@@ -39,7 +39,7 @@ test("falls back to canonical username when a wallet NFT address has no alias ye
   assert.equal(asset.valuationKind, "username-estimate");
 });
 
-test("hydrates a first-import username from compact D1 without PostgreSQL", async () => {
+test("does not publish a generic D1 baseline as a first-import username price", async () => {
   const runtime = createUsernameRuntime({
     valuationReadModelUrl: "https://registry.example",
     portfolioEstimatesEnabled: true,
@@ -52,9 +52,9 @@ test("hydrates a first-import username from compact D1 without PostgreSQL", asyn
       }] }), { status: 200, headers: { "content-type": "application/json" } }),
   });
   const [asset] = await runtime.valueAssets([{ tokenAddress: "0:fresh", username: "newhandle" }]);
-  assert.equal(asset.estimatedUsd, 90);
-  assert.equal(asset.usernameValuationStatus, "indicative");
-  assert.equal(asset.valuationKind, "username-estimate-low");
+  assert.equal(asset.floorUsd, 0);
+  assert.equal(asset.usernameValuationStatus, "processing");
+  assert.equal(asset.valuationKind, "processing");
 });
 
 test("reads username detail and status from compact D1 without PostgreSQL", async () => {
@@ -67,6 +67,36 @@ test("reads username detail and status from compact D1 without PostgreSQL", asyn
   });
   assert.equal((await runtime.getValuationDetailByUsername("kick")).estimateUsd, 1462);
   assert.equal((await runtime.status()).source, "compact-d1");
+});
+
+test("re-scores an old direct username lookup before returning it", async () => {
+  const now = Date.now();
+  let written = null;
+  const runtime = createUsernameRuntime({
+    valuationReadModelUrl: "https://registry.example",
+    valuationReadModelSecret: "secret",
+    portfolioEstimatesEnabled: true,
+    fetch: async (url, init = {}) => {
+      if (url.endsWith("/valuations/read")) return new Response(JSON.stringify({ records: [{
+        assetKey: "0:old", displayName: "@marketname", estimateUsd: 14,
+        estimatorVersion: "username-market-v5", staleAt: new Date(now + 60_000).toISOString(),
+      }] }), { status: 200 });
+      if (url.endsWith("/identity/baselines/read")) return new Response(JSON.stringify({ records: [] }), { status: 200 });
+      if (url.endsWith("/identity/username-evidence/read")) return new Response(JSON.stringify({ records: Array.from({ length: 12 }, (_, index) => ({
+        sale_id: `sale-${index}`, asset_key: `fragment:${index}`, normalized_name: `marketname${index}`,
+        sold_at: Math.floor((now - index * 86_400_000) / 1000), price_usd: 100 + index * 5, reliability_score: 1,
+      })) }), { status: 200 });
+      if (url.endsWith("/ingest/valuations")) {
+        written = JSON.parse(init.body).records[0];
+        return new Response(JSON.stringify({ written: 1 }), { status: 200 });
+      }
+      return new Response(JSON.stringify({ records: [] }), { status: 200 });
+    },
+  });
+  const valuation = await runtime.getValuationByUsername("marketname");
+  assert.equal(valuation.estimatorVersion, USERNAME_ESTIMATOR_VERSION);
+  assert.ok(valuation.estimateUsd > 0);
+  assert.equal(written.estimatorVersion, USERNAME_ESTIMATOR_VERSION);
 });
 
 test("keeps a stale prepared username estimate out of portfolio totals", async () => {
@@ -83,7 +113,7 @@ test("keeps a stale prepared username estimate out of portfolio totals", async (
   assert.equal(asset.valuationStale, true);
 });
 
-test("batches compact username reads beyond the D1 500-row request limit", async () => {
+test("batches compact username reads within the D1 SQL-variable limit", async () => {
   let requests = 0;
   const runtime = createUsernameRuntime({
     valuationReadModelUrl: "https://registry.example",
@@ -93,7 +123,7 @@ test("batches compact username reads beyond the D1 500-row request limit", async
     },
   });
   await runtime.lookupValuations(Array.from({ length: 501 }, (_, index) => `0:${index}`));
-  assert.equal(requests, 2);
+  assert.equal(requests, 11);
 });
 
 test("scores and caches a missing first-import username from completed D1 sales", async () => {
@@ -123,6 +153,8 @@ test("scores and caches a missing first-import username from completed D1 sales"
   assert.equal(asset.valuationExplanation.provenance, "first-import-learned-ensemble");
   assert.ok(calls.some((url) => url.endsWith("/identity/username-evidence/read")));
   assert.ok(calls.some((url) => url.endsWith("/ingest/valuations")));
+  assert.equal(calls.some((url) => /\/ingest\/identity-(assets|aliases|sales)$/.test(url)), false);
+  assert.equal(calls.some((url) => url.endsWith("/ingest/identity-knowledge")), false);
 });
 
 test("writes wallet-priority verified evidence before re-reading a first-import valuation", async () => {
