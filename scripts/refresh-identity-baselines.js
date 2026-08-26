@@ -128,6 +128,7 @@ function exactValuation(kind, assetKey, evidence, options = {}) {
   for (const price of evidence.prices || []) histogram.add(price);
   const valueAt = (ratio) => histogram.quantile(ratio);
   let midpoint = valueAt(0.5);
+  const exactSaleAnchor = Number(evidence.lastPriceUsd || midpoint || 0);
   const learned = kind === "username" ? predictUsernameLearnedModel(options.learnedModel, evidence.name) : null;
   const ageDays = (Date.now() / 1000 - evidence.lastSoldAt) / 86400;
   if (learned && midpoint > 0) {
@@ -135,6 +136,7 @@ function exactValuation(kind, assetKey, evidence, options = {}) {
     const ownShare = Math.max(0.45, Math.min(0.88, (evidence.count >= 2 ? 0.82 : 0.65) * freshness));
     midpoint = Math.exp(Math.log(midpoint) * ownShare + Math.log(learned.estimateUsd) * (1 - ownShare));
   }
+  if (kind === "username" && exactSaleAnchor > 0) midpoint = Math.max(midpoint, exactSaleAnchor);
   // One finalized sale is useful price evidence, but it is not enough to
   // establish a durable portfolio value on its own. It remains visible as a
   // low-confidence estimate until repeated sales or independent comparables

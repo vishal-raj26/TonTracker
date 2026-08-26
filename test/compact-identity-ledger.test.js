@@ -5,6 +5,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const test = require("node:test");
 const { LogHistogram, canonicalSale, exactValuation, groupKey } = require("../scripts/refresh-identity-baselines");
+const { trainUsernameLearnedModel } = require("../lib/username-learned-model");
 const { createValuationLedgerClient } = require("../lib/valuation-ledger-client");
 
 test("compact schema keeps normalized evidence and excludes raw payload columns", () => {
@@ -51,6 +52,22 @@ test("saved comparable explanations are capped while evidence count remains comp
   assert.equal(valuation.confidenceBand, "high");
   assert.ok(Math.abs(valuation.estimateUsd - 1462) < 20);
   assert.equal(groupKey("route", "word"), "route|word|*|*|*");
+});
+
+test("precomputed username valuations cannot blend below the latest exact sale", () => {
+  const nowMs = Date.now();
+  const learnedModel = trainUsernameLearnedModel(Array.from({ length: 40 }, (_, index) => ({
+    username: `ordinaryname${index}`, eventType: "sale", finalized: true,
+    paymentAsset: "GRAM", priceUsd: 20 + index,
+    eventTime: new Date(nowMs - index * 86_400_000).toISOString(),
+  })), { nowMs });
+  const histogram = new LogHistogram();
+  histogram.add(1_700);
+  const valuation = exactValuation("username", "0:exact", {
+    name: "conviction", count: 1, histogram, lastPriceUsd: 1_700,
+    lastSoldAt: Math.floor((nowMs - 400 * 86_400_000) / 1000),
+  }, { learnedModel });
+  assert.ok(valuation.estimateUsd >= 1_700);
 });
 
 test("a single finalized sale remains visible but cannot enter the portfolio total", () => {
