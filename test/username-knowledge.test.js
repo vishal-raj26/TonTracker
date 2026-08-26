@@ -14,6 +14,7 @@ test("fast username knowledge records lexical completion without Wikipedia reque
   const knowledge = await resolveUsernameKnowledge("example", { fetch, fast: true });
   assert.equal(knowledge.knowledgeStage, "lexical");
   assert.equal(knowledge.lexicalLookupComplete, true);
+  assert.match(knowledge.lexicalLookupAttemptedAt, /^\d{4}-\d{2}-\d{2}T/);
   assert.equal(knowledge.dictionaryMatch, true);
   assert.equal(knowledge.entityLookupComplete, false);
   assert.equal(urls.some((url) => url.includes("wikipedia.org")), false);
@@ -28,6 +29,7 @@ test("knowledge lookups honor the Worker retry budget", async () => {
   const knowledge = await resolveUsernameKnowledge("example", { fetch, fast: true, maxAttempts: 1 });
   assert.equal(calls, 2);
   assert.equal(knowledge.lexicalLookupComplete, false);
+  assert.match(knowledge.lexicalLookupAttemptedAt, /^\d{4}-\d{2}-\d{2}T/);
 });
 
 test("does not turn a fuzzy Wikipedia search result into username entity evidence", async () => {

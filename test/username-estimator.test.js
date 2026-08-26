@@ -110,6 +110,27 @@ test("learns recurring market-name premiums from completed sales", () => {
   assert.ok(ecosystem.learnedModel.marketPatternEvidence > 0);
 });
 
+test("learns mixed-digit and underscore discounts without penalizing scarce numeric names", () => {
+  const nowMs = Date.parse("2026-08-24T00:00:00Z");
+  const events = [];
+  for (let index = 0; index < 30; index += 1) {
+    const suffix = `${String.fromCharCode(97 + (index % 26))}${String.fromCharCode(97 + Math.floor(index / 26))}`;
+    events.push(sale(`cleanword${suffix}`, 220 + index, index + 1, nowMs));
+    events.push(sale(`mixed${index}x`, 55 + index, index + 1, nowMs));
+    events.push(sale(`under_${suffix}`, 35 + index, index + 1, nowMs));
+    events.push(sale(String(1100 + index), 900 + index * 5, index + 1, nowMs));
+  }
+  const model = trainUsernameLearnedModel(events, { nowMs });
+  const clean = predictUsernameLearnedModel(model, "cleanwordzz");
+  const mixed = predictUsernameLearnedModel(model, "mixed99x");
+  const underscore = predictUsernameLearnedModel(model, "under_zz");
+  const numeric = predictUsernameLearnedModel(model, "1999");
+
+  assert.ok(clean.estimateUsd > mixed.estimateUsd * 1.5);
+  assert.ok(clean.estimateUsd > underscore.estimateUsd * 1.5);
+  assert.ok(numeric.estimateUsd > mixed.estimateUsd * 2);
+});
+
 test("uses population premium rates instead of the stratified training ratio", () => {
   const nowMs = Date.parse("2026-08-24T00:00:00Z");
   const events = Array.from({ length: 30 }, (_, index) => sale(`wordname${String.fromCharCode(97 + (index % 26))}${String.fromCharCode(97 + Math.floor(index / 26))}`, index < 15 ? 500 : 20, index + 1, nowMs));

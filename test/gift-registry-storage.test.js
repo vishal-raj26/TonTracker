@@ -50,6 +50,8 @@ test("identity knowledge queues separate fast lexical coverage from full enrichm
   const queue = source.slice(source.indexOf("async function readIdentityKnowledgeQueue"), source.indexOf("async function ingestIdentityKnowledge"));
   assert.match(queue, /const mode = String\(body\.mode \|\| "full"\)\.toLowerCase\(\)/);
   assert.match(queue, /json_extract\(a\.semantic_json,'\$\.lexicalLookupComplete'\) IS NOT 1/);
+  assert.match(queue, /lexicalLookupAttemptedAt/);
+  assert.match(queue, /7 \* 86400000/);
   assert.match(queue, /json_extract\(a\.semantic_json,'\$\.entityLookupComplete'\) IS NOT 1/);
 });
 

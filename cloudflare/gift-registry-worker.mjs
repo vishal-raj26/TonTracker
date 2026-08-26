@@ -794,12 +794,18 @@ async function readIdentityKnowledgeQueue(env, body = {}) {
   if (!["dns", "username"].includes(kind)) return { records: [], configured: true };
   if (!["fast", "full"].includes(mode)) return { records: [], configured: true };
   const schemaVersion = kind === "dns" ? "dns-knowledge-v1" : "username-knowledge-v4";
+  const retryCutoff = new Date(Date.now() - (7 * 86400000)).toISOString();
+  const attemptedField = mode === "fast" ? "lexicalLookupAttemptedAt" : "entityLookupAttemptedAt";
   const stagePending = mode === "fast"
-    ? `OR json_extract(a.semantic_json,'$.lexicalLookupComplete') IS NOT 1`
-    : `OR json_extract(a.semantic_json,'$.entityLookupComplete') IS NOT 1`;
+    ? `OR (json_extract(a.semantic_json,'$.lexicalLookupComplete') IS NOT 1
+      AND (json_extract(a.semantic_json,'$.${attemptedField}') IS NULL OR json_extract(a.semantic_json,'$.${attemptedField}')<=?3))`
+    : `OR (json_extract(a.semantic_json,'$.entityLookupComplete') IS NOT 1
+      AND (json_extract(a.semantic_json,'$.${attemptedField}') IS NULL OR json_extract(a.semantic_json,'$.${attemptedField}')<=?3))`;
   const marketStagePending = mode === "fast"
-    ? `OR json_extract(k.semantic_json,'$.lexicalLookupComplete') IS NOT 1`
-    : `OR json_extract(k.semantic_json,'$.entityLookupComplete') IS NOT 1`;
+    ? `OR (json_extract(k.semantic_json,'$.lexicalLookupComplete') IS NOT 1
+      AND (json_extract(k.semantic_json,'$.${attemptedField}') IS NULL OR json_extract(k.semantic_json,'$.${attemptedField}')<=?3))`
+    : `OR (json_extract(k.semantic_json,'$.entityLookupComplete') IS NOT 1
+      AND (json_extract(k.semantic_json,'$.${attemptedField}') IS NULL OR json_extract(k.semantic_json,'$.${attemptedField}')<=?3))`;
   const pending = `(a.semantic_json IS NULL OR a.semantic_json='{}'
     OR json_extract(a.semantic_json,'$.schemaVersion')!='${schemaVersion}'
     ${kind === "dns" ? "OR json_extract(a.semantic_json,'$.dnsClassificationVersion')!='dns-semantic-route-v2'" : ""}
@@ -815,10 +821,10 @@ async function readIdentityKnowledgeQueue(env, body = {}) {
       ${kind === "dns" ? "OR json_extract(k.semantic_json,'$.dnsClassificationVersion')!='dns-semantic-route-v2'" : ""}
       ${marketStagePending})
     GROUP BY s.asset_kind,s.normalized_name,k.semantic_json,k.source_updated_at
-    ORDER BY MAX(s.price_usd) DESC,MAX(s.sold_at) DESC LIMIT ?1`).bind(limit, kind),
+      ORDER BY MAX(s.price_usd) DESC,MAX(s.sold_at) DESC LIMIT ?1`).bind(limit, kind, retryCutoff),
     database.prepare(`SELECT a.asset_kind,a.asset_key,a.normalized_name,a.semantic_json,a.source_updated_at
       FROM identity_assets a WHERE a.asset_kind=?2 AND ${pending}
-      ORDER BY a.source_updated_at DESC LIMIT ?1`).bind(limit, kind),
+      ORDER BY a.source_updated_at DESC LIMIT ?1`).bind(limit, kind, retryCutoff),
   ]);
   const unique = new Map();
   const marketRows = marketPriority.results || [];

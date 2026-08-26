@@ -9,6 +9,10 @@ test("extracts reusable Telegram market concepts", () => {
   assert.ok(usernameSemanticProfile("conviction").categories.includes("aspirational"));
   assert.deepEqual(usernameSemanticProfile("conviction").exactTerms, ["aspirational:conviction"]);
   assert.ok(usernameSemanticProfile("damxagent").categories.includes("technology"));
+  for (const name of ["degen", "wagmi", "fomo", "hodl", "airdrop", "defi", "pepe"]) {
+    assert.equal(usernameSemanticProfile(name).hasMeaningSignal, true, name);
+    assert.equal(usernameSemanticProfile(name).popularityTier, "exact-term", name);
+  }
 });
 
 test("prefers concept overlap over accidental character overlap", () => {
