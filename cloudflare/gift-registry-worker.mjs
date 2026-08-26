@@ -402,9 +402,13 @@ async function ingestIdentityAssets(request, env) {
     ) VALUES (?,?,?,?,?,?,?,?,?,?,?,CURRENT_TIMESTAMP)
     ON CONFLICT DO UPDATE SET
       normalized_name=excluded.normalized_name,display_name=excluded.display_name,
-      primary_route=excluded.primary_route,length_bucket=excluded.length_bucket,script=excluded.script,
-      scarcity_class=excluded.scarcity_class,feature_json=excluded.feature_json,
-      semantic_json=excluded.semantic_json,source_updated_at=excluded.source_updated_at,updated_at=CURRENT_TIMESTAMP
+      primary_route=CASE WHEN identity_assets.semantic_json IS NOT NULL AND identity_assets.semantic_json!='{}' THEN identity_assets.primary_route ELSE excluded.primary_route END,
+      length_bucket=CASE WHEN identity_assets.semantic_json IS NOT NULL AND identity_assets.semantic_json!='{}' THEN identity_assets.length_bucket ELSE excluded.length_bucket END,
+      script=CASE WHEN identity_assets.semantic_json IS NOT NULL AND identity_assets.semantic_json!='{}' THEN identity_assets.script ELSE excluded.script END,
+      scarcity_class=CASE WHEN identity_assets.semantic_json IS NOT NULL AND identity_assets.semantic_json!='{}' THEN identity_assets.scarcity_class ELSE excluded.scarcity_class END,
+      feature_json=CASE WHEN excluded.feature_json='{}' OR (identity_assets.semantic_json IS NOT NULL AND identity_assets.semantic_json!='{}') THEN identity_assets.feature_json ELSE excluded.feature_json END,
+      semantic_json=CASE WHEN excluded.semantic_json='{}' THEN identity_assets.semantic_json ELSE excluded.semantic_json END,
+      source_updated_at=excluded.source_updated_at,updated_at=CURRENT_TIMESTAMP
     WHERE excluded.source_updated_at >= identity_assets.source_updated_at`).bind(
       assetKind, assetKey, normalizedName, String(record.displayName || record.display_name || normalizedName),
       String(record.primaryRoute || record.primary_route || "residual"),
@@ -510,16 +514,14 @@ async function ingestIdentitySales(request, env) {
     ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
     ON CONFLICT(sale_id) DO UPDATE SET
       source=CASE
+        WHEN identity_sales.source LIKE '%toncenter%' THEN identity_sales.source
         WHEN excluded.source LIKE '%toncenter%' THEN excluded.source
         WHEN excluded.source LIKE '%market-reported%' THEN excluded.source
         ELSE identity_sales.source
       END,
-      reliability_score=CASE
-        WHEN excluded.source LIKE '%toncenter%' THEN MAX(identity_sales.reliability_score, excluded.reliability_score)
-        WHEN excluded.source LIKE '%market-reported%' THEN MIN(identity_sales.reliability_score, excluded.reliability_score)
-        ELSE MAX(identity_sales.reliability_score, excluded.reliability_score)
-      END,
+      reliability_score=MAX(identity_sales.reliability_score, excluded.reliability_score),
       quality_flags_json=CASE
+        WHEN identity_sales.source LIKE '%toncenter%' THEN identity_sales.quality_flags_json
         WHEN excluded.source LIKE '%toncenter%' OR excluded.source LIKE '%market-reported%' THEN excluded.quality_flags_json
         ELSE identity_sales.quality_flags_json
       END`).bind(
@@ -586,10 +588,11 @@ async function readIdentitySales(env, body = {}) {
   const cursorSaleId = String(body.cursor?.saleId || "");
   if (!['dns', 'username'].includes(kind)) return { records: [], configured: true, nextCursor: null };
   const where = cursorSoldAt > 0
-    ? "asset_kind=?1 AND (sold_at < ?2 OR (sold_at = ?2 AND sale_id < ?3))"
-    : "asset_kind=?1";
-  const statement = database.prepare(`SELECT * FROM identity_sales WHERE ${where}
-    ORDER BY sold_at DESC, sale_id DESC LIMIT ?${cursorSoldAt > 0 ? 4 : 2}`);
+    ? "s.asset_kind=?1 AND (s.sold_at < ?2 OR (s.sold_at = ?2 AND s.sale_id < ?3))"
+    : "s.asset_kind=?1";
+  const statement = database.prepare(`SELECT s.*,a.semantic_json FROM identity_sales s
+    LEFT JOIN identity_assets a ON a.asset_kind=s.asset_kind AND a.normalized_name=s.normalized_name
+    WHERE ${where} ORDER BY s.sold_at DESC, s.sale_id DESC LIMIT ?${cursorSoldAt > 0 ? 4 : 2}`);
   const result = cursorSoldAt > 0
     ? await statement.bind(kind, cursorSoldAt, cursorSaleId, limit).all()
     : await statement.bind(kind, limit).all();
@@ -640,14 +643,16 @@ async function readIdentityBaselineSource(request, env) {
     const highValueLimit = Math.min(160, Math.max(32, Math.floor(trainingLimit * 0.08)));
     const evenLimit = trainingLimit - highValueLimit;
     const results = await database.batch([
-      database.prepare(`SELECT s.sale_id,s.normalized_name,s.price_usd,s.sold_at,s.reliability_score,a.semantic_json
-        FROM identity_sales s LEFT JOIN identity_assets a ON a.asset_kind=s.asset_kind AND a.asset_key=s.asset_key
+      database.prepare(`SELECT s.sale_id,s.normalized_name,s.price_usd,s.sold_at,s.reliability_score,k.semantic_json
+        FROM identity_sales s LEFT JOIN identity_assets k
+          ON k.asset_kind=s.asset_kind AND k.normalized_name=s.normalized_name
         WHERE s.asset_kind='username' ORDER BY s.price_usd DESC LIMIT ?1`).bind(highValueLimit),
       database.prepare(`WITH ordered AS (
-        SELECT s.sale_id,s.normalized_name,s.price_usd,s.sold_at,s.reliability_score,a.semantic_json,
+        SELECT s.sale_id,s.normalized_name,s.price_usd,s.sold_at,s.reliability_score,k.semantic_json,
           ROW_NUMBER() OVER (ORDER BY s.sold_at,s.sale_id) AS row_index,
           COUNT(*) OVER () AS total_count
-        FROM identity_sales s LEFT JOIN identity_assets a ON a.asset_kind=s.asset_kind AND a.asset_key=s.asset_key
+        FROM identity_sales s LEFT JOIN identity_assets k
+          ON k.asset_kind=s.asset_kind AND k.normalized_name=s.normalized_name
         WHERE s.asset_kind='username'
       ) SELECT sale_id,normalized_name,price_usd,sold_at,reliability_score,semantic_json FROM ordered
         WHERE row_index % MAX(1,CAST(total_count/?1 AS INTEGER))=0 LIMIT ?1`).bind(evenLimit),
@@ -682,8 +687,8 @@ async function readUsernameEvidence(request, env) {
   })).filter((target) => target.normalizedName);
   if (!targets.length) return json({ configured: true, records: [] });
 
-  const columns = `sale_id,asset_key,normalized_name,sold_at,price_usd,reliability_score,
-    quality_flags_json,primary_route,length_bucket,script,scarcity_class`;
+  const columns = `s.sale_id,s.asset_key,s.normalized_name,s.sold_at,s.price_usd,s.reliability_score,
+    s.quality_flags_json,s.primary_route,s.length_bucket,s.script,s.scarcity_class,a.semantic_json`;
   const cutoff = Math.floor(Date.now() / 1000) - (10 * 365 * 86400);
   const names = [...new Set(targets.map((target) => target.normalizedName))].slice(0, 50);
   const groups = [...new Map(targets.map((target) => [
@@ -691,15 +696,18 @@ async function readUsernameEvidence(request, env) {
   ])).values()].slice(0, 40);
   const cohortLimit = Math.max(120, Math.min(500, Math.floor(5_000 / Math.max(1, groups.length))));
   const statements = [
-    database.prepare(`SELECT ${columns} FROM identity_sales
-      WHERE asset_kind='username' AND sold_at>=?1
-      ORDER BY sold_at DESC LIMIT 500`).bind(cutoff),
-    database.prepare(`SELECT ${columns} FROM identity_sales
-      WHERE asset_kind='username' AND normalized_name IN (${names.map(() => "?").join(",")})
-      ORDER BY sold_at DESC LIMIT 1000`).bind(...names),
-    ...groups.map((group) => database.prepare(`SELECT ${columns} FROM identity_sales
-      WHERE asset_kind='username' AND primary_route=?1 AND length_bucket=?2 AND sold_at>=?3
-      ORDER BY sold_at DESC LIMIT ?4`).bind(group.primaryRoute, group.lengthBucket, cutoff, cohortLimit)),
+    database.prepare(`SELECT ${columns} FROM identity_sales s
+      LEFT JOIN identity_assets a ON a.asset_kind=s.asset_kind AND a.asset_key=s.asset_key
+      WHERE s.asset_kind='username' AND s.sold_at>=?1
+      ORDER BY s.sold_at DESC LIMIT 500`).bind(cutoff),
+    database.prepare(`SELECT ${columns} FROM identity_sales s
+      LEFT JOIN identity_assets a ON a.asset_kind=s.asset_kind AND a.asset_key=s.asset_key
+      WHERE s.asset_kind='username' AND s.normalized_name IN (${names.map(() => "?").join(",")})
+      ORDER BY s.sold_at DESC LIMIT 1000`).bind(...names),
+    ...groups.map((group) => database.prepare(`SELECT ${columns} FROM identity_sales s
+      LEFT JOIN identity_assets a ON a.asset_kind=s.asset_kind AND a.asset_key=s.asset_key
+      WHERE s.asset_kind='username' AND s.primary_route=?1 AND s.length_bucket=?2 AND s.sold_at>=?3
+      ORDER BY s.sold_at DESC LIMIT ?4`).bind(group.primaryRoute, group.lengthBucket, cutoff, cohortLimit)),
   ];
   const results = await database.batch(statements);
   const records = new Map();
@@ -727,20 +735,22 @@ async function readDnsEvidence(request, env) {
   })).filter((target) => target.normalizedName.endsWith(".ton"));
   if (!targets.length) return json({ configured: true, records: [] });
 
-  const columns = `sale_id,asset_key,normalized_name,sold_at,price_gram,historical_usd_rate,price_usd,
-    reliability_score,quality_flags_json,primary_route,length_bucket,script,scarcity_class`;
+  const columns = `s.sale_id,s.asset_key,s.normalized_name,s.sold_at,s.price_gram,s.historical_usd_rate,s.price_usd,
+    s.reliability_score,s.quality_flags_json,s.primary_route,s.length_bucket,s.script,s.scarcity_class,a.semantic_json`;
   const cutoff = Math.floor(Date.now() / 1000) - (10 * 365 * 86400);
   const names = [...new Set(targets.map((target) => target.normalizedName))].slice(0, 50);
   const groups = [...new Map(targets.map((target) => [
     `${target.primaryRoute}|${target.lengthBucket}`, target,
   ])).values()].slice(0, 40);
   const statements = [
-    database.prepare(`SELECT ${columns} FROM identity_sales
-      WHERE asset_kind='dns' AND normalized_name IN (${names.map(() => "?").join(",")})
-      ORDER BY sold_at DESC LIMIT 1000`).bind(...names),
-    ...groups.map((group) => database.prepare(`SELECT ${columns} FROM identity_sales
-      WHERE asset_kind='dns' AND primary_route=?1 AND length_bucket=?2 AND sold_at>=?3
-      ORDER BY sold_at DESC LIMIT 1000`).bind(group.primaryRoute, group.lengthBucket, cutoff)),
+    database.prepare(`SELECT ${columns} FROM identity_sales s
+      LEFT JOIN identity_assets a ON a.asset_kind=s.asset_kind AND a.asset_key=s.asset_key
+      WHERE s.asset_kind='dns' AND s.normalized_name IN (${names.map(() => "?").join(",")})
+      ORDER BY s.sold_at DESC LIMIT 1000`).bind(...names),
+    ...groups.map((group) => database.prepare(`SELECT ${columns} FROM identity_sales s
+      LEFT JOIN identity_assets a ON a.asset_kind=s.asset_kind AND a.asset_key=s.asset_key
+      WHERE s.asset_kind='dns' AND s.primary_route=?1 AND s.length_bucket=?2 AND s.sold_at>=?3
+      ORDER BY s.sold_at DESC LIMIT 1000`).bind(group.primaryRoute, group.lengthBucket, cutoff)),
   ];
   const results = await database.batch(statements);
   const records = new Map();
@@ -751,7 +761,9 @@ async function readDnsEvidence(request, env) {
     }
     if (records.size >= 8000) break;
   }
-  return json({ configured: true, records: [...records.values()] });
+  const knowledge = await database.prepare(`SELECT normalized_name,semantic_json FROM identity_assets
+    WHERE asset_kind='dns' AND normalized_name IN (${names.map(() => "?").join(",")})`).bind(...names).all();
+  return json({ configured: true, records: [...records.values()], knowledge: knowledge.results || [] });
 }
 
 async function readIdentityAssets(env, body = {}) {
@@ -777,13 +789,47 @@ async function readIdentityKnowledgeQueue(env, body = {}) {
   const database = valuationReadDatabase(env);
   if (!database) return { records: [], configured: false };
   const limit = Math.max(1, Math.min(50, Number(body.limit || 8)));
-  const result = await database.prepare(`SELECT asset_key,normalized_name,semantic_json,source_updated_at
-    FROM identity_assets WHERE asset_kind='username'
-      AND (semantic_json IS NULL OR semantic_json='{}'
-        OR json_extract(semantic_json,'$.schemaVersion')!='username-knowledge-v3'
-        OR json_extract(semantic_json,'$.entityLookupComplete') IS NOT 1)
-    ORDER BY source_updated_at DESC LIMIT ?1`).bind(limit).all();
-  return { configured: true, records: result.results || [] };
+  const kind = String(body.assetKind || "username").toLowerCase();
+  const mode = String(body.mode || "full").toLowerCase();
+  if (!["dns", "username"].includes(kind)) return { records: [], configured: true };
+  if (!["fast", "full"].includes(mode)) return { records: [], configured: true };
+  const schemaVersion = kind === "dns" ? "dns-knowledge-v1" : "username-knowledge-v4";
+  const stagePending = mode === "fast"
+    ? `OR json_extract(a.semantic_json,'$.lexicalLookupComplete') IS NOT 1`
+    : `OR json_extract(a.semantic_json,'$.entityLookupComplete') IS NOT 1`;
+  const marketStagePending = mode === "fast"
+    ? `OR json_extract(k.semantic_json,'$.lexicalLookupComplete') IS NOT 1`
+    : `OR json_extract(k.semantic_json,'$.entityLookupComplete') IS NOT 1`;
+  const pending = `(a.semantic_json IS NULL OR a.semantic_json='{}'
+    OR json_extract(a.semantic_json,'$.schemaVersion')!='${schemaVersion}'
+    ${kind === "dns" ? "OR json_extract(a.semantic_json,'$.dnsClassificationVersion')!='dns-semantic-route-v2'" : ""}
+    ${stagePending})`;
+  const [marketPriority, walletPriority] = await database.batch([
+    database.prepare(`SELECT s.asset_kind,s.asset_kind||':'||s.normalized_name AS asset_key,s.normalized_name,
+      COALESCE(k.semantic_json,'{}') AS semantic_json,
+      COALESCE(k.source_updated_at,MAX(s.sold_at)) AS source_updated_at
+    FROM identity_sales s LEFT JOIN identity_assets k
+      ON k.asset_kind=s.asset_kind AND k.normalized_name=s.normalized_name
+    WHERE s.asset_kind=?2 AND (k.semantic_json IS NULL OR k.semantic_json='{}'
+      OR json_extract(k.semantic_json,'$.schemaVersion')!='${schemaVersion}'
+      ${kind === "dns" ? "OR json_extract(k.semantic_json,'$.dnsClassificationVersion')!='dns-semantic-route-v2'" : ""}
+      ${marketStagePending})
+    GROUP BY s.asset_kind,s.normalized_name,k.semantic_json,k.source_updated_at
+    ORDER BY MAX(s.price_usd) DESC,MAX(s.sold_at) DESC LIMIT ?1`).bind(limit, kind),
+    database.prepare(`SELECT a.asset_kind,a.asset_key,a.normalized_name,a.semantic_json,a.source_updated_at
+      FROM identity_assets a WHERE a.asset_kind=?2 AND ${pending}
+      ORDER BY a.source_updated_at DESC LIMIT ?1`).bind(limit, kind),
+  ]);
+  const unique = new Map();
+  const marketRows = marketPriority.results || [];
+  const walletRows = walletPriority.results || [];
+  for (let index = 0; unique.size < limit && index < Math.max(marketRows.length, walletRows.length); index += 1) {
+    for (const row of [marketRows[index], walletRows[index]]) {
+      if (row && !unique.has(row.asset_key)) unique.set(row.asset_key, row);
+      if (unique.size >= limit) break;
+    }
+  }
+  return { configured: true, records: [...unique.values()].slice(0, limit) };
 }
 
 async function ingestIdentityKnowledge(request, env) {
@@ -793,10 +839,43 @@ async function ingestIdentityKnowledge(request, env) {
   const body = await request.json().catch(() => ({}));
   const records = (Array.isArray(body.records) ? body.records : []).slice(0, 50);
   const statements = records.flatMap((record) => {
+    const assetKind = String(record.assetKind || record.asset_kind || "username").toLowerCase();
     const assetKey = String(record.assetKey || record.asset_key || "").toLowerCase();
-    if (!assetKey) return [];
-    return [database.prepare(`UPDATE identity_assets SET semantic_json=?1,updated_at=CURRENT_TIMESTAMP
-      WHERE asset_kind='username' AND asset_key=?2`).bind(compactJson(record.knowledge || record.semantic || {}, {}), assetKey)];
+    const normalizedName = String(record.normalizedName || record.normalized_name || "").toLowerCase().replace(/^@/, "");
+    if (!["dns", "username"].includes(assetKind) || !assetKey || !normalizedName) return [];
+    const classification = record.classification || {};
+    const primaryRoute = String(classification.primaryRoute || "");
+    const lengthBucket = String(record.lengthBucket || classification.lengthBucket || "");
+    const script = String(classification.primaryScript || classification.script || "");
+    const scarcityClass = String(classification.scarcityClass || "");
+    return [
+      database.prepare(`INSERT INTO identity_assets (
+        asset_kind,asset_key,normalized_name,display_name,primary_route,length_bucket,script,scarcity_class,
+        feature_json,semantic_json,source_updated_at,updated_at
+      ) VALUES (?2,?8,?9,?9,?3,?4,?5,?6,?7,?1,unixepoch(),CURRENT_TIMESTAMP)
+      ON CONFLICT(asset_kind,normalized_name) DO UPDATE SET
+        display_name=excluded.display_name,
+        semantic_json=excluded.semantic_json,
+        primary_route=CASE WHEN excluded.primary_route!='' THEN excluded.primary_route ELSE identity_assets.primary_route END,
+        length_bucket=CASE WHEN excluded.length_bucket!='' THEN excluded.length_bucket ELSE identity_assets.length_bucket END,
+        script=CASE WHEN excluded.script!='' THEN excluded.script ELSE identity_assets.script END,
+        scarcity_class=CASE WHEN excluded.scarcity_class!='' THEN excluded.scarcity_class ELSE identity_assets.scarcity_class END,
+        feature_json=CASE WHEN excluded.feature_json!='{}' THEN excluded.feature_json ELSE identity_assets.feature_json END,
+        source_updated_at=MAX(identity_assets.source_updated_at,excluded.source_updated_at),updated_at=CURRENT_TIMESTAMP`).bind(
+        compactJson(record.knowledge || record.semantic || {}, {}), assetKind,
+        primaryRoute, lengthBucket, script, scarcityClass, compactJson(classification, {}), assetKey,
+        normalizedName,
+      ),
+      database.prepare(`UPDATE identity_sales SET
+        primary_route=CASE WHEN ?3!='' THEN ?3 ELSE primary_route END,
+        length_bucket=CASE WHEN ?4!='' THEN ?4 ELSE length_bucket END,
+        script=CASE WHEN ?5!='' THEN ?5 ELSE script END,
+        scarcity_class=CASE WHEN ?6!='' THEN ?6 ELSE scarcity_class END
+        WHERE asset_kind=?1 AND normalized_name=?7`).bind(
+        assetKind, assetKey, primaryRoute, lengthBucket, script, scarcityClass,
+        normalizedName,
+      ),
+    ];
   });
   if (statements.length) await runD1StatementBatches(database, statements);
   return json({ ok: true, written: statements.length });

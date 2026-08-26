@@ -2,11 +2,16 @@ import usernameLedger from "../scripts/rebuild-username-ledger.js";
 import dnsLedgerModule from "../lib/dns-toncenter-ledger.js";
 import baselineModule from "../scripts/refresh-identity-baselines.js";
 import usernameKnowledgeModule from "../lib/username-knowledge.js";
+import dnsStructuralModule from "../lib/dns-structural.js";
+import dnsEngineModule from "../lib/dns-engine.js";
 
 let dnsLedger = dnsLedgerModule.createDnsTonCenterLedger();
 let checkpointLedger = dnsLedgerModule.createLedgerClient();
 const REFRESH_PIPELINE_KEY = "identity-baseline-refresh-v1";
-const { resolveUsernameKnowledge } = usernameKnowledgeModule;
+const REFRESH_RUNNING_STALE_MS = 20 * 60 * 1000;
+const { SCHEMA_VERSION: USERNAME_KNOWLEDGE_SCHEMA_VERSION, resolveUsernameKnowledge } = usernameKnowledgeModule;
+const { classifyTonDns } = dnsStructuralModule;
+const { dnsLengthBucket } = dnsEngineModule;
 
 function configureRuntime(env) {
   if (!env.REGISTRY) return;
@@ -47,50 +52,106 @@ async function runDnsCycle() {
 async function runRefreshCycle(force = false) {
   const now = Date.now();
   const intervalMs = Math.max(60 * 60 * 1000, Number(process.env.IDENTITY_BASELINE_REFRESH_INTERVAL_MS || 6 * 60 * 60 * 1000));
-  const state = await checkpointLedger.readState(REFRESH_PIPELINE_KEY);
+  const read = await checkpointLedger.readState(REFRESH_PIPELINE_KEY);
+  const state = read?.state || read || {};
   const metadata = state?.metadata || state?.metadata_json || {};
   const lastCompletedAt = Date.parse(metadata.lastCompletedAt || "");
+  const runningAt = Date.parse(metadata.startedAt || "");
   if (!force && Number.isFinite(lastCompletedAt) && now - lastCompletedAt < intervalMs) {
     return { ok: true, skipped: true, pipeline: REFRESH_PIPELINE_KEY, nextAt: new Date(lastCompletedAt + intervalMs).toISOString() };
   }
+  if (!force && metadata.status === "running" && Number.isFinite(runningAt) && now - runningAt < REFRESH_RUNNING_STALE_MS) {
+    return { ok: true, skipped: true, pipeline: REFRESH_PIPELINE_KEY, reason: "refresh-in-progress" };
+  }
+  const nextKind = metadata.nextKind === "dns" ? "dns" : "username";
   const startedAt = new Date(now).toISOString();
-  await checkpointLedger.writeState(REFRESH_PIPELINE_KEY, { phase: "running", startedAt }, { status: "running", startedAt });
+  await checkpointLedger.writeState(REFRESH_PIPELINE_KEY, { phase: "running", kind: nextKind, startedAt }, {
+    status: "running", startedAt, nextKind,
+    recoveredStaleRun: metadata.status === "running" && Number.isFinite(runningAt) && now - runningAt >= REFRESH_RUNNING_STALE_MS,
+  });
   try {
-    const username = await baselineModule.refreshKind("username", { aggregateSource: true, writeExactValuations: false });
-    const dns = await baselineModule.refreshKind("dns", { aggregateSource: true, writeExactValuations: false });
+    const result = await baselineModule.refreshKind(nextKind, { aggregateSource: true, writeExactValuations: false });
     const lastCompleted = new Date().toISOString();
+    if (nextKind === "username") {
+      await checkpointLedger.writeState(REFRESH_PIPELINE_KEY, { phase: "pending", nextKind: "dns", usernameCompletedAt: lastCompleted }, {
+        status: "partial", startedAt, usernameCompletedAt: lastCompleted, usernameSales: result.sales, nextKind: "dns",
+      });
+      return { ok: true, pipeline: REFRESH_PIPELINE_KEY, startedAt, completedAt: lastCompleted, username: result, pending: "dns" };
+    }
     await checkpointLedger.writeState(REFRESH_PIPELINE_KEY, { phase: "complete", lastCompletedAt: lastCompleted }, {
-      status: "complete", startedAt, lastCompletedAt: lastCompleted, usernameSales: username.sales, dnsSales: dns.sales,
+      status: "complete", startedAt, lastCompletedAt: lastCompleted, dnsSales: result.sales, nextKind: "username",
+      usernameCompletedAt: metadata.usernameCompletedAt || null,
     });
-    return { ok: true, pipeline: REFRESH_PIPELINE_KEY, startedAt, completedAt: lastCompleted, username, dns };
+    return { ok: true, pipeline: REFRESH_PIPELINE_KEY, startedAt, completedAt: lastCompleted, dns: result };
   } catch (error) {
-    await checkpointLedger.writeState(REFRESH_PIPELINE_KEY, { phase: "failed", startedAt }, {
-      status: "failed", startedAt, failedAt: new Date().toISOString(), error: String(error?.message || error).slice(0, 240),
+    await checkpointLedger.writeState(REFRESH_PIPELINE_KEY, { phase: "failed", kind: nextKind, startedAt }, {
+      status: "failed", startedAt, failedAt: new Date().toISOString(), nextKind, error: String(error?.message || error).slice(0, 240),
     });
     throw error;
   }
 }
 
-async function runKnowledgeCycle(env) {
+function classificationOptions(knowledge, name) {
+  const label = String(name || "").replace(/\.ton$/i, "");
+  return {
+    dictionaryWords: knowledge.dictionaryMatch ? [label] : [],
+    entityHints: knowledge.entityMarketVerified === true ? [label] : [],
+  };
+}
+
+async function runKnowledgeKind(env, assetKind, limit = 4, options = {}) {
+  const mode = options.fast ? "fast" : "full";
   const headers = { "content-type": "application/json", authorization: `Bearer ${env.D1_INGEST_SECRET}` };
   const queued = await env.REGISTRY.fetch("https://registry/identity/knowledge/queue", {
-    method: "POST", headers, body: JSON.stringify({ limit: 4 }),
+    method: "POST", headers, body: JSON.stringify({ limit, assetKind, mode }),
   });
   if (!queued.ok) throw new Error(`knowledge queue ${queued.status}`);
   const payload = await queued.json();
   const records = [];
   for (const row of payload.records || []) {
-    const knowledge = await resolveUsernameKnowledge(row.normalized_name, { fetch });
-    records.push({ assetKey: row.asset_key, knowledge });
-    await new Promise((resolve) => setTimeout(resolve, 650));
+    const lookupName = assetKind === "dns" ? String(row.normalized_name || "").replace(/\.ton$/i, "") : row.normalized_name;
+    const knowledge = await resolveUsernameKnowledge(lookupName, {
+      fetch, fast: options.fast === true, maxAttempts: 1,
+    });
+    if (assetKind === "dns") {
+      knowledge.schemaVersion = "dns-knowledge-v1";
+      knowledge.dnsClassificationVersion = "dns-semantic-route-v2";
+    }
+    const classification = assetKind === "dns"
+      ? classifyTonDns(row.normalized_name, classificationOptions(knowledge, row.normalized_name))
+      : null;
+    records.push({
+      assetKind, assetKey: row.asset_key, normalizedName: row.normalized_name, knowledge, classification,
+      lengthBucket: classification ? dnsLengthBucket(classification.characterLength) : undefined,
+    });
+    await new Promise((resolve) => setTimeout(resolve, options.fast ? 240 : 650));
   }
+  let written = 0;
   if (records.length) {
     const write = await env.REGISTRY.fetch("https://registry/ingest/identity-knowledge", {
       method: "POST", headers, body: JSON.stringify({ records }),
     });
     if (!write.ok) throw new Error(`knowledge ingest ${write.status}`);
+    const result = await write.json();
+    written = Math.floor(Number(result.written || 0) / 2);
   }
-  return { ok: true, inspected: (payload.records || []).length, written: records.length };
+  return { ok: true, assetKind, mode, inspected: (payload.records || []).length, written };
+}
+
+async function runKnowledgeCycle(env) {
+  // Fast lexical coverage is cheap enough to pre-feed the broad market. Full
+  // enrichment remains deliberately smaller because it includes Wikipedia and
+  // pageview calls. Running sequentially prevents source bursts and stays
+  // under the Worker subrequest ceiling.
+  const usernameFast = await runKnowledgeKind(env, "username", 4, { fast: true });
+  const dnsFast = await runKnowledgeKind(env, "dns", 1, { fast: true });
+  const usernameFull = await runKnowledgeKind(env, "username", 1);
+  const dnsFull = await runKnowledgeKind(env, "dns", 1);
+  return {
+    ok: usernameFast.ok && dnsFast.ok && usernameFull.ok && dnsFull.ok,
+    username: { fast: usernameFast, full: usernameFull },
+    dns: { fast: dnsFast, full: dnsFull },
+  };
 }
 
 async function runIdentityCycle(env) {
@@ -146,7 +207,7 @@ export default {
       try {
         return json(await runKnowledgeCycle(env));
       } catch (error) {
-        return json({ ok: false, pipeline: "username-knowledge-v3", error: String(error?.message || error).slice(0, 300) }, 503);
+        return json({ ok: false, pipeline: USERNAME_KNOWLEDGE_SCHEMA_VERSION, error: String(error?.message || error).slice(0, 300) }, 503);
       }
     }
     if (url.pathname === "/run/all" && request.method === "POST") {

@@ -32,6 +32,27 @@ test("identity sale quota is reconciled from real rows, not upsert change counts
   assert.doesNotMatch(source, /SET tracked_sales=tracked_sales\+\?/);
 });
 
+test("DNS knowledge queues use the current semantic route marker consistently", () => {
+  const source = fs.readFileSync(
+    path.join(__dirname, "..", "cloudflare", "gift-registry-worker.mjs"),
+    "utf8"
+  );
+  const queue = source.slice(source.indexOf("async function readIdentityKnowledgeQueue"), source.indexOf("async function ingestIdentityKnowledge"));
+  assert.match(queue, /dns-semantic-route-v2/g);
+  assert.doesNotMatch(queue, /dns-semantic-route-v1/);
+});
+
+test("identity knowledge queues separate fast lexical coverage from full enrichment", () => {
+  const source = fs.readFileSync(
+    path.join(__dirname, "..", "cloudflare", "gift-registry-worker.mjs"),
+    "utf8"
+  );
+  const queue = source.slice(source.indexOf("async function readIdentityKnowledgeQueue"), source.indexOf("async function ingestIdentityKnowledge"));
+  assert.match(queue, /const mode = String\(body\.mode \|\| "full"\)\.toLowerCase\(\)/);
+  assert.match(queue, /json_extract\(a\.semantic_json,'\$\.lexicalLookupComplete'\) IS NOT 1/);
+  assert.match(queue, /json_extract\(a\.semantic_json,'\$\.entityLookupComplete'\) IS NOT 1/);
+});
+
 test("newer valuation versions cannot be overwritten by an older writer", () => {
   const source = fs.readFileSync(
     path.join(__dirname, "..", "cloudflare", "gift-registry-worker.mjs"),
@@ -40,6 +61,29 @@ test("newer valuation versions cannot be overwritten by an older writer", () => 
   assert.match(source, /excluded\.estimator_version = valuation_records\.estimator_version/);
   assert.match(source, /CAST\(substr\(excluded\.estimator_version/);
   assert.match(source, /CAST\(substr\(valuation_records\.estimator_version/);
+});
+
+test("market-reported username re-ingestion cannot downgrade chain-confirmed evidence", () => {
+  const source = fs.readFileSync(
+    path.join(__dirname, "..", "cloudflare", "gift-registry-worker.mjs"),
+    "utf8"
+  );
+  const saleUpsert = source.slice(source.indexOf("ON CONFLICT(sale_id) DO UPDATE SET"), source.indexOf("async function ingestIdentityBaselines"));
+  assert.match(saleUpsert, /WHEN identity_sales\.source LIKE '%toncenter%' THEN identity_sales\.source/);
+  assert.match(saleUpsert, /reliability_score=MAX\(identity_sales\.reliability_score, excluded\.reliability_score\)/);
+  assert.match(saleUpsert, /WHEN identity_sales\.source LIKE '%toncenter%' THEN identity_sales\.quality_flags_json/);
+  assert.doesNotMatch(saleUpsert, /WHEN excluded\.source LIKE '%market-reported%' THEN MIN/);
+});
+
+test("identity sale reads include the compact prepared semantic record for model evaluation", () => {
+  const source = fs.readFileSync(
+    path.join(__dirname, "..", "cloudflare", "gift-registry-worker.mjs"),
+    "utf8"
+  );
+  const reader = source.slice(source.indexOf("async function readIdentitySales"), source.indexOf("async function readIdentityBaselineSource"));
+  assert.match(reader, /SELECT s\.\*,a\.semantic_json FROM identity_sales s/);
+  assert.match(reader, /LEFT JOIN identity_assets a ON a\.asset_kind=s\.asset_kind AND a\.normalized_name=s\.normalized_name/);
+  assert.match(reader, /ORDER BY s\.sold_at DESC, s\.sale_id DESC/);
 });
 
 test("registry accepts USD only when it matches the sale's historical rate", () => {
