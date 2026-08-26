@@ -155,6 +155,24 @@ test("uses a verified completed-sales baseline only as a low-confidence indicati
   assert.ok(result.estimateGram >= 100 && result.estimateGram <= 140);
 });
 
+test("rejects a wildly dispersed baseline instead of pricing an unrelated DNS from its median", () => {
+  const result = estimateTonDnsValue("conviction.ton", [], {}, {
+    now: NOW,
+    marketBaseline: {
+      verifiedSalesOnly: true,
+      scope: "archetype",
+      midpointGram: 15_000,
+      rangeLowGram: 25,
+      rangeHighGram: 190_000_000,
+      evidenceCount: 33,
+      effectiveCompCount: 33,
+    },
+  });
+
+  assert.equal(result.status, "unavailable");
+  assert.equal(result.estimateGram, null);
+});
+
 test("keeps a DNS with one finalized own sale out of portfolio confidence", () => {
   const result = estimateTonDnsValue("singleproof.ton", [
     completedSale("singleproof.ton", 120, 15),
