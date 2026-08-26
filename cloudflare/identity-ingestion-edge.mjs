@@ -1,4 +1,5 @@
 import usernameLedger from "../scripts/rebuild-username-ledger.js";
+import usernameSettlementModule from "../lib/toncenter-username-settlement-ledger.js";
 import dnsLedgerModule from "../lib/dns-toncenter-ledger.js";
 import baselineModule from "../scripts/refresh-identity-baselines.js";
 import usernameKnowledgeModule from "../lib/username-knowledge.js";
@@ -6,6 +7,7 @@ import dnsStructuralModule from "../lib/dns-structural.js";
 import dnsEngineModule from "../lib/dns-engine.js";
 
 let dnsLedger = dnsLedgerModule.createDnsTonCenterLedger();
+let usernameSettlementLedger = usernameSettlementModule.createTonCenterUsernameSettlementLedger();
 let checkpointLedger = dnsLedgerModule.createLedgerClient();
 const REFRESH_PIPELINE_KEY = "identity-baseline-refresh-v1";
 const REFRESH_RUNNING_STALE_MS = 20 * 60 * 1000;
@@ -20,6 +22,9 @@ function configureRuntime(env) {
   usernameLedger.configureLedger(clientOptions);
   baselineModule.configureLedger(clientOptions);
   checkpointLedger = dnsLedgerModule.createLedgerClient(clientOptions);
+  usernameSettlementLedger = usernameSettlementModule.createTonCenterUsernameSettlementLedger({
+    ledger: dnsLedgerModule.createLedgerClient(clientOptions),
+  });
   dnsLedger = dnsLedgerModule.createDnsTonCenterLedger({
     ledger: dnsLedgerModule.createLedgerClient(clientOptions),
   });
@@ -42,6 +47,11 @@ async function runUsernameCycle() {
   const startedAt = new Date().toISOString();
   const result = await usernameLedger.runPage();
   return { ok: true, pipeline: "username-fragment-sales-v1", startedAt, completedAt: new Date().toISOString(), ...result };
+}
+
+async function runUsernameSettlementCycle() {
+  const startedAt = new Date().toISOString();
+  return { startedAt, completedAt: new Date().toISOString(), ...(await usernameSettlementLedger.runPage()) };
 }
 
 async function runDnsCycle() {
@@ -161,6 +171,7 @@ async function runKnowledgeCycle(env) {
 async function runIdentityCycle(env) {
   const jobs = {
     username: () => runUsernameCycle(),
+    usernameSettlements: () => runUsernameSettlementCycle(),
     dns: () => runDnsCycle(),
     refresh: () => runRefreshCycle(false),
   };
@@ -188,6 +199,14 @@ export default {
         return json(await runUsernameCycle());
       } catch (error) {
         return json({ ok: false, pipeline: "username-fragment-sales-v1", error: String(error?.message || error).slice(0, 300) }, 503);
+      }
+    }
+    if (url.pathname === "/run/username-settlements" && request.method === "POST") {
+      if (!authorized(request, env)) return json({ error: "Unauthorized" }, 401);
+      try {
+        return json(await runUsernameSettlementCycle());
+      } catch (error) {
+        return json({ ok: false, pipeline: usernameSettlementModule.PIPELINE_KEY, error: String(error?.message || error).slice(0, 300) }, 503);
       }
     }
     if (url.pathname === "/run/dns" && request.method === "POST") {

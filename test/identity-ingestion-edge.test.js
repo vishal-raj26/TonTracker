@@ -17,6 +17,10 @@ test("runs the resumable username ledger from a bounded Cloudflare schedule", ()
   assert.match(config, /"crons": \["\*\/5 \* \* \* \*", "\* \* \* \* \*"\]/);
   assert.match(config, /"USERNAME_FRAGMENT_MAX_SEARCH_REQUESTS_PER_PAGE": "1"/);
   assert.match(config, /"USERNAME_TONCENTER_VERIFY_BATCH_SIZE": "2"/);
+  assert.match(worker, /createTonCenterUsernameSettlementLedger/);
+  assert.match(worker, /usernameSettlements: \(\) => runUsernameSettlementCycle\(\)/);
+  assert.match(worker, /url\.pathname === "\/run\/username-settlements"/);
+  assert.match(config, /"USERNAME_TONCENTER_SETTLEMENT_PAGE_LIMIT": "80"/);
 });
 
 test("protects the manual ingestion trigger", () => {
