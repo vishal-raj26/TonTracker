@@ -106,6 +106,25 @@ test("persists a dense search cursor when its public-request budget is exhausted
   assert.equal(next.searchRequests, 1);
 });
 
+test("expands Fragment's real non-empty result cap instead of assuming 500", async () => {
+  let requests = 0;
+  const rows = (count) => `<table>${Array.from({ length: count }, (_, index) => `<tr class="tm-row-selectable"><a href="/username/name${index}">@name${index}</a><div class="icon-ton">1</div><time datetime="2025-01-01T00:00:00Z"></time></tr>`).join("")}</table>`;
+  const source = createFragmentUsernameSource({
+    requestDelayMs: 0, retryBaseDelayMs: 0, maxSearchRequestsPerPage: 2,
+    fetch: async (_url, init = {}) => {
+      if (!init.method) return { ok: true, text: async () => '{"apiUrl":"/api?hash=test"}', headers: { getSetCookie: () => ["stel_ssid=test; Path=/"] } };
+      requests += 1;
+      const query = new URLSearchParams(init.body).get("query");
+      return { ok: true, json: async () => ({ ok: true, html: rows(query === "a" ? 180 : 1) }) };
+    },
+  });
+  const cursor = Buffer.from(JSON.stringify({ prefixes: ["a"], cycle: 1, phase: "search" })).toString("base64url");
+  const page = await source.fetchPage(cursor);
+  assert.equal(requests, 2);
+  assert.equal(page.events.length, 1);
+  assert.match(page.prefix, /^a[a-z0-9_]$/);
+});
+
 test("defers a rejected Fragment request after refreshing the session without advancing its cursor", async () => {
   let pageLoads = 0;
   let apiCalls = 0;

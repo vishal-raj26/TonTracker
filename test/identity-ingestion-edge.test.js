@@ -15,7 +15,9 @@ test("runs the resumable username ledger from a bounded Cloudflare schedule", ()
   assert.match(worker, /username: \(\) => runUsernameCycle\(\)/);
   assert.match(worker, /await Promise\.all\(Object\.entries\(jobs\)/);
   assert.match(config, /"crons": \["\*\/5 \* \* \* \*", "\* \* \* \* \*"\]/);
-  assert.match(config, /"USERNAME_FRAGMENT_MAX_SEARCH_REQUESTS_PER_PAGE": "1"/);
+  assert.match(config, /"USERNAME_FRAGMENT_MAX_SEARCH_REQUESTS_PER_PAGE": "5"/);
+  assert.match(config, /"USERNAME_FRAGMENT_PREFIX_DEPTH": "6"/);
+  assert.match(config, /"USERNAME_FRAGMENT_RESULT_LIMIT": "180"/);
   assert.match(config, /"USERNAME_TONCENTER_VERIFY_BATCH_SIZE": "2"/);
   assert.match(worker, /createTonCenterUsernameSettlementLedger/);
   assert.match(worker, /usernameSettlements: \(\) => runUsernameSettlementCycle\(\)/);
