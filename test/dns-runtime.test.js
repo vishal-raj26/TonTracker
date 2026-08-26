@@ -87,7 +87,7 @@ test("release gate excludes an otherwise eligible estimate from portfolio totals
   assert.equal(asset.portfolioEligible, false);
 });
 
-test("shows low estimates but excludes them from portfolio totals", async () => {
+test("includes a fresh low-confidence estimate in portfolio totals", async () => {
   const runtime = runtimeWith([{
     nft_address: "0:low",
     domain_normalized: "uncertain.ton",
@@ -101,7 +101,7 @@ test("shows low estimates but excludes them from portfolio totals", async () => 
     evidence_count: 2,
     effective_comp_count: 1.2,
     own_sale_count: 0,
-    estimator_version: "dns-market-v2",
+    estimator_version: DNS_ESTIMATOR_VERSION,
     calibration_version: "dns-calibration-v1",
     explanation_json: {},
     valued_at: new Date(),
@@ -109,10 +109,10 @@ test("shows low estimates but excludes them from portfolio totals", async () => 
   }]);
   const [asset] = await runtime.valueAssets([{ tokenAddress: "0:low", valuationKind: "unavailable" }], 2);
   assert.equal(asset.estimatedGram, 20);
-  assert.equal(asset.floorTon, 0);
-  assert.equal(asset.floorUsd, 0);
-  assert.equal(asset.floorStatus, "estimated-low");
-  assert.equal(asset.portfolioEligible, false);
+  assert.equal(asset.floorTon, 20);
+  assert.equal(asset.floorUsd, 40);
+  assert.equal(asset.floorStatus, "priced");
+  assert.equal(asset.portfolioEligible, true);
 });
 
 test("keeps an active listing as a market signal, not a portfolio valuation", async () => {
@@ -209,7 +209,7 @@ test("hydrates a first-import DNS from one compact baseline snapshot query", asy
   assert.equal(asset.currentListingGram, 0);
 });
 
-test("shows broad first-import evidence but never includes it in portfolio totals", async () => {
+test("includes broad first-import market evidence in portfolio totals", async () => {
   const pool = {
     query: async (sql) => {
       if (/FROM dns_valuations/.test(sql)) return { rows: [] };
@@ -220,11 +220,11 @@ test("shows broad first-import evidence but never includes it in portfolio total
   const [asset] = await runtime.valueAssets([{ tokenAddress: "0:fresh", name: "1662.ton" }], 2);
 
   assert.equal(asset.dnsValuationStatus, "indicative");
-  assert.equal(asset.valuationKind, "dns-estimate-low");
-  assert.equal(asset.floorTon, 0);
-  assert.equal(asset.floorUsd, 0);
+  assert.equal(asset.valuationKind, "dns-estimate");
+  assert.equal(asset.floorTon, 90);
+  assert.equal(asset.floorUsd, 180);
   assert.equal(asset.estimatedGram, 90);
-  assert.equal(asset.portfolioEligible, false);
+  assert.equal(asset.portfolioEligible, true);
 });
 
 test("an unavailable stored row does not block instant verified-sale hydration", async () => {
