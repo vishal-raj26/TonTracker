@@ -53,6 +53,19 @@ test("moves an old exact-sale anchor only with measured segment movement", () =>
   assert.ok(result.estimateUsd >= result.lastSaleAnchor.marketAdjustedUsd);
 });
 
+test("never values an exact-sale username below its latest historical USD sale", () => {
+  const nowMs = Date.parse("2026-08-26T00:00:00Z");
+  const events = [sale("conviction", 1_700, 400, nowMs, "exact")];
+  for (let index = 0; index < 12; index += 1) {
+    events.push(sale(`oldmarket${index}`, 500, 300 + index, nowMs));
+    events.push(sale(`newmarket${index}`, 50, 10 + index, nowMs));
+  }
+  const result = estimateTelegramUsernameValue("conviction", events, { nowMs });
+  assert.equal(result.trend.direction, "down");
+  assert.ok(result.lastSaleAnchor.marketAdjustedUsd < result.lastSaleAnchor.priceUsd);
+  assert.ok(result.estimateUsd >= result.lastSaleAnchor.priceUsd);
+});
+
 test("publishes a learned estimate only when its structural cohort is prepared", () => {
   const nowMs = Date.parse("2026-08-24T00:00:00Z");
   const learned = trainUsernameLearnedModel(Array.from({ length: 30 }, (_, index) => (
