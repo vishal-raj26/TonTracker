@@ -27,6 +27,19 @@ test("uses only finalized native sales with historical USD labels", () => {
   assert.equal(estimated.confidenceBand, "low");
 });
 
+test("keeps a fresh exact sale dominant over broad low-price comparables", () => {
+  const nowMs = Date.parse("2026-08-26T00:00:00Z");
+  const events = [sale("kisser", 900, 1, nowMs, "exact")];
+  for (let index = 0; index < 80; index += 1) {
+    events.push(sale(`kixx${String(index).padStart(4, "0")}`, 15, 2 + index, nowMs, `broad-${index}`));
+  }
+  const result = estimateTelegramUsernameValue("kisser", events, { nowMs });
+
+  assert.equal(result.ownSaleCount, 1);
+  assert.ok(result.estimateUsd > 350);
+  assert.ok(result.estimateUsd < 900);
+});
+
 test("publishes a learned estimate only when its structural cohort is prepared", () => {
   const nowMs = Date.parse("2026-08-24T00:00:00Z");
   const learned = trainUsernameLearnedModel(Array.from({ length: 30 }, (_, index) => (

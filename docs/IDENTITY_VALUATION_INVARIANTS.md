@@ -37,8 +37,8 @@ prepared before a wallet import.
 
 ## Current versions
 
-- TON DNS: `dns-market-v3`
-- Telegram Username: `username-market-v13`
+- TON DNS: `dns-market-v7`
+- Telegram Username: `username-market-v16`
 
 Any estimator change that alters confidence or comparable eligibility must
 bump the corresponding version and rebuild the compact D1 projection before
