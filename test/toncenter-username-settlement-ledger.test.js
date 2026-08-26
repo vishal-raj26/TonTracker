@@ -49,6 +49,7 @@ test("ingests only collection-verified settlements with historical USD", async (
   };
   const fetch = async (url) => {
     const parsed = new URL(url);
+    if (parsed.pathname.endsWith("/messages")) assert.equal(parsed.searchParams.get("start_utime"), "1666742400");
     const payload = parsed.pathname.endsWith("/messages")
       ? { messages: [convictionMessage()] }
       : { nft_items: [{ address: NFT, collection_address: USERNAME_COLLECTION, content: { domain: "conviction.t.me" } }] };
