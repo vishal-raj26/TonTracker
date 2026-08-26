@@ -36,8 +36,21 @@ test("keeps a fresh exact sale dominant over broad low-price comparables", () =>
   const result = estimateTelegramUsernameValue("kisser", events, { nowMs });
 
   assert.equal(result.ownSaleCount, 1);
-  assert.ok(result.estimateUsd > 350);
-  assert.ok(result.estimateUsd < 900);
+  assert.ok(result.estimateUsd >= 900);
+  assert.equal(result.lastSaleAnchor.priceUsd, 900);
+});
+
+test("moves an old exact-sale anchor only with measured segment movement", () => {
+  const nowMs = Date.parse("2026-08-26T00:00:00Z");
+  const events = [sale("heldname", 500, 400, nowMs, "exact")];
+  for (let index = 0; index < 8; index += 1) {
+    events.push(sale(`oldname${index}`, 100, 300 + index, nowMs));
+    events.push(sale(`newname${index}`, 200, 10 + index, nowMs));
+  }
+  const result = estimateTelegramUsernameValue("heldname", events, { nowMs });
+  assert.equal(result.trend.direction, "up");
+  assert.ok(result.lastSaleAnchor.marketAdjustedUsd > 500);
+  assert.ok(result.estimateUsd >= result.lastSaleAnchor.marketAdjustedUsd);
 });
 
 test("publishes a learned estimate only when its structural cohort is prepared", () => {

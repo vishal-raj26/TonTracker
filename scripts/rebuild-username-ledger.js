@@ -17,11 +17,34 @@ const publicSettlementSource = publicSettlementSourceUrl ? createPublicSettlemen
 let ledger = createValuationLedgerClient();
 const chainVerificationEnabled = !/^(0|false|no)$/i.test(String(process.env.USERNAME_TONCENTER_VERIFY_ENABLED || ""));
 const chainVerificationBatchSize = Math.max(0, Math.min(10, Number(process.env.USERNAME_TONCENTER_VERIFY_BATCH_SIZE || 2)));
-const identityResolveBatchSize = Math.max(0, Math.min(3, Number(process.env.USERNAME_FRAGMENT_IDENTITY_RESOLVE_BATCH_SIZE || 1)));
+const identityResolveBatchSize = Math.max(0, Math.min(10, Number(process.env.USERNAME_FRAGMENT_IDENTITY_RESOLVE_BATCH_SIZE || 3)));
+const historyBackfillBatchSize = Math.max(1, Math.min(10, Number(process.env.USERNAME_FRAGMENT_HISTORY_BATCH_SIZE || 3)));
 const fragmentPageDelayMs = Math.max(1_500, Number(process.env.USERNAME_FRAGMENT_PAGE_DELAY_MS || 5_000));
 const fragmentDeferredDelayMs = Math.max(60_000, Number(process.env.USERNAME_FRAGMENT_DEFERRED_DELAY_MS || 15 * 60 * 1000));
+const historySweepIntervalMs = Math.max(6 * 60 * 60 * 1000, Number(process.env.USERNAME_FRAGMENT_HISTORY_SWEEP_INTERVAL_MS || 7 * 24 * 60 * 60 * 1000));
 const chainVerifier = chainVerificationEnabled && chainVerificationBatchSize ? createTonCenterUsernameVerifier() : null;
 const identityResolver = identityResolveBatchSize ? createTonCenterUsernameVerifier() : null;
+
+function evidencePriority(event) {
+  return Math.max(0, Number(event?.priceUsd || 0), Number(event?.priceGram || 0));
+}
+
+function marketEvidenceOrder(events) {
+  return (events || []).map((event, index) => ({ event, index, priority: evidencePriority(event) }))
+    .sort((left, right) => right.priority - left.priority || left.index - right.index)
+    .map(({ event }) => event);
+}
+
+function marketPriorityUsernames(events) {
+  const best = new Map();
+  for (const event of (events || []).map((row, index) => ({ row, index, priority: evidencePriority(row) }))) {
+    const name = String(event.row?.username || "").toLowerCase();
+    if (!name) continue;
+    const current = best.get(name);
+    if (!current || event.priority > current.priority || (event.priority === current.priority && event.index < current.index)) best.set(name, event);
+  }
+  return [...best.entries()].sort((left, right) => right[1].priority - left[1].priority || left[1].index - right[1].index).map(([name]) => name);
+}
 
 function compactAsset(event, feature) {
   return {
@@ -86,7 +109,7 @@ async function enrichChainEvidence(events) {
   }
   let attempted = 0;
   const enriched = [];
-  for (const event of events) {
+  for (const event of marketEvidenceOrder(events)) {
     const addresses = [...new Set([event.nftAddress, ...(byName.get(String(event.username || "").toLowerCase()) || [])])];
     if (!addresses.length || attempted >= chainVerificationBatchSize) {
       enriched.push(event);
@@ -108,7 +131,7 @@ async function enrichChainEvidence(events) {
 async function resolveDiscoveredItemIdentity(events) {
   if (publicSettlementSource || !identityResolver || !identityResolveBatchSize) return events;
   const resolved = [...events];
-  const names = [...new Set(events.map((event) => String(event.username || "").toLowerCase()).filter(Boolean))].slice(0, identityResolveBatchSize);
+  const names = marketPriorityUsernames(events).slice(0, identityResolveBatchSize);
   for (const username of names) {
     try {
       const record = await source.fetchUsernameRecord(username);
@@ -124,6 +147,27 @@ async function resolveDiscoveredItemIdentity(events) {
     }
   }
   return resolved;
+}
+
+async function fetchHistoryBackfillPage(cursor = null) {
+  const page = await ledger.readAssets("username", cursor, historyBackfillBatchSize);
+  const events = [];
+  for (const asset of page.records || []) {
+    const username = String(asset.normalized_name || "").toLowerCase();
+    if (!username) continue;
+    try {
+      const record = await source.fetchUsernameRecord(username);
+      let nftAddress = String(asset.asset_key || "").toLowerCase();
+      if (!/^([+-]?[01]):[0-9a-f]{64}$/i.test(nftAddress) && record.currentOwnerAddress && identityResolver) {
+        nftAddress = await identityResolver.findOwnedUsernameNft(record.currentOwnerAddress, username, USERNAME_COLLECTION) || "";
+      }
+      if (!nftAddress) continue;
+      for (const event of record.events || []) events.push({ ...event, nftAddress });
+    } catch (error) {
+      console.warn(`[username-ledger] history backfill ${username} deferred: ${String(error.message || error).slice(0, 160)}`);
+    }
+  }
+  return { events, nextCursor: page.nextCursor || null, inspected: (page.records || []).length };
 }
 
 async function runPage() {
@@ -143,6 +187,15 @@ async function runPage() {
     console.warn(`[username-ledger] deferred at persisted cursor: ${String(error.message || error).slice(0, 180)}`);
     return { hasMore: false, delayMs: fragmentDeferredDelayMs, deferred: true };
   }
+  let historyBackfill = null;
+  if (!publicSettlementSource && page.historyOnly) {
+    const completedAt = Date.parse(saved.state?.meta?.historyCompletedAt || "");
+    const recentlyCompleted = !saved.state?.meta?.historyAssetCursor && Number.isFinite(completedAt) && Date.now() - completedAt < historySweepIntervalMs;
+    historyBackfill = recentlyCompleted
+      ? { events: [], nextCursor: null, inspected: 0, skippedRecentSweep: true }
+      : await fetchHistoryBackfillPage(saved.state?.meta?.historyAssetCursor || null);
+    page = { ...page, events: historyBackfill.events };
+  }
   const resolvedEvents = await resolveDiscoveredItemIdentity(page.events || []);
   const historicalSales = await attributeHistoricalUsd(resolvedEvents, { logger: console });
   const sales = await enrichChainEvidence(historicalSales);
@@ -159,7 +212,10 @@ async function runPage() {
   }
   const assetsChanged = await ledger.ingestAssets(assets);
   const salesInserted = await ledger.ingestSales(records);
-  const nextCursor = publicSettlementSource ? (page.nextCursor || cursor) : (page.historyOnly ? liveCursor(page.cycle || 1) : (page.nextCursor || cursor));
+  const historyComplete = Boolean(page.historyOnly && historyBackfill && !historyBackfill.nextCursor);
+  const nextCursor = publicSettlementSource
+    ? (page.nextCursor || cursor)
+    : (page.historyOnly ? (historyComplete ? liveCursor(page.cycle || 1) : cursor) : (page.nextCursor || cursor));
   await ledger.writeState(PIPELINE_KEY, { value: nextCursor }, {
     prefix: page.prefix || null,
     cycle: page.cycle || 1,
@@ -170,12 +226,18 @@ async function runPage() {
     deferred: false,
     budgetExhausted: Boolean(page.budgetExhausted),
     searchRequests: Number(page.searchRequests || 0),
+    historyAssetCursor: page.historyOnly ? (historyBackfill?.nextCursor || null) : (saved.state?.meta?.historyAssetCursor || null),
+    historyAssetsInspected: Number(historyBackfill?.inspected || 0),
+    historyComplete,
+    historyCompletedAt: historyComplete && !historyBackfill?.skippedRecentSweep
+      ? new Date().toISOString()
+      : (saved.state?.meta?.historyCompletedAt || null),
     updatedAt: new Date().toISOString(),
   });
   console.log(`[username-ledger] prefix=${page.prefix || (page.historyOnly ? "history" : "latest")} assets=${assetsChanged} sales=${salesInserted} rejected=${rejected} searches=${Number(page.searchRequests || 0)}${page.budgetExhausted ? " budget-exhausted" : ""}`);
   return publicSettlementSource
     ? { hasMore: Boolean(page.nextCursor), delayMs: page.nextCursor ? fragmentPageDelayMs : 6 * 60 * 60 * 1000 }
-    : { hasMore: !page.historyOnly, delayMs: page.historyOnly ? 6 * 60 * 60 * 1000 : fragmentPageDelayMs };
+    : { hasMore: !page.historyOnly || !historyComplete, delayMs: page.historyOnly && historyComplete ? 6 * 60 * 60 * 1000 : fragmentPageDelayMs };
 }
 
 function configureLedger(options = {}) {
@@ -195,4 +257,4 @@ if (require.main === module) main().catch((error) => {
   process.exit(1);
 });
 
-module.exports = { PIPELINE_KEY, compactAsset, compactSale, enrichChainEvidence, resolveDiscoveredItemIdentity, runPage, configureLedger };
+module.exports = { PIPELINE_KEY, compactAsset, compactSale, enrichChainEvidence, fetchHistoryBackfillPage, resolveDiscoveredItemIdentity, runPage, configureLedger, marketEvidenceOrder, marketPriorityUsernames };

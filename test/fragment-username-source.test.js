@@ -7,11 +7,27 @@ const {
   canonicalSourceAddress,
   createFragmentUsernameSource,
   liveCursor,
+  parseCurrentCompletedSale,
   parseCurrentOwner,
   parseOwnershipHistory,
   parseSearchRows,
   usernameIndex,
 } = require("../lib/fragment-username-source");
+
+test("parses a completed sale shown only in the current sale panel", () => {
+  const html = `<section class="tm-section-box tm-section-bid-info">
+    <table><thead><tr><th>Sale Price</th></tr></thead><tbody><tr>
+      <td><div class="table-cell-value tm-value icon-before icon-ton">515</div></td>
+      <td><a href="https://tonviewer.com/EQbuyer">owner</a></td>
+    </tr></tbody></table>
+    <div>Purchased on <time datetime="2025-05-19T22:38:15+00:00">19 May 2025</time></div>
+  </section>`;
+  const row = parseCurrentCompletedSale(html, "conviction");
+  assert.equal(row.username, "conviction");
+  assert.equal(row.priceGram, 515);
+  assert.equal(row.eventTime, "2025-05-19T22:38:15.000Z");
+  assert.equal(row.buyerAddress, "EQbuyer");
+});
 
 test("parses finalized Fragment search rows into stable sale identities", () => {
   const html = `<table><tr class="tm-row-selectable">

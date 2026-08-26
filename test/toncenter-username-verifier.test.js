@@ -57,6 +57,14 @@ test("accepts bounded seller net proceeds for a gross Fragment sale price", asyn
   assert.ok(result.match.paymentDeviation < 0.01);
 });
 
+test("accepts Fragment's percentage plus fixed conversion fee schedule", () => {
+  const transaction = { out_msgs: [{ value: "24629121675" }] };
+  const result = require("../lib/toncenter-username-verifier").paymentMatch(transaction, toNanograms(27));
+  assert.equal(result.kind, "fragment-fee-schedule");
+  assert.equal(result.feeRatio, 0.05);
+  assert.equal(result.fixedFeeGram, 1);
+});
+
 test("resolves a current owner's real Username NFT by its public domain metadata", async () => {
   const verifier = createTonCenterUsernameVerifier({
     requestDelayMs: 0,
