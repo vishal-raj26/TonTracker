@@ -99,6 +99,39 @@ test("re-scores an old direct username lookup before returning it", async () => 
   assert.equal(written.estimatorVersion, USERNAME_ESTIMATOR_VERSION);
 });
 
+test("re-scores a current username valuation when the global baseline revision changes", async () => {
+  const now = Date.now();
+  let written = null;
+  const runtime = createUsernameRuntime({
+    valuationReadModelUrl: "https://registry.example", valuationReadModelSecret: "secret",
+    firstImportEvidence: false,
+    fetch: async (url, init = {}) => {
+      if (url.endsWith("/valuations/read")) return new Response(JSON.stringify({ records: [{
+        assetKey: "0:revision", displayName: "@marketname", estimateUsd: 14,
+        estimatorVersion: USERNAME_ESTIMATOR_VERSION, staleAt: new Date(now + 60_000).toISOString(),
+        explanation: { baselineRevision: "older-baseline" },
+      }] }), { status: 200 });
+      if (url.endsWith("/identity/baselines/read")) return new Response(JSON.stringify({ records: [{
+        scope: "global", primary_route: "*", length_bucket: "*", script: "*", scarcity_class: "*",
+        midpoint_usd: 20, range_low_usd: 10, range_high_usd: 40, evidence_count: 100,
+        generated_at: "2026-08-25T09:02:13.997Z",
+      }] }), { status: 200 });
+      if (url.endsWith("/identity/username-evidence/read")) return new Response(JSON.stringify({ records: Array.from({ length: 12 }, (_, index) => ({
+        sale_id: `revision-${index}`, asset_key: `fragment:${index}`, normalized_name: `marketname${index}`,
+        sold_at: Math.floor((now - index * 86_400_000) / 1000), price_usd: 100 + index, reliability_score: 1,
+      })) }), { status: 200 });
+      if (url.endsWith("/ingest/valuations")) {
+        written = JSON.parse(init.body).records[0];
+        return new Response(JSON.stringify({ written: 1 }), { status: 200 });
+      }
+      return new Response(JSON.stringify({ records: [] }), { status: 200 });
+    },
+  });
+  const [asset] = await runtime.valueAssets([{ tokenAddress: "0:revision", username: "marketname" }]);
+  assert.ok(asset.estimatedUsd > 0);
+  assert.equal(written.explanation.baselineRevision, "2026-08-25T09:02:13.997Z");
+});
+
 test("keeps a stale prepared username estimate out of portfolio totals", async () => {
   const runtime = createUsernameRuntime({
     valuationReadModelUrl: "https://registry.example",
@@ -132,6 +165,7 @@ test("scores and caches a missing first-import username from completed D1 sales"
   const runtime = createUsernameRuntime({
     valuationReadModelUrl: "https://registry.example",
     valuationReadModelSecret: "secret",
+    firstImportEvidence: false,
     portfolioEstimatesEnabled: true,
     fetch: async (url, init = {}) => {
       calls.push(url);
@@ -155,6 +189,125 @@ test("scores and caches a missing first-import username from completed D1 sales"
   assert.ok(calls.some((url) => url.endsWith("/ingest/valuations")));
   assert.equal(calls.some((url) => /\/ingest\/identity-(assets|aliases|sales)$/.test(url)), false);
   assert.equal(calls.some((url) => url.endsWith("/ingest/identity-knowledge")), false);
+});
+
+test("refreshes a first-import estimate in the background after wallet evidence is durable", async () => {
+  const now = Date.now();
+  let releaseEnrichment;
+  let valuationWrites = 0;
+  let evidenceWrites = 0;
+  const evidence = {
+    enrich: async () => new Promise((resolve) => { releaseEnrichment = () => resolve({
+      assets: [{ assetKind: "username", assetKey: "0:background", normalizedName: "marketname" }],
+      aliases: [{ assetKind: "username", aliasKey: "0:background", normalizedName: "marketname" }],
+      sales: [],
+      inspected: [{ username: "marketname", reportedSales: 0, verifiedSales: 0 }],
+    }); }),
+  };
+  const runtime = createUsernameRuntime({
+    valuationReadModelUrl: "https://registry.example", valuationReadModelSecret: "secret",
+    portfolioEstimatesEnabled: true, firstImportEvidence: evidence,
+    fetch: async (url) => {
+      if (url.endsWith("/valuations/read")) return new Response(JSON.stringify({ records: [] }), { status: 200 });
+      if (url.endsWith("/identity/baselines/read")) return new Response(JSON.stringify({ records: [] }), { status: 200 });
+      if (url.endsWith("/identity/username-evidence/read")) return new Response(JSON.stringify({ records: Array.from({ length: 12 }, (_, index) => ({
+        sale_id: `background-${index}`, asset_key: `fragment:${index}`, normalized_name: `marketname${index}`,
+        sold_at: Math.floor((now - index * 86_400_000) / 1000), price_usd: 100 + index, reliability_score: 1,
+      })) }), { status: 200 });
+      if (url.endsWith("/ingest/valuations")) { valuationWrites += 1; return new Response(JSON.stringify({ written: 1 }), { status: 200 }); }
+      if (/\/ingest\/identity-(assets|aliases|sales)$/.test(url)) { evidenceWrites += 1; return new Response(JSON.stringify({ accepted: 1 }), { status: 200 }); }
+      return new Response(JSON.stringify({ records: [] }), { status: 200 });
+    },
+  });
+
+  const [asset] = await runtime.valueAssets([{ tokenAddress: "0:background", username: "marketname" }]);
+  assert.ok(asset.estimatedUsd > 0);
+  assert.equal(valuationWrites, 1);
+  await new Promise((resolve) => setImmediate(resolve));
+  releaseEnrichment();
+  for (let index = 0; index < 4; index += 1) await new Promise((resolve) => setImmediate(resolve));
+  assert.equal(evidenceWrites, 2);
+  assert.equal(valuationWrites, 2);
+});
+
+test("background wallet evidence upgrades a comparable username estimate with an exact verified sale", async () => {
+  const now = Date.now();
+  let releaseEnrichment;
+  let evidenceReady = false;
+  const valuations = [];
+  const evidence = {
+    enrich: async () => new Promise((resolve) => { releaseEnrichment = () => {
+      evidenceReady = true;
+      resolve({
+        assets: [{ assetKind: "username", assetKey: "0:exact-background", normalizedName: "marketname" }],
+        aliases: [{ assetKind: "username", aliasKey: "0:exact-background", normalizedName: "marketname" }],
+        sales: [{ saleId: "exact-sale", assetKind: "username", assetKey: "0:exact-background", normalizedName: "marketname", soldAt: new Date(now - 86_400_000).toISOString(), priceGram: 500, historicalUsdRate: 2, priceUsd: 1000 }],
+        inspected: [{ username: "marketname", reportedSales: 1, verifiedSales: 1 }],
+      });
+    }; }),
+  };
+  const comparableRecords = Array.from({ length: 12 }, (_, index) => ({
+    sale_id: `comparable-${index}`, asset_key: `fragment:${index}`, normalized_name: `marketname${index}`,
+    sold_at: Math.floor((now - index * 86_400_000) / 1000), price_usd: 90 + index, reliability_score: 1,
+  }));
+  const runtime = createUsernameRuntime({
+    valuationReadModelUrl: "https://registry.example", valuationReadModelSecret: "secret",
+    portfolioEstimatesEnabled: true, firstImportEvidence: evidence,
+    fetch: async (url, init = {}) => {
+      if (url.endsWith("/valuations/read")) return new Response(JSON.stringify({ records: [] }), { status: 200 });
+      if (url.endsWith("/identity/baselines/read")) return new Response(JSON.stringify({ records: [] }), { status: 200 });
+      if (url.endsWith("/identity/username-evidence/read")) return new Response(JSON.stringify({ records: evidenceReady
+        ? [{ sale_id: "exact-sale", asset_key: "0:exact-background", normalized_name: "marketname", sold_at: Math.floor((now - 86_400_000) / 1000), price_usd: 1000, reliability_score: 1 }, ...comparableRecords]
+        : comparableRecords }), { status: 200 });
+      if (url.endsWith("/ingest/valuations")) {
+        valuations.push(JSON.parse(init.body).records[0]);
+        return new Response(JSON.stringify({ written: 1 }), { status: 200 });
+      }
+      if (/\/ingest\/identity-(assets|aliases|sales)$/.test(url)) return new Response(JSON.stringify({ accepted: 1, inserted: 1 }), { status: 200 });
+      return new Response(JSON.stringify({ records: [] }), { status: 200 });
+    },
+  });
+
+  const [asset] = await runtime.valueAssets([{ tokenAddress: "0:exact-background", username: "marketname" }]);
+  assert.ok(asset.estimatedUsd > 0);
+  await new Promise((resolve) => setImmediate(resolve));
+  releaseEnrichment();
+  for (let index = 0; index < 4; index += 1) await new Promise((resolve) => setImmediate(resolve));
+  assert.equal(valuations.length, 2);
+  assert.ok(valuations[1].estimateUsd > valuations[0].estimateUsd * 2);
+  assert.equal(valuations[1].ownSaleCount, 1);
+});
+
+test("uses stored semantic knowledge for first-import comparable sales", async () => {
+  const now = Date.now();
+  let written = null;
+  const runtime = createUsernameRuntime({
+    valuationReadModelUrl: "https://registry.example",
+    valuationReadModelSecret: "secret",
+    firstImportEvidence: false,
+    portfolioEstimatesEnabled: true,
+    fetch: async (url, init = {}) => {
+      if (url.endsWith("/valuations/read")) return new Response(JSON.stringify({ records: [] }), { status: 200 });
+      if (url.endsWith("/identity/baselines/read")) return new Response(JSON.stringify({ records: [] }), { status: 200 });
+      if (url.endsWith("/identity/username-evidence/read")) return new Response(JSON.stringify({
+        records: Array.from({ length: 12 }, (_, index) => ({
+          sale_id: `semantic-${index}`, asset_key: `fragment:semantic-${index}`,
+          normalized_name: `peerhandle${index}`, sold_at: Math.floor((now - index * 86_400_000) / 1000),
+          price_usd: 180 + index * 5, reliability_score: 1,
+          semantic_json: JSON.stringify({ schemaVersion: "username-knowledge-v4", relatedTerms: ["rarehandle"] }),
+        })),
+      }), { status: 200 });
+      if (url.endsWith("/ingest/valuations")) {
+        written = JSON.parse(init.body).records[0];
+        return new Response(JSON.stringify({ written: 1 }), { status: 200 });
+      }
+      return new Response(JSON.stringify({ records: [] }), { status: 200 });
+    },
+  });
+
+  const [asset] = await runtime.valueAssets([{ tokenAddress: "0:semantic", username: "rarehandle" }]);
+  assert.ok(asset.estimatedUsd > 0);
+  assert.ok(written.explanation.comparableNames.some((name) => name.startsWith("peerhandle")));
 });
 
 test("writes wallet-priority verified evidence before re-reading a first-import valuation", async () => {
@@ -207,6 +360,15 @@ test("records a wallet username NFT alias in D1 even without PostgreSQL", async 
   });
   const result = await runtime.enqueueAssets([{ tokenAddress: "0:real-item", username: "kick" }]);
   assert.equal(result.queued, 1);
+  const assetRequest = calls.find((call) => call.url.endsWith("/ingest/identity-assets"));
+  assert.equal(assetRequest.init.headers.authorization, "Bearer secret");
+  assert.deepEqual(JSON.parse(assetRequest.init.body).records.map((row) => ({
+    assetKind: row.assetKind, assetKey: row.assetKey, normalizedName: row.normalizedName,
+    primaryRoute: row.primaryRoute, lengthBucket: row.lengthBucket, script: row.script, scarcityClass: row.scarcityClass,
+  })), [{
+    assetKind: "username", assetKey: "0:real-item", normalizedName: "kick",
+    primaryRoute: "short", lengthBucket: "4-5", script: "Latin", scarcityClass: "4L",
+  }]);
   const request = calls.find((call) => call.url.endsWith("/ingest/identity-aliases"));
   assert.equal(request.init.headers.authorization, "Bearer secret");
   assert.deepEqual(JSON.parse(request.init.body).records, [{

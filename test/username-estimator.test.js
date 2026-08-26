@@ -65,7 +65,7 @@ test("learns distinct structural price levels from completed sales", () => {
   const numeric = estimateTelegramUsernameValue("777", events, { nowMs, learnedModel: model });
   const ordinary = estimateTelegramUsernameValue("anothername", events, { nowMs, learnedModel: model });
   assert.ok(numeric.estimateUsd > ordinary.estimateUsd * 3);
-  assert.equal(numeric.learnedModel.modelVersion, "username-learned-ridge-v10");
+  assert.equal(numeric.learnedModel.modelVersion, "username-learned-ridge-v11");
 });
 
 test("learns recurring market-name premiums from completed sales", () => {
