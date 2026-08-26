@@ -2,7 +2,8 @@
 
 const assert = require("node:assert/strict");
 const test = require("node:test");
-const { createDnsRuntime } = require("../lib/dns-runtime");
+const { createDnsRuntime, dnsKnowledgeOptions } = require("../lib/dns-runtime");
+const { classifyTonDns } = require("../lib/dns-structural");
 const { DNS_ESTIMATOR_VERSION } = require("../lib/dns-engine");
 
 function runtimeWith(rows) {
@@ -14,6 +15,17 @@ function runtimeWith(rows) {
   };
   return createDnsRuntime({ pool });
 }
+
+test("does not treat a generic public entity match as a DNS entity valuation route", () => {
+  const publicMatch = classifyTonDns("conviction.ton", dnsKnowledgeOptions("conviction.ton", {
+    entityMatch: true, entityMatchStrength: 1, entityTitle: "Conviction",
+  }));
+  const marketVerified = classifyTonDns("conviction.ton", dnsKnowledgeOptions("conviction.ton", {
+    entityMatch: true, entityMatchStrength: 1, entityMarketVerified: true,
+  }));
+  assert.equal(publicMatch.primaryRoute, "invented-brandable");
+  assert.equal(marketVerified.primaryRoute, "entity");
+});
 
 test("uses one batch query and includes medium estimates in portfolio value", async () => {
   let calls = 0;
@@ -313,6 +325,50 @@ test("scores and caches a fresh DNS from completed D1 sales in historical USD", 
   assert.equal(written.explanation.historicalUsd, true);
 });
 
+test("reclassifies a first-import DNS from stored knowledge before selecting comparables", async () => {
+  const now = Date.now();
+  const evidenceRequests = [];
+  let written = null;
+  const runtime = createDnsRuntime({
+    valuationReadModelUrl: "https://registry.example",
+    valuationReadModelSecret: "secret",
+    portfolioEstimatesEnabled: true,
+    fetch: async (url, init = {}) => {
+      if (url.endsWith("/valuations/read")) return new Response(JSON.stringify({ records: [] }), { status: 200 });
+      if (url.endsWith("/identity/dns-evidence/read")) {
+        const request = JSON.parse(init.body);
+        evidenceRequests.push(request);
+        if (evidenceRequests.length === 1) return new Response(JSON.stringify({
+          records: [],
+          knowledge: [{ normalized_name: "conviction.ton", semantic_json: JSON.stringify({
+            schemaVersion: "dns-knowledge-v1", dictionaryMatch: true, relatedTerms: ["belief"],
+          }) }],
+        }), { status: 200 });
+        return new Response(JSON.stringify({ records: Array.from({ length: 6 }, (_, index) => ({
+          sale_id: `belief-${index}`, asset_key: "0:belief", normalized_name: "belief.ton",
+          sold_at: Math.floor((now - index * 86_400_000) / 1000), price_usd: 120 + index * 5,
+          reliability_score: 1, quality_flags_json: "[]",
+          semantic_json: JSON.stringify({ schemaVersion: "dns-knowledge-v1", dictionaryMatch: true, relatedTerms: ["conviction"] }),
+        })) }), { status: 200 });
+      }
+      if (url.endsWith("/ingest/valuations")) {
+        written = JSON.parse(init.body).records[0];
+        return new Response(JSON.stringify({ written: 1 }), { status: 200 });
+      }
+      if (url.endsWith("/identity/baselines/read")) return new Response(JSON.stringify({ records: [] }), { status: 200 });
+      return new Response("not found", { status: 404 });
+    },
+  });
+
+  const [asset] = await runtime.valueAssets([{ tokenAddress: "0:conviction", name: "conviction.ton" }], 2);
+  assert.equal(evidenceRequests.length, 2);
+  assert.equal(evidenceRequests[0].targets[0].primaryRoute, "invented-brandable");
+  assert.equal(evidenceRequests[1].targets[0].primaryRoute, "dictionary-compound");
+  assert.ok(asset.estimatedUsd > 0);
+  assert.equal(written.explanation.route, "dictionary-compound");
+  assert.deepEqual(written.explanation.comparableNames, ["belief.ton", "belief.ton", "belief.ton", "belief.ton", "belief.ton", "belief.ton"]);
+});
+
 test("reads DNS detail and status from compact D1 without PostgreSQL", async () => {
   const runtime = createDnsRuntime({
     valuationReadModelUrl: "https://registry.example",
@@ -369,6 +425,15 @@ test("records a wallet DNS NFT alias in D1 even without PostgreSQL", async () =>
   });
   const result = await runtime.enqueueAssets([{ tokenAddress: "0:real-dns-item", name: "alpha.ton" }]);
   assert.equal(result.queued, 1);
+  const assetRequest = calls.find((call) => call.url.endsWith("/ingest/identity-assets"));
+  assert.equal(assetRequest.init.headers.authorization, "Bearer secret");
+  assert.deepEqual(JSON.parse(assetRequest.init.body).records.map((row) => ({
+    assetKind: row.assetKind, assetKey: row.assetKey, normalizedName: row.normalizedName,
+    primaryRoute: row.primaryRoute, lengthBucket: row.lengthBucket, script: row.script, scarcityClass: row.scarcityClass,
+  })), [{
+    assetKind: "dns", assetKey: "0:real-dns-item", normalizedName: "alpha.ton",
+    primaryRoute: "invented-brandable", lengthBucket: "4-5", script: "Latin", scarcityClass: "5L",
+  }]);
   const request = calls.find((call) => call.url.endsWith("/ingest/identity-aliases"));
   assert.equal(request.init.headers.authorization, "Bearer secret");
   assert.deepEqual(JSON.parse(request.init.body).records, [{
