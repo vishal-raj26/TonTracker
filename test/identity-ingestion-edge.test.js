@@ -32,10 +32,13 @@ test("exposes authenticated knowledge and full-cycle diagnostics", () => {
   assert.match(worker, /await runIdentityCycle\(env\)/);
   assert.match(worker, /String\(controller\.cron \|\| ""\) === "\* \* \* \* \*"/);
   assert.match(worker, /scheduledSeparately: true/);
-  assert.match(worker, /await runKnowledgeKind\(env, "username", 4, \{ fast: true \}\)/);
-  assert.match(worker, /await runKnowledgeKind\(env, "dns", 1, \{ fast: true \}\)/);
-  assert.match(worker, /await runKnowledgeKind\(env, "username", 1\)/);
-  assert.match(worker, /await runKnowledgeKind\(env, "dns", 1\)/);
+  assert.match(worker, /knowledgeBatchSize\(env, "USERNAME_KNOWLEDGE_FAST_BATCH_SIZE", 8, 8\)/);
+  assert.match(worker, /knowledgeBatchSize\(env, "DNS_KNOWLEDGE_FAST_BATCH_SIZE", 2, 2\)/);
+  assert.match(worker, /knowledgeBatchSize\(env, "USERNAME_KNOWLEDGE_FULL_BATCH_SIZE", 2, 2\)/);
+  assert.match(worker, /knowledgeBatchSize\(env, "DNS_KNOWLEDGE_FULL_BATCH_SIZE", 1, 1\)/);
+  assert.match(config, /"USERNAME_KNOWLEDGE_FAST_BATCH_SIZE": "8"/);
+  assert.match(config, /"USERNAME_KNOWLEDGE_FULL_BATCH_SIZE": "2"/);
+  assert.match(config, /"DNS_KNOWLEDGE_FAST_BATCH_SIZE": "2"/);
   assert.match(worker, /const mode = options\.fast \? "fast" : "full"/);
   assert.match(worker, /maxAttempts: 1/);
   assert.match(worker, /knowledge\.schemaVersion = "dns-knowledge-v1"/);

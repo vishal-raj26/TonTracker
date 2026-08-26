@@ -99,6 +99,10 @@ function classificationOptions(knowledge, name) {
   };
 }
 
+function knowledgeBatchSize(env, key, fallback, maximum) {
+  return Math.max(1, Math.min(maximum, Number(env[key]) || fallback));
+}
+
 async function runKnowledgeKind(env, assetKind, limit = 4, options = {}) {
   const mode = options.fast ? "fast" : "full";
   const headers = { "content-type": "application/json", authorization: `Bearer ${env.D1_INGEST_SECRET}` };
@@ -143,10 +147,10 @@ async function runKnowledgeCycle(env) {
   // enrichment remains deliberately smaller because it includes Wikipedia and
   // pageview calls. Running sequentially prevents source bursts and stays
   // under the Worker subrequest ceiling.
-  const usernameFast = await runKnowledgeKind(env, "username", 4, { fast: true });
-  const dnsFast = await runKnowledgeKind(env, "dns", 1, { fast: true });
-  const usernameFull = await runKnowledgeKind(env, "username", 1);
-  const dnsFull = await runKnowledgeKind(env, "dns", 1);
+  const usernameFast = await runKnowledgeKind(env, "username", knowledgeBatchSize(env, "USERNAME_KNOWLEDGE_FAST_BATCH_SIZE", 8, 8), { fast: true });
+  const dnsFast = await runKnowledgeKind(env, "dns", knowledgeBatchSize(env, "DNS_KNOWLEDGE_FAST_BATCH_SIZE", 2, 2), { fast: true });
+  const usernameFull = await runKnowledgeKind(env, "username", knowledgeBatchSize(env, "USERNAME_KNOWLEDGE_FULL_BATCH_SIZE", 2, 2));
+  const dnsFull = await runKnowledgeKind(env, "dns", knowledgeBatchSize(env, "DNS_KNOWLEDGE_FULL_BATCH_SIZE", 1, 1));
   return {
     ok: usernameFast.ok && dnsFast.ok && usernameFull.ok && dnsFull.ok,
     username: { fast: usernameFast, full: usernameFull },
