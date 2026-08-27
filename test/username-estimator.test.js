@@ -104,7 +104,7 @@ test("learns distinct structural price levels from completed sales", () => {
   const numeric = estimateTelegramUsernameValue("777", events, { nowMs, learnedModel: model });
   const ordinary = estimateTelegramUsernameValue("anothername", events, { nowMs, learnedModel: model });
   assert.ok(numeric.estimateUsd > ordinary.estimateUsd * 3);
-  assert.equal(numeric.learnedModel.modelVersion, "username-learned-ridge-v11");
+  assert.equal(numeric.learnedModel.modelVersion, "username-learned-ridge-v12");
 });
 
 test("learns recurring market-name premiums from completed sales", () => {
@@ -158,6 +158,24 @@ test("uses population premium rates instead of the stratified training ratio", (
   assert.equal(model.cohortStats["word|Latin|9-12"].premiumRate, 0.05);
   assert.equal(model.cohortStats["word|Latin|9-12"].populationCount, 400);
   assert.ok(prediction.estimateUsd < 200);
+});
+
+test("learns mid-market names separately from extreme premiums", () => {
+  const nowMs = Date.parse("2026-08-24T00:00:00Z");
+  const events = [];
+  for (let index = 0; index < 40; index += 1) {
+    const suffix = `${String.fromCharCode(97 + (index % 26))}${String.fromCharCode(97 + Math.floor(index / 26))}`;
+    events.push(sale(`ordinaryword${suffix}`, 30 + index / 4, index + 1, nowMs));
+    events.push(sale(`cyberculture${suffix}`, 180 + index * 2, index + 1, nowMs));
+    events.push(sale(String(1200 + index), 4_000 + index * 40, index + 1, nowMs));
+  }
+  const model = trainUsernameLearnedModel(events, { nowMs, marketPremiumRate: 0.18, marketHighPremiumRate: 0.06 });
+  const mid = predictUsernameLearnedModel(model, "cyberculturezz");
+  const ordinary = predictUsernameLearnedModel(model, "ordinarywordzz");
+
+  assert.ok(mid.midProbability > mid.highPremiumProbability);
+  assert.ok(mid.estimateUsd > ordinary.estimateUsd * 1.5);
+  assert.ok(mid.estimateUsd < 1_000);
 });
 
 test("uses recent segment sales to move older comparable evidence with the market", () => {

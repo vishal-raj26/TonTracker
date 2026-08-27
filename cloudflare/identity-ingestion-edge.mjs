@@ -157,9 +157,9 @@ async function runKnowledgeCycle(env) {
   // enrichment remains deliberately smaller because it includes Wikipedia and
   // pageview calls. Running sequentially prevents source bursts and stays
   // under the Worker subrequest ceiling.
-  const usernameFast = await runKnowledgeKind(env, "username", knowledgeBatchSize(env, "USERNAME_KNOWLEDGE_FAST_BATCH_SIZE", 8, 8), { fast: true });
+  const usernameFast = await runKnowledgeKind(env, "username", knowledgeBatchSize(env, "USERNAME_KNOWLEDGE_FAST_BATCH_SIZE", 12, 12), { fast: true });
   const dnsFast = await runKnowledgeKind(env, "dns", knowledgeBatchSize(env, "DNS_KNOWLEDGE_FAST_BATCH_SIZE", 2, 2), { fast: true });
-  const usernameFull = await runKnowledgeKind(env, "username", knowledgeBatchSize(env, "USERNAME_KNOWLEDGE_FULL_BATCH_SIZE", 2, 2));
+  const usernameFull = await runKnowledgeKind(env, "username", knowledgeBatchSize(env, "USERNAME_KNOWLEDGE_FULL_BATCH_SIZE", 3, 3));
   const dnsFull = await runKnowledgeKind(env, "dns", knowledgeBatchSize(env, "DNS_KNOWLEDGE_FULL_BATCH_SIZE", 1, 1));
   return {
     ok: usernameFast.ok && dnsFast.ok && usernameFull.ok && dnsFull.ok,

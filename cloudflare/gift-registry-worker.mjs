@@ -821,7 +821,12 @@ async function readIdentityKnowledgeQueue(env, body = {}) {
       ${kind === "dns" ? "OR json_extract(k.semantic_json,'$.dnsClassificationVersion')!='dns-semantic-route-v2'" : ""}
       ${marketStagePending})
     GROUP BY s.asset_kind,s.normalized_name,k.semantic_json,k.source_updated_at
-      ORDER BY MAX(s.price_usd) DESC,MAX(s.sold_at) DESC LIMIT ?1`).bind(limit, kind, retryCutoff),
+      ORDER BY CASE
+        WHEN MAX(s.price_usd)>=100 AND MAX(s.price_usd)<500 THEN 0
+        WHEN MAX(s.price_usd)>=500 THEN 1
+        WHEN MAX(s.price_usd)>=25 THEN 2
+        ELSE 3 END,
+        MAX(s.sold_at) DESC LIMIT ?1`).bind(limit, kind, retryCutoff),
     database.prepare(`SELECT a.asset_kind,a.asset_key,a.normalized_name,a.semantic_json,a.source_updated_at
       FROM identity_assets a WHERE a.asset_kind=?2 AND ${pending}
       ORDER BY a.source_updated_at DESC LIMIT ?1`).bind(limit, kind, retryCutoff),
