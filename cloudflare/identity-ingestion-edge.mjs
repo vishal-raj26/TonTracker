@@ -11,7 +11,7 @@ let usernameSettlementLedger = usernameSettlementModule.createTonCenterUsernameS
 let checkpointLedger = dnsLedgerModule.createLedgerClient();
 const REFRESH_PIPELINE_KEY = "identity-baseline-refresh-v1";
 const REFRESH_RUNNING_STALE_MS = 20 * 60 * 1000;
-const { SCHEMA_VERSION: USERNAME_KNOWLEDGE_SCHEMA_VERSION, resolveUsernameKnowledge } = usernameKnowledgeModule;
+const { SCHEMA_VERSION: USERNAME_KNOWLEDGE_SCHEMA_VERSION, mergeUsernameKnowledge, resolveUsernameKnowledge } = usernameKnowledgeModule;
 const { classifyTonDns } = dnsStructuralModule;
 const { dnsLengthBucket } = dnsEngineModule;
 
@@ -124,9 +124,10 @@ async function runKnowledgeKind(env, assetKind, limit = 4, options = {}) {
   const records = [];
   for (const row of payload.records || []) {
     const lookupName = assetKind === "dns" ? String(row.normalized_name || "").replace(/\.ton$/i, "") : row.normalized_name;
-    const knowledge = await resolveUsernameKnowledge(lookupName, {
+    let knowledge = await resolveUsernameKnowledge(lookupName, {
       fetch, fast: options.fast === true, maxAttempts: 1,
     });
+    if (assetKind === "username") knowledge = mergeUsernameKnowledge(row.semantic_json, knowledge);
     if (assetKind === "dns") {
       knowledge.schemaVersion = "dns-knowledge-v1";
       knowledge.dnsClassificationVersion = "dns-semantic-route-v2";

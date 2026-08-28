@@ -178,6 +178,23 @@ test("learns mid-market names separately from extreme premiums", () => {
   assert.ok(mid.estimateUsd < 1_000);
 });
 
+test("keeps learned conditional price branches inside their training regimes", () => {
+  const nowMs = Date.parse("2026-08-24T00:00:00Z");
+  const events = [];
+  for (let index = 0; index < 40; index += 1) {
+    const suffix = `${String.fromCharCode(97 + (index % 26))}${String.fromCharCode(97 + Math.floor(index / 26))}`;
+    events.push(sale(`plain${suffix}`, 15 + index / 10, index + 1, nowMs));
+    events.push(sale(`midword${suffix}`, 180 + index, index + 1, nowMs));
+    events.push(sale(`premium${suffix}`, 800 + index * 20, index + 1, nowMs));
+  }
+  const model = trainUsernameLearnedModel(events, { nowMs });
+  const prediction = predictUsernameLearnedModel(model, "unseenword");
+
+  assert.ok(prediction.baseEstimateUsd < 100);
+  assert.ok(prediction.midEstimateUsd >= 100 && prediction.midEstimateUsd < 500);
+  assert.ok(prediction.premiumEstimateUsd >= 500);
+});
+
 test("uses recent segment sales to move older comparable evidence with the market", () => {
   const nowMs = Date.parse("2026-08-24T00:00:00Z");
   const rising = [];

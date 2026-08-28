@@ -35,7 +35,7 @@ const STICKER_SOURCE_IMAGES = {
   Fuse: "https://cdn.prod.website-files.com/68a3e520329c3b7c58f92c0e/68a4ff89b48cb4186a9fdafd_Fuse%20Logo%20Light.svg",
   Goodies: "https://www.goodies.tg/logo.svg",
 };
-const TON_LOGO_URL = "https://raw.githubusercontent.com/tonkeeper/opentonapi/master/pkg/references/media/ton_symbol.png";
+const GRAM_TOKEN_IMAGE_URL = "https://raw.githubusercontent.com/tonkeeper/opentonapi/master/pkg/references/media/ton_symbol.png";
 let detailReturnScreen = "assets";
 const navigationStack = [];
 const forwardNavigationStack = [];
@@ -169,15 +169,15 @@ const giftAssets = [
     quickSellTon: 135.8,
     quickSellUsd: 2698,
     sales: [
-      ["148 TON · $2,938", "May 15", "Hypnotoad", "Electric Indigo", "Coin", "Getgems"],
-      ["143 TON · $2,840", "May 14", "Hypnotoad", "Electric Indigo", "Coin", "Fragment"],
-      ["139 TON · $2,761", "May 12", "Hypnotoad", "Electric Indigo", "Coin", "Getgems"],
+      ["148 GRAM · $2,938", "May 15", "Hypnotoad", "Electric Indigo", "Coin", "Getgems"],
+      ["143 GRAM · $2,840", "May 14", "Hypnotoad", "Electric Indigo", "Coin", "Fragment"],
+      ["139 GRAM · $2,761", "May 12", "Hypnotoad", "Electric Indigo", "Coin", "Getgems"],
     ],
     intel: {
       trend: "▂▃▅▆▇",
       badge: "Trending Up",
       sales24h: "3 exact variant sales",
-      volume24h: "430 TON · $8,539",
+      volume24h: "430 GRAM · $8,539",
       prior: "+34% volume · +12% sales count",
       daysToSell: "~2.4 days",
       listedSupply: "12 listed across Getgems + Fragment",
@@ -216,14 +216,14 @@ const giftAssets = [
     quickSellTon: 93.1,
     quickSellUsd: 1862,
     sales: [
-      ["101 TON · $2,018", "May 14", "Goldcrest", "Velvet Night", "Star", "Fragment"],
-      ["97 TON · $1,931", "May 11", "Goldcrest", "Velvet Night", "Star", "Getgems"],
+      ["101 GRAM · $2,018", "May 14", "Goldcrest", "Velvet Night", "Star", "Fragment"],
+      ["97 GRAM · $1,931", "May 11", "Goldcrest", "Velvet Night", "Star", "Getgems"],
     ],
     intel: {
       trend: "▂▃▄▅▅",
       badge: "Stable",
       sales24h: "2 exact variant sales",
-      volume24h: "198 TON · $3,949",
+      volume24h: "198 GRAM · $3,949",
       prior: "+9% volume · +4% sales count",
       daysToSell: "~3.1 days",
       listedSupply: "18 listed across Getgems + Fragment",
@@ -262,14 +262,14 @@ const giftAssets = [
     quickSellTon: 19.95,
     quickSellUsd: 399,
     sales: [
-      ["22 TON · $438", "May 13", "Soft Flare", "Mint Haze", "Moon", "Getgems"],
-      ["21 TON · $420", "May 10", "Soft Flare", "Mint Haze", "Moon", "Fragment"],
+      ["22 GRAM · $438", "May 13", "Soft Flare", "Mint Haze", "Moon", "Getgems"],
+      ["21 GRAM · $420", "May 10", "Soft Flare", "Mint Haze", "Moon", "Fragment"],
     ],
     intel: {
       trend: "▅▄▃▃▂",
       badge: "Cooling",
       sales24h: "1 exact variant sale",
-      volume24h: "21 TON · $420",
+      volume24h: "21 GRAM · $420",
       prior: "-12% volume · -18% sales count",
       daysToSell: "~5.8 days",
       listedSupply: "64 listed across Getgems + Fragment",
@@ -308,14 +308,14 @@ const giftAssets = [
     quickSellTon: 65.55,
     quickSellUsd: 1311,
     sales: [
-      ["70 TON · $1,398", "May 15", "Champion", "Carbon Black", "Laurel", "Getgems"],
-      ["67 TON · $1,337", "May 12", "Champion", "Carbon Black", "Laurel", "Fragment"],
+      ["70 GRAM · $1,398", "May 15", "Champion", "Carbon Black", "Laurel", "Getgems"],
+      ["67 GRAM · $1,337", "May 12", "Champion", "Carbon Black", "Laurel", "Fragment"],
     ],
     intel: {
       trend: "▂▄▅▆▇",
       badge: "Trending Up",
       sales24h: "2 exact variant sales",
-      volume24h: "137 TON · $2,735",
+      volume24h: "137 GRAM · $2,735",
       prior: "+22% volume · +9% sales count",
       daysToSell: "~2.9 days",
       listedSupply: "15 listed across Getgems + Fragment",
@@ -361,14 +361,14 @@ const stickerAssets = [
     quickSellTon: 29.45,
     quickSellUsd: 589,
     sales: [
-      ["32 TON · $638", "May 14", "Animated", "NeonCatLab", "Getgems"],
-      ["31 TON · $620", "May 12", "Animated", "NeonCatLab", "Getgems"],
+      ["32 GRAM · $638", "May 14", "Animated", "NeonCatLab", "Getgems"],
+      ["31 GRAM · $620", "May 12", "Animated", "NeonCatLab", "Getgems"],
     ],
     intel: {
       trend: "▅▄▃▃▂",
       badge: "Cooling",
       sales24h: "4 pack sales",
-      volume24h: "124 TON · $2,476",
+      volume24h: "124 GRAM · $2,476",
       prior: "-8% volume · -11% sales",
       daysToSell: "~4.1 days",
       listedSupply: "41 listed across Getgems",
@@ -411,14 +411,14 @@ const stickerAssets = [
     quickSellTon: 41.8,
     quickSellUsd: 836,
     sales: [
-      ["45 TON · $898", "May 15", "Static", "PixelForge", "Getgems"],
-      ["43 TON · $858", "May 13", "Static", "PixelForge", "Getgems"],
+      ["45 GRAM · $898", "May 15", "Static", "PixelForge", "Getgems"],
+      ["43 GRAM · $858", "May 13", "Static", "PixelForge", "Getgems"],
     ],
     intel: {
       trend: "▂▃▅▆▇",
       badge: "Trending Up",
       sales24h: "7 pack sales",
-      volume24h: "306 TON · $6,109",
+      volume24h: "306 GRAM · $6,109",
       prior: "+28% volume · +18% sales",
       daysToSell: "~1.9 days",
       listedSupply: "23 listed across Getgems",
@@ -461,14 +461,14 @@ const stickerAssets = [
     quickSellTon: 19.48,
     quickSellUsd: 390,
     sales: [
-      ["21 TON · $420", "May 13", "Video", "MoonStudio", "Getgems"],
-      ["20 TON · $399", "May 11", "Video", "MoonStudio", "Getgems"],
+      ["21 GRAM · $420", "May 13", "Video", "MoonStudio", "Getgems"],
+      ["20 GRAM · $399", "May 11", "Video", "MoonStudio", "Getgems"],
     ],
     intel: {
       trend: "▃▄▃▄▅",
       badge: "Stable",
       sales24h: "5 pack sales",
-      volume24h: "102 TON · $2,041",
+      volume24h: "102 GRAM · $2,041",
       prior: "+4% volume · +2% sales",
       daysToSell: "~3.5 days",
       listedSupply: "78 listed across Getgems",
@@ -486,19 +486,21 @@ const tokenDetails = {
   toncoin: {
     id: "toncoin",
     type: "token",
-    name: "Toncoin",
-    category: "TON Token",
+    name: "GRAM",
+    symbol: "GRAM",
+    image: GRAM_TOKEN_IMAGE_URL,
+    category: "GRAM Token",
     value: "$4,180 · +2.4%",
     icon: "coins",
     tone: "token-bg",
     statOneLabel: "Balance",
-    statOne: "1,340 TON",
+    statOne: "1,340 GRAM",
     statTwoLabel: "Price",
     statTwo: "$3.12",
     statThreeLabel: "Wallet",
     statThree: "Main",
     pnl: "+$610",
-    history: "Received 30 TON · 3m ago",
+    history: "Received 30 GRAM · 3m ago",
     link: "Explorer",
   },
   notcoin: {
@@ -542,7 +544,7 @@ const tokenDetails = {
 const assetDetails = Object.fromEntries([...giftAssets, ...stickerAssets, ...Object.values(tokenDetails)].map((asset) => [asset.id, asset]));
 
 function money(value) {
-  if (displayCurrency === "TON") return `${(value / usdTonRate).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} TON`;
+  if (displayCurrency === "TON") return `${(value / usdTonRate).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} GRAM`;
   const sign = value < 0 ? "-" : "";
   return `${sign}$${Math.abs(value).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
@@ -647,7 +649,7 @@ function escapeRegExp(value) {
 }
 
 function signedMoney(value) {
-  if (displayCurrency === "TON") return `${value >= 0 ? "+" : "-"}${(Math.abs(value) / usdTonRate).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} TON`;
+  if (displayCurrency === "TON") return `${value >= 0 ? "+" : "-"}${(Math.abs(value) / usdTonRate).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} GRAM`;
   return `${value >= 0 ? "+" : "-"}$${Math.abs(value).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
@@ -743,6 +745,10 @@ function showScreen(name) {
   }
   renderScreenHeaderDotMatrix(document.querySelector(`.screen[data-screen="${name}"]`));
   if (name === "activity") loadFullActivity();
+  if (name === "analytics") updateAnalyticsFromWallet(homePortfolioValue);
+  if (name === "watchlist") renderWatchlist();
+  if (name === "settings") renderSettingsSummary();
+  if (name === "detail") syncWatchlistButton();
 }
 
 function navigationRouteKey(route = {}) {
@@ -954,7 +960,7 @@ function updateCollectibleSummaryBanner(kind) {
   const pnlPct = pnlBase ? (pnl / pnlBase) * 100 : 0;
   const dailyClass = daily < 0 ? "negative" : "positive";
   const pnlClass = pnl < 0 ? "negative" : "positive";
-  banner.innerHTML = `<small>${label}</small><div><h2>${money(total)}</h2><span>${compactNumber(totalTon)} TON</span></div><strong class="${dailyClass}">${signedMoney(daily)} · ${signedPct(dailyPct)} 24h</strong><p class="summary-inline-metric">${iconCueHtml("chart-no-axes-combined", "Unrealized PnL")}<b class="${pnlClass}">${signedMoney(pnl)} · ${signedPct(pnlPct)}</b></p>`;
+  banner.innerHTML = `<small>${label}</small><div><h2>${money(total)}</h2><span>${compactNumber(totalTon)} GRAM</span></div><strong class="${dailyClass}">${signedMoney(daily)} · ${signedPct(dailyPct)} 24h</strong><p class="summary-inline-metric">${iconCueHtml("chart-no-axes-combined", "Unrealized PnL")}<b class="${pnlClass}">${signedMoney(pnl)} · ${signedPct(pnlPct)}</b></p>`;
   renderCollectibleSummaryDotMatrix(banner);
   window.lucide?.createIcons();
 }
@@ -997,7 +1003,10 @@ function renderGiftGrid() {
     coverageLabel.textContent = `${fetched} fetched · ${estimated} valued`;
     coverageLabel.classList.toggle("is-complete", Boolean(holdings.length) && fetched + estimated >= holdings.length);
   }
-  grid.innerHTML = items.length ? items.map(renderGiftCard).join("") : `<article class="collectible-card"><div class="value-stack"><strong>No gifts found</strong><small>Try a different search.</small></div></article>`;
+  const loading = isSectionLoading("gifts");
+  grid.innerHTML = loading
+    ? Array.from({ length: 4 }, () => `<article class="collectible-card collectible-skeleton-card"><span class="skeleton"></span><div class="value-stack"><strong class="skeleton">&nbsp;</strong><small class="skeleton">&nbsp;</small></div></article>`).join("")
+    : items.length ? items.map(renderGiftCard).join("") : `<article class="collectible-card"><div class="value-stack"><strong>No gifts found</strong><small>Try a different search.</small></div></article>`;
   window.lucide?.createIcons();
   initCollectibleAnimations(grid);
   applyCurrencyDisplay();
@@ -1028,7 +1037,10 @@ function renderStickerGrid() {
     const count = items.reduce((sum, asset) => sum + stickerOwnedCount(asset), 0);
     countLabel.textContent = `${count} sticker${count === 1 ? "" : "s"}`;
   }
-  grid.innerHTML = items.length ? items.map(renderStickerCard).join("") : `<article class="collectible-card"><div class="value-stack"><strong>No stickers found</strong><small>Try a different search.</small></div></article>`;
+  const loading = isSectionLoading("stickers");
+  grid.innerHTML = loading
+    ? Array.from({ length: 4 }, () => `<article class="collectible-card collectible-skeleton-card"><span class="skeleton"></span><div class="value-stack"><strong class="skeleton">&nbsp;</strong><small class="skeleton">&nbsp;</small></div></article>`).join("")
+    : items.length ? items.map(renderStickerCard).join("") : `<article class="collectible-card"><div class="value-stack"><strong>No stickers found</strong><small>Try a different search.</small></div></article>`;
   window.lucide?.createIcons();
   initCollectibleAnimations(grid);
   applyCurrencyDisplay();
@@ -1075,17 +1087,17 @@ function sortAssets(items, sort) {
 
 function floorSourceLine(asset = {}) {
   if (Number(asset.estimatedCount || 0) > 0) {
-    const base = Number(asset.floorTon || 0) > 0 ? `${Number(asset.floorTon).toFixed(2)} TON` : "";
+    const base = Number(asset.floorTon || 0) > 0 ? `${Number(asset.floorTon).toFixed(2)} GRAM` : "";
     return ["Floor", base].filter(Boolean).map((part) => escapeHtml(String(part))).join(" · ");
   }
   const isEstimate = asset.floorStatus === "estimated" || asset.floorSource === "estimate" || asset.source === "estimated-combo-value";
   const isLastSale = asset.floorSource === "last-sale" || asset.source === "last-sale-exact" || /last sale/i.test(String(asset.marketPlatform || ""));
   const parts = [isLastSale ? "Last sale" : "Floor"];
   if (asset.floorSource === "model") parts.push("Model");
-  if (Number(asset.floorTon || 0) > 0) parts.push(`${Number(asset.floorTon).toFixed(2)} TON`);
+  if (Number(asset.floorTon || 0) > 0) parts.push(`${Number(asset.floorTon).toFixed(2)} GRAM`);
   const platform = marketSourceLabel(asset.marketPlatform);
   if (!isEstimate && platform && platform !== "xGift Model" && platform !== "Model Floor") parts.push(platform);
-  if (Number(asset.initTon || 0) > 0) parts.push(`Init ${Number(asset.initTon).toFixed(2)} TON`);
+  if (Number(asset.initTon || 0) > 0) parts.push(`Init ${Number(asset.initTon).toFixed(2)} GRAM`);
   else if (Number(asset.initUsd || 0) > 0) parts.push(`Init ${money(asset.initUsd)}`);
   return parts.map((part) => escapeHtml(String(part))).join(" · ");
 }
@@ -2134,6 +2146,10 @@ function renderIdentityAssetRows(type, query = "") {
   const assets = isDns ? dnsAssets : isUsername ? usernameAssets : anonymousNumberAssets;
   const list = document.getElementById(typeMeta.listId);
   if (!list) return;
+  if (isSectionLoading(typeMeta.key)) {
+    list.innerHTML = Array.from({ length: 3 }, () => `<article class="identity-asset-row identity-skeleton-row"><span class="identity-asset-art ${typeMeta.tone} skeleton"></span><div><b class="skeleton">&nbsp;</b><small class="skeleton">&nbsp;</small></div><aside><b class="skeleton">&nbsp;</b><small class="skeleton">&nbsp;</small></aside></article>`).join("");
+    return;
+  }
   const term = String(query || "").trim().toLowerCase();
   const rows = [...assets]
     .filter((asset) => !term || `${asset.name} ${asset.domain} ${asset.number} ${asset.username}`.toLowerCase().includes(term))
@@ -2181,6 +2197,15 @@ function renderIdentityAssetScreens() {
     { assets: usernameAssets, type: "telegram_username", valueId: "usernamesTotalValue", summaryId: "usernamesSummaryText", countId: "usernamesCountLabel", noun: "username" },
   ];
   groups.forEach(({ assets, type, valueId, summaryId, countId, noun }) => {
+    const loading = isSectionLoading(identityTypeMeta(type).key);
+    if (loading) {
+      const value = document.getElementById(valueId);
+      if (value) value.innerHTML = `<span class="metric-skeleton metric-skeleton-large"></span>`;
+      setText(`#${summaryId}`, `Loading ${noun}s…`);
+      setText(`#${countId}`, `Loading ${noun}s…`);
+      renderIdentityAssetRows(type, "");
+      return;
+    }
     const total = assets.reduce((sum, asset) => sum + identityAssetValue(asset), 0);
     const priced = assets.filter((asset) => identityAssetValue(asset) > 0).length;
     setText(`#${valueId}`, money(total));
@@ -2204,6 +2229,7 @@ function updateIdentityAssetsFromWallet(data = {}, options = {}) {
   [...dnsAssets, ...anonymousNumberAssets, ...usernameAssets].forEach((asset) => {
     assetDetails[asset.id] = asset;
   });
+  ["dns", "anonymousNumbers", "usernames"].forEach((key) => setSectionReady(key, `${key === "dns" ? "Domains" : key === "anonymousNumbers" ? "Anonymous numbers" : "Usernames"} ready`, { toast: false }));
   renderIdentityAssetScreens();
 }
 
@@ -2513,9 +2539,9 @@ function renderCollectibleDetail(detail, tone) {
 function collectibleValueLabel(usdValue, tonValue) {
   const usd = Number(usdValue || 0);
   const ton = Number(tonValue || 0);
-  if (usd > 0 && ton > 0) return `${money(usd)} · ${ton.toFixed(2)} TON`;
+  if (usd > 0 && ton > 0) return `${money(usd)} · ${ton.toFixed(2)} GRAM`;
   if (usd > 0) return money(usd);
-  if (ton > 0) return `${ton.toFixed(2)} TON`;
+  if (ton > 0) return `${ton.toFixed(2)} GRAM`;
   return "—";
 }
 
@@ -2643,16 +2669,20 @@ function renderGiftDetailPage(detail, { loading = false } = {}) {
   const links = giftMarketLinks(detail);
   const priceChangeClass = Number(detail.dailyPct || 0) < 0 ? "negative" : "positive";
   const floorLabel = Number(detail.floorUsd || 0) > 0 ? money(detail.floorUsd) : "—";
-  const floorSubLabel = Number(detail.floorTon || 0) > 0 ? `${detail.floorTon.toFixed(2)} TON` : "—";
+  const floorSubLabel = Number(detail.floorTon || 0) > 0 ? `${detail.floorTon.toFixed(2)} GRAM` : "—";
   const chartIsLoading = loading || detail.floorHistoryLoading || detail.priceLoading;
-  const chartSourceLabel = detail.floorHistoryAvailable
-    ? detail.floorHistorySource === "sales-derived" ? "Sales-derived floor"
+  const chartBaseSourceLabel = detail.floorHistoryAvailable
+    ? detail.floorHistorySource === "sales-derived" ? "Sales-derived market history"
       : detail.floorHistorySource === "see.tg-graphics" ? "see.tg floor history"
       : detail.floorHistorySource === "tontrack-combo-registry" ? "Exact floor history"
       : detail.floorHistorySource === "tontrack-estimate-history" ? "Estimated floor history"
       : detail.floorHistorySource === "tontrack-snapshots" ? "TonTrack snapshots"
       : "Live floor history"
     : chartIsLoading ? "Loading floor history..." : "Floor history unavailable";
+  const unavailableSources = Array.isArray(detail.partialSources) ? detail.partialSources : [];
+  const chartSourceLabel = unavailableSources.length
+    ? `${chartBaseSourceLabel} · Partial data: ${unavailableSources.join(", ")} unavailable`
+    : chartBaseSourceLabel;
   const salesRows = loading
     ? `<div class="sales-row"><b class="skeleton">&nbsp;<span class="skeleton">&nbsp;</span></b><b class="skeleton">&nbsp;<span class="skeleton">&nbsp;</span></b><b class="skeleton">&nbsp;<span class="skeleton">&nbsp;</span></b></div>`
     : renderGiftSalesRows(detail);
@@ -2696,7 +2726,7 @@ function renderGiftDetailPage(detail, { loading = false } = {}) {
           </div>
           <div class="gift-detail-toggle-row">
             <button type="button" class="mini-button ${priceMode === "USD" ? "active" : ""}" data-gift-price-mode="USD">USD</button>
-            <button type="button" class="mini-button ${priceMode === "TON" ? "active" : ""}" data-gift-price-mode="TON">TON</button>
+            <button type="button" class="mini-button ${priceMode === "TON" ? "active" : ""}" data-gift-price-mode="TON">GRAM</button>
           </div>
         </div>
         ${chartIsLoading ? `<div class="gift-chart-loading" aria-label="Loading gift floor chart">
@@ -2808,7 +2838,7 @@ function stickerDetailIntelSections(detail) {
   const about = intel.about || {};
   const supply = intel.supply || {};
   const market = intel.market || {};
-  const ton = (value) => Number(value || 0) > 0 ? `${Number(value).toLocaleString(undefined, { maximumFractionDigits: 2 })} TON` : "—";
+  const ton = (value) => Number(value || 0) > 0 ? `${Number(value).toLocaleString(undefined, { maximumFractionDigits: 2 })} GRAM` : "—";
   const date = market.releaseAt ? new Date(market.releaseAt).toLocaleDateString(undefined, { month: "short", year: "numeric" }) : "—";
   const aboutRows = stickerDetailRows([
     ["Creator", about.creator || "—"],
@@ -2855,7 +2885,7 @@ function renderStickerDetailPage(detail, { loading = false } = {}) {
   if (!mount) return;
   const media = stickerMediaDescriptor(detail);
   const floorLabel = Number(detail.floorUsd || 0) > 0 ? money(detail.floorUsd) : "—";
-  const floorSubLabel = Number(detail.floorTon || 0) > 0 ? `${Number(detail.floorTon).toFixed(2)} TON` : "Price unavailable";
+  const floorSubLabel = Number(detail.floorTon || 0) > 0 ? `${Number(detail.floorTon).toFixed(2)} GRAM` : "Price unavailable";
   const priceChangeClass = Number(detail.dailyPct || 0) < 0 ? "negative" : "positive";
   const hasChart = Array.isArray(detail.floorHistoryPoints) && detail.floorHistoryPoints.length >= 2;
   const source = marketSourceLabel(detail.marketPlatform || detail.stickerFloor?.source) || "Market data";
@@ -2893,7 +2923,7 @@ function renderStickerDetailPage(detail, { loading = false } = {}) {
           <h2>Floor Price</h2>
           <div class="gift-detail-toggle-row">
             <button type="button" class="mini-button ${priceMode === "USD" ? "active" : ""}" data-gift-price-mode="USD">USD</button>
-            <button type="button" class="mini-button ${priceMode === "TON" ? "active" : ""}" data-gift-price-mode="TON">TON</button>
+            <button type="button" class="mini-button ${priceMode === "TON" ? "active" : ""}" data-gift-price-mode="TON">GRAM</button>
           </div>
         </div>
         ${loading ? `<div class="gift-chart-loading" aria-label="Loading sticker floor chart"><span class="gift-chart-gridline is-top"></span><span class="gift-chart-gridline is-mid"></span><span class="gift-chart-gridline is-low"></span><span class="gift-chart-scan"></span><span class="gift-chart-loader-line"></span><span class="gift-chart-loader-dot is-one"></span><span class="gift-chart-loader-dot is-two"></span><span class="gift-chart-loader-dot is-three"></span><span class="gift-chart-loading-label">Loading pack history</span></div>` : `<canvas id="giftDetailPriceChart" role="img" aria-label="Sticker floor price chart" class="gift-detail-chart"></canvas><div id="giftDetailChartTooltip" class="chart-tooltip">${hasChart ? `Latest: ${floorLabel}` : "Floor history unavailable"}</div>`}
@@ -2949,7 +2979,7 @@ function giftOriginRows(detail, upgradeState, eligibility) {
 }
 
 function formatMintPrice(stats = {}) {
-  if (Number(stats.mintPriceTon || 0) > 0) return `${Number(stats.mintPriceTon).toLocaleString(undefined, { maximumFractionDigits: 2 })} TON`;
+  if (Number(stats.mintPriceTon || 0) > 0) return `${Number(stats.mintPriceTon).toLocaleString(undefined, { maximumFractionDigits: 2 })} GRAM`;
   if (Number(stats.mintPriceStars || 0) > 0) return `${Number(stats.mintPriceStars).toLocaleString()} Stars`;
   if (Number(stats.mintPriceUsd || 0) > 0) return money(stats.mintPriceUsd);
   return "—";
@@ -3119,7 +3149,7 @@ function renderGiftSalesRows(detail) {
     return `<div class="gift-sale-table-row" role="row"${linkAttributes}>
       <span class="gift-sale-thumb" role="cell">${image ? `<img src="${escapeHtml(image)}" alt="" loading="lazy" decoding="async">` : `<i data-lucide="gift"></i>`}</span>
       <span class="gift-sale-identity" role="cell"><b>${escapeHtml(sale.model || "Gift")}${saleMint ? ` <small>${escapeHtml(saleMint)}</small>` : ""}</b></span>
-      <span class="gift-sale-price" role="cell"><b>${priceTon > 0 ? `${priceTon.toLocaleString(undefined, { maximumFractionDigits: 4 })} TON` : "—"}</b><time datetime="${escapeHtml(sale.soldAt || sale.date || "")}">${escapeHtml(sold.day)} · ${escapeHtml(sold.time)}</time></span>
+      <span class="gift-sale-price" role="cell"><b>${priceTon > 0 ? `${priceTon.toLocaleString(undefined, { maximumFractionDigits: 4 })} GRAM` : "—"}</b><time datetime="${escapeHtml(sale.soldAt || sale.date || "")}">${escapeHtml(sold.day)} · ${escapeHtml(sold.time)}</time></span>
       <span class="gift-sale-market" role="cell" title="${escapeHtml(marketplace)}" aria-label="${escapeHtml(marketplace)}">${logo ? `<img src="${logo}" alt="${escapeHtml(marketplace)}">` : `<b>${escapeHtml(marketplace.slice(0, 2).toUpperCase())}</b>`}</span>
     </div>`;
   }).join("");
@@ -3132,7 +3162,7 @@ function applyGiftSales(detail, sales = [], scope = "same-traits") {
   detail.giftSalesRaw = Array.isArray(sales) ? sales.slice() : [];
   detail.sales = sales.map((sale) => ({
     priceTon: Number(sale.priceTon || 0),
-    priceLabel: `${Number(sale.priceTon || 0).toFixed(2)} TON · ${money(sale.priceUsd || 0)}`,
+    priceLabel: `${Number(sale.priceTon || 0).toFixed(2)} GRAM · ${money(sale.priceUsd || 0)}`,
     dateLabel: formatActivityDate(sale.date || Date.now()),
     date: sale.date || "",
     soldAt: sale.soldAt || sale.date || "",
@@ -3239,7 +3269,7 @@ function applyStickerDetailPayload(detail, payload = {}) {
   detail.dailyUsd = detail.floorUsd ? detail.floorUsd * (detail.dailyPct / 100) : 0;
   detail.quickSellTon = detail.floorTon ? detail.floorTon * 0.95 : 0;
   detail.quickSellUsd = detail.floorUsd ? detail.floorUsd * 0.95 : 0;
-  detail.sales = sales.map((sale) => [`${Number(sale.priceTon || 0).toFixed(2)} TON · ${money(sale.priceUsd || 0)}`, formatActivityDate(sale.date || Date.now()), detail.format || "Sticker", detail.creator || detail.collection, sale.marketplace || "Market"]);
+  detail.sales = sales.map((sale) => [`${Number(sale.priceTon || 0).toFixed(2)} GRAM · ${money(sale.priceUsd || 0)}`, formatActivityDate(sale.date || Date.now()), detail.format || "Sticker", detail.creator || detail.collection, sale.marketplace || "Market"]);
   detail.floorHistoryPoints = buildStickerHistory(sales);
   detail.chart = detail.floorHistoryPoints.map((point) => point.priceUsd);
   detail.stickerThumbnails = thumbs;
@@ -3268,9 +3298,8 @@ function giftDetailComboIdentity(detail = {}) {
   const collection = detail.collection || detail.creator || detail.name || "";
   const model = giftModelTrait(detail) || detail.model || "";
   const backdrop = giftTraitValue(detail, "Backdrop") || detail.backdrop || "";
-  const symbol = giftTraitValue(detail, "Symbol") || detail.symbol || "";
   if (collection && model && backdrop) {
-    return [collection, model, backdrop, symbol].map(collectibleKey).join(":");
+    return [collection, model, backdrop].map(collectibleKey).join(":");
   }
   return `asset:${collectibleKey(detail.tokenAddress || detail.id || detail.name || "")}`;
 }
@@ -3777,6 +3806,8 @@ function applyGiftVerifiedFloor(detail, payload = {}) {
 function applyGiftDetailPayload(detail, payload = {}, options = {}) {
   const floor = payload?.floor || {};
   const sales = payload?.sales || [];
+  detail.partial = Boolean(payload?.partial);
+  detail.partialSources = Array.isArray(payload?.partialSources) ? payload.partialSources : [];
   detail.origin = payload?.origin || detail.origin || {};
   detail.rarity = payload?.rarity || detail.rarity || {};
   detail.links = payload?.links || detail.links || {};
@@ -3904,7 +3935,7 @@ function tokenActivityMatches(detail, event = {}) {
   const address = String(detail.address || "").trim().toLowerCase();
   const addressText = JSON.stringify([preview.asset, preview.token, preview.jettonAddress, action?.asset, action?.jetton]).toLowerCase();
   if (address && addressText.includes(address)) return true;
-  if (symbol.toUpperCase() === "TON") return /\bTON\b/i.test(searchable);
+  if (isNativeGramToken(detail)) return /\b(?:TON|GRAM|Toncoin)\b/i.test(searchable);
   if (symbol && new RegExp(`(^|[^A-Za-z0-9])${escapeRegExp(symbol)}([^A-Za-z0-9]|$)`, "i").test(searchable)) return true;
   if (name && name.length > 3 && new RegExp(`(^|[^A-Za-z0-9])${escapeRegExp(name)}([^A-Za-z0-9]|$)`, "i").test(searchable)) return true;
   return false;
@@ -3932,7 +3963,7 @@ function renderTokenActivity(detail) {
       const preview = action?.simplePreview || {};
       const direction = preview.direction || (/swap/i.test(action?.type || preview.name || "") ? "Swap" : /^\s*-/.test(preview.value || "") ? "Sent" : "Received");
       const icon = direction === "Swap" ? "refresh-cw" : direction === "Sent" ? "arrow-up-from-line" : "arrow-down-to-line";
-      const rawValue = String(preview.value || preview.description || "");
+      const rawValue = nativeCurrencyDisplayText(String(preview.value || preview.description || ""));
       const symbol = detail.symbol || "";
       const tokenAmount = rawValue.match(new RegExp(`[-+−]?\\s*[\\d,.]+(?:\\.\\d+)?\\s*${escapeRegExp(symbol)}`, "i"))?.[0]
         || rawValue.replace(/^Swapping\s+/i, "").replace(/\s+for\s+/i, " → ")
@@ -3989,7 +4020,7 @@ function renderTokenChartMetrics(detail, values = []) {
   if (!root || !Array.isArray(values) || !values.length) return;
   const stats = Charts.seriesStats(values);
   if (!stats) return;
-  const price = (value) => priceMode === "TON" ? `${value.toFixed(value >= 1 ? 2 : 4)} TON` : tokenPriceLabel(value);
+  const price = (value) => priceMode === "TON" ? `${value.toFixed(value >= 1 ? 2 : 4)} GRAM` : tokenPriceLabel(value);
   const items = [
     ["High", price(stats.high), "positive"],
     ["Low", price(stats.low), "negative"],
@@ -4059,12 +4090,12 @@ function renderHolderRing(percent = 0) {
 
 function renderTonNetworkHighlights(network = {}) {
   const items = [
-    ["Total Supply", network.totalSupplyTon ? `${network.totalSupplyTon} TON` : "—"],
+    ["Total Supply", network.totalSupplyTon ? `${network.totalSupplyTon} GRAM` : "—"],
     ["Active Wallets", network.activeWalletsMonthly || "—"],
     ["Daily Wallets", network.activeWalletsDaily || "—"],
     ["Activated Wallets", network.activatedWallets || "—"],
     ["Tx / Day", network.txPerDay || "—"],
-    ["Staked TON", network.stakedTon ? `${network.stakedTon} TON` : "—"],
+    ["Staked GRAM", network.stakedTon ? `${network.stakedTon} GRAM` : "—"],
     ["Inflation", network.annualInflationPct ? `${network.annualInflationPct}%` : "—"],
   ];
   return `<section class="ton-network-card">
@@ -4569,12 +4600,12 @@ function applyTokenDetailMetrics(detail, payload = {}) {
   }
   const root = document.querySelector("#detailMarketIntel");
   if (root) {
-    const isTon = String(detail.symbol || "").toUpperCase() === "TON" && !detail.address;
-    const holderRing = !isTon ? renderHolderRing(metrics.concentration) : "";
+    const isNativeGram = isNativeGramToken(detail) && !detail.address;
+    const holderRing = !isNativeGram ? renderHolderRing(metrics.concentration) : "";
     root.innerHTML = `${renderTokenMetricGrid(metrics)}${holderRing}`;
     if (tonNetworkHost) {
-      tonNetworkHost.innerHTML = isTon ? renderTonNetworkHighlights(payload.tonNetwork || {}) : "";
-      tonNetworkHost.style.display = isTon ? "" : "none";
+      tonNetworkHost.innerHTML = isNativeGram ? renderTonNetworkHighlights(payload.tonNetwork || {}) : "";
+      tonNetworkHost.style.display = isNativeGram ? "" : "none";
     }
   }
 }
@@ -4582,9 +4613,9 @@ function applyTokenDetailMetrics(detail, payload = {}) {
 function renderTokenDetail(detail, tone) {
   if (liveWalletAddress && !fullActivityEvents.length) startActivityPreload(liveWalletAddress);
   const change = Number(detail.change24h);
-  const pnl = Number.isFinite(change) ? signedPct(change) : "0.0%";
+  const pnl = Number.isFinite(change) ? signedPct(change) : "—";
   const pnlClass = change < 0 ? "negative" : "positive";
-  const contract = detail.address ? truncateWalletAddress(detail.address) : "Native TON";
+  const contract = detail.address ? truncateWalletAddress(detail.address) : "Native GRAM";
   const compactBalance = tokenBalanceCompact(detail);
   const compactSymbol = tokenSymbolCompact(detail);
   const financialGrid = document.querySelector(".financial-grid");
@@ -4599,7 +4630,7 @@ function renderTokenDetail(detail, tone) {
   setText("#detailStatThreeLabel", "Contract");
   setText("#detailStatThree", contract);
   setText("#detailPnl", pnl);
-  document.querySelector("#detailPnl")?.classList.toggle("positive", change >= 0 || !Number.isFinite(change));
+  document.querySelector("#detailPnl")?.classList.toggle("positive", Number.isFinite(change) && change >= 0);
   document.querySelector("#detailPnl")?.classList.toggle("negative", change < 0);
   setText("#detailAcquiredLabel", "");
   document.querySelector("#detailTraitPanel").innerHTML = "";
@@ -4680,7 +4711,7 @@ function drawDetailPriceChart(detail, options = {}) {
   const hasReference = !isToken && (Number(detail.costBasis || 0) > 0 || !options.hideReferenceWhenMissing);
   const reference = priceMode === "TON" ? sourceReference / usdTonRate : sourceReference;
   const label = (value) => priceMode === "TON"
-    ? `${value.toFixed(value >= 1 ? 2 : 4)} TON`
+    ? `${value.toFixed(value >= 1 ? 2 : 4)} GRAM`
     : (isToken ? tokenPriceLabel(value) : usdValueLabel(value));
   const result = Charts.renderDetailSeries(isToken ? "tokenPrice" : "collectibleFloor", rows, {
     element,
@@ -4717,6 +4748,12 @@ function renderWalletState() {
   const portfolioConnected = walletConnected || telegramConnected;
   document.querySelector(".app-frame")?.classList.toggle("has-wallet", portfolioConnected);
   const portfolioSourceLabel = document.getElementById("portfolioSourceLabel");
+  const profileName = document.getElementById("homeProfileName");
+  const profileMeta = document.getElementById("homeProfileMeta");
+  const walletProfile = currentWalletLabel();
+  const telegramName = telegramProfile?.username ? `@${telegramProfile.username}` : (telegramProfile?.firstName || "");
+  if (profileName) profileName.textContent = walletConnected ? walletProfile : (telegramConnected ? telegramName || "Telegram" : "TonTrack");
+  if (profileMeta) profileMeta.textContent = portfolioConnected ? "TonTrack portfolio" : "Portfolio overview";
   if (portfolioSourceLabel) {
     portfolioSourceLabel.textContent = telegramConnected && walletConnected
       ? "Telegram + TON"
@@ -4736,7 +4773,7 @@ function renderWalletState() {
   if (homeWalletTitle && telegramConnected && walletConnected) homeWalletTitle.textContent = "Telegram + TON wallet connected";
   if (homeWalletText) homeWalletText.textContent = telegramConnected && !liveWalletAddress
     ? `${telegramProfile?.firstName || "Telegram"}’s gifts and stickers are included.`
-    : (walletConnected ? `${currentWalletLabel()} included in portfolio.` : "Connect wallet to include TON balances.");
+    : (walletConnected ? `${currentWalletLabel()} included in portfolio.` : "Connect wallet to include your GRAM balance.");
   if (homeWalletButton) homeWalletButton.textContent = portfolioConnected ? "Connected" : "Connect";
   if (homeWalletText && telegramConnected && walletConnected) homeWalletText.textContent = "Telegram assets and TON wallet assets are included together.";
   if (homeWalletButton && telegramConnected && !walletConnected) homeWalletButton.textContent = "Add wallet";
@@ -5258,6 +5295,9 @@ async function importWallet(address, options = {}) {
     setSectionLoading("gifts", "Scanning wallet gifts...");
     setSectionLoading("stickers", "Scanning sticker packs...");
   }
+  setSectionLoading("dns", "Loading TON domains...");
+  setSectionLoading("anonymousNumbers", "Loading anonymous numbers...");
+  setSectionLoading("usernames", "Loading Telegram usernames...");
   setSectionLoading("activity", "Preparing recent activity...");
   if (isGraphHistoryLoadingEnabled()) setSectionLoading("graph", "Preparing graph preview...");
   else setSectionReady("graph", "Graph history paused for this session.", { toast: false });
@@ -5351,7 +5391,7 @@ async function importWallet(address, options = {}) {
   }
 }
 
-async function refreshConnectedWallet() {
+async function refreshConnectedWallet(triggerButton = null) {
   if (!hasTonWalletPortfolio()) {
     renderPortfolioGraph(activePortfolioRange());
     return;
@@ -5361,8 +5401,8 @@ async function refreshConnectedWallet() {
     return;
   }
   const refreshSessionId = beginImportSession();
-  const refreshButton = document.querySelector(".refresh-button");
-  refreshButton?.classList.add("is-loading");
+  const refreshButtons = [...new Set([document.querySelector(".refresh-button"), triggerButton].filter(Boolean))];
+  refreshButtons.forEach((button) => button.classList.add("is-loading"));
   updateHistoryStatus("Refreshing wallet...");
   try {
     const payload = await fetchWalletImport(liveWalletAddress);
@@ -5389,7 +5429,7 @@ async function refreshConnectedWallet() {
     updateHistoryStatus("Could not refresh wallet.");
   } finally {
     if (isCurrentImportSession(refreshSessionId)) allocationUiLocked = false;
-    refreshButton?.classList.remove("is-loading");
+    refreshButtons.forEach((button) => button.classList.remove("is-loading"));
   }
 }
 
@@ -5464,6 +5504,20 @@ function resetDetailWarmCaches() {
   detailWarmupQueue.splice(0).forEach((entry) => entry.resolve());
 }
 
+async function refreshActivePortfolio({ triggerButton = null } = {}) {
+  if (hasTonWalletPortfolio() && liveWalletAddress) {
+    await refreshConnectedWallet(triggerButton);
+    return;
+  }
+  if (activePortfolioSource === "telegram" && telegramConnected) {
+    const returnScreen = document.querySelector(".screen.is-active")?.dataset.screen || "home";
+    await importTelegramAccount();
+    if (document.querySelector(`[data-screen="${returnScreen}"]`)) showScreen(returnScreen);
+    return;
+  }
+  showSectionReady("portfolio", "Connect Telegram or a TON wallet to refresh your portfolio.");
+}
+
 function resetWalletSwitchState(nextAddress = "", options = {}) {
   const preserveTelegram = Boolean(options.preserveTelegram && telegramConnected);
   stopHistoryStatusPolling();
@@ -5515,7 +5569,7 @@ function resetPerformerCards() {
     delete card.dataset.screenTarget;
     delete card.dataset.asset;
     const label = index === 0 ? "Top Performer" : "Worst Performer";
-    card.innerHTML = `<small>${label}</small><span class="performer-asset-line"><em>TON</em><b>No wallet</b></span><strong>0.0%</strong>`;
+    card.innerHTML = `<small>${label}</small><span class="performer-asset-line"><em>GRAM</em><b>Movement unavailable</b></span><strong>—</strong>`;
   });
 }
 
@@ -5528,17 +5582,17 @@ function resetWalletBoundUi() {
   setLastUpdatedLabel(Date.now());
   document.querySelector(".donut-chart span")?.replaceChildren(compactMoney(0));
   const giftStrong = document.querySelector(".allocation-list article:nth-child(1) strong");
-  if (giftStrong) giftStrong.textContent = money(0);
+  if (giftStrong) giftStrong.textContent = "—";
   const giftSmall = document.querySelector(".allocation-list article:nth-child(1) small");
-  if (giftSmall) giftSmall.textContent = "0%";
+  if (giftSmall) giftSmall.textContent = "Unavailable";
   const tokenStrong = document.querySelector(".allocation-list article:nth-child(2) strong");
-  if (tokenStrong) tokenStrong.textContent = money(0);
+  if (tokenStrong) tokenStrong.textContent = "—";
   const tokenSmall = document.querySelector(".allocation-list article:nth-child(2) small");
-  if (tokenSmall) tokenSmall.textContent = "0%";
+  if (tokenSmall) tokenSmall.textContent = "Unavailable";
   const stickerStrong = document.querySelector(".allocation-list article:nth-child(3) strong");
-  if (stickerStrong) stickerStrong.textContent = money(0);
+  if (stickerStrong) stickerStrong.textContent = "—";
   const stickerSmall = document.querySelector(".allocation-list article:nth-child(3) small");
-  if (stickerSmall) stickerSmall.textContent = "0%";
+  if (stickerSmall) stickerSmall.textContent = "Unavailable";
   allocationState.gifts = 0;
   allocationState.tokens = 0;
   allocationState.stickers = 0;
@@ -5549,13 +5603,15 @@ function resetWalletBoundUi() {
   renderTokenEmptyState("Connect wallet to load tokens");
   resetPerformerCards();
   renderActivityRows([]);
+  updateAllocationUi(true);
   const assetsStrip = document.querySelector('[data-screen="assets"] .portfolio-strip');
-  if (assetsStrip) assetsStrip.innerHTML = `<article><small>Total</small><b>${money(0)}</b></article><article><small>Items</small><b>0</b></article><article><small>Wallet</small><b>Not connected</b></article>`;
+  if (assetsStrip) assetsStrip.innerHTML = `<article><small>Total</small><b>—</b></article><article><small>Items</small><b>—</b></article><article><small>Wallet</small><b>Not connected</b></article>`;
   const tokenCategory = document.querySelector('[data-screen="assets"] .category-stack article[data-screen-target="tokens"] strong');
-  if (tokenCategory) tokenCategory.textContent = money(0);
+  if (tokenCategory) tokenCategory.textContent = "—";
   document.querySelectorAll('[data-screen="assets"] .category-stack article[data-screen-target] strong').forEach((value) => {
-    value.textContent = money(0);
+    value.textContent = "—";
   });
+  updateCategoryAndTopAsset(0);
   const topAsset = document.querySelector('[data-screen="assets"] .mini-detail-card');
   if (topAsset) {
     topAsset.innerHTML = `<div class="section-heading"><h2>Top asset</h2></div><article class="feature-asset"><span class="asset-icon gift-bg"><i data-lucide="sparkles"></i></span><div><b>Nothing imported yet</b><small>Connect Telegram or a TON wallet to begin.</small></div></article>`;
@@ -5563,7 +5619,7 @@ function resetWalletBoundUi() {
     delete topAsset.dataset.asset;
   }
   const walletList = document.querySelector('[data-screen="wallets"] .holdings-list');
-  if (walletList) walletList.innerHTML = `<article><span class="asset-icon token-bg"><i data-lucide="wallet"></i></span><div><b>No wallet connected</b><small>Connect or paste another wallet address.</small></div><aside><b>${money(0)}</b><small>Ready</small></aside></article>`;
+  if (walletList) walletList.innerHTML = `<article><span class="asset-icon token-bg"><i data-lucide="wallet"></i></span><div><b>No wallet connected</b><small>Connect or paste another wallet address.</small></div><aside><b>—</b><small>Ready</small></aside></article>`;
   window.lucide?.createIcons();
 }
 
@@ -5887,6 +5943,14 @@ function updateAllocationUi(force = false) {
   if (allocationUiLocked && !force) return total;
   const safeTotal = Math.max(1, total);
   document.querySelector(".donut-chart span")?.replaceChildren(compactMoney(total));
+  const ownedCounts = [
+    giftAssets.reduce((sum, asset) => sum + Number(asset.count || 1), 0),
+    latestVisibleTokens.filter((token) => Number(token.balance || 0) > 0).length,
+    stickerAssets.reduce((sum, asset) => sum + stickerOwnedCount(asset), 0),
+    dnsAssets.length,
+    anonymousNumberAssets.length,
+    usernameAssets.length,
+  ];
   [
     [1, allocationState.gifts],
     [2, allocationState.tokens],
@@ -5895,6 +5959,9 @@ function updateAllocationUi(force = false) {
     [5, allocationState.anonymousNumbers],
     [6, allocationState.usernames],
   ].forEach(([index, value]) => {
+    const row = document.querySelector(`.allocation-list article:nth-child(${index})`);
+    const ownedCount = ownedCounts[index - 1];
+    if (row) row.hidden = ownedCount <= 0;
     const strong = document.querySelector(`.allocation-list article:nth-child(${index}) strong`);
     const small = document.querySelector(`.allocation-list article:nth-child(${index}) small`);
     const key = index === 1 ? "gifts" : index === 2 ? "tokens" : index === 3 ? "stickers" : index === 4 ? "dns" : index === 5 ? "anonymous-numbers" : "usernames";
@@ -5903,8 +5970,8 @@ function updateAllocationUi(force = false) {
       if (small) small.innerHTML = `<span class="metric-skeleton metric-skeleton-small"></span>`;
       return;
     }
-    if (strong) strong.textContent = compactMoney(value);
-    if (small) small.textContent = `${Math.round((value / safeTotal) * 100)}%`;
+    if (strong) strong.textContent = value > 0 ? compactMoney(value) : "Unavailable";
+    if (small) small.textContent = value > 0 ? `${Math.round((value / safeTotal) * 100)}%` : `${ownedCount} owned`;
   });
   renderDonut();
   return total;
@@ -5919,21 +5986,31 @@ function updateCategoryAndTopAsset(tokenValue = allocationState.tokens) {
   const usernameCategory = document.querySelector('[data-screen="assets"] .category-stack article[data-screen-target="usernames"] strong');
   const giftCount = giftAssets.reduce((sum, asset) => sum + Number(asset.count || 1), 0);
   const stickerCount = stickerAssets.reduce((sum, asset) => sum + stickerOwnedCount(asset), 0);
+  const setEmptyState = (element, count, valueLabel) => {
+    const row = element?.closest("article");
+    if (row) row.dataset.emptyCategory = count > 0 ? "false" : "true";
+    if (element && count <= 0) element.textContent = "Get yours";
+    else if (element && valueLabel) element.textContent = valueLabel;
+  };
+  const tokenCategory = document.querySelector('[data-screen="assets"] .category-stack article[data-screen-target="tokens"] strong');
+  setEmptyState(tokenCategory, latestVisibleTokens.length, tokenValue > 0 ? money(tokenValue) : (latestVisibleTokens.length ? "Unavailable" : ""));
   if (giftCategory) {
-    if (totals.gifts <= 0 && giftCount > 0) giftCategory.textContent = `${giftCount} gift${giftCount === 1 ? "" : "s"}`;
+    if (giftCount <= 0) setEmptyState(giftCategory, 0, "");
+    else if (totals.gifts <= 0) setEmptyState(giftCategory, giftCount, `${giftCount} gift${giftCount === 1 ? "" : "s"}`);
     else if (isSectionLoading("gifts") || (totals.gifts <= 0 && hasPendingCollectiblePrices("gifts"))) giftCategory.innerHTML = `<span class="metric-skeleton"></span>`;
-    else giftCategory.textContent = money(totals.gifts);
+    else setEmptyState(giftCategory, giftCount, money(totals.gifts));
   }
   if (stickerCategory) {
-    if (totals.stickers <= 0 && stickerCount > 0) stickerCategory.textContent = `${stickerCount} sticker${stickerCount === 1 ? "" : "s"}`;
+    if (stickerCount <= 0) setEmptyState(stickerCategory, 0, "");
+    else if (totals.stickers <= 0) setEmptyState(stickerCategory, stickerCount, `${stickerCount} sticker${stickerCount === 1 ? "" : "s"}`);
     else if (isSectionLoading("stickers") || (totals.stickers <= 0 && hasPendingCollectiblePrices("stickers"))) stickerCategory.innerHTML = `<span class="metric-skeleton"></span>`;
-    else stickerCategory.textContent = money(totals.stickers);
+    else setEmptyState(stickerCategory, stickerCount, money(totals.stickers));
   }
-  if (dnsCategory) dnsCategory.textContent = totals.dns > 0 ? money(totals.dns) : `${dnsAssets.length} domain${dnsAssets.length === 1 ? "" : "s"}`;
-  if (numberCategory) numberCategory.textContent = totals.anonymousNumbers > 0 ? money(totals.anonymousNumbers) : `${anonymousNumberAssets.length} number${anonymousNumberAssets.length === 1 ? "" : "s"}`;
-  if (usernameCategory) usernameCategory.textContent = totals.usernames > 0 ? money(totals.usernames) : `${usernameAssets.length} username${usernameAssets.length === 1 ? "" : "s"}`;
+  setEmptyState(dnsCategory, dnsAssets.length, totals.dns > 0 ? money(totals.dns) : `${dnsAssets.length} domain${dnsAssets.length === 1 ? "" : "s"}`);
+  setEmptyState(numberCategory, anonymousNumberAssets.length, totals.anonymousNumbers > 0 ? money(totals.anonymousNumbers) : `${anonymousNumberAssets.length} number${anonymousNumberAssets.length === 1 ? "" : "s"}`);
+  setEmptyState(usernameCategory, usernameAssets.length, totals.usernames > 0 ? money(totals.usernames) : `${usernameAssets.length} username${usernameAssets.length === 1 ? "" : "s"}`);
   const candidates = [
-    ...latestVisibleTokens.map((token) => ({ id: token.id, name: token.name, category: "TON Token", value: Number(token.valueUsd || 0), icon: token.image, symbol: token.symbol })),
+    ...latestVisibleTokens.map((token) => ({ id: token.id, name: token.name, category: "GRAM Token", value: Number(token.valueUsd || 0), icon: token.image, symbol: token.symbol })),
     ...giftAssets.map((asset) => ({ id: asset.id, name: asset.name, category: "Gift", value: Number(asset.floorUsd || 0), icon: asset.image, symbol: "GFT" })),
     ...stickerAssets.map((asset) => ({ id: asset.id, name: asset.name, category: "Sticker", value: Number(asset.floorUsd || 0), icon: asset.image, symbol: "STK" })),
     ...dnsAssets.map((asset) => ({ id: asset.id, name: asset.name, category: "TON DNS", value: identityAssetValue(asset), icon: asset.image, symbol: "DNS" })),
@@ -5944,7 +6021,7 @@ function updateCategoryAndTopAsset(tokenValue = allocationState.tokens) {
   const card = document.querySelector('[data-screen="assets"] .mini-detail-card');
   if (card && top) {
     card.dataset.asset = top.id;
-    const isToken = top.category === "TON Token";
+    const isToken = top.category === "GRAM Token";
     const topTone = isToken ? "token-bg" : top.category === "Gift" ? "gift-bg" : top.category === "Sticker" ? "sticker-bg" : top.category === "TON DNS" ? "dns-bg" : top.category === "Telegram Username" ? "username-bg" : "number-bg";
     const logo = top.icon
       ? `<span class="asset-icon ${topTone}"><img src="${escapeHtml(resolveTokenImage(top.icon))}" alt="${escapeHtml(top.symbol || top.name)}" onerror="this.parentElement.textContent='${escapeHtml((top.symbol || top.category).slice(0,3))}'"></span>`
@@ -6103,6 +6180,12 @@ function updateAssetsPortfolioStrip() {
 }
 
 function updateAnalyticsFromWallet(totalUsd) {
+  const heroValue = document.getElementById("analyticsPortfolioValue");
+  const heroMeta = document.getElementById("analyticsPortfolioMeta");
+  if (heroValue) heroValue.textContent = money(totalUsd);
+  if (heroMeta) heroMeta.textContent = liveWalletAddress
+    ? `${latestVisibleTokens.length + giftAssets.length + stickerAssets.length} tracked assets · verified wallet data`
+    : "Connect a wallet to calculate your portfolio mix.";
   const analyticsValue = document.querySelector('[data-screen="analytics"] .graph-head h1');
   if (analyticsValue) analyticsValue.textContent = money(totalUsd);
   const rows = document.querySelectorAll('[data-screen="analytics"] .insight-grid article');
@@ -6111,21 +6194,89 @@ function updateAnalyticsFromWallet(totalUsd) {
     ...giftAssets.map((asset) => ({ name: asset.name, change: Number(asset.dailyPct || 0), pnl: Number(asset.pnlUsd || 0) })),
     ...stickerAssets.map((asset) => ({ name: asset.name, change: Number(asset.dailyPct || 0), pnl: Number(asset.pnlUsd || 0) })),
   ];
-  const valid = performers.filter((item) => Number.isFinite(item.change));
+  const valid = performers.filter((item) => Number.isFinite(item.change) && item.change !== 0);
   const best = valid.reduce((a, b) => (b.change > a.change ? b : a), valid[0] || { name: "—", change: 0 });
   const worst = valid.reduce((a, b) => (b.change < a.change ? b : a), valid[0] || { name: "—", change: 0 });
   const pnl = performers.reduce((sum, item) => sum + Number(item.pnl || 0), tokenAggregatePnl(latestVisibleTokens).delta || 0);
-  if (rows[0]) rows[0].innerHTML = `<small>Best performer</small><b>${escapeHtml(best.name)}</b><strong class="positive">${signedPct(best.change)}</strong>`;
-  if (rows[1]) rows[1].innerHTML = `<small>Worst performer</small><b>${escapeHtml(worst.name)}</b><strong class="negative">${signedPct(worst.change)}</strong>`;
-  if (rows[2]) rows[2].innerHTML = `<small>Unrealized P/L</small><b>${signedMoney(pnl)}</b><strong class="${pnl < 0 ? "negative" : "positive"}">${totalUsd ? signedPct((pnl / totalUsd) * 100) : "+0.0%"}</strong>`;
-  if (rows[3]) rows[3].querySelector("b").textContent = String(liveHistoryPoints.length || 0);
+  const unavailable = `<b>Unavailable</b><strong>—</strong>`;
+  if (rows[0]) rows[0].innerHTML = `<small>Best performer</small>${valid.length ? `<b>${escapeHtml(best.name)}</b><strong class="positive">${signedPct(best.change)}</strong>` : unavailable}`;
+  if (rows[1]) rows[1].innerHTML = `<small>Weakest performer</small>${valid.length ? `<b>${escapeHtml(worst.name)}</b><strong class="negative">${signedPct(worst.change)}</strong>` : unavailable}`;
+  if (rows[2]) rows[2].innerHTML = `<small>Unrealized P/L</small>${performers.length ? `<b>${signedMoney(pnl)}</b><strong class="${pnl < 0 ? "negative" : "positive"}">${totalUsd ? signedPct((pnl / totalUsd) * 100) : "—"}</strong>` : unavailable}`;
+  const history = liveHistoryByRange.get(activePortfolioRange()) || liveHistoryPoints;
+  if (rows[3]) rows[3].innerHTML = `<small>Snapshots</small><b>${history.length}</b><strong>${history.length > 1 ? "History ready" : "Waiting for history"}</strong>`;
+  const historyState = document.getElementById("analyticsHistoryState");
+  if (historyState) historyState.textContent = history.length > 1 ? `${history.length} verified portfolio snapshots.` : "Analytics will appear after at least two real portfolio snapshots.";
+  renderAnalyticsBreakdown(totalUsd);
   renderAnalyticsChart();
+}
+
+function renderAnalyticsBreakdown(totalUsd = homePortfolioValue) {
+  const mount = document.getElementById("analyticsBreakdown");
+  if (!mount) return;
+  const categories = [
+    ["Tokens", Number(allocationState.tokens || 0), "token-bg"],
+    ["Gifts", Number(allocationState.gifts || 0), "gift-bg"],
+    ["Stickers", Number(allocationState.stickers || 0), "sticker-bg"],
+    ["Domains", Number(allocationState.dns || 0), "domain-bg"],
+    ["Numbers", Number(allocationState.anonymousNumbers || 0), "number-bg"],
+    ["Usernames", Number(allocationState.usernames || 0), "username-bg"],
+  ].filter(([, value]) => value > 0);
+  const count = document.getElementById("analyticsCategoryCount");
+  if (count) count.textContent = `${categories.length} ${categories.length === 1 ? "category" : "categories"}`;
+  if (!categories.length || totalUsd <= 0) {
+    mount.innerHTML = `<p class="utility-empty-copy">${liveWalletAddress ? "Verified category values are not available yet." : "Connect a wallet to see its allocation."}</p>`;
+    return;
+  }
+  mount.innerHTML = categories.map(([label, value, tone]) => {
+    const share = Math.max(0, Math.min(100, (value / totalUsd) * 100));
+    return `<article><div><span class="allocation-swatch ${tone}"></span><b>${label}</b><small>${share.toFixed(1)}%</small></div><strong>${money(value)}</strong><span class="utility-meter"><i class="${tone}" style="width:${share.toFixed(2)}%"></i></span></article>`;
+  }).join("");
+}
+
+const WATCHLIST_STORAGE_KEY = "tontrack:watchlist:v1";
+function watchlistIds() {
+  try { return JSON.parse(localStorage.getItem(WATCHLIST_STORAGE_KEY) || "[]").filter(Boolean); } catch { return []; }
+}
+function setWatchlistIds(ids) { localStorage.setItem(WATCHLIST_STORAGE_KEY, JSON.stringify([...new Set(ids)].slice(0, 100))); }
+function watchlistAsset(id) {
+  const detail = assetDetails[id];
+  if (detail) return { id, name: detail.name || detail.symbol || "Asset", type: detail.type || "asset", value: detail.valueUsd ?? detail.floorUsd ?? null, image: detail.image || detail.preview || "" };
+  return null;
+}
+function renderWatchlist() {
+  const mount = document.getElementById("watchlistRows");
+  if (!mount) return;
+  const entries = watchlistIds().map(watchlistAsset).filter(Boolean);
+  document.getElementById("watchlistCount")?.replaceChildren(`${entries.length} ${entries.length === 1 ? "asset" : "assets"}`);
+  if (!entries.length) {
+    mount.innerHTML = `<article class="portfolio-empty-state"><span class="asset-icon"><i data-lucide="radar"></i></span><div><b>Your watchlist is empty</b><small>Open an asset and tap the bookmark to follow it.</small></div></article>`;
+  } else {
+    mount.innerHTML = entries.map((item) => `<article class="watchlist-row" data-screen-target="detail" data-asset="${escapeHtml(item.id)}"><span class="asset-icon ${escapeHtml(item.type)}-bg">${item.image ? `<img src="${escapeHtml(resolveTokenImage(item.image))}" alt="" loading="lazy">` : `<i data-lucide="gem"></i>`}</span><div><b>${escapeHtml(item.name)}</b><small>${escapeHtml(item.type)}</small></div><aside><b>${Number.isFinite(Number(item.value)) ? money(Number(item.value)) : "Unavailable"}</b><button type="button" data-watchlist-remove="${escapeHtml(item.id)}" aria-label="Remove ${escapeHtml(item.name)} from watchlist"><i data-lucide="x"></i></button></aside></article>`).join("");
+  }
+  window.lucide?.createIcons();
+}
+
+function syncWatchlistButton() {
+  const button = document.querySelector("[data-watchlist-toggle]");
+  if (!button) return;
+  const id = currentDetailAssetId();
+  const saved = id && watchlistIds().includes(id);
+  button.classList.toggle("is-active", Boolean(saved));
+  button.setAttribute("aria-label", saved ? "Remove asset from watchlist" : "Add asset to watchlist");
+  button.title = saved ? "Remove from watchlist" : "Add to watchlist";
+}
+
+function renderSettingsSummary() {
+  const name = document.getElementById("settingsWalletName");
+  const address = document.getElementById("settingsWalletAddress");
+  if (name) name.textContent = liveWalletData?.account?.tonName || (liveWalletAddress ? "Connected wallet" : "No wallet connected");
+  if (address) address.textContent = liveWalletAddress ? truncateWalletAddress(liveWalletAddress) : "Connect a wallet to manage its portfolio.";
 }
 
 function resolveTokenImage(url) {
   if (!url) return "";
   const value = String(url);
-  if (value.includes("ton.org/download/ton_symbol.png")) return TON_LOGO_URL;
+  if (value.includes("ton.org/download/ton_symbol.png")) return GRAM_TOKEN_IMAGE_URL;
   return value.startsWith("ipfs://") ? `https://ipfs.io/ipfs/${value.slice(7)}` : value;
 }
 
@@ -6146,6 +6297,7 @@ function settledValue(result, fallback = null) {
 
 function parsePct(value) {
   const cleaned = String(value ?? "").replace("−", "-").replace("%", "").trim();
+  if (!cleaned) return NaN;
   const number = Number(cleaned);
   return Number.isFinite(number) ? number : NaN;
 }
@@ -6168,7 +6320,7 @@ function cleanTokenWord(value = "") {
 }
 
 function isNativeTonImpostor(token = {}) {
-  if (token.id === "toncoin" || token.category === "Native TON") return false;
+  if (token.id === "toncoin" || token.category === "Native GRAM" || token.category === "Native TON") return false;
   const symbol = cleanTokenWord(token.symbol);
   const name = cleanTokenWord(token.name);
   return ["TON", "TONS", "TONCOIN"].includes(symbol) || ["TON", "TONS", "TONCOIN"].includes(name);
@@ -6179,24 +6331,21 @@ function isGenericJettonPlaceholder(token = {}) {
 }
 
 function isDisplayableToken(token = {}) {
-  if (token.category === "Native TON" || token.symbol === "TON") {
+  if (token.category === "Native GRAM" || token.category === "Native TON" || token.id === "toncoin") {
     return Number(token.balance || 0) > 0 && !isNativeTonImpostor(token);
   }
   const balance = Number(token.balance || 0);
-  const priceUsd = Number(token.priceUsd || 0);
-  const valueUsd = Number(token.valueUsd || 0);
-  const verification = String(token.verification || "").toLowerCase();
-  if (!(balance > 0) || isNativeTonImpostor(token) || isGenericJettonPlaceholder(token)) return false;
-  if (String(token.qualityStatus || "").toLowerCase() === "blocked") return false;
-  if (/ignored unverified/i.test(String(token.rateWarning || ""))) return false;
-  if (priceUsd > 0) return Number.isFinite(valueUsd) && valueUsd >= 0.1;
-  if (verification === "whitelist") return true;
-  return false;
+  if (!(balance > 0) || isNativeTonImpostor(token)) return false;
+  return String(token.qualityReason || "").toLowerCase() !== "blacklisted";
+}
+
+function isNativeGramToken(token = {}) {
+  return token.id === "toncoin" || token.category === "Native GRAM" || token.category === "Native TON";
 }
 
 function tokenRowSort(a, b) {
-  if (a.symbol === "TON") return -1;
-  if (b.symbol === "TON") return 1;
+  if (isNativeGramToken(a)) return -1;
+  if (isNativeGramToken(b)) return 1;
   const stableRank = (token) => ["USDT", "USD₮", "JUSDT", "USDC", "JUSDC"].includes(String(token.symbol || "").toUpperCase()) ? 0 : 1;
   const rankDiff = stableRank(a) - stableRank(b);
   if (rankDiff) return rankDiff;
@@ -6281,7 +6430,7 @@ function renderTokenRows(tokens) {
       statTwo: tokenPriceLabel(token.priceUsd),
       statThreeLabel: "Value",
       statThree: money(token.valueUsd),
-      pnl: Number.isFinite(token.change24h) ? signedPct(token.change24h) : "0.00%",
+      pnl: Number.isFinite(token.change24h) ? signedPct(token.change24h) : "—",
       history: "Imported from connected TON wallet",
       link: "Explorer",
       chart: [token.valueUsd * 0.94, token.valueUsd * 0.98, token.valueUsd * 0.96, token.valueUsd],
@@ -6292,8 +6441,11 @@ function renderTokenRows(tokens) {
     const changeClass = Number(token.change24h) < 0 ? "negative" : Number(token.change24h) > 0 ? "positive" : "";
     const hasPrice = Number(token.priceUsd || 0) > 0;
     const changeText = Number.isFinite(token.change24h) && hasPrice ? signedPct(token.change24h) : "—";
-    const valueLabel = Number(token.valueUsd || 0) > 0 ? money(token.valueUsd) : "—";
-    return `<article data-screen-target="detail" data-asset="${escapeHtml(token.id)}">${renderTokenLogo(token)}<div><b>${escapeHtml(token.name)}</b><small class="token-price-line"><span>${tokenPriceLabel(token.priceUsd)}</span><span class="${changeClass}">${changeText}</span></small></div><aside><b>${valueLabel}</b><small>${escapeHtml(tokenBalanceLabel(token))}</small></aside></article>`;
+    const valueLabel = Number(token.valueUsd || 0) > 0 ? money(token.valueUsd) : "Unavailable";
+    const priceStatus = Number(token.priceUsd || 0) > 0
+      ? tokenPriceLabel(token.priceUsd)
+      : (String(token.verification || "").toLowerCase() === "whitelist" ? "Price unavailable" : "Unverified token");
+    return `<article data-screen-target="detail" data-asset="${escapeHtml(token.id)}">${renderTokenLogo(token)}<div><b>${escapeHtml(token.name)}</b><small class="token-price-line"><span>${escapeHtml(priceStatus)}</span><span class="${changeClass}">${changeText}</span></small></div><aside><b>${valueLabel}</b><small>${escapeHtml(tokenBalanceLabel(token))}</small></aside></article>`;
   }).join("");
   syncPortfolioFromDisplayedTokens(sortedTokens);
   syncAssetsSummary(liveWalletData, sortedTokens);
@@ -6305,7 +6457,7 @@ function renderTokenRows(tokens) {
 }
 
 function updateHomeTokenWidgets(tokens = latestVisibleTokens) {
-  const validTokens = [...tokens].filter((token) => Number.isFinite(Number(token.change24h)));
+  const validTokens = [...tokens].filter((token) => Number(token.priceUsd || 0) > 0 && Number.isFinite(Number(token.change24h)));
   const top = validTokens.length ? validTokens.reduce((best, token) => Number(token.change24h) > Number(best.change24h) ? token : best, validTokens[0]) : tokens[0];
   const worst = validTokens.length ? validTokens.reduce((low, token) => Number(token.change24h) < Number(low.change24h) ? token : low, validTokens[0]) : tokens[0];
   const cards = document.querySelectorAll('[data-screen="home"] .performer-row article');
@@ -6317,8 +6469,17 @@ function updateHomeTokenWidgets(tokens = latestVisibleTokens) {
     const image = resolveTokenImage(token.image);
     card.dataset.screenTarget = "detail";
     card.dataset.asset = token.id;
-    card.innerHTML = `<small>${label}</small><span class="performer-asset-line">${image ? `<img src="${escapeHtml(image)}" alt="${escapeHtml(token.symbol || token.name)}" onerror="this.replaceWith(document.createTextNode('${symbol}'));">` : `<em>${symbol}</em>`}<b>${escapeHtml(token.name || token.symbol || "TON Token")}</b></span><strong class="${tone}">${Number.isFinite(change) ? signedPct(change) : "0.0%"}</strong>`;
+    card.innerHTML = `<small>${label}</small><span class="performer-asset-line">${image ? `<img src="${escapeHtml(image)}" alt="${escapeHtml(token.symbol || token.name)}" onerror="this.replaceWith(document.createTextNode('${symbol}'));">` : `<em>${symbol}</em>`}<b>${escapeHtml(token.name || token.symbol || "Token")}</b></span><strong class="${Number.isFinite(change) ? tone : ""}">${Number.isFinite(change) ? signedPct(change) : "—"}</strong>`;
   };
+  if (!top || !worst) {
+    cards.forEach((card, index) => {
+      if (!card) return;
+      card.removeAttribute("data-screen-target");
+      card.removeAttribute("data-asset");
+      card.innerHTML = `<small>${index === 0 ? "Top performer" : "Weakest performer"}</small><span class="performer-asset-line"><em>—</em><b>Movement unavailable</b></span><strong>—</strong>`;
+    });
+    return;
+  }
   apply(cards[0], top, "Top Performer");
   apply(cards[1], worst, "Worst Performer");
 }
@@ -6336,23 +6497,24 @@ function importedWalletTokenFallbacks(data = liveWalletData, tonPriceUsd = usdTo
   if (tonBalance > 0) {
     tokens.push({
       id: "toncoin",
-      name: "Toncoin",
-      symbol: "TON",
+      name: "GRAM",
+      symbol: "GRAM",
       balance: tonBalance,
       priceUsd: tonPriceUsd,
       valueUsd: tonBalance * tonPriceUsd,
       change24h: NaN,
-      image: TON_LOGO_URL,
-      category: "Native TON",
+      image: GRAM_TOKEN_IMAGE_URL,
+      category: "Native GRAM",
       marketTrusted: true,
     });
   }
   (data?.assets?.jettons || []).forEach((jetton, index) => {
     const balance = Number(jetton.balance || 0);
     const priceUsd = Number(jetton.priceUsd || (balance ? Number(jetton.valueUsd || 0) / balance : 0));
+    const contract = String(jetton.address || jetton.masterAddress || jetton.jettonAddress || "").trim().toLowerCase();
     tokens.push({
-      id: `live-jetton-${index}`,
-      address: jetton.address,
+      id: contract ? `live-jetton-${contract}` : `live-jetton-${index}`,
+      address: contract || jetton.address,
       name: jetton.name || jetton.symbol || `Jetton ${index + 1}`,
       symbol: jetton.symbol || `JET${index + 1}`,
       balance,
@@ -6400,9 +6562,9 @@ function renderTokenLoadingState() {
   )).join("");
 }
 
-function renderTokenEmptyState(message = "No token balances above $0.10") {
+function renderTokenEmptyState(message = "No token balances found") {
   const list = document.querySelector('[data-screen="tokens"] .holdings-list');
-  if (list) list.innerHTML = `<article><span class="asset-icon token-bg"><i data-lucide="coins"></i></span><div><b>${escapeHtml(message)}</b><small>Connect a wallet or try again later.</small></div><aside><b>${money(0)}</b><small></small></aside></article>`;
+  if (list) list.innerHTML = `<article><span class="asset-icon token-bg"><i data-lucide="coins"></i></span><div><b>${escapeHtml(message)}</b><small>Connect a wallet or try again later.</small></div><aside><b>—</b><small></small></aside></article>`;
   renderTokenSummary([]);
   syncAssetsSummary(liveWalletData, []);
   updateHomeTokenWidgets([]);
@@ -6434,8 +6596,8 @@ async function updateTokensFromWallet(data, options = {}) {
   let tokens = importedWalletTokenFallbacks(sourceData).filter(isDisplayableToken);
   const reportedTokenCount = Number(sourceData?.summary?.tokenCount || 0);
   const importedJettonCount = Array.isArray(sourceData?.assets?.jettons) ? sourceData.assets.jettons.length : 0;
-  const visibleJettonCount = tokens.filter((token) => token.symbol !== "TON").length;
-  if ((reportedTokenCount > tokens.length || importedJettonCount > visibleJettonCount) && visibleJettonCount === 0) {
+  const visibleJettonCount = tokens.filter((token) => !isNativeGramToken(token)).length;
+  if (reportedTokenCount > tokens.length || importedJettonCount > visibleJettonCount) {
     try {
       const freshData = await fetchWalletImport(walletAddress);
       if (!isCurrentImportSession(importSessionId) || walletStateKey(liveWalletAddress) !== walletKey) return [];
@@ -6451,8 +6613,8 @@ async function updateTokensFromWallet(data, options = {}) {
   }
   if (!isCurrentImportSession(importSessionId) || walletStateKey(liveWalletAddress) !== walletKey) return [];
   if (tokens.length) renderTokenRows(tokens);
-  else renderTokenEmptyState("No token balances above $0.10");
-  const jettonCount = Math.max(0, tokens.length - (tokens.some((token) => token.symbol === "TON") ? 1 : 0));
+  else renderTokenEmptyState("No token balances found");
+  const jettonCount = Math.max(0, tokens.length - (tokens.some(isNativeGramToken) ? 1 : 0));
   setSectionReady("tokens", tokens.length ? `Tokens ready${jettonCount ? ` · ${jettonCount} jettons loaded` : ""}` : "Token screen is ready");
   return tokens;
 }
@@ -7132,8 +7294,7 @@ function activityRowsHtml(events = [], limit = 5, emptyText = "No TON activity f
   const usableEvents = events.map((event) => {
     const action = event.actions?.find((item) => item.simplePreview?.value) || event.actions?.[0];
     const preview = action?.simplePreview || {};
-    let value = String(preview.value || preview.description?.replace(/^Swapping\s+/i, "").replace(/\s+for\s+/i, " → ") || "On-chain");
-    if (/nft|gift|sticker/i.test(`${action?.type || ""} ${preview.name || ""} ${value}`)) return null;
+    let value = nativeCurrencyDisplayText(preview.value || preview.description?.replace(/^Swapping\s+/i, "").replace(/\s+for\s+/i, " → ") || "On-chain");
     const tonMatch = value.match(/[-+]?\d+(?:\.\d+)?\s*TON/i);
     if (tonMatch && Math.abs(Number.parseFloat(tonMatch[0])) <= 0) return null;
     const isNegative = /^\s*-/.test(value);
@@ -7143,7 +7304,7 @@ function activityRowsHtml(events = [], limit = 5, emptyText = "No TON activity f
     const valueParts = value.split(/\s+→\s+/);
     return {
       label: direction,
-      description: preview.name || action?.type || "TON activity",
+      description: nativeCurrencyDisplayText(preview.name || action?.type || "On-chain activity"),
       value,
       valueHtml: valueParts.length > 1
         ? `${escapeHtml(valueParts[0])}<span>${escapeHtml(`→ ${valueParts.slice(1).join(" → ")}`)}</span>`
@@ -7167,7 +7328,8 @@ function activityRowsHtml(events = [], limit = 5, emptyText = "No TON activity f
       ? `<div class="activity-date-header micro">${escapeHtml(event.group)}</div>`
       : "";
     if (event.group) lastGroup = event.group;
-    return `${group}<article class="activity-row" data-activity-direction="${escapeHtml(event.direction)}" data-tx-hash="${escapeHtml(event.hash)}"><span class="activity-dot token-bg"><i data-lucide="${event.icon}"></i></span><div><b>${escapeHtml(event.label)}</b><small>${escapeHtml(event.time)}</small></div><aside><strong class="${event.tone}">${event.valueHtml}</strong>${event.usdValue ? `<small class="activity-usd">${escapeHtml(event.usdValue)}</small>` : ""}</aside></article>`;
+    const context = event.counterparty ? `${event.description} · ${truncateWalletAddress(event.counterparty)}` : event.description;
+    return `${group}<article class="activity-row" data-activity-direction="${escapeHtml(event.direction)}" data-tx-hash="${escapeHtml(event.hash)}"><span class="activity-dot token-bg"><i data-lucide="${event.icon}"></i></span><div><b>${escapeHtml(event.label)}</b><small>${escapeHtml(context)}</small><small>${escapeHtml(event.time)}</small></div><aside><strong class="${event.tone}">${event.valueHtml}</strong>${event.usdValue ? `<small class="activity-usd">${escapeHtml(event.usdValue)}</small>` : ""}</aside></article>`;
   }).join("");
 }
 
@@ -7175,6 +7337,13 @@ function renderFullActivity(events = []) {
   const list = document.querySelector('[data-screen="activity"] .holdings-list');
   if (!list) return;
   fullActivityEvents = events;
+  const directions = events.map((event) => {
+    const action = event.actions?.find((item) => item.simplePreview?.direction) || event.actions?.[0];
+    return action?.simplePreview?.direction || (/swap|jettonswap/i.test(`${action?.type || ""}`) ? "Swap" : "");
+  });
+  document.getElementById("activityTotalCount")?.replaceChildren(String(events.length));
+  document.getElementById("activityReceivedCount")?.replaceChildren(String(directions.filter((item) => item === "Received").length));
+  document.getElementById("activitySentCount")?.replaceChildren(String(directions.filter((item) => item === "Sent").length));
   const query = activitySearchTerm.trim().toLowerCase();
   const filtered = activityFilterMode === "All"
     ? events
@@ -7217,17 +7386,16 @@ function txRowsHtml(detail = {}) {
   const rows = [
     [partyLabel, partyName || truncateWalletAddress(partyValue || detail.recipientAddress || "")],
     [`${partyLabel} Address`, partyValue || detail.recipientAddress],
-    ["Fee", detail.gasFee],
+    ["Fee", nativeCurrencyDisplayText(detail.gasFee || "")],
   ];
   return rows.map(([label, value]) => `<article><small>${escapeHtml(label)}</small><b>${escapeHtml(value || "")}</b></article>`).join("");
 }
 
 function txLogoHtml(item = {}) {
-  const symbol = escapeHtml((item.symbol || "TOK").slice(0, 3).toUpperCase());
-  const tonFallback = "https://asset.ston.fi/img/EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c/c8d21a3d93f9b574381e0a8d8f16d48b325dd8f54ce172f599c1e9d6c62f03f7";
-  const isTon = String(item.symbol || "").toUpperCase() === "TON";
-  const image = isTon ? tonFallback : resolveTokenImage(item.image || "");
-  const fallback = isTon ? tonFallback : "";
+  const isNativeGram = /^(TON|TONCOIN|GRAM)$/i.test(String(item.symbol || ""));
+  const symbol = escapeHtml(isNativeGram ? "GRAM" : (item.symbol || "TOK").slice(0, 3).toUpperCase());
+  const image = isNativeGram ? GRAM_TOKEN_IMAGE_URL : resolveTokenImage(item.image || "");
+  const fallback = isNativeGram ? GRAM_TOKEN_IMAGE_URL : "";
   return image
     ? `<span><img src="${escapeHtml(image)}" alt="${symbol}" data-fallback="${escapeHtml(fallback)}" data-symbol="${symbol}" onerror="if(this.dataset.fallback&&this.src!==this.dataset.fallback){this.src=this.dataset.fallback}else{this.parentElement.textContent=this.dataset.symbol}"></span>`
     : `<span>${symbol}</span>`;
@@ -7240,10 +7408,11 @@ function renderTxSheet(detail = {}) {
   logoStack.classList.toggle("is-single", !isSwap);
   logoStack.innerHTML = logos.map(txLogoHtml).join("");
   const amountTitle = document.getElementById("txAmountTitle");
-  const amountParts = String(detail.amount || "0 TON").split(/\s*→\s*/);
+  const displayAmount = nativeCurrencyDisplayText(detail.amount || "0 GRAM");
+  const amountParts = displayAmount.split(/\s*→\s*/);
   amountTitle.innerHTML = isSwap && amountParts.length > 1
     ? `<span class="tx-swap-sent">−${escapeHtml(amountParts[0])}</span><span class="tx-swap-received">+${escapeHtml(amountParts.slice(1).join(" → "))}</span>`
-    : escapeHtml(detail.amount || "0 TON");
+    : escapeHtml(displayAmount);
   document.getElementById("txUsdValue").textContent = isSwap ? "" : (detail.usdValue || "n/a");
   document.getElementById("txSubtitle").textContent = `${detail.type || "Transaction"} · ${detail.timestamp ? formatActivityDate(detail.timestamp) : ""}`;
   document.getElementById("txDetailList").innerHTML = txRowsHtml(detail);
@@ -7268,7 +7437,7 @@ function txSeedFromHash(hash) {
   return {
     hash,
     type: preview.direction || "Transaction",
-    amount: signedActivityValue(preview.value || "0 TON", preview.direction || ""),
+    amount: signedActivityValue(preview.value || "0 GRAM", preview.direction || ""),
     usdValue: preview.usdValue || "$0.00",
     sender: preview.sender || "",
     senderName: preview.senderName || "",
@@ -7302,13 +7471,17 @@ async function openTxSheet(hash) {
 
 async function loadFullActivity() {
   const list = document.querySelector('[data-screen="activity"] .holdings-list');
-  if (!list || !liveWalletAddress) return;
+  if (!list) return;
+  if (!liveWalletAddress) {
+    renderFullActivity([]);
+    return;
+  }
   if (fullActivityEvents.length) {
     renderFullActivity(fullActivityEvents);
     preloadFullActivityBackground(liveWalletAddress);
     return;
   }
-  list.innerHTML = `<article class="activity-row"><span class="activity-dot token-bg skeleton"></span><div><b>Preparing activity...</b><small>Resolving wallet names</small></div><aside><strong></strong></aside></article>`;
+  list.innerHTML = Array.from({ length: 4 }, () => `<article class="activity-row activity-skeleton-row"><span class="activity-dot token-bg skeleton"></span><div><b class="skeleton">&nbsp;</b><small class="skeleton">&nbsp;</small></div><aside><strong class="skeleton">&nbsp;</strong></aside></article>`).join("");
   await startActivityPreload(liveWalletAddress);
 }
 
@@ -7324,12 +7497,13 @@ async function startActivityPreload(address) {
   activityInitialLoading = true;
   setSectionLoading("activity", "Loading wallet activity...");
   try {
-    const payload = await requestJson(`/api/wallet/activity?address=${encodeURIComponent(address)}&limit=200&t=${Date.now()}`, {}, "Could not load activity");
+    const payload = await requestJson(`/api/wallet/activity?address=${encodeURIComponent(address)}&limit=300`, {}, "Could not load activity");
     if (address === activityPreloadAddress) {
       fullActivityEvents = payload.activity || [];
       renderActivityRows(fullActivityEvents, HOME_ACTIVITY_LIMIT);
       if (document.querySelector('[data-screen="activity"].is-active')) renderFullActivity(fullActivityEvents);
-      preloadFullActivityBackground(address);
+      const activeDetail = assetDetails[currentDetailAssetId()];
+      if (activeDetail?.type === "token" && document.querySelector('[data-screen="detail"].is-active')) renderTokenActivity(activeDetail);
       setSectionReady("activity", `Activity ready · ${fullActivityEvents.length} transactions loaded`);
     }
   } catch (error) {
@@ -7345,20 +7519,12 @@ async function startActivityPreload(address) {
 }
 
 async function preloadFullActivityBackground(address) {
-  if (activityBackgroundLoading) return;
-  activityBackgroundLoading = true;
-  try {
-    const payload = await requestJson(`/api/wallet/activity?address=${encodeURIComponent(address)}&limit=1000&t=${Date.now()}`, {}, "Could not load background activity");
-    if (address === liveWalletAddress && payload.activity?.length > fullActivityEvents.length) {
-      fullActivityEvents = payload.activity;
-      renderActivityRows(fullActivityEvents, HOME_ACTIVITY_LIMIT);
-      if (document.querySelector('[data-screen="activity"].is-active')) renderFullActivity(fullActivityEvents);
-    }
-  } catch (error) {
-    console.warn("Background activity load failed", error);
-  } finally {
-    activityBackgroundLoading = false;
-  }
+  if (!address || address !== liveWalletAddress || !fullActivityEvents.length) return;
+  renderActivityRows(fullActivityEvents, HOME_ACTIVITY_LIMIT);
+}
+
+function nativeCurrencyDisplayText(value = "") {
+  return String(value).replace(/\bToncoin\b/gi, "GRAM").replace(/\bTON\b/g, "GRAM");
 }
 
 function compactMoney(value) {
@@ -7370,14 +7536,16 @@ function renderDonut(progress = 1) {
   const host = document.getElementById("donut-chart") || document.querySelector(".allocation-donut") || document.querySelector(".donut-chart");
   if (!host) return;
   const values = [allocationState.gifts, allocationState.tokens, allocationState.stickers, allocationState.dns, allocationState.anonymousNumbers, allocationState.usernames];
-  const labels = ["Gifts", "TON Tokens", "Stickers", "TON DNS", "Anon Numbers", "Usernames"];
+  const labels = ["Gifts", "GRAM & Jettons", "Stickers", "TON DNS", "Anon Numbers", "Usernames"];
   const total = values.reduce((sum, value) => sum + Math.max(0, Number(value || 0)), 0);
   const selectedValue = selectedAllocation === null ? total : values[selectedAllocation];
   const centerValue = host.querySelector("span");
-  if (centerValue) centerValue.textContent = compactMoney(selectedValue);
+  const hasPortfolioSource = walletConnected || telegramConnected;
+  const centerLabel = hasPortfolioSource || total > 0 ? compactMoney(selectedValue) : "—";
+  if (centerValue) centerValue.textContent = centerLabel;
   host.setAttribute("aria-label", selectedAllocation === null
-    ? `Portfolio allocation, total ${compactMoney(total)}`
-    : `${labels[selectedAllocation]} allocation, ${compactMoney(selectedValue)}`);
+    ? `Portfolio allocation, total ${centerLabel}`
+    : `${labels[selectedAllocation]} allocation, ${centerLabel}`);
   const styles = getComputedStyle(document.documentElement);
   Charts.renderDonut(host, values, {
     progress,
@@ -7393,9 +7561,16 @@ function renderDonut(progress = 1) {
       "#64d6d2",
     ],
   });
+  const allocationColors = [
+    styles.getPropertyValue("--blue").trim() || "#2e79ff",
+    styles.getPropertyValue("--mint").trim() || "#68d69d",
+    styles.getPropertyValue("--amber").trim() || "#d6bd68",
+    "#8b7cff", "#ef8c73", "#64d6d2",
+  ];
   const legendItems = document.querySelectorAll(".allocation-list article");
   document.querySelector(".allocation-list")?.classList.toggle("is-filtered", selectedAllocation !== null);
   legendItems.forEach((item, index) => {
+    item.querySelector(".legend-pill")?.style.setProperty("background", allocationColors[index]);
     const selected = selectedAllocation === index;
     item.classList.toggle("is-selected", selected);
     item.setAttribute("aria-pressed", String(selected));
@@ -7468,8 +7643,14 @@ function rangePnl(range) {
 function resetPortfolioHeader(range = document.querySelector("[data-range].is-active")?.dataset.range || "1D") {
   const title = document.querySelector('[data-screen="home"] .graph-head h1');
   const badge = document.querySelector('[data-screen="home"] .portfolio-actions-row span');
-  if (title) title.textContent = money(homePortfolioValue);
+  const hasPortfolioSource = walletConnected || telegramConnected;
+  if (title) title.textContent = hasPortfolioSource || homePortfolioValue > 0 ? money(homePortfolioValue) : "—";
   if (badge) {
+    if (!hasPortfolioSource && homePortfolioValue <= 0) {
+      badge.textContent = "Movement unavailable";
+      badge.classList.remove("negative");
+      return;
+    }
     const { delta, pct } = rangePnl(range);
     badge.textContent = `${signedMoney(delta)} | ${pct >= 0 ? "+" : ""}${pct.toFixed(2)}%`;
     badge.classList.toggle("negative", delta < 0);
@@ -7490,7 +7671,7 @@ const originalText = new WeakMap();
 
 function formatTonFromUsd(usd, sign = "") {
   const ton = usd / usdTonRate;
-  const label = ton >= 1000 ? `${(ton / 1000).toFixed(2)}K TON` : `${ton.toFixed(2)} TON`;
+  const label = ton >= 1000 ? `${(ton / 1000).toFixed(2)}K GRAM` : `${ton.toFixed(2)} GRAM`;
   return `${sign}${label}`;
 }
 
@@ -7515,15 +7696,17 @@ function applyCurrencyDisplay() {
           return formatTonFromUsd(value, sign);
         });
   });
-  document.getElementById("currencySettingLabel")?.replaceChildren(`Currency: ${displayCurrency}`);
+  document.getElementById("currencySettingLabel")?.replaceChildren(`Currency: ${displayCurrency === "TON" ? "GRAM" : displayCurrency}`);
   document.querySelectorAll("[data-currency-option]").forEach((option) => {
-    option.classList.toggle("is-active", option.dataset.currencyOption === displayCurrency);
+    const internalCurrency = option.dataset.currencyOption === "GRAM" ? "TON" : option.dataset.currencyOption;
+    option.classList.toggle("is-active", internalCurrency === displayCurrency);
   });
 }
 
 function setCurrency(currency) {
-  displayCurrency = currency;
-  priceMode = currency;
+  const internalCurrency = currency === "GRAM" ? "TON" : currency;
+  displayCurrency = internalCurrency;
+  priceMode = internalCurrency;
   renderCollectibleGrids();
   renderFeaturedCollectibles();
   const activeAsset = document.querySelector("#detailName")?.dataset.asset;
@@ -7537,10 +7720,74 @@ function renderAnalyticsChart() {
   const canvas = analyticsScreen?.querySelector(".value-graph canvas");
   if (!canvas) return;
   const activeHistory = liveHistoryByRange.get(activePortfolioRange()) || liveHistoryPoints;
+  const graph = canvas.closest(".value-graph");
+  if (graph) graph.hidden = activeHistory.length < 2;
+  if (activeHistory.length < 2) return;
   Charts.renderConfigured("analytics", activeHistory, { element: canvas });
 }
 
 document.addEventListener("click", (event) => {
+  const watchlistRemove = event.target.closest("[data-watchlist-remove]");
+  if (watchlistRemove) {
+    event.preventDefault();
+    event.stopPropagation();
+    setWatchlistIds(watchlistIds().filter((id) => id !== watchlistRemove.dataset.watchlistRemove));
+    renderWatchlist();
+    syncWatchlistButton();
+    return;
+  }
+  const watchlistToggle = event.target.closest("[data-watchlist-toggle]");
+  if (watchlistToggle) {
+    event.preventDefault();
+    const id = currentDetailAssetId();
+    if (!id || !assetDetails[id]) return;
+    const ids = watchlistIds();
+    setWatchlistIds(ids.includes(id) ? ids.filter((item) => item !== id) : [...ids, id]);
+    syncWatchlistButton();
+    renderWatchlist();
+    return;
+  }
+  const portfolioRefreshButton = event.target.closest("[data-refresh-portfolio]");
+  if (portfolioRefreshButton) {
+    event.preventDefault();
+    portfolioRefreshButton.classList.add("is-loading");
+    Promise.resolve(refreshActivePortfolio({ triggerButton: portfolioRefreshButton })).finally(() => portfolioRefreshButton.classList.remove("is-loading"));
+    return;
+  }
+  const activityRefreshButton = event.target.closest("[data-refresh-activity]");
+  if (activityRefreshButton) {
+    event.preventDefault();
+    if (!liveWalletAddress) {
+      renderFullActivity([]);
+      return;
+    }
+    activityPreloadAddress = "";
+    fullActivityEvents = [];
+    activityRefreshButton.classList.add("is-loading");
+    Promise.resolve(startActivityPreload(liveWalletAddress)).finally(() => activityRefreshButton.classList.remove("is-loading"));
+    return;
+  }
+  const detailRefreshButton = event.target.closest("[data-refresh-detail]");
+  if (detailRefreshButton) {
+    event.preventDefault();
+    const detail = assetDetails[currentDetailAssetId()];
+    if (!detail) return;
+    detailRefreshButton.classList.add("is-loading");
+    const refresh = detail.type === "gift"
+      ? loadGiftDetail(detail, { forceRefresh: true })
+      : detail.type === "sticker"
+        ? loadStickerDetail(detail, { forceRefresh: true })
+        : refreshActivePortfolio({ triggerButton: detailRefreshButton });
+    Promise.resolve(refresh).finally(() => detailRefreshButton.classList.remove("is-loading"));
+    return;
+  }
+  const emptyCategory = event.target.closest('[data-screen="assets"] .category-stack article[data-empty-category="true"]');
+  if (emptyCategory?.dataset.marketUrl) {
+    event.preventDefault();
+    event.stopPropagation();
+    window.open(emptyCategory.dataset.marketUrl, "_blank", "noopener,noreferrer");
+    return;
+  }
   const closeGiftTrayButton = event.target.closest("[data-close-gift-pfp-tray]");
   if (closeGiftTrayButton || event.target.classList?.contains("gift-pfp-tray-backdrop")) {
     closeGiftPfpTray();
@@ -7759,16 +8006,30 @@ document.getElementById("txTonscanButton")?.addEventListener("click", () => {
   if (txSheetUrl) window.open(txSheetUrl, "_blank", "noopener,noreferrer");
 });
 document.querySelector("[data-settings-privacy]")?.addEventListener("click", () => {
-  document.querySelector(".app-frame")?.classList.toggle("is-private");
+  const enabled = document.querySelector(".app-frame")?.classList.toggle("is-private");
+  localStorage.setItem("tontrack:privacy", enabled ? "1" : "0");
 });
 document.querySelector("[data-settings-theme]")?.addEventListener("click", (event) => {
   const root = document.documentElement;
   const next = root.dataset.theme === "light" ? "dark" : "light";
   root.dataset.theme = next;
+  localStorage.setItem("tontrack:theme", next);
   event.currentTarget.querySelector("span").textContent = `Theme: ${next[0].toUpperCase()}${next.slice(1)}`;
 });
-document.querySelector("[data-settings-refresh]")?.addEventListener("click", refreshConnectedWallet);
+document.querySelector("[data-settings-refresh]")?.addEventListener("click", refreshActivePortfolio);
 document.querySelector("[data-settings-alerts]")?.addEventListener("click", () => showScreen("watchlist"));
+
+try {
+  const storedTheme = localStorage.getItem("tontrack:theme");
+  if (storedTheme === "light" || storedTheme === "dark") {
+    document.documentElement.dataset.theme = storedTheme;
+    const themeLabel = document.querySelector("[data-settings-theme] span");
+    if (themeLabel) themeLabel.textContent = `Theme: ${storedTheme[0].toUpperCase()}${storedTheme.slice(1)}`;
+  }
+  if (localStorage.getItem("tontrack:privacy") === "1") document.querySelector(".app-frame")?.classList.add("is-private");
+} catch (error) {
+  console.warn("Could not restore local preferences", error);
+}
 document.querySelectorAll("[data-wallet-connect]").forEach((button) => {
   button.addEventListener("click", async () => {
     try {
@@ -7817,8 +8078,8 @@ document.querySelectorAll("[data-range]").forEach((button) => {
     switchPortfolioRange(button.dataset.range);
   });
 });
-document.querySelector(".refresh-button")?.addEventListener("click", () => {
-  if (liveWalletData) refreshConnectedWallet();
+document.querySelector(".refresh-button")?.addEventListener("click", (event) => {
+  if (liveWalletData) refreshActivePortfolio({ triggerButton: event.currentTarget });
   else {
     setLastUpdatedLabel(Date.now());
     renderPortfolioGraph(activePortfolioRange(), true);
@@ -7876,7 +8137,7 @@ document.querySelectorAll("[data-currency-option]").forEach((option) => {
 });
 document.querySelector("#priceToggle")?.addEventListener("click", () => {
   priceMode = priceMode === "USD" ? "TON" : "USD";
-  document.querySelector("#priceToggle").textContent = priceMode;
+  document.querySelector("#priceToggle").textContent = priceMode === "TON" ? "GRAM" : "USD";
   const activeAsset = currentDetailAssetId();
   if (!activeAsset) return;
   const detail = assetDetails[activeAsset];

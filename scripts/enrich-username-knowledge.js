@@ -2,7 +2,7 @@
 
 const fs = require("node:fs");
 const path = require("node:path");
-const { SCHEMA_VERSION, resolveUsernameKnowledge } = require("../lib/username-knowledge");
+const { SCHEMA_VERSION, mergeUsernameKnowledge, resolveUsernameKnowledge } = require("../lib/username-knowledge");
 const { loadLocalEnv, readSales } = require("./username-backtest");
 
 const cachePath = path.join(__dirname, "..", "data", "username-knowledge-cache.json");
@@ -58,10 +58,11 @@ loadLocalEnv();
     while (cursor < pending.length) {
       const name = pending[cursor++];
       try {
-        cache[name] = await Promise.race([
+        const resolved = await Promise.race([
           resolveUsernameKnowledge(name, { fast: fastOnly || !premiumNames.has(name), maxAttempts: 1 }),
           new Promise((_, reject) => setTimeout(() => reject(new Error("item timeout")), timeoutMs)),
         ]);
+        cache[name] = mergeUsernameKnowledge(cache[name], resolved);
       }
       catch (error) { console.warn(`[username-knowledge] ${name}: ${error.message}`); }
       if (!fastOnly && premiumNames.has(name)) await new Promise((resolve) => setTimeout(resolve, 180));

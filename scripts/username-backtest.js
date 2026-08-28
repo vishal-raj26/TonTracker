@@ -38,15 +38,27 @@ async function readSales(limit = 20_000) {
     finalized: true,
     cancelled: false,
     reliabilityScore: Number(row.reliability_score) || 1,
+    knowledge: row.semantic_json || {},
   }));
 }
 
 function applyKnowledge(rows) {
   const cachePath = path.join(__dirname, "..", "data", "username-knowledge-cache.json");
-  if (!fs.existsSync(cachePath)) return rows;
   let cache = {};
-  try { cache = JSON.parse(fs.readFileSync(cachePath, "utf8")); } catch { return rows; }
-  return rows.map((row) => ({ ...row, knowledge: cache[String(row.username || "").toLowerCase()] || {} }));
+  if (fs.existsSync(cachePath)) {
+    try { cache = JSON.parse(fs.readFileSync(cachePath, "utf8")); } catch { cache = {}; }
+  }
+  return rows.map((row) => {
+    let current = row.knowledge;
+    if (typeof current === "string") {
+      try { current = JSON.parse(current); } catch { current = {}; }
+    }
+    if (!current || typeof current !== "object") current = {};
+    return {
+      ...row,
+      knowledge: Object.keys(current).length ? current : (cache[String(row.username || "").toLowerCase()] || {}),
+    };
+  });
 }
 
 async function main() {
@@ -68,7 +80,11 @@ async function main() {
     byConfidence: summary.byConfidence,
     byPriceBand: summary.byPriceBand,
     bySemanticCategory: summary.bySemanticCategory,
+    preparedKnowledgeCoverage: summary.preparedKnowledgeCoverage,
+    byPreparedKnowledgeSignal: summary.byPreparedKnowledgeSignal,
     byOwnSaleHistory: summary.byOwnSaleHistory,
+    byStructuralCohort: summary.byStructuralCohort,
+    premiumCalibration: summary.premiumCalibration,
     largestMisses: summary.largestMisses,
   }, null, 2));
 }

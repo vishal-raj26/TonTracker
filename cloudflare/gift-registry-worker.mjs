@@ -793,7 +793,7 @@ async function readIdentityKnowledgeQueue(env, body = {}) {
   const mode = String(body.mode || "full").toLowerCase();
   if (!["dns", "username"].includes(kind)) return { records: [], configured: true };
   if (!["fast", "full"].includes(mode)) return { records: [], configured: true };
-  const schemaVersion = kind === "dns" ? "dns-knowledge-v1" : "username-knowledge-v4";
+  const schemaVersion = kind === "dns" ? "dns-knowledge-v1" : "username-knowledge-v5";
   const retryCutoff = new Date(Date.now() - (7 * 86400000)).toISOString();
   const attemptedField = mode === "fast" ? "lexicalLookupAttemptedAt" : "entityLookupAttemptedAt";
   const stagePending = mode === "fast"

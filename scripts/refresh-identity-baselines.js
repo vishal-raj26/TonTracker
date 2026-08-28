@@ -104,6 +104,16 @@ function canonicalSale(kind, sale) {
   };
 }
 
+function learnedUsernameSale(sale) {
+  return {
+    normalized_name: sale.normalized_name,
+    price_usd: Number(sale.price_usd),
+    sold_at: Number(sale.sold_at),
+    reliability_score: Number(sale.reliability_score ?? 1),
+    semantic_json: sale.semantic_json || {},
+  };
+}
+
 function rememberOwnSale(assets, sale) {
   const key = String(sale.asset_key || "").toLowerCase();
   if (!key) return;
@@ -189,12 +199,7 @@ async function refreshKind(kind, options = {}) {
       const sale = canonicalSale(kind, sourceSale);
       addComparableGroups(groups, sale);
       if (writeExactValuations) rememberOwnSale(assets, sale);
-      if (kind === "username") learnedSales.push({
-        normalized_name: sale.normalized_name,
-        price_usd: Number(sale.price_usd),
-        sold_at: Number(sale.sold_at),
-        reliability_score: Number(sale.reliability_score ?? 1),
-      });
+      if (kind === "username") learnedSales.push(learnedUsernameSale(sale));
       sales += 1;
     }
     cursor = page.nextCursor;
@@ -309,4 +314,4 @@ if (require.main === module) main().catch((error) => {
   process.exit(1);
 });
 
-module.exports = { LogHistogram, addComparableGroups, boundedTrainingSample, canonicalSale, configureLedger, exactValuation, groupKey, refreshKind, refreshKindFromAggregate };
+module.exports = { LogHistogram, addComparableGroups, boundedTrainingSample, canonicalSale, configureLedger, exactValuation, groupKey, learnedUsernameSale, refreshKind, refreshKindFromAggregate };

@@ -56,7 +56,10 @@ const onlyBackdrop = backdropArgIndex >= 0
   : String(process.env.GIFT_COMBO_BACKDROP || "").trim();
 const limitedScan = Boolean(onlyBackdrop) || maxBackdropSlices > 0;
 const bucketCount = 32;
-const scannerVersion = Math.max(6, Number(process.env.GIFT_COMBO_SCANNER_VERSION || 6));
+// A format bump intentionally discards resumable work from older scanner
+// versions. Reusing those combinations could preserve listings that have
+// already disappeared from the live Thermos snapshot.
+const scannerVersion = Math.max(7, Number(process.env.GIFT_COMBO_SCANNER_VERSION || 7));
 
 if (!registryUrl || !ingestSecret) {
   console.error("D1_REGISTRY_URL and D1_INGEST_SECRET are required");
@@ -604,33 +607,28 @@ async function uploadCollection(snapshot) {
   if (limitedScan) {
     throw new Error("Refusing to upload a limited backdrop scan; use --dry-run or run the full collection scan");
   }
-  let changedBuckets = 0;
-  let uploadedEntries = 0;
-  for (let bucketIndex = 0; bucketIndex < snapshot.buckets.length; bucketIndex += 1) {
-    const bucket = snapshot.buckets[bucketIndex] || {};
-    uploadedEntries += Object.keys(bucket).length;
-    const result = await fetchJson(`${registryUrl}/ingest/collection-bucket`, {
-      method: "POST",
-      headers: { authorization: `Bearer ${ingestSecret}` },
-      body: JSON.stringify({
-        collection: snapshot.collection,
-        snapshotAt: snapshot.snapshotAt,
-        source: snapshot.source,
-        listingCount: snapshot.listingCount,
-        combinationCount: snapshot.combinationCount,
-        bucketIndex,
-        bucket,
-      }),
-    }, 5);
-    if (result.changed) changedBuckets += 1;
-  }
+  const uploadedEntries = snapshot.buckets.reduce((sum, bucket) => sum + Object.keys(bucket || {}).length, 0);
+  // A collection is one market observation. Publishing all of its buckets in
+  // one request prevents a user from reading a half-updated floor registry.
+  const result = await fetchJson(`${registryUrl}/ingest/collection`, {
+    method: "POST",
+    headers: { authorization: `Bearer ${ingestSecret}` },
+    body: JSON.stringify({
+      collection: snapshot.collection,
+      snapshotAt: snapshot.snapshotAt,
+      source: snapshot.source,
+      listingCount: snapshot.listingCount,
+      combinationCount: snapshot.combinationCount,
+      buckets: snapshot.buckets,
+    }),
+  }, 5);
   return {
     ok: true,
     collection: snapshot.collection,
     listingCount: snapshot.listingCount,
     combinationCount: snapshot.combinationCount,
     uploadedEntries,
-    changedBuckets,
+    changedBuckets: Number(result.changedBuckets || 0),
     snapshotAt: snapshot.snapshotAt,
   };
 }
