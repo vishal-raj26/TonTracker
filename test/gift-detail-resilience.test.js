@@ -1,4 +1,6 @@
 const assert = require("node:assert/strict");
+const fs = require("node:fs");
+const path = require("node:path");
 const test = require("node:test");
 
 const {
@@ -9,6 +11,24 @@ const {
   settleWithin,
   filterGiftHistoryRange,
 } = require("../server.js");
+
+const appSource = fs.readFileSync(path.join(__dirname, "..", "app.js"), "utf8");
+
+test("starts exact gift sales and history independently of the composite detail response", () => {
+  const loadDetail = appSource.slice(
+    appSource.indexOf("async function loadGiftDetail("),
+    appSource.indexOf("function buildStickerHistory("),
+  );
+  assert.match(loadDetail, /loadGiftSalesFast\(detail, requestId\)/);
+  assert.match(loadDetail, /loadGiftComboHistoryFast\(detail, requestId\)/);
+  assert.ok(loadDetail.indexOf("loadGiftSalesFast(detail, requestId)") < loadDetail.indexOf("await fetchGiftDetailPayload"));
+  assert.ok(loadDetail.indexOf("loadGiftComboHistoryFast(detail, requestId)") < loadDetail.indexOf("await fetchGiftDetailPayload"));
+  const fastSales = appSource.slice(
+    appSource.indexOf("async function loadGiftSalesFast("),
+    appSource.indexOf("function giftComboHistoryCandidates("),
+  );
+  assert.doesNotMatch(fastSales, /symbol:/);
+});
 
 test("deduplicates large wallets by exact gift combination", () => {
   const gifts = Array.from({ length: 1200 }, (_, index) => ({

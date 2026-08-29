@@ -30,10 +30,12 @@
 .app-frame [data-screen="home"] .graph-card{padding-top:16px}
 .app-frame [data-screen="home"] .graph-head h1{font-variant-numeric:tabular-nums}
 .app-frame [data-screen="home"] .value-graph{min-height:188px;margin-inline:-4px}
-.app-frame [data-screen="home"] :is(.graph-card,.allocation-card) canvas{filter:grayscale(1) contrast(1.1)}
+.app-frame [data-screen="home"] .graph-card canvas{filter:grayscale(1) contrast(1.1)}
+.app-frame [data-screen="home"] .allocation-card canvas{filter:none}
 .app-frame [data-screen="home"] .allocation-list article{min-height:52px;padding:10px 0;border:0;border-bottom:1px solid var(--terminal-line);border-radius:0;background:transparent;transition:padding .2s ease,color .2s ease}
 .app-frame [data-screen="home"] .allocation-list article:hover{padding-left:5px}
 .app-frame [data-screen="home"] .allocation-list article:last-child{border-bottom:0}
+.app-frame [data-screen="home"] .allocation-list article[hidden]{display:none!important}
 .app-frame [data-screen="home"] .performer-row{gap:0;border-top:1px solid var(--terminal-line)}
 .app-frame [data-screen="home"] .performer-row article{padding:16px 12px;border:0;border-right:1px solid var(--terminal-line);border-radius:0;background:transparent;box-shadow:none}
 .app-frame [data-screen="home"] .performer-row article:last-child{border-right:0}
@@ -128,6 +130,10 @@
 .app-frame .dock button{min-width:44px;min-height:46px;border-radius:10px;color:var(--terminal-muted)}
 .app-frame .dock button.active{background:var(--terminal-ink);color:#050505}
 @media(max-width:359px){.app-frame .dot-matrix-title{--dot-size:1.85px;--dot-gap:1.05px}.app-frame .dot-matrix-value{--dot-size:2.4px;--dot-gap:1.25px}.app-frame .dot-matrix-compact{--dot-size:.95px;--dot-gap:.52px}.app-frame [data-screen="assets"] .category-stack article{grid-template-columns:30px minmax(0,1fr) 88px 12px}}
+
+/* Home owns the single screen gutter; the header must not add a second one. */
+.app-frame:is(.has-wallet,.is-home-screen) [data-screen="home"]{padding-inline:18px}
+.app-frame:is(.has-wallet,.is-home-screen) [data-screen="home"]>.app-header{padding-inline:0}
 @media(prefers-reduced-motion:reduce){.app-frame .screen *{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
 /* Product-v2 specificity bridge: remove the legacy boxed detail shell. */
 body.product-v2 .app-frame [data-screen="detail"] .page-header{margin:0;border:0;background:linear-gradient(180deg,rgba(5,5,5,.99),rgba(5,5,5,.76) 72%,transparent);box-shadow:none}
@@ -176,7 +182,7 @@ body.product-v2 .app-frame .dock button.active{border-radius:999px}
 @media(max-width:359px){.app-frame [data-screen="tokens"] .holdings-list article{grid-template-columns:44px minmax(0,1fr) 104px;column-gap:10px}.app-frame [data-screen="tokens"] .holdings-list article>aside,.app-frame [data-screen="activity"] .activity-row>aside{width:104px}.app-frame [data-screen="activity"] .activity-row{grid-template-columns:44px minmax(0,1fr) 104px;column-gap:10px}}
 
 /* Shared root-screen system for portfolio utilities. */
-body.product-v2 .app-frame :is([data-screen="analytics"],[data-screen="watchlist"],[data-screen="activity"],[data-screen="settings"],[data-screen="wallets"],[data-screen="dns"],[data-screen="anonymous-numbers"],[data-screen="usernames"]){padding:18px 20px calc(116px + env(safe-area-inset-bottom));background:#050505;color:var(--ui-text);font-family:var(--ui-font)}
+body.product-v2 .app-frame :is([data-screen="analytics"],[data-screen="watchlist"],[data-screen="activity"],[data-screen="settings"],[data-screen="wallets"],[data-screen="dns"],[data-screen="anonymous-numbers"],[data-screen="usernames"]){padding:18px 18px calc(116px + env(safe-area-inset-bottom));background:#050505;color:var(--ui-text);font-family:var(--ui-font)}
 body.product-v2 .app-frame :is([data-screen="analytics"],[data-screen="watchlist"],[data-screen="activity"],[data-screen="settings"],[data-screen="wallets"],[data-screen="dns"],[data-screen="anonymous-numbers"],[data-screen="usernames"]) .page-header{min-height:48px;margin:0 0 22px;padding:0;border:0;background:transparent;box-shadow:none}
 body.product-v2 .app-frame :is([data-screen="analytics"],[data-screen="watchlist"],[data-screen="activity"],[data-screen="settings"],[data-screen="wallets"],[data-screen="dns"],[data-screen="anonymous-numbers"],[data-screen="usernames"]) .page-header h1{font-size:24px;font-weight:700;letter-spacing:-.03em}
 body.product-v2 .app-frame :is([data-screen="analytics"],[data-screen="watchlist"],[data-screen="activity"],[data-screen="settings"]) :is(.graph-card,.summary-card,.search-card,.insight-grid article,.profile-actions){border-color:var(--terminal-line);background:#090909;box-shadow:none}
@@ -185,6 +191,9 @@ body.product-v2 .app-frame [data-screen="analytics"] .insight-grid article{min-h
 body.product-v2 .app-frame [data-screen="analytics"] .data-state-note{margin:10px 0 0;color:var(--ui-muted);font-size:11px;line-height:1.5}
 body.product-v2 .app-frame [data-screen="watchlist"] .watchlist-summary{margin-bottom:18px}
 body.product-v2 .app-frame .portfolio-empty-state{min-height:92px;color:var(--ui-muted)}
+/* Utility screens share the root canvas gutter; legacy child margins must not reintroduce 20px rails. */
+body.product-v2 .app-frame :is([data-screen="analytics"],[data-screen="watchlist"],[data-screen="activity"],[data-screen="wallets"],[data-screen="settings"]) :is(.utility-hero,.graph-card,.insight-grid,.utility-card,.watchlist-summary,.activity-overview,.search-card,.activity-filter-row,.holdings-list,.connect-panel,.profile-actions){margin-left:0;margin-right:0}
+body.product-v2 .app-frame :is([data-screen="analytics"],[data-screen="watchlist"],[data-screen="activity"],[data-screen="wallets"],[data-screen="settings"]) :is(.utility-hero,.graph-card,.utility-card,.connect-panel,.profile-actions){width:auto;max-width:none}
 body.product-v2 .app-frame .utility-hero{display:flex;min-height:126px;margin:0 0 16px;padding:20px;align-items:center;justify-content:space-between;gap:18px;border:1px solid var(--terminal-line);border-radius:22px;background:radial-gradient(circle at 88% 12%,rgba(255,255,255,.08),transparent 42%),#090909}
 body.product-v2 .app-frame .utility-hero small{color:var(--ui-muted);font-size:10px;font-weight:650;letter-spacing:.08em;text-transform:uppercase}
 body.product-v2 .app-frame .utility-hero h2{margin:7px 0 5px;color:var(--ui-text);font-size:26px;letter-spacing:-.035em}
@@ -451,6 +460,20 @@ body.product-v2 .app-frame .dock button.active span{display:block}
   .app-frame [data-screen="assets"] .category-stack strong{width:92px;font-size:15px}
 }
 
+/* Assets values remain ordinary, readable UI text when dot-matrix rendering is disabled. */
+.app-frame.has-wallet [data-screen="assets"] :is(.dot-matrix-text,.dot-matrix-value){
+  display:block!important;
+  width:auto!important;
+  max-width:100%;
+  color:var(--ui-text)!important;
+  font-family:var(--ui-font)!important;
+  font-size:inherit!important;
+  line-height:1.25!important;
+  letter-spacing:inherit;
+  text-shadow:none!important;
+}
+.app-frame.has-wallet [data-screen="assets"] :is(.dot-matrix-text,.dot-matrix-value)>.dot-matrix-character{display:none!important}
+
 /* Compact semantic icon language. Keep financial values and state labels textual. */
 .visually-hidden{
   position:absolute!important;
@@ -632,7 +655,7 @@ body.product-v2 .app-frame .dock button.active span{display:block}
   display:flex;
   align-items:stretch;
   gap:10px;
-  margin-right:10px;
+  margin-right:0;
   padding:0;
 }
 .app-frame [data-screen="home"] .featured-asset-card{

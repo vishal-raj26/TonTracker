@@ -5,6 +5,8 @@ const test = require("node:test");
 const {
   fetchAllTonApiJettons,
   fetchAllTonCenterJettons,
+  fetchJettonProvider,
+  jettonInventoryStatus,
   mergeJettonInventories,
   normalizeJettons,
   normalizeTonCenterJettons,
@@ -98,6 +100,36 @@ test("rejects a repeated TON Center page instead of silently truncating token im
   await assert.rejects(fetchAllTonCenterJettons("wallet", async () => ({
     jetton_wallets: [{ address: "jetton-wallet-a" }, { address: "jetton-wallet-b" }],
   }), { pageSize: 2, maxPages: 10 }), /repeated page/i);
+});
+
+test("retries a rate-limited jetton provider within a bounded attempt budget", async () => {
+  let calls = 0;
+  const result = await fetchJettonProvider("tonapi", async () => {
+    calls += 1;
+    if (calls === 1) throw new Error("429 rate limit");
+    return { balances: [] };
+  }, { maxAttempts: 2, retryDelayMs: 0 });
+  assert.equal(calls, 2);
+  assert.equal(result.attempts, 2);
+  assert.deepEqual(result.payload, { balances: [] });
+});
+
+test("jetton inventory marks all-provider failure unavailable instead of authoritative empty", () => {
+  const rejected = { status: "rejected", reason: Object.assign(new Error("429 rate limit"), { attempts: 2 }) };
+  const status = jettonInventoryStatus(rejected, rejected, { forceRefresh: true });
+  assert.equal(status.status, "unavailable");
+  assert.equal(status.forceRefresh, true);
+  assert.equal(status.providers.tonapi.status, "unavailable");
+  assert.equal(status.providers.toncenter.attempts, 2);
+});
+
+test("jetton inventory remains partial when one provider returns usable coverage", () => {
+  const fulfilled = { status: "fulfilled", value: { attempts: 1, payload: { balances: [] } } };
+  const rejected = { status: "rejected", reason: new Error("provider unavailable") };
+  const status = jettonInventoryStatus(fulfilled, rejected);
+  assert.equal(status.status, "partial");
+  assert.equal(status.providers.tonapi.status, "ready");
+  assert.equal(status.providers.toncenter.status, "unavailable");
 });
 
 test("wallet import presentation is bounded while optional enrichment continues", async () => {

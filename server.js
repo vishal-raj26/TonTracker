@@ -45,7 +45,7 @@ const tonApiKey = process.env.TONAPI_KEY || "";
 const tonCenterApiBase = String(process.env.TONCENTER_API_BASE || "https://toncenter.com/api/v3").replace(/\/+$/, "");
 const tonCenterApiKey = String(process.env.TONCENTER_API_KEY || "");
 const usdTonRate = 3.12;
-const nativeTonLogo = "https://raw.githubusercontent.com/tonkeeper/opentonapi/master/pkg/references/media/ton_symbol.png";
+const nativeTonLogo = "/assets/branding/gram-diamond-mark.svg";
 const TON_DNS_COLLECTION_RAW = "0:b774d95eb20543f186c06b371ab88ad704f7e256130caf96189368a7d0cb6ccf";
 const TELEGRAM_USERNAMES_COLLECTION_RAW = "0:80d78a35f955a14b679faa887ff4cd5bfc0f43b4a4eea2a7e6927f3701b273c2";
 const ANONYMOUS_NUMBERS_COLLECTION_RAW = "0:0e41dc1dc3c9067ed24248580e12b3359818d83dee0304fabcf80845eafafdb2";
@@ -4272,6 +4272,49 @@ async function fetchAllTonCenterJettons(address, request = tonCenter, { pageSize
   return { jetton_wallets, metadata };
 }
 
+function jettonProviderError(error) {
+  return String(error?.message || error || "Provider request failed").replace(/\s+/g, " ").trim().slice(0, 240);
+}
+
+function isRetryableJettonProviderError(error) {
+  const message = jettonProviderError(error);
+  return /\b429\b|rate.?limit|too many|timeout|timed? out|\b5\d\d\b|network|socket|fetch failed/i.test(message);
+}
+
+async function fetchJettonProvider(provider, request, { maxAttempts = 2, retryDelayMs = 180 } = {}) {
+  const attempts = Math.max(1, Math.min(3, Number(maxAttempts) || 1));
+  let lastError;
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    try {
+      return { provider, payload: await request(), attempts: attempt };
+    } catch (error) {
+      lastError = error;
+      if (attempt >= attempts || !isRetryableJettonProviderError(error)) break;
+      await sleep(retryDelayMs * attempt);
+    }
+  }
+  const failure = new Error(jettonProviderError(lastError));
+  failure.provider = provider;
+  failure.attempts = attempts;
+  throw failure;
+}
+
+function jettonInventoryStatus(tonApiResult, tonCenterResult, { forceRefresh = false } = {}) {
+  const describe = (provider, result) => result.status === "fulfilled"
+    ? { provider, status: "ready", attempts: Number(result.value?.attempts || 1), error: null }
+    : { provider, status: "unavailable", attempts: Number(result.reason?.attempts || 1), error: jettonProviderError(result.reason) };
+  const providers = {
+    tonapi: describe("tonapi", tonApiResult),
+    toncenter: describe("toncenter", tonCenterResult),
+  };
+  const availableCount = Object.values(providers).filter((provider) => provider.status === "ready").length;
+  return {
+    status: availableCount === 2 ? "ready" : availableCount ? "partial" : "unavailable",
+    forceRefresh: Boolean(forceRefresh),
+    providers,
+  };
+}
+
 async function walletImportInitialPresentation({
   namePromise,
   jettonsPromise,
@@ -5770,8 +5813,12 @@ function startWalletHistoryJobs(address, currentTonBalance, jettons) {
   historyRanges.forEach((range) => startHistoryJob(address, currentTonBalance, range, jettons));
 }
 
-async function walletImport(address) {
+async function walletImport(address, { forceRefresh = false } = {}) {
   address = parseTonAddress(address);
+  if (forceRefresh) {
+    walletJettonsCache.delete(String(address).toLowerCase());
+    clearWalletHistoryCache(address);
+  }
   let accountSource = "tonapi";
   const accountPromise = !tonApiKey
     ? tonCenterImmediateJson(`/walletInformation?address=${encodeURIComponent(address)}`).then((account) => {
@@ -5786,9 +5833,9 @@ async function walletImport(address) {
   const tonUsdPromise = tonUsdRate();
   const jettonProvidersPromise = Promise.allSettled([
     tonApiKey
-      ? fetchAllTonApiJettons(address, (pathname) => tonApi(pathname, { immediate: true }))
+      ? fetchJettonProvider("tonapi", () => fetchAllTonApiJettons(address, (pathname) => tonApi(pathname, { immediate: true })), { maxAttempts: forceRefresh ? 3 : 2 })
       : Promise.reject(new Error("TonAPI key is not configured")),
-    fetchAllTonCenterJettons(address, (pathname) => tonCenterImmediateJson(pathname)),
+    fetchJettonProvider("toncenter", () => fetchAllTonCenterJettons(address, (pathname) => tonCenterImmediateJson(pathname)), { maxAttempts: forceRefresh ? 3 : 2 }),
   ]);
   // Account and inventory are both first-visible data. Fetch them together so a
   // degraded provider cannot turn two bounded requests into one long serial wait.
@@ -5800,11 +5847,12 @@ async function walletImport(address) {
   // and inventory response. walletImportInitialPresentation bounds this lookup.
   const tonNamePromise = resolveTonName(address);
   const normalizedAccount = normalizeAccount(account, address);
-  const tonApiJettons = jettonsResult.status === "fulfilled" ? normalizeJettons(jettonsResult.value) : [];
-  const tonCenterJettons = tonCenterJettonsResult.status === "fulfilled" ? normalizeTonCenterJettons(tonCenterJettonsResult.value) : [];
+  const inventoryStatus = jettonInventoryStatus(jettonsResult, tonCenterJettonsResult, { forceRefresh });
+  const tonApiJettons = jettonsResult.status === "fulfilled" ? normalizeJettons(jettonsResult.value.payload) : [];
+  const tonCenterJettons = tonCenterJettonsResult.status === "fulfilled" ? normalizeTonCenterJettons(tonCenterJettonsResult.value.payload) : [];
   const jettonInventory = mergeJettonInventories(tonApiJettons, tonCenterJettons);
-  if (!jettonInventory.length && tonCenterJettonsResult.status === "rejected") {
-    console.warn(`TonCenter jetton import failed for ${address}: ${tonCenterJettonsResult.reason.message}`);
+  if (inventoryStatus.status !== "ready") {
+    console.warn(`[wallet-import] jetton inventory ${inventoryStatus.status} for ${address}: ${Object.values(inventoryStatus.providers).filter((provider) => provider.error).map((provider) => `${provider.provider}: ${provider.error}`).join("; ")}`);
   }
   const jettonRatesPromise = enrichJettonRates(jettonInventory, false, { immediate: true });
   const initial = await walletImportInitialPresentation({
@@ -5872,11 +5920,12 @@ async function walletImport(address) {
     assets: {
       ton: {
         type: "token",
-        name: "Toncoin",
-        symbol: "TON",
+        name: "GRAM",
+        symbol: "GRAM",
         balance: normalizedAccount.balanceTon,
       },
       jettons,
+      jettonInventory: inventoryStatus,
       collectibles: walletCollectibles,
       dns: collectibles.dns || [],
       usernames: collectibles.usernames || [],
@@ -5884,7 +5933,8 @@ async function walletImport(address) {
     },
     activity: events,
     warnings: [
-      jettonsResult.status === "rejected" ? `Jettons unavailable: ${jettonsResult.reason.message}` : null,
+      inventoryStatus.status === "unavailable" ? "Jetton inventory is unavailable. Native GRAM is shown separately; retry refresh to check jettons." : null,
+      inventoryStatus.status === "partial" ? "Jetton inventory is partial because one provider is unavailable. Retry refresh for a complete inventory." : null,
       nfts.length ? null : "No wallet collectibles found",
       "Activity is loading in the background",
       cachedCollectibles ? null : "Collectibles are loading in the background",
@@ -10002,7 +10052,7 @@ async function handleApi(req, res, url) {
     if (!rawAddress) return json(res, 400, { error: "Missing address query parameter" });
     try {
       const address = await resolveWalletAddress(rawAddress);
-      return json(res, 200, await walletImport(address));
+      return json(res, 200, await walletImport(address, { forceRefresh: url.searchParams.get("refresh") === "1" }));
     } catch (error) {
       return json(res, error.message.includes("Invalid TON") ? 400 : 502, { error: error.message });
     }
@@ -10611,6 +10661,8 @@ module.exports = {
   normalizeTonCenterJettons,
   fetchAllTonApiJettons,
   fetchAllTonCenterJettons,
+  fetchJettonProvider,
+  jettonInventoryStatus,
   walletImportInitialPresentation,
   mergeJettonInventories,
   normalizeTonCenterActions,

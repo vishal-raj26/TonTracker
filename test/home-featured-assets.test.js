@@ -39,5 +39,5 @@ test("keeps a bounded seamless loop and routes cards through existing details", 
 
 test("keeps the featured carousel edge-to-edge without horizontal padding", () => {
   assert.match(styles, /\.featured-collectibles-viewport\{[\s\S]*?margin-inline:calc\(var\(--screen-gutter\) \* -1\);/);
-  assert.match(styles, /\.featured-collectibles-sequence\{[\s\S]*?margin-right:10px;\s*padding:0;/);
+  assert.match(styles, /\.featured-collectibles-sequence\{[\s\S]*?margin-right:0;\s*padding:0;/);
 });

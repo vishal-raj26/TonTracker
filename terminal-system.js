@@ -23,7 +23,6 @@
   ];
   const VALUE_SELECTORS = [
     '[data-screen="home"] .graph-head h1',
-    '[data-screen="assets"] .portfolio-strip article:first-child b',
     '[data-screen="tokens"] .summary-card h2',
     '[data-screen="gifts"] .asset-total-banner h2',
     '[data-screen="stickers"] .asset-total-banner h2',

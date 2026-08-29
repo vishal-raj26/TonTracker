@@ -35,7 +35,7 @@ const STICKER_SOURCE_IMAGES = {
   Fuse: "https://cdn.prod.website-files.com/68a3e520329c3b7c58f92c0e/68a4ff89b48cb4186a9fdafd_Fuse%20Logo%20Light.svg",
   Goodies: "https://www.goodies.tg/logo.svg",
 };
-const GRAM_TOKEN_IMAGE_URL = "https://raw.githubusercontent.com/tonkeeper/opentonapi/master/pkg/references/media/ton_symbol.png";
+const GRAM_TOKEN_IMAGE_URL = "/assets/branding/gram-diamond-mark.svg";
 let detailReturnScreen = "assets";
 const navigationStack = [];
 const forwardNavigationStack = [];
@@ -55,7 +55,7 @@ const historyRangeState = new Map();
 const historyRanges = ["1D", "7D", "1M"];
 const HOME_GRAPH_PRELOAD_DELAY_MS = 5000;
 let historyStatusTimer = 0;
-let graphHistoryLoadingPaused = true;
+let graphHistoryLoadingPaused = false;
 let tonConnectUI = null;
 let lastTonConnectAddress = "";
 let tokenSortMode = "value";
@@ -3452,11 +3452,10 @@ async function loadGiftSalesFast(detail = {}, requestId = activeGiftDetailReques
     collection: combo.collection,
     model: combo.model,
     backdrop: combo.backdrop,
-    symbol: combo.symbol,
     limit: "10",
   });
   try {
-    const payload = await fetchJsonFast(`/api/gift-registry/sales?${params}`, 2200);
+    const payload = await fetchJsonFast(`/api/gift-registry/sales?${params}`, 4500);
     if (requestId !== activeGiftDetailRequest) return false;
     const sales = Array.isArray(payload?.sales) ? payload.sales : [];
     if (!sales.length) return false;
@@ -3474,7 +3473,7 @@ function giftComboHistoryCandidates(detail = {}) {
     const model = String(giftModelTrait(item) || giftModelTrait(detail) || item.model || detail.model || "").trim();
     const backdrop = String(giftTraitValue(item, "Backdrop") || giftTraitValue(detail, "Backdrop") || item.backdrop || detail.backdrop || "").trim();
     if (!model || !backdrop) return [];
-    return [item.collection, detail.collection, item.creator, detail.creator, item.name, detail.name]
+    return [item.collection, detail.collection, item.creator, detail.creator]
       .filter(Boolean)
       .flatMap((value) => {
         const name = String(value).replace(/\s*#\d+\b/g, "").trim();
@@ -3850,6 +3849,30 @@ async function loadGiftDetail(detail, { forceRefresh = false } = {}) {
   detail.floorHistoryLoading = !detail.floorHistoryAvailable;
   detail.salesLoading = !(detail.sales || []).length;
   refreshGiftDetailChrome(detail, { loading: false });
+  const clearPartialSource = (source) => {
+    detail.partialSources = (detail.partialSources || []).filter((value) => value !== source);
+    detail.partial = detail.partialSources.length > 0;
+  };
+  let fastSalesReady = false;
+  let fastHistoryReady = false;
+  // Sales and chart history are independent evidence streams. Start them before
+  // the composite request so either can render even when another source stalls.
+  const salesRequest = loadGiftSalesFast(detail, requestId).then((updated) => {
+    if (requestId !== activeGiftDetailRequest || !updated) return false;
+    fastSalesReady = true;
+    detail.salesLoading = false;
+    clearPartialSource("sales");
+    refreshGiftDetailChrome(detail, { loading: false });
+    return true;
+  });
+  const historyRequest = loadGiftComboHistoryFast(detail, requestId).then((updated) => {
+    if (requestId !== activeGiftDetailRequest || !updated) return false;
+    fastHistoryReady = true;
+    detail.floorHistoryLoading = false;
+    clearPartialSource("history");
+    refreshGiftDetailChrome(detail, { loading: false });
+    return true;
+  });
   const traitRarityRequest = hydrateGiftDetailTraitRarities(detail, requestId).then((updated) => {
     if (requestId !== activeGiftDetailRequest) return;
     if (updated) refreshGiftDetailChrome(detail, { loading: false });
@@ -3873,6 +3896,8 @@ async function loadGiftDetail(detail, { forceRefresh = false } = {}) {
     // Import hydration is the sole pricing authority. Detail data enriches the
     // cards and graph, but must never replace the resolved wallet/TG floor.
     applyGiftDetailPayload(detail, payload, { applyFloor: false });
+    if (fastSalesReady) clearPartialSource("sales");
+    if (fastHistoryReady) clearPartialSource("history");
     detail.floorHistoryLoading = false;
     refreshGiftDetailChrome(detail, { loading: false });
   } catch (error) {
@@ -3882,7 +3907,7 @@ async function loadGiftDetail(detail, { forceRefresh = false } = {}) {
     detail.floorHistoryLoading = false;
     refreshGiftDetailChrome(detail, { loading: false });
   }
-  Promise.allSettled([traitRarityRequest, modelStatsRequest]).then(() => {
+  Promise.allSettled([salesRequest, historyRequest, traitRarityRequest, modelStatsRequest]).then(() => {
     if (requestId === activeGiftDetailRequest) refreshGiftDetailChrome(detail, { loading: false });
   });
 }
@@ -5100,8 +5125,9 @@ function isSectionLoading(key) {
   return sectionLoadState.get(key)?.status === "loading";
 }
 
-function walletImportUrl(address) {
-  return `/api/wallet?address=${encodeURIComponent(address)}&t=${Date.now()}`;
+function walletImportUrl(address, { forceRefresh = false } = {}) {
+  const refresh = forceRefresh ? "&refresh=1" : "";
+  return `/api/wallet?address=${encodeURIComponent(address)}&t=${Date.now()}${refresh}`;
 }
 
 function tunnelSafeHeaders(extra = {}) {
@@ -5151,8 +5177,8 @@ function telegramInitData() {
   return window.Telegram?.WebApp?.initData || "";
 }
 
-async function fetchWalletImport(address) {
-  return requestJson(walletImportUrl(address), {}, "Wallet import failed");
+async function fetchWalletImport(address, options = {}) {
+  return requestJson(walletImportUrl(address, options), {}, "Wallet import failed");
 }
 
 function currentWalletTimestamp(data = liveWalletData) {
@@ -5341,6 +5367,7 @@ async function importWallet(address, options = {}) {
     if (initialHistory.length) setLiveHistoryRange("1D", initialHistory);
     applyHistoryStatus(payload.historyStatus || []);
     walletConnected = true;
+    schedulePortfolioRefresh();
     if (!background) {
       setImportLoader(true, "Putting every number in place", 68);
       pulseImportLoader(importSessionId, "Putting every number in place", 68, 88, 5000);
@@ -5405,7 +5432,7 @@ async function refreshConnectedWallet(triggerButton = null) {
   refreshButtons.forEach((button) => button.classList.add("is-loading"));
   updateHistoryStatus("Refreshing wallet...");
   try {
-    const payload = await fetchWalletImport(liveWalletAddress);
+    const payload = await fetchWalletImport(liveWalletAddress, { forceRefresh: true });
     if (!isCurrentImportSession(refreshSessionId)) return;
     liveWalletData = payload;
     liveWalletAddress = payload.account?.address || liveWalletAddress;
@@ -5519,6 +5546,7 @@ async function refreshActivePortfolio({ triggerButton = null } = {}) {
 }
 
 function resetWalletSwitchState(nextAddress = "", options = {}) {
+  stopPortfolioRefresh();
   const preserveTelegram = Boolean(options.preserveTelegram && telegramConnected);
   stopHistoryStatusPolling();
   resetSectionLoadingState();
@@ -5632,6 +5660,7 @@ async function disconnectWallet() {
     console.warn("TON Connect disconnect failed", error);
   }
   walletConnected = false;
+  stopPortfolioRefresh();
   walletGiftGroups = [];
   walletStickerGroups = [];
   dnsAssets.splice(0, dnsAssets.length);
@@ -6132,10 +6161,6 @@ function renderCollectibleSummaryDotMatrix(container) {
 
 function renderAssetsDotMatrix() {
   renderScreenHeaderDotMatrix(document.querySelector('[data-screen="assets"]'));
-  const portfolioValue = document.querySelector('[data-screen="assets"] .portfolio-strip article:first-child b');
-  if (portfolioValue && !portfolioValue.querySelector(".metric-skeleton")) {
-    renderDotMatrixText(portfolioValue, portfolioValue.textContent.trim(), "value");
-  }
 }
 function syncAssetsSummary(data = liveWalletData, tokens = latestVisibleTokens, fallbackUsd = homePortfolioValue) {
   const strip = document.querySelector('[data-screen="assets"] .portfolio-strip');
@@ -6235,14 +6260,19 @@ function renderAnalyticsBreakdown(totalUsd = homePortfolioValue) {
 
 const WATCHLIST_STORAGE_KEY = "tontrack:watchlist:v1";
 function watchlistIds() {
-  try { return JSON.parse(localStorage.getItem(WATCHLIST_STORAGE_KEY) || "[]").filter(Boolean); } catch { return []; }
+  const store = watchlistStore(); return store.ids;
 }
-function setWatchlistIds(ids) { localStorage.setItem(WATCHLIST_STORAGE_KEY, JSON.stringify([...new Set(ids)].slice(0, 100))); }
+function watchlistStore() {
+  try { const stored = JSON.parse(localStorage.getItem(WATCHLIST_STORAGE_KEY) || "[]"); return Array.isArray(stored) ? { ids: stored.filter(Boolean), details: {} } : { ids: Array.isArray(stored?.ids) ? stored.ids.filter(Boolean) : [], details: stored?.details && typeof stored.details === "object" ? stored.details : {} }; } catch { return { ids: [], details: {} }; }
+}
+function setWatchlistIds(ids) { const store = watchlistStore(); const clean = [...new Set(ids)].filter((id) => typeof id === "string" && id).slice(0, 100); localStorage.setItem(WATCHLIST_STORAGE_KEY, JSON.stringify({ ids: clean, details: Object.fromEntries(clean.map((id) => [id, store.details[id]]).filter(([, value]) => value)) })); }
 function watchlistAsset(id) {
   const detail = assetDetails[id];
-  if (detail) return { id, name: detail.name || detail.symbol || "Asset", type: detail.type || "asset", value: detail.valueUsd ?? detail.floorUsd ?? null, image: detail.image || detail.preview || "" };
-  return null;
+  const saved = watchlistStore().details[id]; const source = detail || saved;
+  if (!source) return null;
+  return { id, name: source.name || source.symbol || "Asset", type: source.type || "asset", value: source.valueUsd ?? source.floorUsd ?? null, image: source.image || source.preview || "" };
 }
+function saveWatchlistAsset(id) { const detail = assetDetails[id]; if (!detail) return; const store = watchlistStore(); store.details[id] = { name: detail.name, symbol: detail.symbol, type: detail.type, valueUsd: detail.valueUsd, floorUsd: detail.floorUsd, image: detail.image || detail.preview || "" }; localStorage.setItem(WATCHLIST_STORAGE_KEY, JSON.stringify({ ids: store.ids, details: store.details })); }
 function renderWatchlist() {
   const mount = document.getElementById("watchlistRows");
   if (!mount) return;
@@ -6276,7 +6306,6 @@ function renderSettingsSummary() {
 function resolveTokenImage(url) {
   if (!url) return "";
   const value = String(url);
-  if (value.includes("ton.org/download/ton_symbol.png")) return GRAM_TOKEN_IMAGE_URL;
   return value.startsWith("ipfs://") ? `https://ipfs.io/ipfs/${value.slice(7)}` : value;
 }
 
@@ -6593,19 +6622,21 @@ async function updateTokensFromWallet(data, options = {}) {
   syncAssetsSummary(liveWalletData, []);
   updateAllocationUi();
   let sourceData = data;
+  let inventory = sourceData?.assets?.jettonInventory || { status: "ready", providers: {} };
   let tokens = importedWalletTokenFallbacks(sourceData).filter(isDisplayableToken);
   const reportedTokenCount = Number(sourceData?.summary?.tokenCount || 0);
   const importedJettonCount = Array.isArray(sourceData?.assets?.jettons) ? sourceData.assets.jettons.length : 0;
   const visibleJettonCount = tokens.filter((token) => !isNativeGramToken(token)).length;
   if (reportedTokenCount > tokens.length || importedJettonCount > visibleJettonCount) {
     try {
-      const freshData = await fetchWalletImport(walletAddress);
+      const freshData = await fetchWalletImport(walletAddress, { forceRefresh: true });
       if (!isCurrentImportSession(importSessionId) || walletStateKey(liveWalletAddress) !== walletKey) return [];
       sourceData = freshData;
       liveWalletData = freshData;
       liveWalletAddress = freshData.account?.address || walletAddress;
       if (Number(freshData.summary?.tonUsdRate) > 0) usdTonRate = Number(freshData.summary.tonUsdRate);
       homePortfolioValue = Number(freshData.summary?.totalUsd || homePortfolioValue || 0);
+      inventory = freshData?.assets?.jettonInventory || inventory;
       tokens = importedWalletTokenFallbacks(sourceData).filter(isDisplayableToken);
     } catch (error) {
       console.warn("Fresh token sync failed", error);
@@ -6613,9 +6644,15 @@ async function updateTokensFromWallet(data, options = {}) {
   }
   if (!isCurrentImportSession(importSessionId) || walletStateKey(liveWalletAddress) !== walletKey) return [];
   if (tokens.length) renderTokenRows(tokens);
-  else renderTokenEmptyState("No token balances found");
+  else renderTokenEmptyState(inventory.status === "unavailable" ? "Jetton inventory unavailable — retry refresh" : "No token balances found");
   const jettonCount = Math.max(0, tokens.length - (tokens.some(isNativeGramToken) ? 1 : 0));
-  setSectionReady("tokens", tokens.length ? `Tokens ready${jettonCount ? ` · ${jettonCount} jettons loaded` : ""}` : "Token screen is ready");
+  const unavailableProviders = Object.values(inventory.providers || {}).filter((provider) => provider.status === "unavailable").map((provider) => provider.provider);
+  const inventoryMessage = inventory.status === "unavailable"
+    ? "Jetton inventory unavailable — native GRAM only. Retry refresh."
+    : inventory.status === "partial"
+      ? `Jetton inventory partial${unavailableProviders.length ? ` · ${unavailableProviders.join(", ")} unavailable` : ""}. Retry refresh.`
+      : (tokens.length ? `Tokens ready${jettonCount ? ` · ${jettonCount} jettons loaded` : ""}` : "Token screen is ready");
+  setSectionReady("tokens", inventoryMessage);
   return tokens;
 }
 
@@ -7742,7 +7779,9 @@ document.addEventListener("click", (event) => {
     const id = currentDetailAssetId();
     if (!id || !assetDetails[id]) return;
     const ids = watchlistIds();
-    setWatchlistIds(ids.includes(id) ? ids.filter((item) => item !== id) : [...ids, id]);
+    const nextIds = ids.includes(id) ? ids.filter((item) => item !== id) : [...ids, id];
+    setWatchlistIds(nextIds);
+    if (!ids.includes(id)) saveWatchlistAsset(id);
     syncWatchlistButton();
     renderWatchlist();
     return;
@@ -8016,7 +8055,32 @@ document.querySelector("[data-settings-theme]")?.addEventListener("click", (even
   localStorage.setItem("tontrack:theme", next);
   event.currentTarget.querySelector("span").textContent = `Theme: ${next[0].toUpperCase()}${next.slice(1)}`;
 });
-document.querySelector("[data-settings-refresh]")?.addEventListener("click", refreshActivePortfolio);
+const REFRESH_FREQUENCY_KEY = "tontrack:refresh-frequency:v1";
+let refreshTimer = 0;
+const REFRESH_FREQUENCY_OPTIONS = [0, 5, 15, 30];
+function refreshFrequency() {
+  const value = Number(localStorage.getItem(REFRESH_FREQUENCY_KEY));
+  return REFRESH_FREQUENCY_OPTIONS.includes(value) ? value : 0;
+}
+function stopPortfolioRefresh() {
+  clearInterval(refreshTimer);
+  refreshTimer = 0;
+}
+function schedulePortfolioRefresh() {
+  stopPortfolioRefresh();
+  const minutes = refreshFrequency();
+  if (minutes && hasTonWalletPortfolio()) {
+    refreshTimer = setInterval(() => refreshActivePortfolio(), minutes * 60_000);
+  }
+}
+document.querySelector("[data-settings-refresh]")?.addEventListener("click", () => {
+  const currentIndex = REFRESH_FREQUENCY_OPTIONS.indexOf(refreshFrequency());
+  const next = REFRESH_FREQUENCY_OPTIONS[(currentIndex + 1) % REFRESH_FREQUENCY_OPTIONS.length];
+  localStorage.setItem(REFRESH_FREQUENCY_KEY, String(next));
+  schedulePortfolioRefresh();
+  const label = document.querySelector("[data-settings-refresh] span");
+  if (label) label.textContent = `Refresh frequency: ${next ? `${next} min` : "Off"}`;
+});
 document.querySelector("[data-settings-alerts]")?.addEventListener("click", () => showScreen("watchlist"));
 
 try {
@@ -8027,6 +8091,9 @@ try {
     if (themeLabel) themeLabel.textContent = `Theme: ${storedTheme[0].toUpperCase()}${storedTheme.slice(1)}`;
   }
   if (localStorage.getItem("tontrack:privacy") === "1") document.querySelector(".app-frame")?.classList.add("is-private");
+  const frequencyLabel = document.querySelector("[data-settings-refresh] span");
+  if (frequencyLabel) { const minutes = refreshFrequency(); frequencyLabel.textContent = `Refresh frequency: ${minutes ? `${minutes} min` : "Off"}`; }
+  schedulePortfolioRefresh();
 } catch (error) {
   console.warn("Could not restore local preferences", error);
 }
