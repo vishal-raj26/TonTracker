@@ -1,0 +1,125 @@
+{
+  "schemaVersion": "username-local-collection-v1",
+  "from": "2026-09-20T13:45:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "collectedAt": "2026-09-25T09:40:23.311Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 49865,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 80,
+    "candidates": 10,
+    "verifiedItems": 2,
+    "wrongCollection": 8,
+    "assets": 2,
+    "sales": 2,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-25T09:40:23.311Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:e541ccfa62432760b224f737258cc9d17f5d7590e2bc4b84fb71bcdf05f77287",
+      "normalizedName": "mexicoflat",
+      "displayName": "@mexicoflat",
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "10L",
+      "feature": {
+        "characterLength": 10,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCDEFGHIJ",
+        "uniqueCharacterCount": 10,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-22T20:46:44.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:579a9c77263210cfc552980220b07c5f876af407fd192a1aeaa5e697ea09807a",
+      "normalizedName": "ovaed",
+      "displayName": "@ovaed",
+      "primaryRoute": "word",
+      "lengthBucket": "4-5",
+      "script": "Latin",
+      "scarcityClass": "5L",
+      "feature": {
+        "characterLength": 5,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCDE",
+        "uniqueCharacterCount": 5,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-22T20:46:53.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:dbf5a09ab0c7f93a544110dd1037bc0e00f5280387015ad879f5ffb6b7bab8e3",
+      "assetKind": "username",
+      "assetKey": "0:e541ccfa62432760b224f737258cc9d17f5d7590e2bc4b84fb71bcdf05f77287",
+      "normalizedName": "mexicoflat",
+      "soldAt": "2026-09-22T20:46:44.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.4500827010255006,
+      "priceUsd": 14.500827010255007,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "ytkkpDia9r81IsWx39OrEy8icQ4+qmHAU+tZl/YULBM=",
+        "messageHash": "t1XVnapVzBhPCFh8aTE1TQE5+eN4onZ6ZHAoshWTNM4=",
+        "bidAt": "2026-09-15T20:46:27.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "10L"
+    },
+    {
+      "saleId": "toncenter-username-sale:a247bd787d38081224a30b98b52f81a8028928df4b530c94b85678b0cab48d46",
+      "assetKind": "username",
+      "assetKey": "0:579a9c77263210cfc552980220b07c5f876af407fd192a1aeaa5e697ea09807a",
+      "normalizedName": "ovaed",
+      "soldAt": "2026-09-22T20:46:53.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.4500870750209411,
+      "priceUsd": 14.500870750209412,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "wfAwrUwRiv93H8h08cjoMqs0yPY42kFzOK9yrHjrZ5M=",
+        "messageHash": "ZkLpiWSvwVgSzDyIhTtBNGkKs1sFGjvxkl86w9n48Ec=",
+        "bidAt": "2026-09-15T20:46:30.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "4-5",
+      "script": "Latin",
+      "scarcityClass": "5L"
+    }
+  ]
+}

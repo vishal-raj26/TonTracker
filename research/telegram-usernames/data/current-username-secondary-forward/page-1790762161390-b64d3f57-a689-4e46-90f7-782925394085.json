@@ -1,0 +1,159 @@
+{
+  "schemaVersion": "username-secondary-local-v1",
+  "from": "2026-09-20T14:00:00Z",
+  "pipeline": "username-toncenter-secondary-sales-v1",
+  "collectedAt": "2026-09-30T09:56:01.390Z",
+  "cursor": {
+    "absoluteOffset": 43458,
+    "caughtUp": false
+  },
+  "metadata": {
+    "transfers": 100,
+    "saleContracts": 4,
+    "verifiedSales": 2,
+    "assets": 2,
+    "sales": 2,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-30T09:56:01.390Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:2b51dc6fc8fa88f0044188adafbf1ed49c14a80282ee6553e4acab6216d934da",
+      "normalizedName": "deathscape",
+      "displayName": "@deathscape",
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "10L",
+      "feature": {
+        "classifierVersion": "username-structural-v2",
+        "normalizedUsername": "deathscape",
+        "displayUsername": "@deathscape",
+        "characterLength": 10,
+        "byteLength": 10,
+        "characterClass": "letters",
+        "primaryRoute": "word",
+        "routes": [
+          "word"
+        ],
+        "scarcityClass": "10L",
+        "patternSignature": "ABCDEFGCHB",
+        "shapeSignature": "LLLLLLLLLL",
+        "uniqueCharacterCount": 8,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "repeatedBlock": null,
+        "scripts": [
+          "Latin"
+        ],
+        "primaryScript": "Latin",
+        "containsUnderscore": false,
+        "underscoreCount": 0,
+        "digitCount": 0,
+        "digitRatio": 0,
+        "vowelRatio": 0.4,
+        "pronounceability": "balanced",
+        "leadingZero": false,
+        "roundNumber": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-27T20:30:30.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:76497cbeb9fdf35fa8e747c59baec0d8ae3a727c9e6d4877e5c317b57b2a0e1d",
+      "normalizedName": "scamchiefer",
+      "displayName": "@scamchiefer",
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "11L",
+      "feature": {
+        "classifierVersion": "username-structural-v2",
+        "normalizedUsername": "scamchiefer",
+        "displayUsername": "@scamchiefer",
+        "characterLength": 11,
+        "byteLength": 11,
+        "characterClass": "letters",
+        "primaryRoute": "word",
+        "routes": [
+          "word"
+        ],
+        "scarcityClass": "11L",
+        "patternSignature": "ABCDBEFGHGI",
+        "shapeSignature": "LLLLLLLLLLL",
+        "uniqueCharacterCount": 9,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "repeatedBlock": null,
+        "scripts": [
+          "Latin"
+        ],
+        "primaryScript": "Latin",
+        "containsUnderscore": false,
+        "underscoreCount": 0,
+        "digitCount": 0,
+        "digitRatio": 0,
+        "vowelRatio": 0.36363636363636365,
+        "pronounceability": "balanced",
+        "leadingZero": false,
+        "roundNumber": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-27T20:22:10.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-secondary:958cc43651955e4470d321dd630e2acfec49aa4da31da256a05143d5f2c10f26",
+      "assetKind": "username",
+      "assetKey": "0:2b51dc6fc8fa88f0044188adafbf1ed49c14a80282ee6553e4acab6216d934da",
+      "normalizedName": "deathscape",
+      "soldAt": "2026-09-27T20:30:30.000Z",
+      "priceGram": 20,
+      "historicalUsdRate": 1.6280533254972493,
+      "priceUsd": 32.561066509944986,
+      "marketplace": "Getgems",
+      "source": "toncenter-indexed-secondary-sale",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-completed-sale-contract",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "transactionHash": "rFnLQzuWgtSpVZK9AVbv1mmarbRfRBtGsh59zGxCgRs=",
+        "saleContract": "0:0ceb4b90859910f7df42b59c765db9f88cceb00dd84889eeccae8a377357496a"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "10L"
+    },
+    {
+      "saleId": "toncenter-username-secondary:62ae73e10f7d5c803cf5cb16d79ce38ca68f339035e28610586f09b0569045e0",
+      "assetKind": "username",
+      "assetKey": "0:76497cbeb9fdf35fa8e747c59baec0d8ae3a727c9e6d4877e5c317b57b2a0e1d",
+      "normalizedName": "scamchiefer",
+      "soldAt": "2026-09-27T20:22:10.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.6275936387378414,
+      "priceUsd": 16.275936387378415,
+      "marketplace": "Getgems",
+      "source": "toncenter-indexed-secondary-sale",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-completed-sale-contract",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "transactionHash": "LI406LaVv+6HWWzUKS9O/EZCqK8RhdDg7rbr9tOU5UE=",
+        "saleContract": "0:1c1dc6ef7b91d7506084d01e2b3e697aa8a00c6dcaa202137d497d845c99d290"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "11L"
+    }
+  ]
+}

@@ -1,0 +1,75 @@
+{
+  "schemaVersion": "username-local-collection-v1",
+  "from": "2026-09-01T00:00:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "collectedAt": "2026-09-19T16:12:29.141Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 12400,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 80,
+    "candidates": 29,
+    "verifiedItems": 1,
+    "wrongCollection": 28,
+    "assets": 1,
+    "sales": 1,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-19T16:12:29.141Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:61b11850716570f131ea3b89901365d52010f05a2be9d4065f543ca1882d701c",
+      "normalizedName": "viral_blue_film",
+      "displayName": "@viral_blue_film",
+      "primaryRoute": "residual",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "15M",
+      "feature": {
+        "characterLength": 15,
+        "characterClass": "alphanumeric",
+        "routes": [
+          "residual"
+        ],
+        "patternSignature": "ABCDEFGEHIFJBEK",
+        "uniqueCharacterCount": 11,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": true,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-01T17:26:10.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:c8e0f493d99007adf3ef89c8845d069551e2f69fb45047d53c3d9205bda662df",
+      "assetKind": "username",
+      "assetKey": "0:61b11850716570f131ea3b89901365d52010f05a2be9d4065f543ca1882d701c",
+      "normalizedName": "viral_blue_film",
+      "soldAt": "2026-09-01T17:26:10.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.339270116003963,
+      "priceUsd": 13.39270116003963,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "ep8H7Dqx5QYFGzRiBJO3dvOiVGZAvr0EQeS37q018dA=",
+        "messageHash": "MeO/ryGt7X4whJaZ+O20BnFqwYxkLZlSl3ZIyvgpXGA=",
+        "bidAt": "2026-08-25T17:25:51.000Z"
+      },
+      "primaryRoute": "residual",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "15M"
+    }
+  ]
+}

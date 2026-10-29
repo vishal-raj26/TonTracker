@@ -1,0 +1,175 @@
+{
+  "schemaVersion": "username-local-collection-v1",
+  "from": "2026-09-01T00:00:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "collectedAt": "2026-09-19T16:11:54.095Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 11760,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 80,
+    "candidates": 15,
+    "verifiedItems": 3,
+    "wrongCollection": 12,
+    "assets": 3,
+    "sales": 3,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-19T16:11:54.095Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:e4f17316150f360266376153ba88209e2379afc24d352b3723bc8259c6d910cb",
+      "normalizedName": "panas_school_indian_tonton_hindi",
+      "displayName": "@panas_school_indian_tonton_hindi",
+      "primaryRoute": "pattern",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "32M",
+      "feature": {
+        "characterLength": 32,
+        "characterClass": "alphanumeric",
+        "routes": [
+          "pattern"
+        ],
+        "patternSignature": "ABCBDEDFGHHIEJCKJBCELHCLHCEGJCKJ",
+        "uniqueCharacterCount": 12,
+        "maxRunLength": 2,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": true,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-01T16:48:03.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:310eef5fec5f16bedd25a81bb80f476eff965401e92c81b5ec440f9a1eebfb01",
+      "normalizedName": "tonovski",
+      "displayName": "@tonovski",
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "8L",
+      "feature": {
+        "characterLength": 8,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCBDEFG",
+        "uniqueCharacterCount": 7,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-01T16:49:41.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:f6270f5a8e821fbab87fac87bb77728cb795d4efb5c39e0b2dc2e50088b49b20",
+      "normalizedName": "sky_padel",
+      "displayName": "@sky_padel",
+      "primaryRoute": "residual",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "9M",
+      "feature": {
+        "characterLength": 9,
+        "characterClass": "alphanumeric",
+        "routes": [
+          "residual"
+        ],
+        "patternSignature": "ABCDEFGHI",
+        "uniqueCharacterCount": 9,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": true,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-01T16:51:47.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:0030052f5dbc4909e9eb46dd0d0f940bebeeda53541248720d8c842cdbde4fe0",
+      "assetKind": "username",
+      "assetKey": "0:e4f17316150f360266376153ba88209e2379afc24d352b3723bc8259c6d910cb",
+      "normalizedName": "panas_school_indian_tonton_hindi",
+      "soldAt": "2026-09-01T16:48:03.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.3289305677945102,
+      "priceUsd": 13.289305677945102,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "cFSdJvLduZYZb64lwcJ3MXBB9LVlvAaQZVpi6MJaqUM=",
+        "messageHash": "j0hbOpsm/ISbw46vI8bsWQCBTCKI9CuRkSSWWjnsX7Q=",
+        "bidAt": "2026-08-25T16:47:47.000Z"
+      },
+      "primaryRoute": "pattern",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "32M"
+    },
+    {
+      "saleId": "toncenter-username-sale:e8ed1a07e16b43dbb38f4de723a222f7ff0cce4e92a9394c267136e26faeb4e1",
+      "assetKind": "username",
+      "assetKey": "0:310eef5fec5f16bedd25a81bb80f476eff965401e92c81b5ec440f9a1eebfb01",
+      "normalizedName": "tonovski",
+      "soldAt": "2026-09-01T16:49:41.000Z",
+      "priceGram": 7.4,
+      "historicalUsdRate": 1.3288494243961029,
+      "priceUsd": 9.833485740531161,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "9d3hI1Zd6rzg9P0z/isWT1IGP7DqLk1ObgDMp/8LbCA=",
+        "messageHash": "y7RwF8/w1wqB3xFAKPS3eAhNJGESChlo83Mj+dwNxeY=",
+        "bidAt": "2026-09-01T16:49:41.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "8L"
+    },
+    {
+      "saleId": "toncenter-username-sale:c95dcf809dbf5f504de7c7f806c283fdc482271a3119593e540de8355331b529",
+      "assetKind": "username",
+      "assetKey": "0:f6270f5a8e821fbab87fac87bb77728cb795d4efb5c39e0b2dc2e50088b49b20",
+      "normalizedName": "sky_padel",
+      "soldAt": "2026-09-01T16:51:47.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.3287450971695791,
+      "priceUsd": 13.28745097169579,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "H4CLtUzlTV5xutSdsmThapNfSvBEnmeOmWYw2x7mCvw=",
+        "messageHash": "ne1ODIZUdHorjpKnT+G6DAovLdSMXSxzBNlWRY+8Qvs=",
+        "bidAt": "2026-08-25T16:51:31.000Z"
+      },
+      "primaryRoute": "residual",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "9M"
+    }
+  ]
+}

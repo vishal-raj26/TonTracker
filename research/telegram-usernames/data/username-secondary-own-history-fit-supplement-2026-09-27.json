@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "secondary-own-history-fit-supplement-v1",
+  "sealedBeforeCandidateFit": true,
+  "reservedLabelsOpened": false,
+  "createdAt": "2026-09-27",
+  "protocolSha256": "6c02cb4c743579def9e922c98736cbae658b6f3015e9b7e24fa82d1f4bfd1b25",
+  "featureSupplementSha256": "de56726c83c394a76483aba39360d744e7464f93c1e9a749225756d827fd4281",
+  "frozenCode": {
+    "evaluator": {
+      "path": "scripts/evaluate-username-resale-own-history-development.py",
+      "sha256": "4138776ef9d94d2464dac92ad82af472ce4cf18945391254a834a97ad397f3d5"
+    },
+    "evaluatorTests": {
+      "path": "scripts/test_username_resale_own_history_development.py",
+      "sha256": "2106e2f068e74768111a9bc7affcd77bc4c409eef4088fc33440767d1cf45567"
+    },
+    "staticControlEvaluator": {
+      "path": "scripts/evaluate-username-secondary-resale-development.py",
+      "sha256": "5db61746715542491e07d38cd147237b72939a8be0dfa3ca82405e1671dca284"
+    },
+    "strictOwnHistoryHelper": {
+      "path": "scripts/diagnose-username-own-evidence.js",
+      "sha256": "33d132a563b17597b81442e8bfea906531197116f03848b3f83922d280f1786d"
+    },
+    "historicalSaleLoader": {
+      "path": "scripts/evaluate-username-rebuild.js",
+      "sha256": "f232c75d3442d9568f9ece1019329ad130a36e14b89ba71d6e0cce5e813909a3"
+    }
+  },
+  "auditOnlyResult": {
+    "path": "research/telegram-usernames/data/username-secondary-own-history-evaluator-audit-2026-09-27-v2.json",
+    "sha256": "890859fa9ce336e272b71f780512b8751b1bb8f3a372b5d279154d6f06690798",
+    "fitRun": false,
+    "rows": 81617,
+    "uniqueEventIds": 81617,
+    "featureWidth": 250,
+    "ownHistoryAvailable": 14324,
+    "ownHistoryAbsent": 67293,
+    "ownHistoryAmbiguous": 0
+  },
+  "fitCommand": "python scripts/evaluate-username-resale-own-history-development.py --output research/telegram-usernames/data/username-secondary-own-history-development-2026-09-27.json",
+  "fixedRecipe": "Two exposed temporal folds from the parent protocol; all-stage HGB with four strict-prior own-history features versus matched static HGB, equal 100-iteration/15-leaf/min-20/rate-0.1/seed-17 settings, separate 10th/90th quantiles and secondary-only 80% calibration; no tuning or refitting after results",
+  "invariant": "One fit only after this supplement is written; result remains research-only and promotion still requires full same-case v25 comparison, all quality gates and prospective current-market validation"
+}

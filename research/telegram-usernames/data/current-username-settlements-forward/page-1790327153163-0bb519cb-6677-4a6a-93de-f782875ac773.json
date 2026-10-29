@@ -1,0 +1,175 @@
+{
+  "schemaVersion": "username-local-collection-v1",
+  "from": "2026-09-20T13:45:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "collectedAt": "2026-09-25T09:05:53.163Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 43465,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 80,
+    "candidates": 15,
+    "verifiedItems": 3,
+    "wrongCollection": 12,
+    "assets": 3,
+    "sales": 3,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-25T09:05:53.163Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:750182639c4cfc0f7d804f461102c688fb06c5e8f96378d9f14200b3d7e6ec0f",
+      "normalizedName": "po_dengam_suda",
+      "displayName": "@po_dengam_suda",
+      "primaryRoute": "residual",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "14M",
+      "feature": {
+        "characterLength": 14,
+        "characterClass": "alphanumeric",
+        "routes": [
+          "residual"
+        ],
+        "patternSignature": "ABCDEFGHICJKDH",
+        "uniqueCharacterCount": 11,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": true,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-22T15:04:20.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:46b57ae4c714362baca89c3bdce2ea7d59704d31981e568e5c5ef13716ef60e1",
+      "normalizedName": "pantiesfromburberry",
+      "displayName": "@pantiesfromburberry",
+      "primaryRoute": "pattern",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "19L",
+      "feature": {
+        "characterLength": 19,
+        "characterClass": "letters",
+        "routes": [
+          "pattern"
+        ],
+        "patternSignature": "ABCDEFGHIJKLMILFIIN",
+        "uniqueCharacterCount": 14,
+        "maxRunLength": 2,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-22T15:08:05.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:3dd6ccaaa58c48fba1762e152a1e6cf190c5fdbd492154df8509f45b6a7b173b",
+      "normalizedName": "fuckingpepa",
+      "displayName": "@fuckingpepa",
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "11L",
+      "feature": {
+        "characterLength": 11,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCDEFGHIHJ",
+        "uniqueCharacterCount": 10,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-22T15:08:36.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:5017cf5a7cf42c19a952237f121f40d565060d2cec390c8a803ddbe5a066a611",
+      "assetKind": "username",
+      "assetKey": "0:750182639c4cfc0f7d804f461102c688fb06c5e8f96378d9f14200b3d7e6ec0f",
+      "normalizedName": "po_dengam_suda",
+      "soldAt": "2026-09-22T15:04:20.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.432439286503582,
+      "priceUsd": 14.32439286503582,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "IA2d5/FPiPQ25Jk5DNitSguCQWErJmJqT/q30XZJwWM=",
+        "messageHash": "sC1tYLRUlgoV+7W+ZCbewAbkXBEBLGfzzGQtnMSMHi4=",
+        "bidAt": "2026-09-15T15:04:03.000Z"
+      },
+      "primaryRoute": "residual",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "14M"
+    },
+    {
+      "saleId": "toncenter-username-sale:b72107ed0591c122babbf4fbacef715e02cbf81920227d546590b608f34ac4fe",
+      "assetKind": "username",
+      "assetKey": "0:46b57ae4c714362baca89c3bdce2ea7d59704d31981e568e5c5ef13716ef60e1",
+      "normalizedName": "pantiesfromburberry",
+      "soldAt": "2026-09-22T15:08:05.000Z",
+      "priceGram": 6.000000001,
+      "historicalUsdRate": 1.432619251430977,
+      "priceUsd": 8.595715510018481,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "bYe8Y+D4MSjF8zfSjmRvlFgibvPP3E+YkVVoSLR/M4w=",
+        "messageHash": "XSVC5ZT9MpJ+QSiVZW4ZjcPdiH3SlZNemytVt3WsrjY=",
+        "bidAt": "2026-09-22T15:08:05.000Z"
+      },
+      "primaryRoute": "pattern",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "19L"
+    },
+    {
+      "saleId": "toncenter-username-sale:9c363d6b3cd85ed1f2fb82d4b60551d735466b792cbcc2e870637b3992af13f6",
+      "assetKind": "username",
+      "assetKey": "0:3dd6ccaaa58c48fba1762e152a1e6cf190c5fdbd492154df8509f45b6a7b173b",
+      "normalizedName": "fuckingpepa",
+      "soldAt": "2026-09-22T15:08:36.000Z",
+      "priceGram": 6.000000001,
+      "historicalUsdRate": 1.4326440465987516,
+      "priceUsd": 8.595864281025154,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "Za2/tYG5/oIS/XXRMbmXySy+fBK6WStGODeZyyLuppE=",
+        "messageHash": "XKRQIv+Rrw4PsK3pUXwvq9EUg1FqtZF76xVitHolsI4=",
+        "bidAt": "2026-09-22T15:08:36.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "11L"
+    }
+  ]
+}

@@ -1,0 +1,91 @@
+{
+  "schemaVersion": "username-secondary-local-v1",
+  "from": "2026-09-20T14:00:00Z",
+  "pipeline": "username-toncenter-secondary-sales-v1",
+  "collectedAt": "2026-09-27T19:58:36.895Z",
+  "cursor": {
+    "absoluteOffset": 40840,
+    "caughtUp": false
+  },
+  "metadata": {
+    "transfers": 100,
+    "saleContracts": 4,
+    "verifiedSales": 1,
+    "assets": 1,
+    "sales": 1,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-27T19:58:36.895Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:73fbc8df824b0cd477b12a3aba5cea2085ba9397afb7eba796dbac4f972f59a6",
+      "normalizedName": "erounds",
+      "displayName": "@erounds",
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "7L",
+      "feature": {
+        "classifierVersion": "username-structural-v2",
+        "normalizedUsername": "erounds",
+        "displayUsername": "@erounds",
+        "characterLength": 7,
+        "byteLength": 7,
+        "characterClass": "letters",
+        "primaryRoute": "word",
+        "routes": [
+          "word"
+        ],
+        "scarcityClass": "7L",
+        "patternSignature": "ABCDEFG",
+        "shapeSignature": "LLLLLLL",
+        "uniqueCharacterCount": 7,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "repeatedBlock": null,
+        "scripts": [
+          "Latin"
+        ],
+        "primaryScript": "Latin",
+        "containsUnderscore": false,
+        "underscoreCount": 0,
+        "digitCount": 0,
+        "digitRatio": 0,
+        "vowelRatio": 0.42857142857142855,
+        "pronounceability": "balanced",
+        "leadingZero": false,
+        "roundNumber": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-27T16:11:47.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-secondary:99fe35ff83280cb45837d1d5f2f440096e6fb7efb62b827675832234a7805e7a",
+      "assetKind": "username",
+      "assetKey": "0:73fbc8df824b0cd477b12a3aba5cea2085ba9397afb7eba796dbac4f972f59a6",
+      "normalizedName": "erounds",
+      "soldAt": "2026-09-27T16:11:47.000Z",
+      "priceGram": 7,
+      "historicalUsdRate": 1.687651674508182,
+      "priceUsd": 11.813561721557274,
+      "marketplace": "Getgems",
+      "source": "toncenter-indexed-secondary-sale",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-completed-sale-contract",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "nearest-observation",
+        "transactionHash": "qyj7q33uQvAjO+MdpC8qyB3W1CoPTG6842rkNg98vcY=",
+        "saleContract": "0:ef235a41658358e9fa29aa7da92f660a282578344b7bcb2d50f95c5533c9af2b"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "7L"
+    }
+  ]
+}

@@ -1,0 +1,91 @@
+{
+  "schemaVersion": "username-secondary-local-v1",
+  "from": "2026-09-20T14:00:00Z",
+  "pipeline": "username-toncenter-secondary-sales-v1",
+  "collectedAt": "2026-09-25T14:37:27.414Z",
+  "cursor": {
+    "absoluteOffset": 26987,
+    "caughtUp": false
+  },
+  "metadata": {
+    "transfers": 100,
+    "saleContracts": 1,
+    "verifiedSales": 1,
+    "assets": 1,
+    "sales": 1,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-25T14:37:27.414Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:69c01591a5299f337eaa159928597d1b4af37521d8797fa3fee68472c0334a18",
+      "normalizedName": "ratanies",
+      "displayName": "@ratanies",
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "8L",
+      "feature": {
+        "classifierVersion": "username-structural-v2",
+        "normalizedUsername": "ratanies",
+        "displayUsername": "@ratanies",
+        "characterLength": 8,
+        "byteLength": 8,
+        "characterClass": "letters",
+        "primaryRoute": "word",
+        "routes": [
+          "word"
+        ],
+        "scarcityClass": "8L",
+        "patternSignature": "ABCBDEFG",
+        "shapeSignature": "LLLLLLLL",
+        "uniqueCharacterCount": 7,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "repeatedBlock": null,
+        "scripts": [
+          "Latin"
+        ],
+        "primaryScript": "Latin",
+        "containsUnderscore": false,
+        "underscoreCount": 0,
+        "digitCount": 0,
+        "digitRatio": 0,
+        "vowelRatio": 0.5,
+        "pronounceability": "balanced",
+        "leadingZero": false,
+        "roundNumber": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-25T10:59:20.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-secondary:f92835e36388c90e8ce7461e296132cb794222933374852714ff8d68d7e45534",
+      "assetKind": "username",
+      "assetKey": "0:69c01591a5299f337eaa159928597d1b4af37521d8797fa3fee68472c0334a18",
+      "normalizedName": "ratanies",
+      "soldAt": "2026-09-25T10:59:20.000Z",
+      "priceGram": 5.97,
+      "historicalUsdRate": 1.4237346524326457,
+      "priceUsd": 8.499695875022894,
+      "marketplace": "Getgems",
+      "source": "toncenter-indexed-secondary-sale",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-completed-sale-contract",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "transactionHash": "VLw5NuSWDaRVxd8wy86fB9bxwmAPCifp2kkQ6vE/OUI=",
+        "saleContract": "0:8566cbadf8808abfbfa81bba80b18826b2b01c7dc72532c533230d1fcc32b724"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "8L"
+    }
+  ]
+}

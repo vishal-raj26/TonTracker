@@ -1,0 +1,125 @@
+{
+  "schemaVersion": "username-local-collection-v1",
+  "from": "2026-09-20T13:45:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "collectedAt": "2026-09-22T13:05:56.956Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 32169,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 80,
+    "candidates": 15,
+    "verifiedItems": 2,
+    "wrongCollection": 13,
+    "assets": 2,
+    "sales": 2,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-22T13:05:56.956Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:d6b2834dfbe827f45a3d1f6224ec46ec46f6213cd6989ec49ca94be0975c1497",
+      "normalizedName": "savexmusic",
+      "displayName": "@savexmusic",
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "10L",
+      "feature": {
+        "characterLength": 10,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCDEFGAHI",
+        "uniqueCharacterCount": 9,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-22T00:50:16.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:2d43cc1998d198907552bb826d23aaafd246beda188a802389eb4f16781d67b1",
+      "normalizedName": "simeon",
+      "displayName": "@simeon",
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "6L",
+      "feature": {
+        "characterLength": 6,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCDEF",
+        "uniqueCharacterCount": 6,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-22T00:50:38.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:c3dad5707b42e049f58831549ec632ca7ebd0f47589ce9e80e8996c78342074b",
+      "assetKind": "username",
+      "assetKey": "0:d6b2834dfbe827f45a3d1f6224ec46ec46f6213cd6989ec49ca94be0975c1497",
+      "normalizedName": "savexmusic",
+      "soldAt": "2026-09-22T00:50:16.000Z",
+      "priceGram": 11,
+      "historicalUsdRate": 1.458393530266061,
+      "priceUsd": 16.04232883292667,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "l5qQ/sD3N1HQ3l1V8XpbndHEfqpQXzFUpniuCzGvADs=",
+        "messageHash": "M61a0v2mr3gLhHPazHu/nsGN0tlMeO7ULTmkelSoS7o=",
+        "bidAt": "2026-09-15T00:50:00.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "10L"
+    },
+    {
+      "saleId": "toncenter-username-sale:5eb4a799cdaaaed314337dfb31d55b4e3142d8e7b0b8aa14534aa1aee0810c56",
+      "assetKind": "username",
+      "assetKey": "0:2d43cc1998d198907552bb826d23aaafd246beda188a802389eb4f16781d67b1",
+      "normalizedName": "simeon",
+      "soldAt": "2026-09-22T00:50:38.000Z",
+      "priceGram": 592,
+      "historicalUsdRate": 1.4583710817035649,
+      "priceUsd": 863.3556803685104,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "EwhCQT9gBK0XA+tlYbO68O/hLTmimgBUnTXVE65bsBg=",
+        "messageHash": "F8IcxeNMzyFTl4Rs1sIwnSMnJkqY85CqUeQULfCK2hY=",
+        "bidAt": "2026-09-15T00:50:20.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "6L"
+    }
+  ]
+}

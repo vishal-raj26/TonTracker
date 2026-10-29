@@ -1,0 +1,91 @@
+{
+  "schemaVersion": "username-secondary-local-v1",
+  "from": "2026-09-20T14:00:00Z",
+  "pipeline": "username-toncenter-secondary-sales-v1",
+  "collectedAt": "2026-09-27T19:59:25.068Z",
+  "cursor": {
+    "absoluteOffset": 41940,
+    "caughtUp": false
+  },
+  "metadata": {
+    "transfers": 100,
+    "saleContracts": 1,
+    "verifiedSales": 1,
+    "assets": 1,
+    "sales": 1,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-27T19:59:25.068Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:e60cf32a8e332562a92d375a2c696a7a391bdaa239fdd2656e9ca325743f2c3a",
+      "normalizedName": "pancontinental",
+      "displayName": "@pancontinental",
+      "primaryRoute": "residual",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "14L",
+      "feature": {
+        "classifierVersion": "username-structural-v2",
+        "normalizedUsername": "pancontinental",
+        "displayUsername": "@pancontinental",
+        "characterLength": 14,
+        "byteLength": 14,
+        "characterClass": "letters",
+        "primaryRoute": "residual",
+        "routes": [
+          "residual"
+        ],
+        "scarcityClass": "14L",
+        "patternSignature": "ABCDECFGCHCFBI",
+        "shapeSignature": "LLLLLLLLLLLLLL",
+        "uniqueCharacterCount": 9,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "repeatedBlock": null,
+        "scripts": [
+          "Latin"
+        ],
+        "primaryScript": "Latin",
+        "containsUnderscore": false,
+        "underscoreCount": 0,
+        "digitCount": 0,
+        "digitRatio": 0,
+        "vowelRatio": 0.35714285714285715,
+        "pronounceability": "balanced",
+        "leadingZero": false,
+        "roundNumber": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-27T17:17:19.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-secondary:be277784fe7001bb5dbf69c1f44e8f11c94d04f468fdfd391b7ab1e1ba0bca7d",
+      "assetKind": "username",
+      "assetKey": "0:e60cf32a8e332562a92d375a2c696a7a391bdaa239fdd2656e9ca325743f2c3a",
+      "normalizedName": "pancontinental",
+      "soldAt": "2026-09-27T17:17:19.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.68527232698419,
+      "priceUsd": 16.8527232698419,
+      "marketplace": "Getgems",
+      "source": "toncenter-indexed-secondary-sale",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-completed-sale-contract",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "nearest-observation",
+        "transactionHash": "aTiF9e6mHNsVw1DaOv1hDovWH7x7aceAQ6kOLSG3LLE=",
+        "saleContract": "0:744d6f50a9dc376e2dd39f3c26bf504c93d5dacace18598b8cd512a8374043a7"
+      },
+      "primaryRoute": "residual",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "14L"
+    }
+  ]
+}

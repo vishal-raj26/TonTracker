@@ -1,0 +1,175 @@
+{
+  "schemaVersion": "username-local-collection-v1",
+  "from": "2026-09-20T13:45:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "collectedAt": "2026-09-26T22:33:04.646Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 61705,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 80,
+    "candidates": 22,
+    "verifiedItems": 3,
+    "wrongCollection": 19,
+    "assets": 3,
+    "sales": 3,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-26T22:33:04.646Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:6376f7144bb29706f8804c9d95613a10cc7348b1317d00c052059fd014cf8180",
+      "normalizedName": "haisouxx",
+      "displayName": "@haisouxx",
+      "primaryRoute": "pattern",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "8L",
+      "feature": {
+        "characterLength": 8,
+        "characterClass": "letters",
+        "routes": [
+          "pattern"
+        ],
+        "patternSignature": "ABCDEFGG",
+        "uniqueCharacterCount": 7,
+        "maxRunLength": 2,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-23T14:20:40.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:6f608c295e2fe9be7248ab8c6220348232652c5a10a8432fa16c96fe7f563724",
+      "normalizedName": "guptaxaura",
+      "displayName": "@guptaxaura",
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "10L",
+      "feature": {
+        "characterLength": 10,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCDEFEBGE",
+        "uniqueCharacterCount": 7,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-23T14:23:14.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:d4944e5c5451c2446c39eabbe239cc8833eca60b782ee5505d8d1218eafd950e",
+      "normalizedName": "interpol_dubai",
+      "displayName": "@interpol_dubai",
+      "primaryRoute": "residual",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "14M",
+      "feature": {
+        "characterLength": 14,
+        "characterClass": "alphanumeric",
+        "routes": [
+          "residual"
+        ],
+        "patternSignature": "ABCDEFGHIJKLMA",
+        "uniqueCharacterCount": 13,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": true,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-23T14:23:46.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:4502df4c3feef70b9c0bd569fdbd6feda86308da4c9ef3b4fe6c11ce92d6ac7d",
+      "assetKind": "username",
+      "assetKey": "0:6376f7144bb29706f8804c9d95613a10cc7348b1317d00c052059fd014cf8180",
+      "normalizedName": "haisouxx",
+      "soldAt": "2026-09-23T14:20:40.000Z",
+      "priceGram": 12,
+      "historicalUsdRate": 1.4134366423761315,
+      "priceUsd": 16.961239708513578,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "q/P2E5kg7pI/5c9ThNDIHg/C0IL9NvvIJtq4PoE/Klw=",
+        "messageHash": "Vbvdftm6JLNW69HgKtOQL1+i+tnfQG6A6nefjOSxtlQ=",
+        "bidAt": "2026-09-16T14:20:22.000Z"
+      },
+      "primaryRoute": "pattern",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "8L"
+    },
+    {
+      "saleId": "toncenter-username-sale:4c246ce617d7b8faa0d1d1fe595cca88dea43b4d33ec65b0bd3ffa051dd3a983",
+      "assetKind": "username",
+      "assetKey": "0:6f608c295e2fe9be7248ab8c6220348232652c5a10a8432fa16c96fe7f563724",
+      "normalizedName": "guptaxaura",
+      "soldAt": "2026-09-23T14:23:14.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.4134160789281325,
+      "priceUsd": 14.134160789281324,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "TmCBTfkrAbz2Ecr5leLWt7g8KjRK6hcQ3p7yrLDNM4w=",
+        "messageHash": "kyvIbwSmT+goAYa8So6J8GA+dxtUZ8RWZhCAX20xJjI=",
+        "bidAt": "2026-09-16T14:22:58.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "10L"
+    },
+    {
+      "saleId": "toncenter-username-sale:e4bd4672ac6f468ed606b3ebb9fea9a800786dbe3384887ed6b95ec773965602",
+      "assetKind": "username",
+      "assetKey": "0:d4944e5c5451c2446c39eabbe239cc8833eca60b782ee5505d8d1218eafd950e",
+      "normalizedName": "interpol_dubai",
+      "soldAt": "2026-09-23T14:23:46.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.4134118060038727,
+      "priceUsd": 14.134118060038727,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "qW+F26+eCvmr1JeGJS/0oQzjDA2+ypEuRLQ8QsN4lxg=",
+        "messageHash": "VCv5V/6Tw47FQ2D0W/kycEIde/89wOebUKg/5JfhRBM=",
+        "bidAt": "2026-09-16T14:23:27.000Z"
+      },
+      "primaryRoute": "residual",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "14M"
+    }
+  ]
+}

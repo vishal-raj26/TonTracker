@@ -1,0 +1,126 @@
+{
+  "schemaVersion": "username-forward-v2-local-v1",
+  "from": "2026-09-27T00:00:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "requestedEndUtime": 1790537700,
+  "collectedAt": "2026-09-27T19:56:12.152Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 15791,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 80,
+    "candidates": 16,
+    "verifiedItems": 2,
+    "wrongCollection": 14,
+    "assets": 2,
+    "sales": 2,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-27T19:56:12.152Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:f71fb2e079dc694729cfe95dc3816706d1175c8fbb17441c9da3da09ba6f6b73",
+      "normalizedName": "em678",
+      "displayName": "@em678",
+      "primaryRoute": "alphanumeric",
+      "lengthBucket": "4-5",
+      "script": "Latin",
+      "scarcityClass": "5M",
+      "feature": {
+        "characterLength": 5,
+        "characterClass": "alphanumeric",
+        "routes": [
+          "alphanumeric"
+        ],
+        "patternSignature": "ABCDE",
+        "uniqueCharacterCount": 5,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-27T19:19:25.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:07c899f7258afc68581e8e65cad6ae798ea4c68ffe00d4a48d8331fb15122a72",
+      "normalizedName": "bipai",
+      "displayName": "@bipai",
+      "primaryRoute": "word",
+      "lengthBucket": "4-5",
+      "script": "Latin",
+      "scarcityClass": "5L",
+      "feature": {
+        "characterLength": 5,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCDB",
+        "uniqueCharacterCount": 4,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-27T19:22:35.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:cee2a504f8e8b0a73913cf2e00c0cbdeed232061346942838571be57d9242746",
+      "assetKind": "username",
+      "assetKey": "0:f71fb2e079dc694729cfe95dc3816706d1175c8fbb17441c9da3da09ba6f6b73",
+      "normalizedName": "em678",
+      "soldAt": "2026-09-27T19:19:25.000Z",
+      "priceGram": 19,
+      "historicalUsdRate": 1.645006625269887,
+      "priceUsd": 31.255125880127853,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "RQLBPGnkn9YOJgNKpvUIcCPWB1jmvOmdpRma0jrXKUQ=",
+        "messageHash": "rVaAG6ztwfTTXb/MUbpwSFdw8CUQxFl3T6KpfRnV+Xw=",
+        "bidAt": "2026-09-27T19:19:25.000Z"
+      },
+      "primaryRoute": "alphanumeric",
+      "lengthBucket": "4-5",
+      "script": "Latin",
+      "scarcityClass": "5M"
+    },
+    {
+      "saleId": "toncenter-username-sale:7a49795a6ab0540b4871dd543a3e3f7c2dc0aeca0fcac3d7ff452e1632e29509",
+      "assetKind": "username",
+      "assetKey": "0:07c899f7258afc68581e8e65cad6ae798ea4c68ffe00d4a48d8331fb15122a72",
+      "normalizedName": "bipai",
+      "soldAt": "2026-09-27T19:22:35.000Z",
+      "priceGram": 157,
+      "historicalUsdRate": 1.6450178857633329,
+      "priceUsd": 258.2678080648433,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "nearest-observation",
+        "txHash": "yV6VApGQ21ITIx3xI1jSBD8KUoEto4m/YBjdlPesymY=",
+        "messageHash": "09YwTJeQm2+8I6ruWSf7kVcp+GoYzODLJeKCwWcv658=",
+        "bidAt": "2026-09-27T19:22:35.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "4-5",
+      "script": "Latin",
+      "scarcityClass": "5L"
+    }
+  ]
+}

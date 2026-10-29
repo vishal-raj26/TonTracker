@@ -1,0 +1,159 @@
+{
+  "schemaVersion": "username-secondary-local-v1",
+  "from": "2026-09-20T14:00:00Z",
+  "pipeline": "username-toncenter-secondary-sales-v1",
+  "collectedAt": "2026-09-25T09:07:50.973Z",
+  "cursor": {
+    "absoluteOffset": 13270,
+    "caughtUp": false
+  },
+  "metadata": {
+    "transfers": 100,
+    "saleContracts": 7,
+    "verifiedSales": 2,
+    "assets": 2,
+    "sales": 2,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-25T09:07:50.973Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:a23d23c019edf383c6350871230a675e51b83513a3856c7f99754380d2d5d292",
+      "normalizedName": "cloudflarepays",
+      "displayName": "@cloudflarepays",
+      "primaryRoute": "residual",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "14L",
+      "feature": {
+        "classifierVersion": "username-structural-v2",
+        "normalizedUsername": "cloudflarepays",
+        "displayUsername": "@cloudflarepays",
+        "characterLength": 14,
+        "byteLength": 14,
+        "characterClass": "letters",
+        "primaryRoute": "residual",
+        "routes": [
+          "residual"
+        ],
+        "scarcityClass": "14L",
+        "patternSignature": "ABCDEFBGHIJGKL",
+        "shapeSignature": "LLLLLLLLLLLLLL",
+        "uniqueCharacterCount": 12,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "repeatedBlock": null,
+        "scripts": [
+          "Latin"
+        ],
+        "primaryScript": "Latin",
+        "containsUnderscore": false,
+        "underscoreCount": 0,
+        "digitCount": 0,
+        "digitRatio": 0,
+        "vowelRatio": 0.42857142857142855,
+        "pronounceability": "balanced",
+        "leadingZero": false,
+        "roundNumber": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-22T15:59:34.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:54eb5b53c3ef62ca387f15c7747e748cb14d2a2c099076d41c99b2d2ec4d5970",
+      "normalizedName": "keepwallet",
+      "displayName": "@keepwallet",
+      "primaryRoute": "pattern",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "10L",
+      "feature": {
+        "classifierVersion": "username-structural-v2",
+        "normalizedUsername": "keepwallet",
+        "displayUsername": "@keepwallet",
+        "characterLength": 10,
+        "byteLength": 10,
+        "characterClass": "letters",
+        "primaryRoute": "pattern",
+        "routes": [
+          "pattern"
+        ],
+        "scarcityClass": "10L",
+        "patternSignature": "ABBCDEFFBG",
+        "shapeSignature": "LLLLLLLLLL",
+        "uniqueCharacterCount": 7,
+        "maxRunLength": 2,
+        "palindrome": false,
+        "sequence": null,
+        "repeatedBlock": null,
+        "scripts": [
+          "Latin"
+        ],
+        "primaryScript": "Latin",
+        "containsUnderscore": false,
+        "underscoreCount": 0,
+        "digitCount": 0,
+        "digitRatio": 0,
+        "vowelRatio": 0.4,
+        "pronounceability": "balanced",
+        "leadingZero": false,
+        "roundNumber": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-22T16:10:52.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-secondary:5a36a6e735d05aa1ab99e3786ec93d261e7ad248563320980d3076a049fa0b3a",
+      "assetKind": "username",
+      "assetKey": "0:a23d23c019edf383c6350871230a675e51b83513a3856c7f99754380d2d5d292",
+      "normalizedName": "cloudflarepays",
+      "soldAt": "2026-09-22T15:59:34.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.440662092065978,
+      "priceUsd": 14.40662092065978,
+      "marketplace": "Getgems",
+      "source": "toncenter-indexed-secondary-sale",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-completed-sale-contract",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "transactionHash": "HV6pAAlsk3c/hwRtJW/D5FfRcimJkIn+LSK8SjWzFA8=",
+        "saleContract": "0:e6cbc7f5f7a8685fcfef70f97d1a83c66ef65ff9792809da62fea158d94e5e90"
+      },
+      "primaryRoute": "residual",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "14L"
+    },
+    {
+      "saleId": "toncenter-username-secondary:92dded192ce764f260dd56c0090b0146090ba625252d3de95efc44debcddd0a1",
+      "assetKind": "username",
+      "assetKey": "0:54eb5b53c3ef62ca387f15c7747e748cb14d2a2c099076d41c99b2d2ec4d5970",
+      "normalizedName": "keepwallet",
+      "soldAt": "2026-09-22T16:10:52.000Z",
+      "priceGram": 199,
+      "historicalUsdRate": 1.4410743492529656,
+      "priceUsd": 286.77379550134015,
+      "marketplace": "Getgems",
+      "source": "toncenter-indexed-secondary-sale",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-completed-sale-contract",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "transactionHash": "TcjVjIy5TESx9jBwFd7011N2eHmon6MmxlRt1DM1hfI=",
+        "saleContract": "0:7513adb2b5d0cc6b8c654f6e413eea4936adff8041d3a566f517be796acc9aff"
+      },
+      "primaryRoute": "pattern",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "10L"
+    }
+  ]
+}

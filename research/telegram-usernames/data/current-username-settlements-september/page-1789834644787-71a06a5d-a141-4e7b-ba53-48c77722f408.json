@@ -1,0 +1,125 @@
+{
+  "schemaVersion": "username-local-collection-v1",
+  "from": "2026-09-01T00:00:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "collectedAt": "2026-09-19T16:17:24.787Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 16390,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 10,
+    "candidates": 3,
+    "verifiedItems": 2,
+    "wrongCollection": 1,
+    "assets": 2,
+    "sales": 2,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-19T16:17:24.787Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:18ef361a4285636fc745cc751c9da8faa6b26c833e8b4ec22dc46b435e03724c",
+      "normalizedName": "sensible",
+      "displayName": "@sensible",
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "8L",
+      "feature": {
+        "characterLength": 8,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCADEFB",
+        "uniqueCharacterCount": 6,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-01T21:52:45.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:11d0fc9f194f5e338360260875941367adb3b84b30b76f46ba19282cba36f9c8",
+      "normalizedName": "ziwra",
+      "displayName": "@ziwra",
+      "primaryRoute": "word",
+      "lengthBucket": "4-5",
+      "script": "Latin",
+      "scarcityClass": "5L",
+      "feature": {
+        "characterLength": 5,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCDE",
+        "uniqueCharacterCount": 5,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-01T21:52:59.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:c05805213351038a69ff4a543d14e942d39429c73a12881a7fe38fe7ce69ceb4",
+      "assetKind": "username",
+      "assetKey": "0:18ef361a4285636fc745cc751c9da8faa6b26c833e8b4ec22dc46b435e03724c",
+      "normalizedName": "sensible",
+      "soldAt": "2026-09-01T21:52:45.000Z",
+      "priceGram": 740,
+      "historicalUsdRate": 1.3186101022161931,
+      "priceUsd": 975.7714756399829,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "VaQV8hrD+QLPmgJzvtr7qkwnNUYXi3SdACv9enQhLsc=",
+        "messageHash": "OwxX21qVkXNM2jfI3ETqF39WJco5GAe10MQ1iB+5cTs=",
+        "bidAt": "2026-09-01T20:52:27.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "8L"
+    },
+    {
+      "saleId": "toncenter-username-sale:2b910bbb798c3a41c77858e312792ad43c3558e545ab8df697ce5488b3b886f3",
+      "assetKind": "username",
+      "assetKey": "0:11d0fc9f194f5e338360260875941367adb3b84b30b76f46ba19282cba36f9c8",
+      "normalizedName": "ziwra",
+      "soldAt": "2026-09-01T21:52:59.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.3186054875007147,
+      "priceUsd": 13.186054875007148,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "cgsvgrhIuhkVv0gL3rS57SPFEnnILhAIqTnd01qXxlU=",
+        "messageHash": "VTDkhCDLBZIsQV135B09Zltz9iwA6vM7NKOT+Ctz2go=",
+        "bidAt": "2026-08-25T21:52:41.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "4-5",
+      "script": "Latin",
+      "scarcityClass": "5L"
+    }
+  ]
+}

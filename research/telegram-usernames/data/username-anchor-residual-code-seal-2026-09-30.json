@@ -1,0 +1,17 @@
+{
+  "version": "username-anchor-residual-code-seal-v1",
+  "sealedBeforeFit": true,
+  "sealedAt": "2026-09-30T09:46:23.6455202Z",
+  "protocolSha256": "a87d988574fa0c12f542621366c0d4b853998d5c41d4d212458dc18b21483977",
+  "scriptSha256": "5bff130dab06bd6a15098595cb6b219714d672b9b48fc7ebfc34f1d06e0bc90d",
+  "versions": {"numpy": "2.4.6", "sklearn": "1.9.0"},
+  "audit": {
+    "rows": 30995,
+    "windowCases": {"fit": 19056, "calibration": 5222, "check": 6717},
+    "eligible": {"fit": 3393, "calibration": 1604, "check": 2111},
+    "focusedTests": "6/6 PASS",
+    "resultExists": false,
+    "reservedLabelsOpened": false
+  },
+  "interpretation": "All windows are previously exposed historical development. This freezes a single new experiment, not an untouched test or a production candidate."
+}

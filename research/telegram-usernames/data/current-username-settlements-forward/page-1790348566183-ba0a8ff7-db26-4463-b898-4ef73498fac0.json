@@ -1,0 +1,125 @@
+{
+  "schemaVersion": "username-local-collection-v1",
+  "from": "2026-09-20T13:45:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "collectedAt": "2026-09-25T15:02:46.183Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 56025,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 80,
+    "candidates": 37,
+    "verifiedItems": 2,
+    "wrongCollection": 35,
+    "assets": 2,
+    "sales": 2,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-25T15:02:46.183Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:d8fa21e8ffe341f46a8e60a8e0b6f7e85b2c7459d911f5d70f8cfa2105b7da81",
+      "normalizedName": "wangjingsong",
+      "displayName": "@wangjingsong",
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "12L",
+      "feature": {
+        "characterLength": 12,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCDEFCDGHCD",
+        "uniqueCharacterCount": 8,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-23T08:23:12.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:1a884a38951421adb52b868225d73ff8c50a37815915024f07b8470762c65ae2",
+      "normalizedName": "themisogynist",
+      "displayName": "@themisogynist",
+      "primaryRoute": "residual",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "13L",
+      "feature": {
+        "characterLength": 13,
+        "characterClass": "letters",
+        "routes": [
+          "residual"
+        ],
+        "patternSignature": "ABCDEFGHIJEFA",
+        "uniqueCharacterCount": 10,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-23T08:23:29.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:ae95242af2c189a725e386b1320f0e8b9477905784706cf0dcd4286fb0f8ee4d",
+      "assetKind": "username",
+      "assetKey": "0:d8fa21e8ffe341f46a8e60a8e0b6f7e85b2c7459d911f5d70f8cfa2105b7da81",
+      "normalizedName": "wangjingsong",
+      "soldAt": "2026-09-23T08:23:12.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.4572175334547859,
+      "priceUsd": 14.57217533454786,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "L7jZUyETGaxWxkDnXnNd/agcVx9w2O3Bdd2JcKrJ2Wo=",
+        "messageHash": "fvxBoWuhxZds8fXEUtEVjDt+x3+ok87kYosApz+rd1U=",
+        "bidAt": "2026-09-16T08:22:56.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "12L"
+    },
+    {
+      "saleId": "toncenter-username-sale:3d2cf6379b014f8b3e5457da33b45cf80148b6528f4423c665f20da85bc773a4",
+      "assetKind": "username",
+      "assetKey": "0:1a884a38951421adb52b868225d73ff8c50a37815915024f07b8470762c65ae2",
+      "normalizedName": "themisogynist",
+      "soldAt": "2026-09-23T08:23:29.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.4571824030905165,
+      "priceUsd": 14.571824030905166,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "cUWTiIqigfromLftU2XmV4IwRO8zrMUvO3mpEQAXQJQ=",
+        "messageHash": "ttDDI7r54A1W94gV0huvOW5jldbESh0yMK4Fxg3GGeo=",
+        "bidAt": "2026-09-16T08:23:11.000Z"
+      },
+      "primaryRoute": "residual",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "13L"
+    }
+  ]
+}

@@ -1,0 +1,91 @@
+{
+  "schemaVersion": "username-secondary-local-v1",
+  "from": "2026-09-20T14:00:00Z",
+  "pipeline": "username-toncenter-secondary-sales-v1",
+  "collectedAt": "2026-09-30T10:03:27.081Z",
+  "cursor": {
+    "absoluteOffset": 49158,
+    "caughtUp": false
+  },
+  "metadata": {
+    "transfers": 100,
+    "saleContracts": 3,
+    "verifiedSales": 1,
+    "assets": 1,
+    "sales": 1,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-30T10:03:27.081Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:bb63327e0ce444964c64cf6cd0c67da7084b64f5d46ef416ef89c96d9a1fb594",
+      "normalizedName": "xsolia",
+      "displayName": "@xsolia",
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "6L",
+      "feature": {
+        "classifierVersion": "username-structural-v2",
+        "normalizedUsername": "xsolia",
+        "displayUsername": "@xsolia",
+        "characterLength": 6,
+        "byteLength": 6,
+        "characterClass": "letters",
+        "primaryRoute": "word",
+        "routes": [
+          "word"
+        ],
+        "scarcityClass": "6L",
+        "patternSignature": "ABCDEF",
+        "shapeSignature": "LLLLLL",
+        "uniqueCharacterCount": 6,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "repeatedBlock": null,
+        "scripts": [
+          "Latin"
+        ],
+        "primaryScript": "Latin",
+        "containsUnderscore": false,
+        "underscoreCount": 0,
+        "digitCount": 0,
+        "digitRatio": 0,
+        "vowelRatio": 0.5,
+        "pronounceability": "balanced",
+        "leadingZero": false,
+        "roundNumber": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-28T18:18:39.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-secondary:0e9b457f95e1fbe8e483af2790d1cf86a5ec5f0d0d570b6048fb6a6b7f9a8c3f",
+      "assetKind": "username",
+      "assetKey": "0:bb63327e0ce444964c64cf6cd0c67da7084b64f5d46ef416ef89c96d9a1fb594",
+      "normalizedName": "xsolia",
+      "soldAt": "2026-09-28T18:18:39.000Z",
+      "priceGram": 5.5,
+      "historicalUsdRate": 1.6426062587904866,
+      "priceUsd": 9.034334423347676,
+      "marketplace": "Getgems",
+      "source": "toncenter-indexed-secondary-sale",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-completed-sale-contract",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "transactionHash": "6MC40Q+Xrm44SOYXZq1gX5JQiKmy0nG/i1kSQlvygGU=",
+        "saleContract": "0:ab20fcd7d060ac75ff8200ce02ecf0d168743bcc9f35658197857706ec5166d6"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "6L"
+    }
+  ]
+}

@@ -1,0 +1,91 @@
+{
+  "schemaVersion": "username-secondary-local-v1",
+  "from": "2026-09-20T14:00:00Z",
+  "pipeline": "username-toncenter-secondary-sales-v1",
+  "collectedAt": "2026-09-30T10:03:59.820Z",
+  "cursor": {
+    "absoluteOffset": 49758,
+    "caughtUp": false
+  },
+  "metadata": {
+    "transfers": 100,
+    "saleContracts": 1,
+    "verifiedSales": 1,
+    "assets": 1,
+    "sales": 1,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-30T10:03:59.820Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:52ba22e6a40619afefb338801ff96564c5195e8f981ab72fcdf21c82197aef6d",
+      "normalizedName": "p2pckam",
+      "displayName": "@p2pckam",
+      "primaryRoute": "alphanumeric",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "7M",
+      "feature": {
+        "classifierVersion": "username-structural-v2",
+        "normalizedUsername": "p2pckam",
+        "displayUsername": "@p2pckam",
+        "characterLength": 7,
+        "byteLength": 7,
+        "characterClass": "alphanumeric",
+        "primaryRoute": "alphanumeric",
+        "routes": [
+          "alphanumeric"
+        ],
+        "scarcityClass": "7M",
+        "patternSignature": "ABACDEF",
+        "shapeSignature": "LNLLLLL",
+        "uniqueCharacterCount": 6,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "repeatedBlock": null,
+        "scripts": [
+          "Latin"
+        ],
+        "primaryScript": "Latin",
+        "containsUnderscore": false,
+        "underscoreCount": 0,
+        "digitCount": 1,
+        "digitRatio": 0.14285714285714285,
+        "vowelRatio": 0.16666666666666666,
+        "pronounceability": "not-applicable",
+        "leadingZero": false,
+        "roundNumber": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-28T19:47:46.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-secondary:617e83959695608c32c400b2dcd50d92f8f785765fdc55b64b41407028f17bc8",
+      "assetKind": "username",
+      "assetKey": "0:52ba22e6a40619afefb338801ff96564c5195e8f981ab72fcdf21c82197aef6d",
+      "normalizedName": "p2pckam",
+      "soldAt": "2026-09-28T19:47:46.000Z",
+      "priceGram": 750,
+      "historicalUsdRate": 1.59894467094206,
+      "priceUsd": 1199.208503206545,
+      "marketplace": "Getgems",
+      "source": "toncenter-indexed-secondary-sale",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-completed-sale-contract",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "transactionHash": "/0DnhmBWYlhwLBSiZdh52OYFgrgMDf6muPHZbitsC7w=",
+        "saleContract": "0:d7e4d8a0c3cb0478861267122166c572ed20e15e8d20a5caa7eea750a44ba95d"
+      },
+      "primaryRoute": "alphanumeric",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "7M"
+    }
+  ]
+}

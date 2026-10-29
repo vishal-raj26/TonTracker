@@ -1,0 +1,91 @@
+{
+  "schemaVersion": "username-secondary-local-v1",
+  "from": "2026-09-20T14:00:00Z",
+  "pipeline": "username-toncenter-secondary-sales-v1",
+  "collectedAt": "2026-09-25T09:22:14.580Z",
+  "cursor": {
+    "absoluteOffset": 19070,
+    "caughtUp": false
+  },
+  "metadata": {
+    "transfers": 100,
+    "saleContracts": 7,
+    "verifiedSales": 1,
+    "assets": 1,
+    "sales": 1,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-25T09:22:14.580Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:8633fccec97569a32cde85d1c60f0ae960dcc3f9ec660c4f467098e40b48b4a1",
+      "normalizedName": "vubiy",
+      "displayName": "@vubiy",
+      "primaryRoute": "word",
+      "lengthBucket": "4-5",
+      "script": "Latin",
+      "scarcityClass": "5L",
+      "feature": {
+        "classifierVersion": "username-structural-v2",
+        "normalizedUsername": "vubiy",
+        "displayUsername": "@vubiy",
+        "characterLength": 5,
+        "byteLength": 5,
+        "characterClass": "letters",
+        "primaryRoute": "word",
+        "routes": [
+          "word"
+        ],
+        "scarcityClass": "5L",
+        "patternSignature": "ABCDE",
+        "shapeSignature": "LLLLL",
+        "uniqueCharacterCount": 5,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "repeatedBlock": null,
+        "scripts": [
+          "Latin"
+        ],
+        "primaryScript": "Latin",
+        "containsUnderscore": false,
+        "underscoreCount": 0,
+        "digitCount": 0,
+        "digitRatio": 0,
+        "vowelRatio": 0.6,
+        "pronounceability": "balanced",
+        "leadingZero": false,
+        "roundNumber": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-23T17:55:00.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-secondary:3797a440094889fb5dfb948b5aabd3c4b1fa0704a81edff50658176e4c2ec21a",
+      "assetKind": "username",
+      "assetKey": "0:8633fccec97569a32cde85d1c60f0ae960dcc3f9ec660c4f467098e40b48b4a1",
+      "normalizedName": "vubiy",
+      "soldAt": "2026-09-23T17:55:00.000Z",
+      "priceGram": 5.97,
+      "historicalUsdRate": 1.408284082677294,
+      "priceUsd": 8.407455973583446,
+      "marketplace": "Getgems",
+      "source": "toncenter-indexed-secondary-sale",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-completed-sale-contract",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "transactionHash": "X/pOIEstxycfdMDuHRuiKIWAS3u0Cvdjgi3Ryy4jgGQ=",
+        "saleContract": "0:158633419916114c797cdcbe7655f01e7b4655ad1103656d1f0d67e67d0589cd"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "4-5",
+      "script": "Latin",
+      "scarcityClass": "5L"
+    }
+  ]
+}

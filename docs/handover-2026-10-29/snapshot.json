@@ -1,0 +1,6916 @@
+{
+  "date": "2026-10-29",
+  "scope": "Local repository evidence, not a deployed-state audit",
+  "root": "C:\\Users\\vishu\\Documents\\New project\\ton-portfolio-chart-platform",
+  "branch": "codex/chart-platform-rebuild",
+  "head": "5d1562ae3d8692cb7409f18b3cb5f5e217817bca",
+  "remotes": "origin\thttps://github.com/vishal-raj26/TonTracker.git (fetch)\norigin\thttps://github.com/vishal-raj26/TonTracker.git (push)",
+  "gitStatus": " M .gitignore\n M AGENTS.md\n M DESIGN.md\n M RAILWAY-DEPLOYMENT.md\n M app.js\n M chart-platform.js\n M cloudflare/gift-registry-worker.mjs\n M cloudflare/identity-ingestion-edge.mjs\n M docs/chart-parity.json\n M index.html\n M lib/fragment-username-source.js\n M lib/toncenter-username-settlement-ledger.js\n M lib/username-backtest.js\n M lib/username-engine.js\n M lib/username-estimator.js\n M lib/username-first-import-evidence.js\n M lib/username-knowledge.js\n M lib/username-learned-model.js\n M lib/username-market-risk.js\n M lib/username-runtime.js\n M lib/username-store.js\n M scripts/build-edge-static-assets.js\n M scripts/refresh-identity-baselines.js\n M scripts/username-pipeline-worker.js\n M server.js\n M styles-product-v2.css\n M styles-terminal-system.css\n M styles.css\n M terminal-system.js\n M test/chart-platform.test.js\n M test/compact-identity-ledger.test.js\n M test/fragment-username-source.test.js\n M test/gift-registry-storage.test.js\n M test/gram-display.test.js\n M test/home-featured-assets.test.js\n M test/identity-baseline-refresh.test.js\n M test/toncenter-username-settlement-ledger.test.js\n M test/username-backtest.test.js\n M test/username-estimator.test.js\n M test/username-first-import-evidence.test.js\n M test/username-runtime.test.js\n M test/wallet-token-coverage.test.js\n M wrangler.jsonc\n?? .codex-identity-tail.jsonl\n?? .codex-premium-power-0.55.json\n?? .codex-premium-power-0.7.json\n?? .codex-premium-power-0.85.json\n?? .codex-premium-power-1.json\n?? .codex-username-backtest-after.json\n?? .codex-username-backtest-candidate.json\n?? .codex-username-backtest-conditional-regimes.json\n?? .codex-username-backtest-current.json\n?? .codex-username-backtest-direct-sale-baseline.json\n?? .codex-username-backtest-fresh-goal.json\n?? .codex-username-backtest-fresh-v15.json\n?? .codex-username-backtest-knowledge-2000.json\n?? .codex-username-backtest-popular-terms-500.json\n?? .codex-username-backtest-premium-cohort.json\n?? .codex-username-backtest-premium-diagnostics.json\n?? .codex-username-backtest-quality-2000.json\n?? .codex-username-backtest-quality-500.json\n?? .codex-username-backtest-semantic-diagnostics.json\n?? .codex-username-backtest-semantic-live.json\n?? .codex-username-backtest-semantic-parsed.json\n?? .codex-username-backtest-share-2_5.json\n?? .codex-username-backtest-v12-2000.json\n?? .codex-username-backtest-v12-500.json\n?? .codex-username-backtest-v16-500.json\n?? .codex-username-backtest-v16.json\n?? .codex-username-backtest-v17-10000.json\n?? .codex-username-backtest-v20-current-1000.json\n?? .codex-username-backtest-v21-1000.json\n?? .codex-username-backtest-v21-enriched-1000.json\n?? .codex-username-backtest.json\n?? .codex/\n?? CODEX_HANDOFF.md\n?? RICH_APP_DUE_DILIGENCE_REPORT_2026-09-05.md\n?? assets/branding/import-background-20260830.mp4\n?? assets/branding/reference-allocation-mask.svg\n?? assets/branding/reference-hero-fold-20261007.png\n?? assets/branding/reference-nav-orb.png\n?? assets/branding/reference-sheet-04-original.png\n?? assets/branding/welcome-background-static-20260830-next.jpg\n?? assets/branding/welcome-background-static-20260830.jpg\n?? cloudflare/bounded-maintenance.mjs\n?? cloudflare/gift-sales-bounded-maintenance.sql\n?? cloudflare/gift-sales-legacy-bounded-maintenance.sql\n?? cloudflare/identity-baseline-preparation.mjs\n?? cloudflare/valuation-read-model-migrations/0003_bounded_maintenance.sql\n?? docs/D1_BOUNDED_MAINTENANCE_ROLLOUT.md\n?? docs/D1_ROW_READ_CHECKPOINT.md\n?? docs/FOMO_MOBILE_OBSERVATION_LOG.md\n?? docs/FOMO_PRODUCT_DESIGN_DIRECTION.md\n?? docs/FOMO_REDESIGN_CHECKPOINT.md\n?? docs/FOMO_REDESIGN_COVERAGE.md\n?? docs/P0_HARDENING_CHECKPOINT.md\n?? docs/PRODUCTION_DATA_ARCHITECTURE.md\n?? docs/PRODUCT_EXPERIENCE_REBUILD.md\n?? docs/REFERENCE_UI_BRIEF.md\n?? docs/REFERENCE_UI_CHECKPOINT.md\n?? docs/REFERENCE_UI_RECONSTRUCTION_PLAN.md\n?? docs/TELEGRAM_USERNAME_ESTIMATOR_SOURCE_OF_TRUTH.md\n?? docs/USERNAME_ESTIMATOR_QUALIFICATION.md\n?? docs/USERNAME_ESTIMATOR_REVISED_GOAL.md\n?? docs/USERNAME_IMPLEMENTATION_VERIFICATION.md\n?? docs/USERNAME_MARKET_SOURCE_POLICY.md\n?? docs/USERNAME_REBUILD_CHECKPOINT.md\n?? docs/WALLET_CONTEST_FINAL_FIVE_2026-09-15.md\n?? docs/WALLET_CONTEST_PRODUCT_AND_COMPETITOR_MAP_2026-09-15.md\n?? docs/WALLET_EXISTING_FEATURE_AUDIT.md\n?? docs/WALLET_FIVE_ENTRIES_VALIDATED_2026-09-15.md\n?? docs/WALLET_IDEAS_CONTEST_RESEARCH.md\n?? docs/WALLET_IDEAS_RESEARCH_V2.md\n?? docs/WALLET_IDEA_DISCOVERY_V3.md\n?? docs/WALLET_IDEA_FILTER_CURRENT.md\n?? docs/WALLET_IDEA_RESEARCH_V4_2026-09-15.md\n?? docs/WALLET_IMPORT_RECOVERY_CHECKPOINT.md\n?? docs/WALLET_SECOND_PASS_CANDIDATE_AUDIT_2026-09-15.md\n?? docs/WALLET_SECOND_PASS_FINAL_STRATEGY_2026-09-15.md\n?? docs/WALLET_SECOND_PASS_OPPORTUNITY_MAP_2026-09-15.md\n?? docs/WALLET_SECOND_PASS_TREND_MAP_2026-09-15.md\n?? docs/WALLET_TREND_SCAN_V5_2026-09-15.md\n?? docs/WALLET_USER_PROBLEM_VALIDATION.md\n?? docs/WALLET_VERSUS_STRESS_TEST_2026-09-15.md\n?? docs/contest-assets/\n?? docs/d1-bounded-sql-metrics.json\n?? docs/handover-2026-10-29/\n?? docs/reference-ui/\n?? docs/research/\n?? docs/superpowers/\n?? graphify-out/\n?? lib/gift-price-preview.js\n?? lib/static-policy.js\n?? lib/toncenter-username-secondary-ledger.js\n?? lib/username-active-auction-nowcast.js\n?? lib/username-auction-bid-evidence.js\n?? lib/username-auction-outcome.js\n?? lib/username-auction-state.js\n?? lib/username-compound-evidence.js\n?? lib/username-conditional-fusion.js\n?? lib/username-evidence-fusion.js\n?? lib/username-historical-auction-cycles.js\n?? lib/username-historical-retrieval.js\n?? lib/username-publication.js\n?? lib/username-snapshot-knowledge.js\n?? lib/username-vector-retrieval.js\n?? research/\n?? scripts/analyze-username-chain-bid-lifecycles-expanded.js\n?? scripts/analyze-username-development-bids-expanded.js\n?? scripts/audit-reserved-username-collection.js\n?? scripts/audit-username-evaluation-exposure.js\n?? scripts/audit-username-forward-v2-reservation.js\n?? scripts/audit-username-forward-v3-reservation.js\n?? scripts/audit-username-own-history-v25-comparison.js\n?? scripts/audit-username-secondary-resale-protocol.js\n?? scripts/audit-username-secondary-reservation.js\n?? scripts/bootstrap-d1-maintenance.js\n?? scripts/build-reference-ui-atlas.js\n?? scripts/collect-current-username-auction-outcomes.js\n?? scripts/collect-username-chain-bid-lifecycle-pilot.js\n?? scripts/collect-username-chain-bid-lifecycles-expanded.js\n?? scripts/collect-username-chain-bid-recovery-pilot.js\n?? scripts/collect-username-development-bids-expanded.js\n?? scripts/collect-username-development-bids.js\n?? scripts/collect-username-forward-v2-lifecycles.js\n?? scripts/collect-username-forward-v2-local.js\n?? scripts/collect-username-forward-v3-lifecycles.js\n?? scripts/collect-username-forward-v3-local.js\n?? scripts/collect-username-late-lifecycles.js\n?? scripts/collect-username-reserved-premium-lifecycles.js\n?? scripts/collect-username-secondary-local.js\n?? scripts/collect-username-settlements-local.js\n?? scripts/compare-username-resale-own-history-v25.js\n?? scripts/diagnose-username-compound-coverage.js\n?? scripts/diagnose-username-cycle-verifier.js\n?? scripts/diagnose-username-existing-candidate-ceiling.js\n?? scripts/diagnose-username-market-stage.js\n?? scripts/diagnose-username-own-evidence.js\n?? scripts/diagnose-username-own-market-index.js\n?? scripts/diagnose-username-premium-classifier.py\n?? scripts/diagnose-username-prior-bid-cycles.js\n?? scripts/diagnose-username-resale-own-anchor.js\n?? scripts/diagnose-username-retrieval.js\n?? scripts/diagnose-username-secondary-stage-opportunity.js\n?? scripts/diagnose-username-vector-retrieval.js\n?? scripts/evaluate-username-anchor-residual.py\n?? scripts/evaluate-username-broad-training.py\n?? scripts/evaluate-username-evidence-fusion.js\n?? scripts/evaluate-username-forward-v2-qualification.js\n?? scripts/evaluate-username-forward-v3-qualification.js\n?? scripts/evaluate-username-late-qualification.js\n?? scripts/evaluate-username-own-history-gate.py\n?? scripts/evaluate-username-rebuild.js\n?? scripts/evaluate-username-resale-own-history-development.py\n?? scripts/evaluate-username-reserved-qualification.js\n?? scripts/evaluate-username-secondary-development.js\n?? scripts/evaluate-username-secondary-full-context-development.js\n?? scripts/evaluate-username-secondary-qualification.js\n?? scripts/evaluate-username-secondary-resale-development.py\n?? scripts/evaluate-username-tabular.py\n?? scripts/export-username-broad-training.js\n?? scripts/export-username-native-labels.js\n?? scripts/export-username-own-history-features.js\n?? scripts/export-username-tabular-semantics.js\n?? scripts/measure-d1-bounded-queries.py\n?? scripts/replay-username-conditional-fusion.js\n?? scripts/replay-username-premium-gated-fusion.js\n?? scripts/replay-username-secondary-own-anchor-gate.js\n?? scripts/reserve-current-username-auction-cohort.js\n?? scripts/seal-username-forward-reservation.js\n?? scripts/seal-username-forward-v2-evaluation-protocol.js\n?? scripts/seal-username-forward-v2-protocol-supplement-v2.js\n?? scripts/seal-username-forward-v2-protocol-supplement.js\n?? scripts/seal-username-forward-v2-qualification.js\n?? scripts/seal-username-forward-v2-reservation.js\n?? scripts/seal-username-forward-v3-evaluation-protocol.js\n?? scripts/seal-username-forward-v3-qualification.js\n?? scripts/seal-username-forward-v3-reservation.js\n?? scripts/seal-username-late-qualification.js\n?? scripts/seal-username-reserved-qualification.js\n?? scripts/seal-username-secondary-forward-reservation.js\n?? scripts/seal-username-secondary-qualification-protocol.js\n?? scripts/seal-username-secondary-qualification.js\n?? scripts/start-gift-price-preview.js\n?? scripts/test_username_broad_training.py\n?? scripts/test_username_resale_own_history_development.py\n?? scripts/test_username_secondary_resale_development.py\n?? scripts/test_username_tabular.py\n?? scripts/username-glove-snapshot.js\n?? scripts/username-wordnet-snapshot.js\n?? scripts/verify-username-development-bids.js\n?? styles-product-system.css\n?? styles-reference-ui.css\n?? styles-ui-restoration.css\n?? test/collectible-browsing.test.js\n?? test/collectible-preview-modal.test.js\n?? test/d1-bounded-maintenance.test.js\n?? test/edge-static-build.test.js\n?? test/fixtures/\n?? test/gift-cleanup-pause.test.js\n?? test/gift-price-preview.test.js\n?? test/home-allocation-pie.test.js\n?? test/home-overview.test.js\n?? test/p0-safety-boundaries.test.js\n?? test/pre-fomo-restoration.test.js\n?? test/product-system.test.js\n?? test/reference-ui.test.js\n?? test/static-serving-security.test.js\n?? test/test_username_anchor_residual.py\n?? test/token-detail-loading.test.js\n?? test/toncenter-username-secondary-ledger.test.js\n?? test/ui-consistency.test.js\n?? test/ui-screen-consistency.test.js\n?? test/username-active-auction-nowcast.test.js\n?? test/username-auction-bid-evidence.test.js\n?? test/username-auction-outcome.test.js\n?? test/username-auction-state.test.js\n?? test/username-broad-training.test.js\n?? test/username-chain-bid-lifecycle-analysis.test.js\n?? test/username-chain-bid-recovery-pilot.test.js\n?? test/username-compound-evidence.test.js\n?? test/username-conditional-fusion.test.js\n?? test/username-detail.test.js\n?? test/username-evidence-fusion.test.js\n?? test/username-evidence-query.test.js\n?? test/username-existing-candidate-ceiling.test.js\n?? test/username-expanded-bid-analysis.test.js\n?? test/username-expanded-bid-audit.test.js\n?? test/username-exposure-audit.test.js\n?? test/username-forward-v2-evaluator.test.js\n?? test/username-forward-v2-reservation.test.js\n?? test/username-forward-v3-evaluator.test.js\n?? test/username-forward-v3-reservation.test.js\n?? test/username-historical-auction-cycles.test.js\n?? test/username-history-provenance.test.js\n?? test/username-local-collector.test.js\n?? test/username-own-evidence.test.js\n?? test/username-own-history-feature-export.test.js\n?? test/username-own-history-v25-comparison-audit.test.js\n?? test/username-own-market-index.test.js\n?? test/username-premium-gated-fusion.test.js\n?? test/username-prior-bid-cycle-diagnostic.test.js\n?? test/username-publication.test.js\n?? test/username-rebuild-adversarial.test.js\n?? test/username-resale-own-anchor.test.js\n?? test/username-resale-own-history-v25-comparison.test.js\n?? test/username-reserved-integrity.test.js\n?? test/username-retrieval-diagnostic.test.js\n?? test/username-secondary-development.test.js\n?? test/username-secondary-full-context-development.test.js\n?? test/username-secondary-local-collector.test.js\n?? test/username-secondary-own-anchor-gate.test.js\n?? test/username-secondary-qualification.test.js\n?? test/username-secondary-resale-protocol.test.js\n?? test/username-secondary-stage-opportunity.test.js\n?? test/username-snapshot-knowledge.test.js\n?? test/username-tabular-export.test.js\n?? test/username-vector-retrieval.test.js\n?? test/username-wallet-isolation.test.js",
+  "recentCommits": "5d1562a 2026-08-29T13:51:23+05:30 Finish TonTrack requirement fixes\ne3ea055 2026-08-29T00:46:44+05:30 Complete TonTrack rebuild goal\n0eef13e 2026-08-27T18:54:46+05:30 Strengthen unseen username valuation\n0c43aa3 2026-08-27T02:20:33+05:30 Harden dense Fragment prefix coverage\n7630e6c 2026-08-27T02:18:03+05:30 Expand capped Fragment username sale partitions\n286f382 2026-08-27T02:09:25+05:30 Anchor precomputed username valuations to exact sales\n129ed52 2026-08-27T02:04:26+05:30 Preserve exact username sale floors\n1b691ee 2026-08-27T01:59:08+05:30 Bound username settlement history to market launch\nc74ecb8 2026-08-27T01:54:37+05:30 Ingest exact Telemint username settlements\ne0b2376 2026-08-27T01:41:26+05:30 Improve username semantic and quality pricing",
+  "screens": [
+    "home",
+    "assets",
+    "tokens",
+    "gifts",
+    "gift-brand",
+    "stickers",
+    "dns",
+    "anonymous-numbers",
+    "usernames",
+    "sticker-brand",
+    "analytics",
+    "watchlist",
+    "activity",
+    "detail",
+    "wallets",
+    "settings"
+  ],
+  "markers": [
+    "./styles.css?v=ui-system-20261007-2",
+    "./styles-product-v2.css?v=reference-20261007-2",
+    "./styles-terminal-system.css?v=pre-fomo-reference-20261007-2",
+    "./styles-ui-restoration.css?v=pre-fomo-20261005-2",
+    "./styles-reference-ui.css?v=reference-20261007-13",
+    "./chart-platform.js?v=reference-20261007-2",
+    "./app.js?v=p0-hardening-20261029-1",
+    "./terminal-system.js?v=reference-20261007-2"
+  ],
+  "dependencies": {
+    "@mtcute/convert": "0.31.0",
+    "@mtcute/node": "0.31.0",
+    "@ton/core": "^0.63.1",
+    "@tonconnect/ui": "^2.4.4",
+    "chart.js": "4.5.1",
+    "lottie-web": "^5.12.2",
+    "pg": "^8.13.1",
+    "telegram": "^2.26.22"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "verify:chart-loc": "node scripts/verify-chart-loc.js",
+    "verify:source": "node scripts/verify-source-untouched.js",
+    "start": "node scripts/railway-start.js",
+    "dev": "node server.js",
+    "build:edge": "node scripts/build-edge-static-assets.js",
+    "dev:active": "node scripts/start-active-local.js",
+    "worker:gift-snapshots": "node gift-snapshot-worker.js",
+    "worker:gift-snapshots:once": "node gift-snapshot-once.js",
+    "worker:gift-models:once": "node gift-model-snapshot-once.js",
+    "worker:gift-combos": "node scripts/snapshot-gift-combos.js --continuous",
+    "worker:gift-combos:once": "node scripts/snapshot-gift-combos.js",
+    "worker:gift-sales": "node scripts/snapshot-gift-sales.js --continuous",
+    "worker:gift-sales:once": "node scripts/snapshot-gift-sales.js",
+    "worker:run": "node scripts/worker-dispatch.js",
+    "valuation:export": "node scripts/export-valuation-read-model.js",
+    "valuation:username-ledger": "node scripts/rebuild-username-ledger.js",
+    "valuation:username-ledger:continuous": "node scripts/rebuild-username-ledger.js --continuous",
+    "valuation:baselines": "node scripts/refresh-identity-baselines.js",
+    "worker:telegram-floors": "node -e \"console.log('Telegram Marketplace floor scanning has been retired')\"",
+    "worker:telegram-floors:once": "node -e \"console.log('Telegram Marketplace floor scanning has been retired')\"",
+    "worker:estimate-history": "set ESTIMATE_HISTORY_CONTINUOUS=1&& node scripts/railway-start.js",
+    "worker:dns-pipeline": "node scripts/dns-pipeline-worker.js",
+    "worker:dns-pipeline:once": "node scripts/dns-pipeline-worker.js --once",
+    "worker:dns-rates": "node scripts/dns-rate-worker.js",
+    "worker:dns-rates:once": "node scripts/dns-rate-worker.js --once",
+    "ingest:dns-d1:once": "cd dns-worker && python -m dns_worker direct-d1-once",
+    "ingest:dns-d1:cycle": "cd dns-worker && python -m dns_worker direct-d1-cycle",
+    "worker:usernames": "node scripts/username-pipeline-worker.js",
+    "worker:usernames:once": "node scripts/username-pipeline-worker.js --once",
+    "ingest:usernames": "node scripts/username-market-ingest.js --continuous",
+    "ingest:usernames:once": "node scripts/username-market-ingest.js",
+    "worker:usernames:semantic": "node scripts/username-semantic-worker.js --continuous",
+    "worker:usernames:semantic:once": "node scripts/username-semantic-worker.js",
+    "backtest:usernames": "node scripts/username-backtest.js",
+    "bootstrap:username-knowledge": "node scripts/bootstrap-identity-knowledge.js",
+    "calibrate:usernames:knowledge": "node scripts/enrich-username-knowledge.js",
+    "audit:usernames": "node scripts/username-settlement-audit.js",
+    "backtest:dns": "node scripts/dns-backtest.js",
+    "migrate:dns": "node scripts/dns-migrate.js",
+    "worker:gift-snapshots:15m": "set GIFT_SNAPSHOT_INTERVAL_MS=900000&& node gift-snapshot-worker.js",
+    "ingest:gift-layers": "node scripts/ingest-giftchanges-layers.js"
+  },
+  "configs": [
+    {
+      "file": "wrangler.jsonc",
+      "name": "tontrack-gift-registry",
+      "main": "cloudflare/gift-registry-worker.mjs",
+      "compatibility_date": "2026-06-13",
+      "bindings": [
+        {
+          "binding": "GIFT_REGISTRY",
+          "database_name": "tontrack-gift-registry",
+          "migrations_dir": "cloudflare/migrations"
+        },
+        {
+          "binding": "GIFT_SALES_CURRENT",
+          "database_name": "tontrack-gift-sales-live",
+          "migrations_dir": null
+        },
+        {
+          "binding": "GIFT_SALES_2025",
+          "database_name": "tontrack-gift-sales-2025",
+          "migrations_dir": null
+        },
+        {
+          "binding": "GIFT_SALES_2026",
+          "database_name": "tontrack-gift-sales-2026",
+          "migrations_dir": null
+        },
+        {
+          "binding": "GIFT_SALES_2026_B",
+          "database_name": "tontrack-gift-sales-2026-b",
+          "migrations_dir": null
+        },
+        {
+          "binding": "GIFT_SALES_RESERVE_1",
+          "database_name": "tontrack-gift-sales-2026-c",
+          "migrations_dir": null
+        },
+        {
+          "binding": "GIFT_SALES_ARCHIVE",
+          "database_name": "tontrack-gift-sales-current",
+          "migrations_dir": null
+        },
+        {
+          "binding": "GIFT_SALES_ARCHIVE_2",
+          "database_name": "tontrack-gift-sales",
+          "migrations_dir": null
+        },
+        {
+          "binding": "GIFT_FLOOR_SOURCES",
+          "database_name": "tontrack-gift-floor-sources",
+          "migrations_dir": null
+        },
+        {
+          "binding": "VALUATION_READ_MODEL",
+          "database_name": "tontrack-valuation-read-model",
+          "migrations_dir": "cloudflare/valuation-read-model-migrations"
+        }
+      ],
+      "services": [],
+      "crons": [
+        "17 * * * *"
+      ],
+      "variableNames": [
+        "GIFT_SALES_CLEANUP_PAUSED"
+      ],
+      "cleanupPaused": "1"
+    },
+    {
+      "file": "wrangler-app.jsonc",
+      "name": "tontrack-app-edge",
+      "main": "cloudflare/tontrack-app-edge.mjs",
+      "compatibility_date": "2026-08-24",
+      "bindings": [],
+      "services": [
+        {
+          "binding": "REGISTRY_SERVICE",
+          "service": "tontrack-gift-registry"
+        }
+      ],
+      "crons": [],
+      "variableNames": [
+        "TONTRACK_MODE",
+        "REGISTRY_PRELOAD",
+        "GIFT_SNAPSHOT_AUTORUN",
+        "D1_REGISTRY_URL",
+        "VALUATION_READ_MODEL_URL",
+        "HEAVY_API_ORIGIN",
+        "DNS_PORTFOLIO_ESTIMATES_ENABLED",
+        "USERNAME_PORTFOLIO_ESTIMATES_ENABLED",
+        "USERNAME_FIRST_IMPORT_EVIDENCE_ENABLED"
+      ],
+      "cleanupPaused": null
+    },
+    {
+      "file": "wrangler-identity-ingestion.jsonc",
+      "name": "tontrack-identity-ingestion",
+      "main": "cloudflare/identity-ingestion-edge.mjs",
+      "compatibility_date": "2026-08-24",
+      "bindings": [],
+      "services": [
+        {
+          "binding": "REGISTRY",
+          "service": "tontrack-gift-registry"
+        }
+      ],
+      "crons": [
+        "*/5 * * * *",
+        "* * * * *"
+      ],
+      "variableNames": [
+        "D1_REGISTRY_URL",
+        "VALUATION_READ_MODEL_URL",
+        "USERNAME_FRAGMENT_MAX_SEARCH_REQUESTS_PER_PAGE",
+        "USERNAME_FRAGMENT_REQUEST_DELAY_MS",
+        "USERNAME_FRAGMENT_PREFIX_DEPTH",
+        "USERNAME_FRAGMENT_RESULT_LIMIT",
+        "USERNAME_TONCENTER_VERIFY_BATCH_SIZE",
+        "USERNAME_TONCENTER_SETTLEMENT_PAGE_LIMIT",
+        "USERNAME_FRAGMENT_IDENTITY_RESOLVE_BATCH_SIZE",
+        "USERNAME_KNOWLEDGE_FAST_BATCH_SIZE",
+        "USERNAME_KNOWLEDGE_FULL_BATCH_SIZE",
+        "DNS_KNOWLEDGE_FAST_BATCH_SIZE",
+        "DNS_KNOWLEDGE_FULL_BATCH_SIZE",
+        "DNS_TONCENTER_PAGE_LIMIT",
+        "DNS_TONCENTER_HISTORY_DAYS",
+        "IDENTITY_BASELINE_REFRESH_INTERVAL_MS"
+      ],
+      "cleanupPaused": null
+    }
+  ],
+  "edgeStyleAudit": [
+    {
+      "file": "styles.css",
+      "approvedHtmlEntry": true,
+      "matchesSource": true
+    },
+    {
+      "file": "styles-product-v2.css",
+      "approvedHtmlEntry": true,
+      "matchesSource": true
+    },
+    {
+      "file": "styles-terminal-system.css",
+      "approvedHtmlEntry": true,
+      "matchesSource": true
+    },
+    {
+      "file": "styles-ui-restoration.css",
+      "approvedHtmlEntry": true,
+      "matchesSource": true
+    },
+    {
+      "file": "styles-reference-ui.css",
+      "approvedHtmlEntry": true,
+      "matchesSource": true
+    }
+  ],
+  "hashes": [
+    {
+      "file": "package.json",
+      "sha256": "333d5b64a593a03f4beec37da9b0620e510a91b487b4eda9b42c28773621fa8d",
+      "lines": 64
+    },
+    {
+      "file": "index.html",
+      "sha256": "2a2d678f9ff2e531e283ebf2746613d671983a17f541bfa474eb8f60279165f8",
+      "lines": 553
+    },
+    {
+      "file": "app.js",
+      "sha256": "da41adb684e60f022f01994728645fe7650831e77f8fd4f9e2e6e6cab32efb56",
+      "lines": 9408
+    },
+    {
+      "file": "server.js",
+      "sha256": "91d32040724351d459d303a721019e342695272378635926c4fbe06b023297bd",
+      "lines": 10948
+    },
+    {
+      "file": "chart-platform.js",
+      "sha256": "6974981a14ffe418821e0e9e6a64bcd934636f3d26abe3ca3867eebae8aac44e",
+      "lines": 218
+    },
+    {
+      "file": "styles-reference-ui.css",
+      "sha256": "387c1ed4c985d608f64e6ab4a7ebad8aded8a4835c979a69df1929aa35a77254",
+      "lines": 921
+    },
+    {
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "sha256": "169421380c5cb415625b6d8fa3be7682ccc4c4ccd6eaab16f9b6d138b9a78670",
+      "lines": 3226
+    },
+    {
+      "file": "lib/username-estimator.js",
+      "sha256": "c83daedfead6f2dbe7d247e9fdd669446cf075f3bf1a501437b789739ae5a8c7",
+      "lines": 318
+    },
+    {
+      "file": "lib/username-runtime.js",
+      "sha256": "f5921d630edae4181c558afbc18bca75ae013720379d86d36d6268442680b93a",
+      "lines": 539
+    },
+    {
+      "file": "lib/username-publication.js",
+      "sha256": "af9a3cdc6345ddd6d5579dd9014d347bfb35aaa39c923fe636d2b4d78255334a",
+      "lines": 12
+    }
+  ],
+  "routes": [
+    {
+      "file": "server.js",
+      "line": 9963,
+      "route": "/api/dns-estimator/status",
+      "method": "GET",
+      "queryKeys": []
+    },
+    {
+      "file": "server.js",
+      "line": 9966,
+      "route": "/api/dns-estimator/valuation",
+      "method": "GET",
+      "queryKeys": [
+        "domain"
+      ]
+    },
+    {
+      "file": "server.js",
+      "line": 9972,
+      "route": "/api/dns-estimator/valuations",
+      "method": "POST",
+      "queryKeys": []
+    },
+    {
+      "file": "server.js",
+      "line": 9982,
+      "route": "/api/username-estimator/status",
+      "method": "GET",
+      "queryKeys": []
+    },
+    {
+      "file": "server.js",
+      "line": 9985,
+      "route": "/api/username-estimator/valuation",
+      "method": "GET",
+      "queryKeys": [
+        "username",
+        "evidence"
+      ]
+    },
+    {
+      "file": "server.js",
+      "line": 9993,
+      "route": "/api/username-estimator/valuations",
+      "method": "POST",
+      "queryKeys": []
+    },
+    {
+      "file": "server.js",
+      "line": 10003,
+      "route": "/api/telegram/webapp/assets",
+      "method": "POST",
+      "queryKeys": []
+    },
+    {
+      "file": "server.js",
+      "line": 10015,
+      "route": "/api/telegram/webapp/file",
+      "method": "GET",
+      "queryKeys": [
+        "ticket",
+        "payload",
+        "signature"
+      ]
+    },
+    {
+      "file": "server.js",
+      "line": 10031,
+      "route": "/api/gift-registry/sales",
+      "method": "GET",
+      "queryKeys": [
+        "collection",
+        "model",
+        "backdrop",
+        "symbol",
+        "limit"
+      ]
+    },
+    {
+      "file": "server.js",
+      "line": 10045,
+      "route": "/api/gift-registry/history",
+      "method": "GET",
+      "queryKeys": [
+        "collection",
+        "model",
+        "backdrop",
+        "symbol",
+        "range"
+      ]
+    },
+    {
+      "file": "server.js",
+      "line": 10060,
+      "route": "/api/gift-registry/combos",
+      "method": "POST",
+      "queryKeys": []
+    },
+    {
+      "file": "server.js",
+      "line": 10093,
+      "route": "/api/gift-registry/collection-combos",
+      "method": "POST",
+      "queryKeys": []
+    },
+    {
+      "file": "server.js",
+      "line": 10120,
+      "route": "/api/gift-model-floors/bulk",
+      "method": "POST",
+      "queryKeys": []
+    },
+    {
+      "file": "server.js",
+      "line": 10260,
+      "route": "/api/gift-model-stats",
+      "method": "POST",
+      "queryKeys": []
+    },
+    {
+      "file": "server.js",
+      "line": 10292,
+      "route": "/api/health",
+      "method": "GET (shared gate)",
+      "queryKeys": []
+    },
+    {
+      "file": "server.js",
+      "line": 10301,
+      "route": "/api/wallet",
+      "method": "GET (shared gate)",
+      "queryKeys": [
+        "address",
+        "refresh"
+      ]
+    },
+    {
+      "file": "server.js",
+      "line": 10311,
+      "route": "/api/wallet/activity",
+      "method": "GET (shared gate)",
+      "queryKeys": [
+        "address",
+        "limit"
+      ]
+    },
+    {
+      "file": "server.js",
+      "line": 10322,
+      "route": "/api/transaction-detail",
+      "method": "GET (shared gate)",
+      "queryKeys": [
+        "hash"
+      ]
+    },
+    {
+      "file": "server.js",
+      "line": 10331,
+      "route": "/api/token-detail-data",
+      "method": "GET (shared gate)",
+      "queryKeys": []
+    },
+    {
+      "file": "server.js",
+      "line": 10338,
+      "route": "/api/collectibles",
+      "method": "GET (shared gate)",
+      "queryKeys": [
+        "address"
+      ]
+    },
+    {
+      "file": "server.js",
+      "line": 10347,
+      "route": "/api/dev/gift-pricing-import-check",
+      "method": "GET (shared gate)",
+      "queryKeys": [
+        "address",
+        "target"
+      ]
+    },
+    {
+      "file": "server.js",
+      "line": 10404,
+      "route": "/api/nfts",
+      "method": "GET (shared gate)",
+      "queryKeys": [
+        "address"
+      ]
+    },
+    {
+      "file": "server.js",
+      "line": 10413,
+      "route": "/api/collectibles-registry",
+      "method": "GET (shared gate)",
+      "queryKeys": [
+        "refresh"
+      ]
+    },
+    {
+      "file": "server.js",
+      "line": 10416,
+      "route": "/api/sticker-collections-registry",
+      "method": "GET (shared gate)",
+      "queryKeys": [
+        "refresh"
+      ]
+    },
+    {
+      "file": "server.js",
+      "line": 10426,
+      "route": "/api/sticker-animation",
+      "method": "GET (shared gate)",
+      "queryKeys": [
+        "collection",
+        "character",
+        "sticker"
+      ]
+    },
+    {
+      "file": "server.js",
+      "line": 10443,
+      "route": "/api/sticker-detail-intel",
+      "method": "GET (shared gate)",
+      "queryKeys": [
+        "collectionId",
+        "characterId",
+        "characterName"
+      ]
+    },
+    {
+      "file": "server.js",
+      "line": 10456,
+      "route": "/api/gift-floor-snapshots",
+      "method": "GET (shared gate)",
+      "queryKeys": [
+        "collect",
+        "force",
+        "collection"
+      ]
+    },
+    {
+      "file": "server.js",
+      "line": 10479,
+      "route": "/api/snapshot-storage-status",
+      "method": "GET (shared gate)",
+      "queryKeys": []
+    },
+    {
+      "file": "server.js",
+      "line": 10486,
+      "route": "/api/gift-model-floors",
+      "method": "GET (shared gate)",
+      "queryKeys": [
+        "collection",
+        "name"
+      ]
+    },
+    {
+      "file": "server.js",
+      "line": 10503,
+      "route": "/api/collection-floor",
+      "method": "GET (shared gate)",
+      "queryKeys": [
+        "collection",
+        "name",
+        "item",
+        "kind",
+        "period",
+        "range",
+        "attributes"
+      ]
+    },
+    {
+      "file": "server.js",
+      "line": 10519,
+      "route": "/api/collectible-floor",
+      "method": "GET (shared gate)",
+      "queryKeys": [
+        "collection",
+        "name",
+        "item",
+        "kind",
+        "period",
+        "range",
+        "attributes"
+      ]
+    },
+    {
+      "file": "server.js",
+      "line": 10535,
+      "route": "/api/collection-sales",
+      "method": "GET (shared gate)",
+      "queryKeys": [
+        "collection",
+        "traits"
+      ]
+    },
+    {
+      "file": "server.js",
+      "line": 10540,
+      "route": "/api/collectible-sales",
+      "method": "GET (shared gate)",
+      "queryKeys": [
+        "collection",
+        "traits"
+      ]
+    },
+    {
+      "file": "server.js",
+      "line": 10545,
+      "route": "/api/gift-detail-data",
+      "method": "GET (shared gate)",
+      "queryKeys": [
+        "wallet",
+        "nft",
+        "tgauth",
+        "collectionName",
+        "item",
+        "collection",
+        "model",
+        "backdrop",
+        "attributes",
+        "symbol",
+        "range",
+        "refresh"
+      ]
+    },
+    {
+      "file": "server.js",
+      "line": 10604,
+      "route": "/api/asset-media",
+      "method": "GET (shared gate)",
+      "queryKeys": [
+        "url"
+      ]
+    },
+    {
+      "file": "server.js",
+      "line": 10626,
+      "route": "/api/wallet/history-status",
+      "method": "GET (shared gate)",
+      "queryKeys": [
+        "address"
+      ]
+    },
+    {
+      "file": "server.js",
+      "line": 10654,
+      "route": "/api/wallet/history",
+      "method": "GET (shared gate)",
+      "queryKeys": [
+        "address",
+        "range"
+      ]
+    },
+    {
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 2875,
+      "route": "/health",
+      "method": "see handler",
+      "queryKeys": []
+    },
+    {
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 2876,
+      "route": "/maintenance/counters/bootstrap",
+      "method": "POST",
+      "queryKeys": []
+    },
+    {
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 2891,
+      "route": "/stats",
+      "method": "see handler",
+      "queryKeys": [
+        "includeLegacy"
+      ]
+    },
+    {
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 2988,
+      "route": "/collections",
+      "method": "see handler",
+      "queryKeys": []
+    },
+    {
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 2996,
+      "route": "/worker-status",
+      "method": "see handler",
+      "queryKeys": []
+    },
+    {
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 3005,
+      "route": "/combo",
+      "method": "GET",
+      "queryKeys": [
+        "collection",
+        "model",
+        "backdrop",
+        "symbol"
+      ]
+    },
+    {
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 3015,
+      "route": "/history",
+      "method": "GET",
+      "queryKeys": [
+        "collection",
+        "model",
+        "backdrop",
+        "symbol"
+      ]
+    },
+    {
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 3024,
+      "route": "/combos",
+      "method": "POST",
+      "queryKeys": []
+    },
+    {
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 3029,
+      "route": "/collection-combos",
+      "method": "POST",
+      "queryKeys": []
+    },
+    {
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 3034,
+      "route": "/valuations/read",
+      "method": "POST",
+      "queryKeys": []
+    },
+    {
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 3038,
+      "route": "/ingest/valuations",
+      "method": "POST",
+      "queryKeys": []
+    },
+    {
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 3041,
+      "route": "/identity/baselines/read",
+      "method": "POST",
+      "queryKeys": []
+    },
+    {
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 3045,
+      "route": "/identity/sales/read",
+      "method": "POST",
+      "queryKeys": []
+    },
+    {
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 3049,
+      "route": "/identity/baseline-source/read",
+      "method": "POST",
+      "queryKeys": []
+    },
+    {
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 3052,
+      "route": "/identity/username-evidence/read",
+      "method": "POST",
+      "queryKeys": []
+    },
+    {
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 3055,
+      "route": "/identity/dns-evidence/read",
+      "method": "POST",
+      "queryKeys": []
+    },
+    {
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 3058,
+      "route": "/identity/assets/read",
+      "method": "POST",
+      "queryKeys": []
+    },
+    {
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 3062,
+      "route": "/identity/knowledge/queue",
+      "method": "POST",
+      "queryKeys": []
+    },
+    {
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 3067,
+      "route": "/identity/aliases/read",
+      "method": "POST",
+      "queryKeys": []
+    },
+    {
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 3071,
+      "route": "/identity/state",
+      "method": "GET",
+      "queryKeys": [
+        "key"
+      ]
+    },
+    {
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 3074,
+      "route": "/ingest/identity-assets",
+      "method": "POST",
+      "queryKeys": []
+    },
+    {
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 3077,
+      "route": "/ingest/identity-knowledge",
+      "method": "POST",
+      "queryKeys": []
+    },
+    {
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 3080,
+      "route": "/ingest/identity-aliases",
+      "method": "POST",
+      "queryKeys": []
+    },
+    {
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 3083,
+      "route": "/ingest/identity-sales",
+      "method": "POST",
+      "queryKeys": []
+    },
+    {
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 3086,
+      "route": "/ingest/identity-baselines",
+      "method": "POST",
+      "queryKeys": []
+    },
+    {
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 3089,
+      "route": "/ingest/identity-market",
+      "method": "POST",
+      "queryKeys": []
+    },
+    {
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 3092,
+      "route": "/ingest/identity-state",
+      "method": "POST",
+      "queryKeys": []
+    },
+    {
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 3095,
+      "route": "/maintenance/identity-storage",
+      "method": "POST",
+      "queryKeys": []
+    },
+    {
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 3099,
+      "route": "/sales",
+      "method": "GET",
+      "queryKeys": [
+        "collection",
+        "model",
+        "backdrop",
+        "symbol",
+        "limit"
+      ]
+    },
+    {
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 3108,
+      "route": "/sales",
+      "method": "POST",
+      "queryKeys": []
+    },
+    {
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 3112,
+      "route": "/ingest/sales-pending-rates",
+      "method": "GET",
+      "queryKeys": []
+    },
+    {
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 3115,
+      "route": "/sales-state",
+      "method": "GET",
+      "queryKeys": [
+        "collection"
+      ]
+    },
+    {
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 3118,
+      "route": "/sales-backfill-state",
+      "method": "GET",
+      "queryKeys": [
+        "collection"
+      ]
+    },
+    {
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 3121,
+      "route": "/sales-targets",
+      "method": "GET",
+      "queryKeys": []
+    },
+    {
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 3124,
+      "route": "/ingest/sales-targets",
+      "method": "POST",
+      "queryKeys": []
+    },
+    {
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 3127,
+      "route": "/telegram-floor-targets",
+      "method": "GET",
+      "queryKeys": []
+    },
+    {
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 3130,
+      "route": "/estimate-history-targets",
+      "method": "GET",
+      "queryKeys": []
+    },
+    {
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 3133,
+      "route": "/ingest/telegram-floor-targets",
+      "method": "POST",
+      "queryKeys": []
+    },
+    {
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 3136,
+      "route": "/ingest/telegram-floor-target-result",
+      "method": "POST",
+      "queryKeys": []
+    },
+    {
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 3139,
+      "route": "/ingest/collection",
+      "method": "POST",
+      "queryKeys": []
+    },
+    {
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 3142,
+      "route": "/ingest/collection-bucket",
+      "method": "POST",
+      "queryKeys": []
+    },
+    {
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 3145,
+      "route": "/ingest/combo",
+      "method": "POST",
+      "queryKeys": []
+    },
+    {
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 3148,
+      "route": "/ingest/estimate-history",
+      "method": "POST",
+      "queryKeys": []
+    },
+    {
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 3151,
+      "route": "/ingest/estimate-history-target-result",
+      "method": "POST",
+      "queryKeys": []
+    },
+    {
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 3154,
+      "route": "/maintenance/compact-history",
+      "method": "POST",
+      "queryKeys": []
+    },
+    {
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 3159,
+      "route": "/maintenance/compact-sales",
+      "method": "POST",
+      "queryKeys": []
+    },
+    {
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 3175,
+      "route": "/maintenance/retire-telegram-floors",
+      "method": "POST",
+      "queryKeys": []
+    },
+    {
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 3180,
+      "route": "/ingest/status",
+      "method": "POST",
+      "queryKeys": []
+    },
+    {
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 3183,
+      "route": "/ingest/sales",
+      "method": "POST",
+      "queryKeys": []
+    },
+    {
+      "file": "cloudflare/identity-ingestion-edge.mjs",
+      "line": 200,
+      "route": "/health",
+      "method": "see handler",
+      "queryKeys": []
+    },
+    {
+      "file": "cloudflare/identity-ingestion-edge.mjs",
+      "line": 203,
+      "route": "/run/username",
+      "method": "POST",
+      "queryKeys": []
+    },
+    {
+      "file": "cloudflare/identity-ingestion-edge.mjs",
+      "line": 211,
+      "route": "/run/username-settlements",
+      "method": "POST",
+      "queryKeys": []
+    },
+    {
+      "file": "cloudflare/identity-ingestion-edge.mjs",
+      "line": 219,
+      "route": "/run/dns",
+      "method": "POST",
+      "queryKeys": []
+    },
+    {
+      "file": "cloudflare/identity-ingestion-edge.mjs",
+      "line": 227,
+      "route": "/run/refresh",
+      "method": "POST",
+      "queryKeys": []
+    },
+    {
+      "file": "cloudflare/identity-ingestion-edge.mjs",
+      "line": 235,
+      "route": "/run/knowledge",
+      "method": "POST",
+      "queryKeys": []
+    },
+    {
+      "file": "cloudflare/identity-ingestion-edge.mjs",
+      "line": 243,
+      "route": "/run/all",
+      "method": "POST",
+      "queryKeys": []
+    }
+  ],
+  "tables": [
+    {
+      "table": "gift_combo_source_buckets",
+      "file": "cloudflare/gift-floor-sources-schema.sql",
+      "line": 1
+    },
+    {
+      "table": "gift_combo_history_buckets",
+      "file": "cloudflare/gift-floor-sources-schema.sql",
+      "line": 13
+    },
+    {
+      "table": "bounded_maintenance_state",
+      "file": "cloudflare/gift-sales-bounded-maintenance.sql",
+      "line": 2
+    },
+    {
+      "table": "gift_sale_combos",
+      "file": "cloudflare/gift-sales-compact-schema.sql",
+      "line": 3
+    },
+    {
+      "table": "gift_sale_events",
+      "file": "cloudflare/gift-sales-compact-schema.sql",
+      "line": 16
+    },
+    {
+      "table": "bounded_maintenance_state",
+      "file": "cloudflare/gift-sales-legacy-bounded-maintenance.sql",
+      "line": 2
+    },
+    {
+      "table": "gift_sales",
+      "file": "cloudflare/gift-sales-schema.sql",
+      "line": 1
+    },
+    {
+      "table": "gift_sales_collection_state",
+      "file": "cloudflare/gift-sales-schema.sql",
+      "line": 28
+    },
+    {
+      "table": "gift_sales_backfill_state",
+      "file": "cloudflare/gift-sales-schema.sql",
+      "line": 40
+    },
+    {
+      "table": "gift_sales_scan_targets",
+      "file": "cloudflare/gift-sales-schema.sql",
+      "line": 56
+    },
+    {
+      "table": "gift_sales_backfill_state",
+      "file": "cloudflare/migrations/0002_gift_sales_backfill.sql",
+      "line": 1
+    },
+    {
+      "table": "gift_sales_scan_targets",
+      "file": "cloudflare/migrations/0003_gift_sales_scan_targets.sql",
+      "line": 1
+    },
+    {
+      "table": "telegram_floor_scan_targets",
+      "file": "cloudflare/migrations/0004_telegram_floor_scan_targets.sql",
+      "line": 1
+    },
+    {
+      "table": "gift_combo_history_segments",
+      "file": "cloudflare/migrations/0005_gift_combo_history_segments.sql",
+      "line": 1
+    },
+    {
+      "table": "gift_estimate_history_targets",
+      "file": "cloudflare/migrations/0006_gift_estimate_history_targets.sql",
+      "line": 1
+    },
+    {
+      "table": "gift_sales_migration_markers",
+      "file": "cloudflare/migrations/0007_gift_sales_chronological_coverage.sql",
+      "line": 4
+    },
+    {
+      "table": "gift_combo_collections",
+      "file": "cloudflare/schema.sql",
+      "line": 1
+    },
+    {
+      "table": "gift_combo_buckets",
+      "file": "cloudflare/schema.sql",
+      "line": 11
+    },
+    {
+      "table": "gift_combo_history_buckets",
+      "file": "cloudflare/schema.sql",
+      "line": 19
+    },
+    {
+      "table": "gift_combo_history_segments",
+      "file": "cloudflare/schema.sql",
+      "line": 29
+    },
+    {
+      "table": "gift_combo_worker_status",
+      "file": "cloudflare/schema.sql",
+      "line": 37
+    },
+    {
+      "table": "gift_sales",
+      "file": "cloudflare/schema.sql",
+      "line": 49
+    },
+    {
+      "table": "gift_sales_collection_state",
+      "file": "cloudflare/schema.sql",
+      "line": 76
+    },
+    {
+      "table": "gift_sales_backfill_state",
+      "file": "cloudflare/schema.sql",
+      "line": 88
+    },
+    {
+      "table": "gift_sales_scan_targets",
+      "file": "cloudflare/schema.sql",
+      "line": 104
+    },
+    {
+      "table": "telegram_floor_scan_targets",
+      "file": "cloudflare/schema.sql",
+      "line": 122
+    },
+    {
+      "table": "identity_asset_aliases",
+      "file": "cloudflare/valuation-read-model-migrations/0001_identity_asset_aliases.sql",
+      "line": 3
+    },
+    {
+      "table": "valuation_records",
+      "file": "cloudflare/valuation-read-model-migrations/0002_valuation_read_model_bootstrap.sql",
+      "line": 5
+    },
+    {
+      "table": "valuation_projection_state",
+      "file": "cloudflare/valuation-read-model-migrations/0002_valuation_read_model_bootstrap.sql",
+      "line": 32
+    },
+    {
+      "table": "identity_assets",
+      "file": "cloudflare/valuation-read-model-migrations/0002_valuation_read_model_bootstrap.sql",
+      "line": 39
+    },
+    {
+      "table": "identity_asset_aliases",
+      "file": "cloudflare/valuation-read-model-migrations/0002_valuation_read_model_bootstrap.sql",
+      "line": 57
+    },
+    {
+      "table": "identity_sales",
+      "file": "cloudflare/valuation-read-model-migrations/0002_valuation_read_model_bootstrap.sql",
+      "line": 70
+    },
+    {
+      "table": "identity_current_market",
+      "file": "cloudflare/valuation-read-model-migrations/0002_valuation_read_model_bootstrap.sql",
+      "line": 93
+    },
+    {
+      "table": "identity_archetype_baselines",
+      "file": "cloudflare/valuation-read-model-migrations/0002_valuation_read_model_bootstrap.sql",
+      "line": 107
+    },
+    {
+      "table": "identity_pipeline_state",
+      "file": "cloudflare/valuation-read-model-migrations/0002_valuation_read_model_bootstrap.sql",
+      "line": 127
+    },
+    {
+      "table": "identity_storage_policy",
+      "file": "cloudflare/valuation-read-model-migrations/0002_valuation_read_model_bootstrap.sql",
+      "line": 134
+    },
+    {
+      "table": "bounded_maintenance_state",
+      "file": "cloudflare/valuation-read-model-migrations/0003_bounded_maintenance.sql",
+      "line": 2
+    },
+    {
+      "table": "identity_source_revision",
+      "file": "cloudflare/valuation-read-model-migrations/0003_bounded_maintenance.sql",
+      "line": 33
+    },
+    {
+      "table": "identity_baseline_preparation",
+      "file": "cloudflare/valuation-read-model-migrations/0003_bounded_maintenance.sql",
+      "line": 35
+    },
+    {
+      "table": "identity_semantic_revision",
+      "file": "cloudflare/valuation-read-model-migrations/0003_bounded_maintenance.sql",
+      "line": 61
+    },
+    {
+      "table": "valuation_records",
+      "file": "cloudflare/valuation-read-model.sql",
+      "line": 2
+    },
+    {
+      "table": "valuation_projection_state",
+      "file": "cloudflare/valuation-read-model.sql",
+      "line": 30
+    },
+    {
+      "table": "identity_assets",
+      "file": "cloudflare/valuation-read-model.sql",
+      "line": 39
+    },
+    {
+      "table": "identity_asset_aliases",
+      "file": "cloudflare/valuation-read-model.sql",
+      "line": 62
+    },
+    {
+      "table": "identity_sales",
+      "file": "cloudflare/valuation-read-model.sql",
+      "line": 77
+    },
+    {
+      "table": "identity_current_market",
+      "file": "cloudflare/valuation-read-model.sql",
+      "line": 103
+    },
+    {
+      "table": "identity_archetype_baselines",
+      "file": "cloudflare/valuation-read-model.sql",
+      "line": 118
+    },
+    {
+      "table": "identity_pipeline_state",
+      "file": "cloudflare/valuation-read-model.sql",
+      "line": 139
+    },
+    {
+      "table": "identity_storage_policy",
+      "file": "cloudflare/valuation-read-model.sql",
+      "line": 148
+    },
+    {
+      "table": "gift_floor_collections",
+      "file": "data/gift-floor-snapshots.schema.sql",
+      "line": 1
+    },
+    {
+      "table": "gift_floor_snapshots",
+      "file": "data/gift-floor-snapshots.schema.sql",
+      "line": 9
+    },
+    {
+      "table": "gift_model_floor_snapshots",
+      "file": "data/gift-floor-snapshots.schema.sql",
+      "line": 36
+    },
+    {
+      "table": "gift_attribute_registry",
+      "file": "data/gift-floor-snapshots.schema.sql",
+      "line": 62
+    },
+    {
+      "table": "dns_embeddings",
+      "file": "dns-semantic-worker/sql/pgvector.sql",
+      "line": 5
+    },
+    {
+      "table": "dns_worker_schema_migrations",
+      "file": "dns-worker/sql/001_source_coordination.sql",
+      "line": 3
+    },
+    {
+      "table": "dns_source_objects",
+      "file": "dns-worker/sql/001_source_coordination.sql",
+      "line": 8
+    },
+    {
+      "table": "dns_catalog_members",
+      "file": "dns-worker/sql/001_source_coordination.sql",
+      "line": 47
+    },
+    {
+      "table": "username_schema_migrations",
+      "file": "sql/telegram-username-estimator.sql",
+      "line": 3
+    },
+    {
+      "table": "username_assets",
+      "file": "sql/telegram-username-estimator.sql",
+      "line": 8
+    },
+    {
+      "table": "username_asset_aliases",
+      "file": "sql/telegram-username-estimator.sql",
+      "line": 23
+    },
+    {
+      "table": "username_market_events",
+      "file": "sql/telegram-username-estimator.sql",
+      "line": 33
+    },
+    {
+      "table": "username_market_state",
+      "file": "sql/telegram-username-estimator.sql",
+      "line": 62
+    },
+    {
+      "table": "username_static_features",
+      "file": "sql/telegram-username-estimator.sql",
+      "line": 73
+    },
+    {
+      "table": "username_valuations",
+      "file": "sql/telegram-username-estimator.sql",
+      "line": 87
+    },
+    {
+      "table": "username_valuation_comparables",
+      "file": "sql/telegram-username-estimator.sql",
+      "line": 111
+    },
+    {
+      "table": "username_archetype_baselines",
+      "file": "sql/telegram-username-estimator.sql",
+      "line": 123
+    },
+    {
+      "table": "username_jobs",
+      "file": "sql/telegram-username-estimator.sql",
+      "line": 141
+    },
+    {
+      "table": "username_worker_checkpoints",
+      "file": "sql/telegram-username-estimator.sql",
+      "line": 160
+    },
+    {
+      "table": "dns_schema_migrations",
+      "file": "sql/ton-dns-estimator.sql",
+      "line": 5
+    },
+    {
+      "table": "dns_domains",
+      "file": "sql/ton-dns-estimator.sql",
+      "line": 10
+    },
+    {
+      "table": "dns_market_events",
+      "file": "sql/ton-dns-estimator.sql",
+      "line": 41
+    },
+    {
+      "table": "dns_exchange_rates",
+      "file": "sql/ton-dns-estimator.sql",
+      "line": 103
+    },
+    {
+      "table": "dns_market_event_usd",
+      "file": "sql/ton-dns-estimator.sql",
+      "line": 118
+    },
+    {
+      "table": "dns_current_market",
+      "file": "sql/ton-dns-estimator.sql",
+      "line": 149
+    },
+    {
+      "table": "dns_structural_features",
+      "file": "sql/ton-dns-estimator.sql",
+      "line": 172
+    },
+    {
+      "table": "dns_semantic_profiles",
+      "file": "sql/ton-dns-estimator.sql",
+      "line": 211
+    },
+    {
+      "table": "dns_semantic_references",
+      "file": "sql/ton-dns-estimator.sql",
+      "line": 251
+    },
+    {
+      "table": "dns_engine_versions",
+      "file": "sql/ton-dns-estimator.sql",
+      "line": 273
+    },
+    {
+      "table": "dns_archetype_baselines",
+      "file": "sql/ton-dns-estimator.sql",
+      "line": 293
+    },
+    {
+      "table": "dns_valuations",
+      "file": "sql/ton-dns-estimator.sql",
+      "line": 324
+    },
+    {
+      "table": "dns_valuation_comparables",
+      "file": "sql/ton-dns-estimator.sql",
+      "line": 372
+    },
+    {
+      "table": "dns_meaning_dictionary",
+      "file": "sql/ton-dns-estimator.sql",
+      "line": 401
+    },
+    {
+      "table": "dns_jobs",
+      "file": "sql/ton-dns-estimator.sql",
+      "line": 422
+    },
+    {
+      "table": "dns_job_checkpoints",
+      "file": "sql/ton-dns-estimator.sql",
+      "line": 457
+    },
+    {
+      "table": "dns_source_watermarks",
+      "file": "sql/ton-dns-estimator.sql",
+      "line": 467
+    }
+  ],
+  "environmentVariableNames": [
+    "COINGECKO_API_BASE",
+    "COINGECKO_API_KEY",
+    "D1_INGEST_SECRET",
+    "D1_REGISTRY_URL",
+    "D1_SQL_METRICS_REPORT",
+    "DATABASE_URL",
+    "DEFILLAMA_COINS_API_BASE",
+    "DNS_BACKTEST_MAX_EVALUATIONS",
+    "DNS_BACKTEST_MAX_HISTORY",
+    "DNS_BACKTEST_MAX_MEDIAN_LOG_ERROR",
+    "DNS_BACKTEST_MAX_SALES",
+    "DNS_BACKTEST_MIN_INTERVAL_COVERAGE",
+    "DNS_BACKTEST_MIN_SAMPLES",
+    "DNS_BACKTEST_MIN_TRAINING",
+    "DNS_DATABASE_CONNECT_TIMEOUT_MS",
+    "DNS_DATABASE_POOL_MAX",
+    "DNS_DATABASE_SSL",
+    "DNS_DATABASE_URL",
+    "DNS_DIRECT_HISTORY_DAYS",
+    "DNS_DIRECT_MAX_PAGE_SIZE",
+    "DNS_DUCKDB_MEMORY_LIMIT",
+    "DNS_GETGEMS_HISTORY_DAYS",
+    "DNS_LOG_LEVEL",
+    "DNS_MARKET_HISTORY_DAYS",
+    "DNS_PIPELINE_JOB_TYPES",
+    "DNS_PIPELINE_SEED_INTERVAL_MS",
+    "DNS_PIPELINE_SEED_LIMIT",
+    "DNS_PORTFOLIO_ESTIMATES_ENABLED",
+    "DNS_RATE_POLL_MS",
+    "DNS_SOURCE_BUCKET_URL",
+    "DNS_TEMP_DIR",
+    "DNS_TONCENTER_HISTORY_DAYS",
+    "DNS_TONCENTER_PAGE_LIMIT",
+    "DNS_VALUATION_STALE_HOURS",
+    "DNS_VECTOR_DATABASE_URL",
+    "DNS_WORKER_BATCH_SIZE",
+    "DNS_WORKER_ID",
+    "DNS_WORKER_POLL_MS",
+    "DUNE_API_KEY",
+    "DUNE_COLLECTION_HOLDERS_ENABLED",
+    "DUNE_GIFT_COLLECTION_STATS_QUERY_ID",
+    "DUNE_GIFT_MODEL_STATS_QUERY_ID",
+    "ESTIMATE_HISTORY_CONTINUOUS",
+    "ESTIMATE_HISTORY_REFRESH_INTERVAL_MS",
+    "GETGEMS_API_BASE_URL",
+    "GETGEMS_API_KEY",
+    "GIFT_COLLECTION_COMBO_CHUNK_SIZE",
+    "GIFT_COLLECTION_COMBO_CONCURRENCY",
+    "GIFT_COLLECTION_COMBO_RETRY_CHUNK_SIZE",
+    "GIFT_COMBO_BACKDROP",
+    "GIFT_COMBO_BACKDROP_FETCH_TIMEOUT_MS",
+    "GIFT_COMBO_CONTINUOUS",
+    "GIFT_COMBO_COVERAGE_MAX_AGE_MS",
+    "GIFT_COMBO_CYCLE_DELAY_MS",
+    "GIFT_COMBO_DRY_RUN",
+    "GIFT_COMBO_EXACT_HEAL_LIMIT",
+    "GIFT_COMBO_EXACT_HEAL_SCHEDULE_LIMIT",
+    "GIFT_COMBO_FETCH_TIMEOUT_MS",
+    "GIFT_COMBO_LISTING_FETCH_ATTEMPTS",
+    "GIFT_COMBO_MARKETS",
+    "GIFT_COMBO_MAX_BACKDROP_SLICES",
+    "GIFT_COMBO_MAX_FLOOR_AGE_MS",
+    "GIFT_COMBO_PAGE_CONCURRENCY",
+    "GIFT_COMBO_REQUEST_DELAY_MS",
+    "GIFT_COMBO_SCANNER_VERSION",
+    "GIFT_COMBO_SCAN_BACKDROPS",
+    "GIFT_COMBO_SCAN_COLLECTION",
+    "GIFT_COMBO_SKIP_FRESH_MS",
+    "GIFT_COMBO_STALE_HEAL_COOLDOWN_MS",
+    "GIFT_COMBO_STALE_HEAL_MAX_AGE_MS",
+    "GIFT_COMBO_STALE_HEAL_SCHEDULE_LIMIT",
+    "GIFT_LAST_SALE_DEBUG",
+    "GIFT_MODEL_CHUNK_SIZE",
+    "GIFT_MODEL_RETRY_COUNT",
+    "GIFT_MODEL_RETRY_DELAY_MS",
+    "GIFT_REGISTRY_PROXY_URL",
+    "GIFT_SALES_BACKFILL_MODE",
+    "GIFT_SALES_BACKFILL_PAGES_PER_COLLECTION",
+    "GIFT_SALES_BACKFILL_REQUEST_BUDGET",
+    "GIFT_SALES_BASELINE_PAGES",
+    "GIFT_SALES_CONTINUOUS",
+    "GIFT_SALES_CYCLE_DELAY_MS",
+    "GIFT_SALES_DRY_RUN",
+    "GIFT_SALES_EXACT_BACKFILL",
+    "GIFT_SALES_EXACT_COMBOS_PER_COLLECTION",
+    "GIFT_SALES_EXACT_FILTER_BATCH_SIZE",
+    "GIFT_SALES_EXACT_PROGRESS_INTERVAL",
+    "GIFT_SALES_EXACT_REQUESTS_PER_CYCLE",
+    "GIFT_SALES_HISTORICAL_RATE_INTERPOLATION_MAX_GAP_MS",
+    "GIFT_SALES_HISTORICAL_RATE_MAX_GAP_MS",
+    "GIFT_SALES_HISTORICAL_RATE_RETRY_LIMIT",
+    "GIFT_SALES_INCOMPLETE_CYCLE_DELAY_MS",
+    "GIFT_SALES_LOCK_FILE",
+    "GIFT_SALES_MAX_INCREMENTAL_PAGES",
+    "GIFT_SALES_PER_COMBO",
+    "GIFT_SALES_PRIORITY_TARGETS_PER_CYCLE",
+    "GIFT_SALES_REQUEST_INTERVAL_MS",
+    "GIFT_SALES_REQUEST_SAFETY_MS",
+    "GIFT_SALES_REQUEST_TIMEOUT_MS",
+    "GIFT_SALES_RETENTION_DAYS",
+    "GIFT_SALES_USE_SATELLITE_COLLECTIONS",
+    "GIFT_SATELLITE_API_BASE",
+    "GIFT_SATELLITE_AUTH_REFRESH_MS",
+    "GIFT_SATELLITE_INIT_DATA",
+    "GIFT_SATELLITE_OUTAGE_COOLDOWN_MS",
+    "GIFT_SATELLITE_TELEGRAM_APP",
+    "GIFT_SATELLITE_TELEGRAM_BOT",
+    "GIFT_SNAPSHOT_AUTORUN",
+    "GIFT_SNAPSHOT_DELAY_MS",
+    "GIFT_SNAPSHOT_INTERVAL_MS",
+    "GIFT_SNAPSHOT_RETENTION_DAYS",
+    "GIFT_SNAPSHOT_UNCHANGED_INTERVAL_MS",
+    "IDENTITY_BASELINE_REFRESH_INTERVAL_MS",
+    "INGEST_SECRET",
+    "NODE_ENV",
+    "PGSSLMODE",
+    "PORT",
+    "PORTALS_API_BASE",
+    "PORTALS_AUTH_DATA",
+    "PORTALS_SALE_HISTORY_PAGES",
+    "PORTALS_TMA_AUTH",
+    "PYTHON",
+    "RAILWAY_DEPLOYMENT_ID",
+    "RAILWAY_ENVIRONMENT",
+    "RAILWAY_GIT_COMMIT_SHA",
+    "RAILWAY_POSTGRES_VOLUME_MB",
+    "RAILWAY_PROJECT_ID",
+    "RAILWAY_SERVICE_ID",
+    "REGISTRY_PRELOAD",
+    "TELEGRAM_API_HASH",
+    "TELEGRAM_API_ID",
+    "TELEGRAM_BOT_TOKEN",
+    "TELEGRAM_CODE",
+    "TELEGRAM_FLOOR_CONTINUOUS",
+    "TELEGRAM_FLOOR_CYCLE_DELAY_MS",
+    "TELEGRAM_FLOOR_MAX_PAGES",
+    "TELEGRAM_FLOOR_REQUEST_DELAY_MS",
+    "TELEGRAM_FLOOR_RETRY_DELAY_MS",
+    "TELEGRAM_NON_INTERACTIVE",
+    "TELEGRAM_PASSWORD",
+    "TELEGRAM_PHONE",
+    "TELEGRAM_SESSION",
+    "TELEGRAM_TEST_GIFT_ID",
+    "THERMOS_API_TOKEN",
+    "THERMOS_BACKEND_API_BASE",
+    "THERMOS_JWT",
+    "TONAPI_API_KEY",
+    "TONAPI_BASE_URL",
+    "TONAPI_KEY",
+    "TONAPI_MEMBERSHIP_PAGES_PER_CYCLE",
+    "TONAPI_MEMBERSHIP_PAGE_SIZE",
+    "TONCENTER_API_BASE",
+    "TONCENTER_API_BASE_URL",
+    "TONCENTER_API_KEY",
+    "TONCENTER_PUBLIC_INTERVAL_SECONDS",
+    "TONCENTER_RETRY_ATTEMPTS",
+    "TONNEL_AUTH",
+    "TONNEL_AUTH_DATA",
+    "TONNEL_SALE_HISTORY_PAGES",
+    "TONTRACK_ACTIVE_ROOT",
+    "TONTRACK_ALLOW_LEGACY_POSTGRES",
+    "TONTRACK_BOUNDED_TIMEOUT_MS",
+    "TONTRACK_BUILD_REVISION",
+    "TONTRACK_FIXTURE_PORT",
+    "TONTRACK_MODE",
+    "TONTRACK_ROOT",
+    "TONTRACK_WORKER_ROLE",
+    "TON_USD_RATE",
+    "USERNAME_AUDIT_NAMES",
+    "USERNAME_BACKTEST_CONDITIONAL_CALIBRATION",
+    "USERNAME_BACKTEST_FROM",
+    "USERNAME_BACKTEST_GLOVE",
+    "USERNAME_BACKTEST_MAX_EVALUATIONS",
+    "USERNAME_BACKTEST_MAX_HISTORY",
+    "USERNAME_BACKTEST_MAX_SALES",
+    "USERNAME_BACKTEST_POSTFIT_SHRINKAGE",
+    "USERNAME_BACKTEST_RETRIEVAL",
+    "USERNAME_BACKTEST_SELECTION",
+    "USERNAME_BACKTEST_SEMANTIC_RETRIEVAL",
+    "USERNAME_BACKTEST_STANDARDIZE_CLASSIFIER",
+    "USERNAME_BACKTEST_STRIDE",
+    "USERNAME_BACKTEST_UNTIL",
+    "USERNAME_BACKTEST_WORDNET",
+    "USERNAME_BASELINE_REFRESH_MS",
+    "USERNAME_DATABASE_URL",
+    "USERNAME_EVENT_INGEST_LIMIT",
+    "USERNAME_EVENT_INGEST_POLL_MS",
+    "USERNAME_EVENT_SOURCE_NAME",
+    "USERNAME_EVENT_SOURCE_URL",
+    "USERNAME_FIRST_IMPORT_EVIDENCE_LIMIT",
+    "USERNAME_FIRST_IMPORT_EVIDENCE_TIMEOUT_MS",
+    "USERNAME_FIRST_IMPORT_FRAGMENT_DELAY_MS",
+    "USERNAME_FIRST_IMPORT_FULL_KNOWLEDGE_LIMIT",
+    "USERNAME_FIRST_IMPORT_KNOWLEDGE_LIMIT",
+    "USERNAME_FIRST_IMPORT_MARKET_LIMIT",
+    "USERNAME_FRAGMENT_BASE_URL",
+    "USERNAME_FRAGMENT_DEFERRED_DELAY_MS",
+    "USERNAME_FRAGMENT_HISTORY_BATCH_SIZE",
+    "USERNAME_FRAGMENT_HISTORY_SWEEP_INTERVAL_MS",
+    "USERNAME_FRAGMENT_IDENTITY_RESOLVE_BATCH_SIZE",
+    "USERNAME_FRAGMENT_MAX_SEARCH_REQUESTS_PER_PAGE",
+    "USERNAME_FRAGMENT_PAGE_DELAY_MS",
+    "USERNAME_FRAGMENT_PREFIX_DEPTH",
+    "USERNAME_FRAGMENT_REQUEST_DELAY_MS",
+    "USERNAME_FRAGMENT_RESULT_LIMIT",
+    "USERNAME_FRAGMENT_RETRY_BASE_DELAY_MS",
+    "USERNAME_INGEST_CONTINUOUS",
+    "USERNAME_KNOWLEDGE_CALIBRATION_LIMIT",
+    "USERNAME_KNOWLEDGE_CONCURRENCY",
+    "USERNAME_KNOWLEDGE_FAST_ONLY",
+    "USERNAME_KNOWLEDGE_ITEM_TIMEOUT_MS",
+    "USERNAME_KNOWLEDGE_NAMES",
+    "USERNAME_MARKET_HISTORY_DAYS",
+    "USERNAME_PIPELINE_SEED_INTERVAL_MS",
+    "USERNAME_PIPELINE_SEED_LIMIT",
+    "USERNAME_PORTFOLIO_ESTIMATES_ENABLED",
+    "USERNAME_PUBLIC_SETTLEMENT_SOURCE_NAME",
+    "USERNAME_PUBLIC_SETTLEMENT_SOURCE_URL",
+    "USERNAME_SEMANTIC_BATCH_SIZE",
+    "USERNAME_SEMANTIC_POLL_MS",
+    "USERNAME_SEMANTIC_SERVICE_URL",
+    "USERNAME_SEMANTIC_WORKER_ID",
+    "USERNAME_TONCENTER_API_KEY",
+    "USERNAME_TONCENTER_BASE_URL",
+    "USERNAME_TONCENTER_SETTLEMENT_PAGE_LIMIT",
+    "USERNAME_TONCENTER_VERIFY_BATCH_SIZE",
+    "USERNAME_TONCENTER_VERIFY_ENABLED",
+    "USERNAME_UI_FIXTURE",
+    "USERNAME_VALUATION_STALE_HOURS",
+    "USERNAME_WORKER_BATCH_SIZE",
+    "USERNAME_WORKER_ID",
+    "VALUATION_PROJECTION_BATCH_SIZE",
+    "VALUATION_READ_MODEL_URL"
+  ],
+  "testFiles": [
+    "test/bootstrap-identity-knowledge.test.js",
+    "test/chart-platform.test.js",
+    "test/collectible-browsing.test.js",
+    "test/collectible-preview-modal.test.js",
+    "test/compact-identity-ledger.test.js",
+    "test/d1-bounded-maintenance.test.js",
+    "test/dns-backtest.test.js",
+    "test/dns-estimator.test.js",
+    "test/dns-historical-rates.test.js",
+    "test/dns-runtime.test.js",
+    "test/dns-store.test.js",
+    "test/dns-structural.test.js",
+    "test/dns-toncenter-ledger.test.js",
+    "test/edge-static-build.test.js",
+    "test/edge-wallet-proxy.test.js",
+    "test/fixtures/username-detail-rebuild.html",
+    "test/fixtures/wallet-import-browser-server.js",
+    "test/fragment-username-source.test.js",
+    "test/gift-cleanup-pause.test.js",
+    "test/gift-detail-resilience.test.js",
+    "test/gift-price-preview.test.js",
+    "test/gift-registry-storage.test.js",
+    "test/gift-sales-backfill.test.js",
+    "test/gram-display.test.js",
+    "test/gram-usd-history.test.js",
+    "test/home-allocation-pie.test.js",
+    "test/home-featured-assets.test.js",
+    "test/home-overview.test.js",
+    "test/identity-asset-fields.test.js",
+    "test/identity-assets.test.js",
+    "test/identity-baseline-refresh.test.js",
+    "test/identity-ingestion-edge.test.js",
+    "test/p0-safety-boundaries.test.js",
+    "test/portfolio-utilities.test.js",
+    "test/pre-fomo-restoration.test.js",
+    "test/product-system.test.js",
+    "test/reference-ui.test.js",
+    "test/static-serving-security.test.js",
+    "test/telegram-floor-resume.test.js",
+    "test/test_username_anchor_residual.py",
+    "test/token-detail-loading.test.js",
+    "test/toncenter-username-secondary-ledger.test.js",
+    "test/toncenter-username-settlement-ledger.test.js",
+    "test/toncenter-username-verifier.test.js",
+    "test/toncenter-wallet-fallback.test.js",
+    "test/ui-consistency.test.js",
+    "test/ui-screen-consistency.test.js",
+    "test/username-active-auction-nowcast.test.js",
+    "test/username-auction-bid-evidence.test.js",
+    "test/username-auction-outcome.test.js",
+    "test/username-auction-state.test.js",
+    "test/username-backtest.test.js",
+    "test/username-broad-training.test.js",
+    "test/username-chain-bid-lifecycle-analysis.test.js",
+    "test/username-chain-bid-recovery-pilot.test.js",
+    "test/username-compound-evidence.test.js",
+    "test/username-conditional-fusion.test.js",
+    "test/username-detail.test.js",
+    "test/username-estimator.test.js",
+    "test/username-evidence-fusion.test.js",
+    "test/username-evidence-query.test.js",
+    "test/username-existing-candidate-ceiling.test.js",
+    "test/username-expanded-bid-analysis.test.js",
+    "test/username-expanded-bid-audit.test.js",
+    "test/username-exposure-audit.test.js",
+    "test/username-first-import-evidence.test.js",
+    "test/username-forward-v2-evaluator.test.js",
+    "test/username-forward-v2-reservation.test.js",
+    "test/username-forward-v3-evaluator.test.js",
+    "test/username-forward-v3-reservation.test.js",
+    "test/username-historical-auction-cycles.test.js",
+    "test/username-history-provenance.test.js",
+    "test/username-knowledge.test.js",
+    "test/username-ledger-priority.test.js",
+    "test/username-local-collector.test.js",
+    "test/username-own-evidence.test.js",
+    "test/username-own-history-feature-export.test.js",
+    "test/username-own-history-v25-comparison-audit.test.js",
+    "test/username-own-market-index.test.js",
+    "test/username-premium-gated-fusion.test.js",
+    "test/username-prior-bid-cycle-diagnostic.test.js",
+    "test/username-publication.test.js",
+    "test/username-rebuild-adversarial.test.js",
+    "test/username-resale-own-anchor.test.js",
+    "test/username-resale-own-history-v25-comparison.test.js",
+    "test/username-reserved-integrity.test.js",
+    "test/username-retrieval-diagnostic.test.js",
+    "test/username-runtime.test.js",
+    "test/username-secondary-development.test.js",
+    "test/username-secondary-full-context-development.test.js",
+    "test/username-secondary-local-collector.test.js",
+    "test/username-secondary-own-anchor-gate.test.js",
+    "test/username-secondary-qualification.test.js",
+    "test/username-secondary-resale-protocol.test.js",
+    "test/username-secondary-stage-opportunity.test.js",
+    "test/username-semantic.test.js",
+    "test/username-settlement-source.test.js",
+    "test/username-snapshot-knowledge.test.js",
+    "test/username-tabular-export.test.js",
+    "test/username-vector-retrieval.test.js",
+    "test/username-wallet-isolation.test.js",
+    "test/valuation-read-model-migration.test.js",
+    "test/wallet-activity.test.js",
+    "test/wallet-token-coverage.test.js"
+  ],
+  "sourceFileCount": 356,
+  "documentFiles": [
+    "AGENTS.md",
+    "CODEX_HANDOFF.md",
+    "DESIGN.md",
+    "FLOOR_PRICE_STATUS_REPORT.md",
+    "PRODUCT.md",
+    "PROJECT_HANDOVER.md",
+    "RAILWAY-DEPLOYMENT.md",
+    "README.md",
+    "REPO-PLUGIN-SETUP.md",
+    "RICH_APP_DUE_DILIGENCE_REPORT_2026-09-05.md",
+    "design-references/design.md",
+    "dns-semantic-worker/README.md",
+    "dns-worker/README.md",
+    "docs/D1_BOUNDED_MAINTENANCE_ROLLOUT.md",
+    "docs/D1_ROW_READ_CHECKPOINT.md",
+    "docs/FOMO_MOBILE_OBSERVATION_LOG.md",
+    "docs/FOMO_PRODUCT_DESIGN_DIRECTION.md",
+    "docs/FOMO_REDESIGN_CHECKPOINT.md",
+    "docs/FOMO_REDESIGN_COVERAGE.md",
+    "docs/IDENTITY_VALUATION_INVARIANTS.md",
+    "docs/P0_HARDENING_CHECKPOINT.md",
+    "docs/PRODUCTION_DATA_ARCHITECTURE.md",
+    "docs/PRODUCT_EXPERIENCE_REBUILD.md",
+    "docs/REFERENCE_UI_BRIEF.md",
+    "docs/REFERENCE_UI_CHECKPOINT.md",
+    "docs/REFERENCE_UI_RECONSTRUCTION_PLAN.md",
+    "docs/TELEGRAM_USERNAME_DEPLOYMENT_RUNBOOK.md",
+    "docs/TELEGRAM_USERNAME_ESTIMATOR_SOURCE_OF_TRUTH.md",
+    "docs/TELEGRAM_USERNAME_PRODUCTION_ARCHITECTURE.md",
+    "docs/TELEGRAM_USERNAME_VALUATION_RESEARCH_2026.md",
+    "docs/TON_DNS_DEPLOYMENT_RUNBOOK.md",
+    "docs/TON_DNS_ESTIMATOR_IMPLEMENTATION_PLAN.md",
+    "docs/TON_DNS_VALUATION_SOURCE_OF_TRUTH.md",
+    "docs/USERNAME_CHAIN_EVIDENCE_ARCHITECTURE.md",
+    "docs/USERNAME_DNS_RELATIONSHIP_STUDY_2026.md",
+    "docs/USERNAME_ESTIMATOR_QUALIFICATION.md",
+    "docs/USERNAME_ESTIMATOR_REVISED_GOAL.md",
+    "docs/USERNAME_IMPLEMENTATION_VERIFICATION.md",
+    "docs/USERNAME_MARKET_SOURCE_POLICY.md",
+    "docs/USERNAME_REBUILD_CHECKPOINT.md",
+    "docs/WALLET_CONTEST_FINAL_FIVE_2026-09-15.md",
+    "docs/WALLET_CONTEST_PRODUCT_AND_COMPETITOR_MAP_2026-09-15.md",
+    "docs/WALLET_EXISTING_FEATURE_AUDIT.md",
+    "docs/WALLET_FIVE_ENTRIES_VALIDATED_2026-09-15.md",
+    "docs/WALLET_IDEAS_CONTEST_RESEARCH.md",
+    "docs/WALLET_IDEAS_RESEARCH_V2.md",
+    "docs/WALLET_IDEA_DISCOVERY_V3.md",
+    "docs/WALLET_IDEA_FILTER_CURRENT.md",
+    "docs/WALLET_IDEA_RESEARCH_V4_2026-09-15.md",
+    "docs/WALLET_IMPORT_RECOVERY_CHECKPOINT.md",
+    "docs/WALLET_SECOND_PASS_CANDIDATE_AUDIT_2026-09-15.md",
+    "docs/WALLET_SECOND_PASS_FINAL_STRATEGY_2026-09-15.md",
+    "docs/WALLET_SECOND_PASS_OPPORTUNITY_MAP_2026-09-15.md",
+    "docs/WALLET_SECOND_PASS_TREND_MAP_2026-09-15.md",
+    "docs/WALLET_TREND_SCAN_V5_2026-09-15.md",
+    "docs/WALLET_USER_PROBLEM_VALIDATION.md",
+    "docs/WALLET_VERSUS_STRESS_TEST_2026-09-15.md",
+    "docs/contest-assets/wallet-replay-comment.md",
+    "docs/liquid-glass-navbar-plan.md",
+    "docs/superpowers/plans/2026-10-29-p0-hardening.md",
+    "research/telegram-usernames/CANONICAL_LEDGER_RESULTS.md",
+    "research/telegram-usernames/EXPERIMENT_RESULTS.md",
+    "research/telegram-usernames/README.md",
+    "research/telegram-usernames/USERNAME_DNS_INVENTORY_RESULTS.md",
+    "research/telegram-usernames/USERNAME_DNS_SALES_RESULTS.md",
+    "research/telegram-usernames/USERNAME_REBUILD_FINISH_PLAN.md",
+    "research/telegram-usernames/anchor-residual-development-result-2026-09-30.md",
+    "research/telegram-usernames/buyer-offer-source-feasibility-2026-09-27.md",
+    "research/telegram-usernames/data/GLOVE_SOURCE.md",
+    "research/telegram-usernames/data/wordnet-3.0/SOURCE.md",
+    "research/telegram-usernames/historical-cycle-verifier-prototype-2026-09-29.md",
+    "research/telegram-usernames/prior-bid-cycle-feasibility-2026-09-28.md",
+    "research/telegram-usernames/prior-bid-depth-feasibility-2026-09-28.md"
+  ],
+  "functions": [
+    {
+      "name": "loadEnvFile",
+      "file": "server.js",
+      "line": 19
+    },
+    {
+      "name": "d1RegistryJson",
+      "file": "server.js",
+      "line": 87
+    },
+    {
+      "name": "loadCollectiblesRegistry",
+      "file": "server.js",
+      "line": 162
+    },
+    {
+      "name": "loadGiftLayerRegistry",
+      "file": "server.js",
+      "line": 171
+    },
+    {
+      "name": "scheduleGiftLayerRegistrySave",
+      "file": "server.js",
+      "line": 271
+    },
+    {
+      "name": "layerRegistryKey",
+      "file": "server.js",
+      "line": 284
+    },
+    {
+      "name": "clampColorChannel",
+      "file": "server.js",
+      "line": 288
+    },
+    {
+      "name": "hslToHex",
+      "file": "server.js",
+      "line": 292
+    },
+    {
+      "name": "hashHue",
+      "file": "server.js",
+      "line": 317
+    },
+    {
+      "name": "deriveGiftBackdropPalette",
+      "file": "server.js",
+      "line": 326
+    },
+    {
+      "name": "rememberGiftLayeredMedia",
+      "file": "server.js",
+      "line": 356
+    },
+    {
+      "name": "giftLayeredMediaPayload",
+      "file": "server.js",
+      "line": 419
+    },
+    {
+      "name": "isNativeTonSymbol",
+      "file": "server.js",
+      "line": 482
+    },
+    {
+      "name": "json",
+      "file": "server.js",
+      "line": 506
+    },
+    {
+      "name": "readJsonBody",
+      "file": "server.js",
+      "line": 522
+    },
+    {
+      "name": "safeStaticPath",
+      "file": "server.js",
+      "line": 542
+    },
+    {
+      "name": "requestOrigin",
+      "file": "server.js",
+      "line": 546
+    },
+    {
+      "name": "isLocalHttpRequest",
+      "file": "server.js",
+      "line": 554
+    },
+    {
+      "name": "telegramWebAppConfigured",
+      "file": "server.js",
+      "line": 563
+    },
+    {
+      "name": "telegramProfile",
+      "file": "server.js",
+      "line": 567
+    },
+    {
+      "name": "verifyTelegramWebAppInitData",
+      "file": "server.js",
+      "line": 577
+    },
+    {
+      "name": "telegramBotApi",
+      "file": "server.js",
+      "line": 602
+    },
+    {
+      "name": "telegramGiftTrait",
+      "file": "server.js",
+      "line": 613
+    },
+    {
+      "name": "telegramGiftAttributes",
+      "file": "server.js",
+      "line": 632
+    },
+    {
+      "name": "telegramGiftCollectionName",
+      "file": "server.js",
+      "line": 638
+    },
+    {
+      "name": "telegramGiftMedia",
+      "file": "server.js",
+      "line": 643
+    },
+    {
+      "name": "telegramWebAppMediaTicket",
+      "file": "server.js",
+      "line": 668
+    },
+    {
+      "name": "telegramMiniAppAssets",
+      "file": "server.js",
+      "line": 689
+    },
+    {
+      "name": "telegramWebAppFile",
+      "file": "server.js",
+      "line": 845
+    },
+    {
+      "name": "tonConnectManifest",
+      "file": "server.js",
+      "line": 904
+    },
+    {
+      "name": "parseTonAddress",
+      "file": "server.js",
+      "line": 913
+    },
+    {
+      "name": "isTonDnsName",
+      "file": "server.js",
+      "line": 921
+    },
+    {
+      "name": "resolveWalletAddress",
+      "file": "server.js",
+      "line": 925
+    },
+    {
+      "name": "rawTonAddress",
+      "file": "server.js",
+      "line": 960
+    },
+    {
+      "name": "friendlyTonAddress",
+      "file": "server.js",
+      "line": 964
+    },
+    {
+      "name": "serveStatic",
+      "file": "server.js",
+      "line": 973
+    },
+    {
+      "name": "runQueuedTonApi",
+      "file": "server.js",
+      "line": 995
+    },
+    {
+      "name": "tonApi",
+      "file": "server.js",
+      "line": 1009
+    },
+    {
+      "name": "geckoFetch",
+      "file": "server.js",
+      "line": 1036
+    },
+    {
+      "name": "tonCenter",
+      "file": "server.js",
+      "line": 1056
+    },
+    {
+      "name": "tonCenterImmediateJson",
+      "file": "server.js",
+      "line": 1062
+    },
+    {
+      "name": "stonAssetMap",
+      "file": "server.js",
+      "line": 1078
+    },
+    {
+      "name": "jettonAddressKey",
+      "file": "server.js",
+      "line": 1099
+    },
+    {
+      "name": "tonAddressVariants",
+      "file": "server.js",
+      "line": 1109
+    },
+    {
+      "name": "geckoCoinList",
+      "file": "server.js",
+      "line": 1128
+    },
+    {
+      "name": "resolveGeckoId",
+      "file": "server.js",
+      "line": 1144
+    },
+    {
+      "name": "nanoToTon",
+      "file": "server.js",
+      "line": 1165
+    },
+    {
+      "name": "decimalAmount",
+      "file": "server.js",
+      "line": 1169
+    },
+    {
+      "name": "externalJson",
+      "file": "server.js",
+      "line": 1181
+    },
+    {
+      "name": "tonCenterJson",
+      "file": "server.js",
+      "line": 1195
+    },
+    {
+      "name": "externalText",
+      "file": "server.js",
+      "line": 1231
+    },
+    {
+      "name": "marketHeaders",
+      "file": "server.js",
+      "line": 1244
+    },
+    {
+      "name": "externalPostJson",
+      "file": "server.js",
+      "line": 1255
+    },
+    {
+      "name": "xgiftJson",
+      "file": "server.js",
+      "line": 1276
+    },
+    {
+      "name": "xgiftBridge",
+      "file": "server.js",
+      "line": 1302
+    },
+    {
+      "name": "giftSnapshotKey",
+      "file": "server.js",
+      "line": 1343
+    },
+    {
+      "name": "loadGiftFloorSnapshots",
+      "file": "server.js",
+      "line": 1350
+    },
+    {
+      "name": "saveGiftFloorSnapshots",
+      "file": "server.js",
+      "line": 1362
+    },
+    {
+      "name": "giftSnapshotRecord",
+      "file": "server.js",
+      "line": 1370
+    },
+    {
+      "name": "giftSnapshotPgSsl",
+      "file": "server.js",
+      "line": 1402
+    },
+    {
+      "name": "giftSnapshotPool",
+      "file": "server.js",
+      "line": 1407
+    },
+    {
+      "name": "ensureGiftSnapshotTables",
+      "file": "server.js",
+      "line": 1423
+    },
+    {
+      "name": "snapshotNumber",
+      "file": "server.js",
+      "line": 1524
+    },
+    {
+      "name": "snapshotNumbersMatch",
+      "file": "server.js",
+      "line": 1529
+    },
+    {
+      "name": "collectionSnapshotUnchanged",
+      "file": "server.js",
+      "line": 1533
+    },
+    {
+      "name": "modelSnapshotUnchanged",
+      "file": "server.js",
+      "line": 1541
+    },
+    {
+      "name": "giftComboKey",
+      "file": "server.js",
+      "line": 1549
+    },
+    {
+      "name": "appendGiftComboFloorSnapshot",
+      "file": "server.js",
+      "line": 1553
+    },
+    {
+      "name": "latestGiftComboFloor",
+      "file": "server.js",
+      "line": 1635
+    },
+    {
+      "name": "appendGiftFloorSnapshotDb",
+      "file": "server.js",
+      "line": 1657
+    },
+    {
+      "name": "appendGiftFloorSnapshotJson",
+      "file": "server.js",
+      "line": 1727
+    },
+    {
+      "name": "appendGiftFloorSnapshot",
+      "file": "server.js",
+      "line": 1755
+    },
+    {
+      "name": "giftModelSnapshotRecords",
+      "file": "server.js",
+      "line": 1762
+    },
+    {
+      "name": "appendGiftModelFloorSnapshotsDb",
+      "file": "server.js",
+      "line": 1798
+    },
+    {
+      "name": "appendGiftModelFloorSnapshotsJson",
+      "file": "server.js",
+      "line": 1869
+    },
+    {
+      "name": "appendGiftModelFloorSnapshots",
+      "file": "server.js",
+      "line": 1912
+    },
+    {
+      "name": "giftAttributeRarity",
+      "file": "server.js",
+      "line": 1919
+    },
+    {
+      "name": "giftAttributeRecords",
+      "file": "server.js",
+      "line": 1926
+    },
+    {
+      "name": "appendGiftAttributesDb",
+      "file": "server.js",
+      "line": 1951
+    },
+    {
+      "name": "appendGiftAttributesJson",
+      "file": "server.js",
+      "line": 1990
+    },
+    {
+      "name": "appendGiftAttributes",
+      "file": "server.js",
+      "line": 2019
+    },
+    {
+      "name": "pruneGiftSnapshotStorage",
+      "file": "server.js",
+      "line": 2026
+    },
+    {
+      "name": "latestGiftModelFloorsJson",
+      "file": "server.js",
+      "line": 2047
+    },
+    {
+      "name": "latestGiftModelFloorsDb",
+      "file": "server.js",
+      "line": 2081
+    },
+    {
+      "name": "requestedGiftModelPairs",
+      "file": "server.js",
+      "line": 2114
+    },
+    {
+      "name": "singularGiftWord",
+      "file": "server.js",
+      "line": 2135
+    },
+    {
+      "name": "giftCollectionAliasKeys",
+      "file": "server.js",
+      "line": 2144
+    },
+    {
+      "name": "giftWordVariants",
+      "file": "server.js",
+      "line": 2167
+    },
+    {
+      "name": "giftCollectionSignatureKeys",
+      "file": "server.js",
+      "line": 2177
+    },
+    {
+      "name": "resolveStoredGiftCollectionKeys",
+      "file": "server.js",
+      "line": 2187
+    },
+    {
+      "name": "normalizeStoredGiftModel",
+      "file": "server.js",
+      "line": 2209
+    },
+    {
+      "name": "normalizeStoredGiftAttribute",
+      "file": "server.js",
+      "line": 2232
+    },
+    {
+      "name": "storedGiftAttributesForPairs",
+      "file": "server.js",
+      "line": 2244
+    },
+    {
+      "name": "modelStatsNumber",
+      "file": "server.js",
+      "line": 2279
+    },
+    {
+      "name": "duneSqlString",
+      "file": "server.js",
+      "line": 2288
+    },
+    {
+      "name": "executeDuneSql",
+      "file": "server.js",
+      "line": 2292
+    },
+    {
+      "name": "normalizeDuneGiftModelStatsRow",
+      "file": "server.js",
+      "line": 2321
+    },
+    {
+      "name": "normalizeDuneGiftCollectionStatsRow",
+      "file": "server.js",
+      "line": 2338
+    },
+    {
+      "name": "duneGiftCollectionOnchainHolders",
+      "file": "server.js",
+      "line": 2369
+    },
+    {
+      "name": "latestDuneGiftModelStatsRows",
+      "file": "server.js",
+      "line": 2434
+    },
+    {
+      "name": "latestDuneGiftCollectionStatsRows",
+      "file": "server.js",
+      "line": 2457
+    },
+    {
+      "name": "normalizedGiftCollectionStats",
+      "file": "server.js",
+      "line": 2480
+    },
+    {
+      "name": "refreshDuneGiftCollectionHoldersInBackground",
+      "file": "server.js",
+      "line": 2504
+    },
+    {
+      "name": "giftCollectionStatsSnapshotForPairs",
+      "file": "server.js",
+      "line": 2513
+    },
+    {
+      "name": "giftModelStatsSnapshotForPairs",
+      "file": "server.js",
+      "line": 2536
+    },
+    {
+      "name": "prewarmGiftCollectionStats",
+      "file": "server.js",
+      "line": 2574
+    },
+    {
+      "name": "giftCollectionStatsForPairs",
+      "file": "server.js",
+      "line": 2587
+    },
+    {
+      "name": "giftModelStatsForPairs",
+      "file": "server.js",
+      "line": 2603
+    },
+    {
+      "name": "bulkStoredGiftModelFloors",
+      "file": "server.js",
+      "line": 2638
+    },
+    {
+      "name": "drainGiftModelRecoveryQueue",
+      "file": "server.js",
+      "line": 2709
+    },
+    {
+      "name": "recoverGiftModelCollection",
+      "file": "server.js",
+      "line": 2724
+    },
+    {
+      "name": "latestGiftModelFloors",
+      "file": "server.js",
+      "line": 2736
+    },
+    {
+      "name": "giftSnapshotHistoryDb",
+      "file": "server.js",
+      "line": 2793
+    },
+    {
+      "name": "giftSnapshotHistoryJson",
+      "file": "server.js",
+      "line": 2816
+    },
+    {
+      "name": "giftSnapshotHistory",
+      "file": "server.js",
+      "line": 2834
+    },
+    {
+      "name": "giftModelSnapshotHistoryDb",
+      "file": "server.js",
+      "line": 2840
+    },
+    {
+      "name": "giftModelSnapshotHistoryJson",
+      "file": "server.js",
+      "line": 2866
+    },
+    {
+      "name": "giftModelSnapshotHistory",
+      "file": "server.js",
+      "line": 2884
+    },
+    {
+      "name": "giftSnapshotStoreStatus",
+      "file": "server.js",
+      "line": 2890
+    },
+    {
+      "name": "giftSnapshotStorageHealth",
+      "file": "server.js",
+      "line": 2957
+    },
+    {
+      "name": "canonicalGiftNames",
+      "file": "server.js",
+      "line": 3008
+    },
+    {
+      "name": "storedGiftNames",
+      "file": "server.js",
+      "line": 3013
+    },
+    {
+      "name": "snapshotGiftNames",
+      "file": "server.js",
+      "line": 3020
+    },
+    {
+      "name": "xgiftModelFloorsWithBackoff",
+      "file": "server.js",
+      "line": 3036
+    },
+    {
+      "name": "xgiftModelMediaPayload",
+      "file": "server.js",
+      "line": 3051
+    },
+    {
+      "name": "xgiftGiftAttributesPayload",
+      "file": "server.js",
+      "line": 3064
+    },
+    {
+      "name": "mergeGiftAttributePayload",
+      "file": "server.js",
+      "line": 3088
+    },
+    {
+      "name": "xgiftGiftAttributesForCollections",
+      "file": "server.js",
+      "line": 3112
+    },
+    {
+      "name": "collectGiftFloorSnapshotsNow",
+      "file": "server.js",
+      "line": 3130
+    },
+    {
+      "name": "marketJson",
+      "file": "server.js",
+      "line": 3212
+    },
+    {
+      "name": "thermosBackendJwt",
+      "file": "server.js",
+      "line": 3231
+    },
+    {
+      "name": "thermosBackendJson",
+      "file": "server.js",
+      "line": 3257
+    },
+    {
+      "name": "settleWithin",
+      "file": "server.js",
+      "line": 3272
+    },
+    {
+      "name": "registryItems",
+      "file": "server.js",
+      "line": 3282
+    },
+    {
+      "name": "stickerdomStatsFeed",
+      "file": "server.js",
+      "line": 3289
+    },
+    {
+      "name": "stickerdomPrice",
+      "file": "server.js",
+      "line": 3307
+    },
+    {
+      "name": "thermosStickerStats",
+      "file": "server.js",
+      "line": 3319
+    },
+    {
+      "name": "thermosStickerCollectionDetails",
+      "file": "server.js",
+      "line": 3337
+    },
+    {
+      "name": "stickerRepresentativeMedia",
+      "file": "server.js",
+      "line": 3364
+    },
+    {
+      "name": "stickerAnimationPayload",
+      "file": "server.js",
+      "line": 3418
+    },
+    {
+      "name": "thermosStickerCharacterStats",
+      "file": "server.js",
+      "line": 3456
+    },
+    {
+      "name": "stickersToolsFloor",
+      "file": "server.js",
+      "line": 3466
+    },
+    {
+      "name": "stickersToolsMarketStats",
+      "file": "server.js",
+      "line": 3487
+    },
+    {
+      "name": "stickerToolsPriceResult",
+      "file": "server.js",
+      "line": 3504
+    },
+    {
+      "name": "isPlausibleStickerFloor",
+      "file": "server.js",
+      "line": 3534
+    },
+    {
+      "name": "stickersToolsStatsFloor",
+      "file": "server.js",
+      "line": 3541
+    },
+    {
+      "name": "normalizeStickerKey",
+      "file": "server.js",
+      "line": 3561
+    },
+    {
+      "name": "stickerAddressKeys",
+      "file": "server.js",
+      "line": 3565
+    },
+    {
+      "name": "stickerCollectionsSnapshot",
+      "file": "server.js",
+      "line": 3578
+    },
+    {
+      "name": "stickerCategoryRegistryFromSnapshot",
+      "file": "server.js",
+      "line": 3592
+    },
+    {
+      "name": "stickerSnapshotFloor",
+      "file": "server.js",
+      "line": 3629
+    },
+    {
+      "name": "stickerCategoryRows",
+      "file": "server.js",
+      "line": 3707
+    },
+    {
+      "name": "stickerCategoryRegistry",
+      "file": "server.js",
+      "line": 3712
+    },
+    {
+      "name": "refreshStickerCollectionsRegistryFile",
+      "file": "server.js",
+      "line": 3813
+    },
+    {
+      "name": "inferStickerBrandName",
+      "file": "server.js",
+      "line": 3963
+    },
+    {
+      "name": "expandStickerAliases",
+      "file": "server.js",
+      "line": 3997
+    },
+    {
+      "name": "inferStickerBrandName",
+      "file": "server.js",
+      "line": 4019
+    },
+    {
+      "name": "isSuspiciousStickerCandidate",
+      "file": "server.js",
+      "line": 4079
+    },
+    {
+      "name": "registryName",
+      "file": "server.js",
+      "line": 4091
+    },
+    {
+      "name": "registryTypeText",
+      "file": "server.js",
+      "line": 4095
+    },
+    {
+      "name": "applyRegistryRows",
+      "file": "server.js",
+      "line": 4108
+    },
+    {
+      "name": "applyStickerRegistryRows",
+      "file": "server.js",
+      "line": 4118
+    },
+    {
+      "name": "fetchThermosRegistry",
+      "file": "server.js",
+      "line": 4130
+    },
+    {
+      "name": "refreshCollectiblesRegistry",
+      "file": "server.js",
+      "line": 4138
+    },
+    {
+      "name": "cachedMapValue",
+      "file": "server.js",
+      "line": 4170
+    },
+    {
+      "name": "setCachedMapValue",
+      "file": "server.js",
+      "line": 4175
+    },
+    {
+      "name": "formatAddress",
+      "file": "server.js",
+      "line": 4180
+    },
+    {
+      "name": "normalizeAccount",
+      "file": "server.js",
+      "line": 4185
+    },
+    {
+      "name": "canonicalAddressKey",
+      "file": "server.js",
+      "line": 4197
+    },
+    {
+      "name": "normalizeJettons",
+      "file": "server.js",
+      "line": 4205
+    },
+    {
+      "name": "tonkeeperJettonImageRegistry",
+      "file": "server.js",
+      "line": 4231
+    },
+    {
+      "name": "applyJettonImageRegistry",
+      "file": "server.js",
+      "line": 4258
+    },
+    {
+      "name": "walletJettonCacheKey",
+      "file": "server.js",
+      "line": 4273
+    },
+    {
+      "name": "cachedWalletJettons",
+      "file": "server.js",
+      "line": 4277
+    },
+    {
+      "name": "reconcileJettonInventory",
+      "file": "server.js",
+      "line": 4287
+    },
+    {
+      "name": "tonCenterAddress",
+      "file": "server.js",
+      "line": 4341
+    },
+    {
+      "name": "tonCenterJettonMetadata",
+      "file": "server.js",
+      "line": 4347
+    },
+    {
+      "name": "normalizeTonCenterJettons",
+      "file": "server.js",
+      "line": 4356
+    },
+    {
+      "name": "jettonPageSignature",
+      "file": "server.js",
+      "line": 4389
+    },
+    {
+      "name": "pagedJettonLimit",
+      "file": "server.js",
+      "line": 4393
+    },
+    {
+      "name": "fetchAllTonApiJettons",
+      "file": "server.js",
+      "line": 4397
+    },
+    {
+      "name": "fetchAllTonCenterJettons",
+      "file": "server.js",
+      "line": 4413
+    },
+    {
+      "name": "jettonProviderError",
+      "file": "server.js",
+      "line": 4432
+    },
+    {
+      "name": "isRetryableJettonProviderError",
+      "file": "server.js",
+      "line": 4436
+    },
+    {
+      "name": "fetchJettonProvider",
+      "file": "server.js",
+      "line": 4441
+    },
+    {
+      "name": "providerWithin",
+      "file": "server.js",
+      "line": 4459
+    },
+    {
+      "name": "firstWalletAccountWithin",
+      "file": "server.js",
+      "line": 4473
+    },
+    {
+      "name": "jettonInventoryStatus",
+      "file": "server.js",
+      "line": 4478
+    },
+    {
+      "name": "walletImportInitialPresentation",
+      "file": "server.js",
+      "line": 4494
+    },
+    {
+      "name": "mergeJettonInventories",
+      "file": "server.js",
+      "line": 4509
+    },
+    {
+      "name": "dedupeJettons",
+      "file": "server.js",
+      "line": 4546
+    },
+    {
+      "name": "isGenericJettonMetadata",
+      "file": "server.js",
+      "line": 4583
+    },
+    {
+      "name": "isTrustedJettonVerification",
+      "file": "server.js",
+      "line": 4587
+    },
+    {
+      "name": "isPlausibleJettonPrice",
+      "file": "server.js",
+      "line": 4591
+    },
+    {
+      "name": "setJettonBlocked",
+      "file": "server.js",
+      "line": 4599
+    },
+    {
+      "name": "applyJettonQualityRegistry",
+      "file": "server.js",
+      "line": 4608
+    },
+    {
+      "name": "rawCollectionAddress",
+      "file": "server.js",
+      "line": 4654
+    },
+    {
+      "name": "identityNftType",
+      "file": "server.js",
+      "line": 4664
+    },
+    {
+      "name": "verifiedTonListing",
+      "file": "server.js",
+      "line": 4672
+    },
+    {
+      "name": "identityAssetFields",
+      "file": "server.js",
+      "line": 4701
+    },
+    {
+      "name": "nftCategory",
+      "file": "server.js",
+      "line": 4767
+    },
+    {
+      "name": "normalizeImageUrl",
+      "file": "server.js",
+      "line": 4787
+    },
+    {
+      "name": "bestNftImage",
+      "file": "server.js",
+      "line": 4798
+    },
+    {
+      "name": "normalizeMediaUrl",
+      "file": "server.js",
+      "line": 4812
+    },
+    {
+      "name": "bestNftAnimatedMedia",
+      "file": "server.js",
+      "line": 4816
+    },
+    {
+      "name": "mediaKind",
+      "file": "server.js",
+      "line": 4831
+    },
+    {
+      "name": "normalizeNfts",
+      "file": "server.js",
+      "line": 4838
+    },
+    {
+      "name": "fetchWalletNfts",
+      "file": "server.js",
+      "line": 4870
+    },
+    {
+      "name": "normalizeEvents",
+      "file": "server.js",
+      "line": 4886
+    },
+    {
+      "name": "tokenMetadataMap",
+      "file": "server.js",
+      "line": 4911
+    },
+    {
+      "name": "formatTokenAmount",
+      "file": "server.js",
+      "line": 4936
+    },
+    {
+      "name": "actionTonUsd",
+      "file": "server.js",
+      "line": 4942
+    },
+    {
+      "name": "actionCounterparty",
+      "file": "server.js",
+      "line": 4949
+    },
+    {
+      "name": "actionDirection",
+      "file": "server.js",
+      "line": 4956
+    },
+    {
+      "name": "collectActionAssets",
+      "file": "server.js",
+      "line": 4965
+    },
+    {
+      "name": "signedAmountDisplay",
+      "file": "server.js",
+      "line": 4978
+    },
+    {
+      "name": "tokenLogo",
+      "file": "server.js",
+      "line": 4985
+    },
+    {
+      "name": "resolveTonName",
+      "file": "server.js",
+      "line": 4989
+    },
+    {
+      "name": "normalizeTonCenterActions",
+      "file": "server.js",
+      "line": 5017
+    },
+    {
+      "name": "walletActivity",
+      "file": "server.js",
+      "line": 5123
+    },
+    {
+      "name": "transactionDetail",
+      "file": "server.js",
+      "line": 5150
+    },
+    {
+      "name": "sameAddress",
+      "file": "server.js",
+      "line": 5180
+    },
+    {
+      "name": "portfolioSummary",
+      "file": "server.js",
+      "line": 5184
+    },
+    {
+      "name": "getRates",
+      "file": "server.js",
+      "line": 5210
+    },
+    {
+      "name": "dexScreenerPairsForJettons",
+      "file": "server.js",
+      "line": 5224
+    },
+    {
+      "name": "applyRecentJettonPrices",
+      "file": "server.js",
+      "line": 5234
+    },
+    {
+      "name": "rememberRecentJettonPrices",
+      "file": "server.js",
+      "line": 5254
+    },
+    {
+      "name": "enrichJettonRates",
+      "file": "server.js",
+      "line": 5272
+    },
+    {
+      "name": "historyJettonsFromOperations",
+      "file": "server.js",
+      "line": 5319
+    },
+    {
+      "name": "fetchJettonHistory",
+      "file": "server.js",
+      "line": 5333
+    },
+    {
+      "name": "jettonBalanceAtDate",
+      "file": "server.js",
+      "line": 5369
+    },
+    {
+      "name": "tonUsdRate",
+      "file": "server.js",
+      "line": 5383
+    },
+    {
+      "name": "getRateChart",
+      "file": "server.js",
+      "line": 5417
+    },
+    {
+      "name": "priceAt",
+      "file": "server.js",
+      "line": 5448
+    },
+    {
+      "name": "tokenDetailRangeWindow",
+      "file": "server.js",
+      "line": 5458
+    },
+    {
+      "name": "mapChartPayload",
+      "file": "server.js",
+      "line": 5469
+    },
+    {
+      "name": "assetKey",
+      "file": "server.js",
+      "line": 5481
+    },
+    {
+      "name": "poolHasAddress",
+      "file": "server.js",
+      "line": 5486
+    },
+    {
+      "name": "numberFromPaths",
+      "file": "server.js",
+      "line": 5495
+    },
+    {
+      "name": "bestPool",
+      "file": "server.js",
+      "line": 5503
+    },
+    {
+      "name": "numberFromPathsAny",
+      "file": "server.js",
+      "line": 5509
+    },
+    {
+      "name": "bestDexPair",
+      "file": "server.js",
+      "line": 5517
+    },
+    {
+      "name": "dexTxCount24h",
+      "file": "server.js",
+      "line": 5523
+    },
+    {
+      "name": "dedustTvlFromPool",
+      "file": "server.js",
+      "line": 5527
+    },
+    {
+      "name": "escapeRegExp",
+      "file": "server.js",
+      "line": 5539
+    },
+    {
+      "name": "parseTonStatMetric",
+      "file": "server.js",
+      "line": 5543
+    },
+    {
+      "name": "tonStatSnapshot",
+      "file": "server.js",
+      "line": 5549
+    },
+    {
+      "name": "chartFromBestSources",
+      "file": "server.js",
+      "line": 5574
+    },
+    {
+      "name": "tokenDetailData",
+      "file": "server.js",
+      "line": 5608
+    },
+    {
+      "name": "readSnapshots",
+      "file": "server.js",
+      "line": 5689
+    },
+    {
+      "name": "writeSnapshots",
+      "file": "server.js",
+      "line": 5697
+    },
+    {
+      "name": "historyCacheKey",
+      "file": "server.js",
+      "line": 5702
+    },
+    {
+      "name": "historyCachePath",
+      "file": "server.js",
+      "line": 5706
+    },
+    {
+      "name": "readHistoryDiskCache",
+      "file": "server.js",
+      "line": 5711
+    },
+    {
+      "name": "writeHistoryDiskCache",
+      "file": "server.js",
+      "line": 5720
+    },
+    {
+      "name": "saveWalletSnapshot",
+      "file": "server.js",
+      "line": 5732
+    },
+    {
+      "name": "rangeStart",
+      "file": "server.js",
+      "line": 5752
+    },
+    {
+      "name": "historySampleBuckets",
+      "file": "server.js",
+      "line": 5756
+    },
+    {
+      "name": "unix",
+      "file": "server.js",
+      "line": 5804
+    },
+    {
+      "name": "unixHour",
+      "file": "server.js",
+      "line": 5808
+    },
+    {
+      "name": "accountBalanceChange",
+      "file": "server.js",
+      "line": 5812
+    },
+    {
+      "name": "sleep",
+      "file": "server.js",
+      "line": 5820
+    },
+    {
+      "name": "accountBalanceChangeWithRetry",
+      "file": "server.js",
+      "line": 5824
+    },
+    {
+      "name": "chartStaleness",
+      "file": "server.js",
+      "line": 5834
+    },
+    {
+      "name": "currentPortfolioPoint",
+      "file": "server.js",
+      "line": 5838
+    },
+    {
+      "name": "activeHistoryBuckets",
+      "file": "server.js",
+      "line": 5849
+    },
+    {
+      "name": "buildWalletHistory",
+      "file": "server.js",
+      "line": 5864
+    },
+    {
+      "name": "approximateWalletHistory",
+      "file": "server.js",
+      "line": 5921
+    },
+    {
+      "name": "reconstructWalletHistory",
+      "file": "server.js",
+      "line": 5925
+    },
+    {
+      "name": "cacheHistoryPoints",
+      "file": "server.js",
+      "line": 5929
+    },
+    {
+      "name": "clearWalletHistoryCache",
+      "file": "server.js",
+      "line": 5935
+    },
+    {
+      "name": "historyJobStatus",
+      "file": "server.js",
+      "line": 5942
+    },
+    {
+      "name": "startHistoryJob",
+      "file": "server.js",
+      "line": 5953
+    },
+    {
+      "name": "startWalletHistoryJobs",
+      "file": "server.js",
+      "line": 5989
+    },
+    {
+      "name": "walletImport",
+      "file": "server.js",
+      "line": 5993
+    },
+    {
+      "name": "classifyCollectible",
+      "file": "server.js",
+      "line": 6138
+    },
+    {
+      "name": "isDeniedCollectible",
+      "file": "server.js",
+      "line": 6149
+    },
+    {
+      "name": "normalizeGetgemsNft",
+      "file": "server.js",
+      "line": 6157
+    },
+    {
+      "name": "giftSlug",
+      "file": "server.js",
+      "line": 6185
+    },
+    {
+      "name": "normalizeThermosGift",
+      "file": "server.js",
+      "line": 6189
+    },
+    {
+      "name": "normalizeMrktGift",
+      "file": "server.js",
+      "line": 6227
+    },
+    {
+      "name": "normalizeThermosCollection",
+      "file": "server.js",
+      "line": 6264
+    },
+    {
+      "name": "thermosGiftCollections",
+      "file": "server.js",
+      "line": 6282
+    },
+    {
+      "name": "thermosCollectionName",
+      "file": "server.js",
+      "line": 6300
+    },
+    {
+      "name": "thermosGiftAttributeBucket",
+      "file": "server.js",
+      "line": 6304
+    },
+    {
+      "name": "thermosGiftAttributes",
+      "file": "server.js",
+      "line": 6310
+    },
+    {
+      "name": "thermosGiftModelPayloadFromAttributes",
+      "file": "server.js",
+      "line": 6333
+    },
+    {
+      "name": "thermosGiftModelPayload",
+      "file": "server.js",
+      "line": 6366
+    },
+    {
+      "name": "d1GiftComboFloor",
+      "file": "server.js",
+      "line": 6381
+    },
+    {
+      "name": "d1GiftComboHistory",
+      "file": "server.js",
+      "line": 6406
+    },
+    {
+      "name": "normalizedD1GiftSales",
+      "file": "server.js",
+      "line": 6430
+    },
+    {
+      "name": "giftSalesCacheKey",
+      "file": "server.js",
+      "line": 6457
+    },
+    {
+      "name": "d1GiftSales",
+      "file": "server.js",
+      "line": 6466
+    },
+    {
+      "name": "d1GiftSalesBulk",
+      "file": "server.js",
+      "line": 6491
+    },
+    {
+      "name": "queueD1GiftSalesTargets",
+      "file": "server.js",
+      "line": 6547
+    },
+    {
+      "name": "warmGiftComboHistoryCache",
+      "file": "server.js",
+      "line": 6575
+    },
+    {
+      "name": "d1GiftComboFloors",
+      "file": "server.js",
+      "line": 6605
+    },
+    {
+      "name": "giftFloorPairFromItem",
+      "file": "server.js",
+      "line": 6701
+    },
+    {
+      "name": "d1ComboForGiftPair",
+      "file": "server.js",
+      "line": 6729
+    },
+    {
+      "name": "percentileNumber",
+      "file": "server.js",
+      "line": 6733
+    },
+    {
+      "name": "registryCollectionCandidatesForPair",
+      "file": "server.js",
+      "line": 6740
+    },
+    {
+      "name": "registryCollectionQualityForPair",
+      "file": "server.js",
+      "line": 6750
+    },
+    {
+      "name": "bestRegistryCollectionForPair",
+      "file": "server.js",
+      "line": 6766
+    },
+    {
+      "name": "collectionComboEntriesForPair",
+      "file": "server.js",
+      "line": 6781
+    },
+    {
+      "name": "rarityPremiumMultiplier",
+      "file": "server.js",
+      "line": 6786
+    },
+    {
+      "name": "traitRegistryForCollection",
+      "file": "server.js",
+      "line": 6796
+    },
+    {
+      "name": "traitRarityFromRegistry",
+      "file": "server.js",
+      "line": 6801
+    },
+    {
+      "name": "giftTraitMetricsFromRegistry",
+      "file": "server.js",
+      "line": 6809
+    },
+    {
+      "name": "giftTraitMetricsFromStoredAttributes",
+      "file": "server.js",
+      "line": 6825
+    },
+    {
+      "name": "backdropValueFamily",
+      "file": "server.js",
+      "line": 6838
+    },
+    {
+      "name": "effectiveBackdropRarityPct",
+      "file": "server.js",
+      "line": 6851
+    },
+    {
+      "name": "backdropMarketTier",
+      "file": "server.js",
+      "line": 6939
+    },
+    {
+      "name": "backdropMarketPremium",
+      "file": "server.js",
+      "line": 6943
+    },
+    {
+      "name": "softBackdropPremiumBridge",
+      "file": "server.js",
+      "line": 6953
+    },
+    {
+      "name": "softModelRarityBridge",
+      "file": "server.js",
+      "line": 6960
+    },
+    {
+      "name": "backdropFamilyEntries",
+      "file": "server.js",
+      "line": 6967
+    },
+    {
+      "name": "clampNumber",
+      "file": "server.js",
+      "line": 6973
+    },
+    {
+      "name": "estimateConfidenceForSignals",
+      "file": "server.js",
+      "line": 6979
+    },
+    {
+      "name": "closestRarityBackdropEntries",
+      "file": "server.js",
+      "line": 6985
+    },
+    {
+      "name": "rarityMatchedComparableEstimate",
+      "file": "server.js",
+      "line": 7002
+    },
+    {
+      "name": "estimatedGiftComboFloorFromRegistry",
+      "file": "server.js",
+      "line": 7054
+    },
+    {
+      "name": "priceWalletGiftsFromD1",
+      "file": "server.js",
+      "line": 7139
+    },
+    {
+      "name": "d1GiftCollectionComboFloors",
+      "file": "server.js",
+      "line": 7303
+    },
+    {
+      "name": "ingestD1GiftCombo",
+      "file": "server.js",
+      "line": 7450
+    },
+    {
+      "name": "ingestD1GiftEstimateHistory",
+      "file": "server.js",
+      "line": 7478
+    },
+    {
+      "name": "thermosExactGiftComboFloor",
+      "file": "server.js",
+      "line": 7500
+    },
+    {
+      "name": "mapLimit",
+      "file": "server.js",
+      "line": 7564
+    },
+    {
+      "name": "missingGiftComboFloorPairs",
+      "file": "server.js",
+      "line": 7578
+    },
+    {
+      "name": "giftComboPairKey",
+      "file": "server.js",
+      "line": 7594
+    },
+    {
+      "name": "rememberGiftComboExactMiss",
+      "file": "server.js",
+      "line": 7602
+    },
+    {
+      "name": "hasRecentGiftComboExactMiss",
+      "file": "server.js",
+      "line": 7607
+    },
+    {
+      "name": "giftComboSnapshotAgeMs",
+      "file": "server.js",
+      "line": 7615
+    },
+    {
+      "name": "isFreshGiftComboFloor",
+      "file": "server.js",
+      "line": 7620
+    },
+    {
+      "name": "findGiftComboForPair",
+      "file": "server.js",
+      "line": 7626
+    },
+    {
+      "name": "hasRecentGiftComboStaleRefresh",
+      "file": "server.js",
+      "line": 7652
+    },
+    {
+      "name": "rememberGiftComboStaleRefresh",
+      "file": "server.js",
+      "line": 7660
+    },
+    {
+      "name": "scheduleStaleGiftComboFloorHeal",
+      "file": "server.js",
+      "line": 7672
+    },
+    {
+      "name": "scheduleGiftComboFloorHeal",
+      "file": "server.js",
+      "line": 7711
+    },
+    {
+      "name": "healMissingGiftComboFloors",
+      "file": "server.js",
+      "line": 7740
+    },
+    {
+      "name": "thermosGiftComboFloor",
+      "file": "server.js",
+      "line": 7753
+    },
+    {
+      "name": "estimatedComboFloorPayload",
+      "file": "server.js",
+      "line": 7804
+    },
+    {
+      "name": "estimatedComboFloorPayloadWithHistory",
+      "file": "server.js",
+      "line": 7837
+    },
+    {
+      "name": "bestThermosGiftCollection",
+      "file": "server.js",
+      "line": 7853
+    },
+    {
+      "name": "thermosGiftFloorLookup",
+      "file": "server.js",
+      "line": 7868
+    },
+    {
+      "name": "classifyNft",
+      "file": "server.js",
+      "line": 8081
+    },
+    {
+      "name": "filterGiftHistoryRange",
+      "file": "server.js",
+      "line": 8125
+    },
+    {
+      "name": "tonCenterMetadataInfo",
+      "file": "server.js",
+      "line": 8136
+    },
+    {
+      "name": "tonCenterAttributes",
+      "file": "server.js",
+      "line": 8144
+    },
+    {
+      "name": "tonCenterNftToTonApi",
+      "file": "server.js",
+      "line": 8156
+    },
+    {
+      "name": "tonCenterWalletNfts",
+      "file": "server.js",
+      "line": 8193
+    },
+    {
+      "name": "shouldFallbackWalletNfts",
+      "file": "server.js",
+      "line": 8210
+    },
+    {
+      "name": "uniqueWalletNfts",
+      "file": "server.js",
+      "line": 8214
+    },
+    {
+      "name": "normalizeWalletNft",
+      "file": "server.js",
+      "line": 8226
+    },
+    {
+      "name": "walletNftsByType",
+      "file": "server.js",
+      "line": 8276
+    },
+    {
+      "name": "getCollectibles",
+      "file": "server.js",
+      "line": 8384
+    },
+    {
+      "name": "getCollectiblesShared",
+      "file": "server.js",
+      "line": 8508
+    },
+    {
+      "name": "collectibleFloor",
+      "file": "server.js",
+      "line": 8518
+    },
+    {
+      "name": "marketSourceLabel",
+      "file": "server.js",
+      "line": 8898
+    },
+    {
+      "name": "stickerDetailIntel",
+      "file": "server.js",
+      "line": 8913
+    },
+    {
+      "name": "normalizeCollectibleAlias",
+      "file": "server.js",
+      "line": 8975
+    },
+    {
+      "name": "collectibleAliasKeys",
+      "file": "server.js",
+      "line": 8986
+    },
+    {
+      "name": "collectibleAliasMatches",
+      "file": "server.js",
+      "line": 8990
+    },
+    {
+      "name": "collectibleAliasIncludes",
+      "file": "server.js",
+      "line": 8998
+    },
+    {
+      "name": "giftTraitLookup",
+      "file": "server.js",
+      "line": 9006
+    },
+    {
+      "name": "warnCollectibleSalesOnce",
+      "file": "server.js",
+      "line": 9018
+    },
+    {
+      "name": "giftCollectionName",
+      "file": "server.js",
+      "line": 9024
+    },
+    {
+      "name": "giftCollectionNameVariants",
+      "file": "server.js",
+      "line": 9034
+    },
+    {
+      "name": "rawTraitFilterFromAttributes",
+      "file": "server.js",
+      "line": 9044
+    },
+    {
+      "name": "traitComparable",
+      "file": "server.js",
+      "line": 9062
+    },
+    {
+      "name": "saleTraitValue",
+      "file": "server.js",
+      "line": 9066
+    },
+    {
+      "name": "exactSaleRowsFromPayload",
+      "file": "server.js",
+      "line": 9104
+    },
+    {
+      "name": "uniqueSales",
+      "file": "server.js",
+      "line": 9159
+    },
+    {
+      "name": "tonnelTraitRegex",
+      "file": "server.js",
+      "line": 9176
+    },
+    {
+      "name": "tonnelExactComboSales",
+      "file": "server.js",
+      "line": 9181
+    },
+    {
+      "name": "portalsExactComboSales",
+      "file": "server.js",
+      "line": 9215
+    },
+    {
+      "name": "seeTgJson",
+      "file": "server.js",
+      "line": 9247
+    },
+    {
+      "name": "seeTgItems",
+      "file": "server.js",
+      "line": 9263
+    },
+    {
+      "name": "numberAtPath",
+      "file": "server.js",
+      "line": 9269
+    },
+    {
+      "name": "textAtPath",
+      "file": "server.js",
+      "line": 9275
+    },
+    {
+      "name": "walkObjects",
+      "file": "server.js",
+      "line": 9280
+    },
+    {
+      "name": "scoreSeeGiftRow",
+      "file": "server.js",
+      "line": 9295
+    },
+    {
+      "name": "seeGiftContext",
+      "file": "server.js",
+      "line": 9304
+    },
+    {
+      "name": "xgiftTonValue",
+      "file": "server.js",
+      "line": 9323
+    },
+    {
+      "name": "seeHistorySales",
+      "file": "server.js",
+      "line": 9332
+    },
+    {
+      "name": "pickPositive",
+      "file": "server.js",
+      "line": 9358
+    },
+    {
+      "name": "pickText",
+      "file": "server.js",
+      "line": 9366
+    },
+    {
+      "name": "collectibleSales",
+      "file": "server.js",
+      "line": 9374
+    },
+    {
+      "name": "accountNftHistory",
+      "file": "server.js",
+      "line": 9489
+    },
+    {
+      "name": "normalizeNftActivityRow",
+      "file": "server.js",
+      "line": 9502
+    },
+    {
+      "name": "nftItemActivity",
+      "file": "server.js",
+      "line": 9519
+    },
+    {
+      "name": "attrPercent",
+      "file": "server.js",
+      "line": 9555
+    },
+    {
+      "name": "estimatedGiftCombo",
+      "file": "server.js",
+      "line": 9563
+    },
+    {
+      "name": "firstMarketUrl",
+      "file": "server.js",
+      "line": 9572
+    },
+    {
+      "name": "salesDerivedFloorHistory",
+      "file": "server.js",
+      "line": 9577
+    },
+    {
+      "name": "exactTraitSale",
+      "file": "server.js",
+      "line": 9614
+    },
+    {
+      "name": "activeListingFloor",
+      "file": "server.js",
+      "line": 9625
+    },
+    {
+      "name": "attributesFromGiftFloorPair",
+      "file": "server.js",
+      "line": 9632
+    },
+    {
+      "name": "lastSaleFloorFromSale",
+      "file": "server.js",
+      "line": 9640
+    },
+    {
+      "name": "exactLastSaleFloorForPair",
+      "file": "server.js",
+      "line": 9658
+    },
+    {
+      "name": "fastExactLastSaleFloorForPair",
+      "file": "server.js",
+      "line": 9670
+    },
+    {
+      "name": "giftDetailResponseKey",
+      "file": "server.js",
+      "line": 9696
+    },
+    {
+      "name": "giftDetailStatsAvailable",
+      "file": "server.js",
+      "line": 9705
+    },
+    {
+      "name": "giftDetailCoreAvailable",
+      "file": "server.js",
+      "line": 9711
+    },
+    {
+      "name": "mergeGiftDetailResponse",
+      "file": "server.js",
+      "line": 9719
+    },
+    {
+      "name": "giftDetailFloorFromCombo",
+      "file": "server.js",
+      "line": 9741
+    },
+    {
+      "name": "buildGiftDetailResponse",
+      "file": "server.js",
+      "line": 9764
+    },
+    {
+      "name": "assembleGiftDetailResponse",
+      "file": "server.js",
+      "line": 9796
+    },
+    {
+      "name": "giftDetailTimeoutFallback",
+      "file": "server.js",
+      "line": 9853
+    },
+    {
+      "name": "giftDetailData",
+      "file": "server.js",
+      "line": 9871
+    },
+    {
+      "name": "giftDetailLinks",
+      "file": "server.js",
+      "line": 9938
+    },
+    {
+      "name": "handleApi",
+      "file": "server.js",
+      "line": 9949
+    },
+    {
+      "name": "startServer",
+      "file": "server.js",
+      "line": 10733
+    },
+    {
+      "name": "refreshEstimatedGiftHistoryTargetsNow",
+      "file": "server.js",
+      "line": 10775
+    },
+    {
+      "name": "runEstimateHistoryWorker",
+      "file": "server.js",
+      "line": 10839
+    },
+    {
+      "name": "startEstimateHistoryWorker",
+      "file": "server.js",
+      "line": 10853
+    },
+    {
+      "name": "runGiftSnapshotWorker",
+      "file": "server.js",
+      "line": 10861
+    },
+    {
+      "name": "startGiftSnapshotWorker",
+      "file": "server.js",
+      "line": 10880
+    },
+    {
+      "name": "hasTonWalletPortfolio",
+      "file": "app.js",
+      "line": 29
+    },
+    {
+      "name": "rememberOverlayOpener",
+      "file": "app.js",
+      "line": 73
+    },
+    {
+      "name": "restoreOverlayFocus",
+      "file": "app.js",
+      "line": 77
+    },
+    {
+      "name": "money",
+      "file": "app.js",
+      "line": 561
+    },
+    {
+      "name": "repairMojibake",
+      "file": "app.js",
+      "line": 578
+    },
+    {
+      "name": "normalizeVisibleText",
+      "file": "app.js",
+      "line": 607
+    },
+    {
+      "name": "startMojibakeObserver",
+      "file": "app.js",
+      "line": 619
+    },
+    {
+      "name": "escapeHtml",
+      "file": "app.js",
+      "line": 637
+    },
+    {
+      "name": "iconCueHtml",
+      "file": "app.js",
+      "line": 648
+    },
+    {
+      "name": "scopeCueHtml",
+      "file": "app.js",
+      "line": 652
+    },
+    {
+      "name": "setIconAction",
+      "file": "app.js",
+      "line": 656
+    },
+    {
+      "name": "escapeRegExp",
+      "file": "app.js",
+      "line": 664
+    },
+    {
+      "name": "signedMoney",
+      "file": "app.js",
+      "line": 668
+    },
+    {
+      "name": "signedPct",
+      "file": "app.js",
+      "line": 675
+    },
+    {
+      "name": "tokenPriceLabel",
+      "file": "app.js",
+      "line": 679
+    },
+    {
+      "name": "usdValueLabel",
+      "file": "app.js",
+      "line": 685
+    },
+    {
+      "name": "tokenBalanceLabel",
+      "file": "app.js",
+      "line": 693
+    },
+    {
+      "name": "tokenBalanceCompact",
+      "file": "app.js",
+      "line": 702
+    },
+    {
+      "name": "tokenSymbolCompact",
+      "file": "app.js",
+      "line": 709
+    },
+    {
+      "name": "compactNumber",
+      "file": "app.js",
+      "line": 714
+    },
+    {
+      "name": "syncDockIndicator",
+      "file": "app.js",
+      "line": 724
+    },
+    {
+      "name": "showScreen",
+      "file": "app.js",
+      "line": 747
+    },
+    {
+      "name": "syncContextualBackLabel",
+      "file": "app.js",
+      "line": 785
+    },
+    {
+      "name": "navigationRouteKey",
+      "file": "app.js",
+      "line": 795
+    },
+    {
+      "name": "currentNavigationRoute",
+      "file": "app.js",
+      "line": 799
+    },
+    {
+      "name": "routeFromTarget",
+      "file": "app.js",
+      "line": 816
+    },
+    {
+      "name": "isHeaderBackTarget",
+      "file": "app.js",
+      "line": 828
+    },
+    {
+      "name": "restoreRouteScroll",
+      "file": "app.js",
+      "line": 833
+    },
+    {
+      "name": "applyNavigationRoute",
+      "file": "app.js",
+      "line": 840
+    },
+    {
+      "name": "navigateToRoute",
+      "file": "app.js",
+      "line": 857
+    },
+    {
+      "name": "shouldIgnoreNavigationSwipe",
+      "file": "app.js",
+      "line": 880
+    },
+    {
+      "name": "installNavigationSwipeGestures",
+      "file": "app.js",
+      "line": 904
+    },
+    {
+      "name": "setScreenHeaderTitle",
+      "file": "app.js",
+      "line": 944
+    },
+    {
+      "name": "setText",
+      "file": "app.js",
+      "line": 956
+    },
+    {
+      "name": "setIcon",
+      "file": "app.js",
+      "line": 966
+    },
+    {
+      "name": "renderCollectibleGrids",
+      "file": "app.js",
+      "line": 972
+    },
+    {
+      "name": "updateCollectibleSummaryBanner",
+      "file": "app.js",
+      "line": 980
+    },
+    {
+      "name": "renderGiftGrid",
+      "file": "app.js",
+      "line": 1009
+    },
+    {
+      "name": "renderStickerGrid",
+      "file": "app.js",
+      "line": 1045
+    },
+    {
+      "name": "collectibleEmptyStateHtml",
+      "file": "app.js",
+      "line": 1070
+    },
+    {
+      "name": "collectibleSearchText",
+      "file": "app.js",
+      "line": 1074
+    },
+    {
+      "name": "collectibleFilterValue",
+      "file": "app.js",
+      "line": 1082
+    },
+    {
+      "name": "syncCollectibleFilterOptions",
+      "file": "app.js",
+      "line": 1089
+    },
+    {
+      "name": "syncCollectibleFilterButton",
+      "file": "app.js",
+      "line": 1115
+    },
+    {
+      "name": "collectibleFilterChoices",
+      "file": "app.js",
+      "line": 1124
+    },
+    {
+      "name": "renderCollectibleFilterSheet",
+      "file": "app.js",
+      "line": 1130
+    },
+    {
+      "name": "finishCollectibleFilterClose",
+      "file": "app.js",
+      "line": 1143
+    },
+    {
+      "name": "closeCollectibleFilterSheet",
+      "file": "app.js",
+      "line": 1152
+    },
+    {
+      "name": "containCollectibleFilterFocus",
+      "file": "app.js",
+      "line": 1157
+    },
+    {
+      "name": "openCollectibleFilterSheet",
+      "file": "app.js",
+      "line": 1174
+    },
+    {
+      "name": "filterAssets",
+      "file": "app.js",
+      "line": 1218
+    },
+    {
+      "name": "sortAssets",
+      "file": "app.js",
+      "line": 1232
+    },
+    {
+      "name": "floorSourceLine",
+      "file": "app.js",
+      "line": 1254
+    },
+    {
+      "name": "collectibleHoldingNote",
+      "file": "app.js",
+      "line": 1271
+    },
+    {
+      "name": "isEstimatedAsset",
+      "file": "app.js",
+      "line": 1281
+    },
+    {
+      "name": "estimatedPillHtml",
+      "file": "app.js",
+      "line": 1285
+    },
+    {
+      "name": "giftListPriceNote",
+      "file": "app.js",
+      "line": 1289
+    },
+    {
+      "name": "collectiblePerformanceHtml",
+      "file": "app.js",
+      "line": 1298
+    },
+    {
+      "name": "renderReferenceCollectibleRow",
+      "file": "app.js",
+      "line": 1313
+    },
+    {
+      "name": "renderGiftCard",
+      "file": "app.js",
+      "line": 1324
+    },
+    {
+      "name": "renderGiftBrand",
+      "file": "app.js",
+      "line": 1356
+    },
+    {
+      "name": "giftBrandNumberList",
+      "file": "app.js",
+      "line": 1387
+    },
+    {
+      "name": "giftDetailHeroMeta",
+      "file": "app.js",
+      "line": 1394
+    },
+    {
+      "name": "giftBrandModelLabel",
+      "file": "app.js",
+      "line": 1405
+    },
+    {
+      "name": "giftDetailTitle",
+      "file": "app.js",
+      "line": 1409
+    },
+    {
+      "name": "giftBrandMintLabel",
+      "file": "app.js",
+      "line": 1415
+    },
+    {
+      "name": "groupGiftBrandChildren",
+      "file": "app.js",
+      "line": 1424
+    },
+    {
+      "name": "renderGiftBrandItem",
+      "file": "app.js",
+      "line": 1482
+    },
+    {
+      "name": "renderGiftModelGroup",
+      "file": "app.js",
+      "line": 1512
+    },
+    {
+      "name": "renderGiftIndividualItem",
+      "file": "app.js",
+      "line": 1534
+    },
+    {
+      "name": "giftBrandModelNumber",
+      "file": "app.js",
+      "line": 1560
+    },
+    {
+      "name": "giftBrandImageStack",
+      "file": "app.js",
+      "line": 1567
+    },
+    {
+      "name": "giftMediaDescriptor",
+      "file": "app.js",
+      "line": 1574
+    },
+    {
+      "name": "stickerMediaDescriptor",
+      "file": "app.js",
+      "line": 1594
+    },
+    {
+      "name": "giftCardMediaDescriptor",
+      "file": "app.js",
+      "line": 1609
+    },
+    {
+      "name": "giftCollectionLabel",
+      "file": "app.js",
+      "line": 1617
+    },
+    {
+      "name": "giftLayerDescriptor",
+      "file": "app.js",
+      "line": 1621
+    },
+    {
+      "name": "giftPatternLayerHtml",
+      "file": "app.js",
+      "line": 1688
+    },
+    {
+      "name": "giftLayeredArtHtml",
+      "file": "app.js",
+      "line": 1693
+    },
+    {
+      "name": "giftDetailAnimationHtml",
+      "file": "app.js",
+      "line": 1714
+    },
+    {
+      "name": "collectibleMediaHtml",
+      "file": "app.js",
+      "line": 1720
+    },
+    {
+      "name": "ensureCollectibleLottieLibrary",
+      "file": "app.js",
+      "line": 1741
+    },
+    {
+      "name": "loadCollectibleLottieData",
+      "file": "app.js",
+      "line": 1765
+    },
+    {
+      "name": "playCollectibleLottie",
+      "file": "app.js",
+      "line": 1781
+    },
+    {
+      "name": "pauseCollectibleLottie",
+      "file": "app.js",
+      "line": 1788
+    },
+    {
+      "name": "activateCollectibleLottie",
+      "file": "app.js",
+      "line": 1795
+    },
+    {
+      "name": "setCollectibleMediaVisibility",
+      "file": "app.js",
+      "line": 1842
+    },
+    {
+      "name": "collectibleMediaIsNearViewport",
+      "file": "app.js",
+      "line": 1861
+    },
+    {
+      "name": "syncCollectibleMediaViewport",
+      "file": "app.js",
+      "line": 1867
+    },
+    {
+      "name": "scheduleCollectibleMediaViewportSync",
+      "file": "app.js",
+      "line": 1875
+    },
+    {
+      "name": "installCollectibleViewportListeners",
+      "file": "app.js",
+      "line": 1880
+    },
+    {
+      "name": "collectibleAnimationObserver",
+      "file": "app.js",
+      "line": 1887
+    },
+    {
+      "name": "cleanupDetachedCollectibleAnimations",
+      "file": "app.js",
+      "line": 1904
+    },
+    {
+      "name": "initCollectibleAnimations",
+      "file": "app.js",
+      "line": 1913
+    },
+    {
+      "name": "finishProductPreview",
+      "file": "app.js",
+      "line": 1932
+    },
+    {
+      "name": "closeProductPreview",
+      "file": "app.js",
+      "line": 1942
+    },
+    {
+      "name": "openProductPreview",
+      "file": "app.js",
+      "line": 1948
+    },
+    {
+      "name": "openGiftPfpTray",
+      "file": "app.js",
+      "line": 1972
+    },
+    {
+      "name": "closeGiftPfpTray",
+      "file": "app.js",
+      "line": 2036
+    },
+    {
+      "name": "collectibleKey",
+      "file": "app.js",
+      "line": 2044
+    },
+    {
+      "name": "giftModelTrait",
+      "file": "app.js",
+      "line": 2048
+    },
+    {
+      "name": "giftBackdropTrait",
+      "file": "app.js",
+      "line": 2052
+    },
+    {
+      "name": "giftTraitValue",
+      "file": "app.js",
+      "line": 2056
+    },
+    {
+      "name": "giftModelEstimatePair",
+      "file": "app.js",
+      "line": 2060
+    },
+    {
+      "name": "giftModelEstimatePairKey",
+      "file": "app.js",
+      "line": 2069
+    },
+    {
+      "name": "giftModelFloorFromAsset",
+      "file": "app.js",
+      "line": 2073
+    },
+    {
+      "name": "applyGiftModelEstimate",
+      "file": "app.js",
+      "line": 2085
+    },
+    {
+      "name": "giftModelEstimateLabel",
+      "file": "app.js",
+      "line": 2108
+    },
+    {
+      "name": "giftModelEstimateHtml",
+      "file": "app.js",
+      "line": 2119
+    },
+    {
+      "name": "applyGiftTraitRarities",
+      "file": "app.js",
+      "line": 2124
+    },
+    {
+      "name": "renderStickerCard",
+      "file": "app.js",
+      "line": 2136
+    },
+    {
+      "name": "renderCollectiblePriceSkeletonCard",
+      "file": "app.js",
+      "line": 2159
+    },
+    {
+      "name": "collectibleArtHtml",
+      "file": "app.js",
+      "line": 2183
+    },
+    {
+      "name": "featuredAssetRarity",
+      "file": "app.js",
+      "line": 2199
+    },
+    {
+      "name": "featuredAssetKey",
+      "file": "app.js",
+      "line": 2206
+    },
+    {
+      "name": "featuredAssetPricingTier",
+      "file": "app.js",
+      "line": 2210
+    },
+    {
+      "name": "featuredAssetCandidate",
+      "file": "app.js",
+      "line": 2217
+    },
+    {
+      "name": "featuredAssetCandidates",
+      "file": "app.js",
+      "line": 2260
+    },
+    {
+      "name": "featuredAssetArtHtml",
+      "file": "app.js",
+      "line": 2289
+    },
+    {
+      "name": "renderFeaturedAssetCard",
+      "file": "app.js",
+      "line": 2308
+    },
+    {
+      "name": "renderFeaturedCollectibles",
+      "file": "app.js",
+      "line": 2322
+    },
+    {
+      "name": "bindHomeHoldingsAutoplay",
+      "file": "app.js",
+      "line": 2345
+    },
+    {
+      "name": "openFeaturedAsset",
+      "file": "app.js",
+      "line": 2366
+    },
+    {
+      "name": "renderStickerBrand",
+      "file": "app.js",
+      "line": 2381
+    },
+    {
+      "name": "renderStickerBrandItem",
+      "file": "app.js",
+      "line": 2406
+    },
+    {
+      "name": "marketSourceLabel",
+      "file": "app.js",
+      "line": 2428
+    },
+    {
+      "name": "identityAssetId",
+      "file": "app.js",
+      "line": 2441
+    },
+    {
+      "name": "identityTypeMeta",
+      "file": "app.js",
+      "line": 2447
+    },
+    {
+      "name": "normalizeIdentityAsset",
+      "file": "app.js",
+      "line": 2453
+    },
+    {
+      "name": "identityAssetValue",
+      "file": "app.js",
+      "line": 2529
+    },
+    {
+      "name": "usernameEstimateFresh",
+      "file": "app.js",
+      "line": 2543
+    },
+    {
+      "name": "usernameMarketFresh",
+      "file": "app.js",
+      "line": 2551
+    },
+    {
+      "name": "renderIdentityAssetRows",
+      "file": "app.js",
+      "line": 2559
+    },
+    {
+      "name": "renderIdentityAssetScreens",
+      "file": "app.js",
+      "line": 2612
+    },
+    {
+      "name": "walletCollectiblesArePending",
+      "file": "app.js",
+      "line": 2639
+    },
+    {
+      "name": "setIdentityImportTerminal",
+      "file": "app.js",
+      "line": 2644
+    },
+    {
+      "name": "updateIdentityAssetsFromWallet",
+      "file": "app.js",
+      "line": 2651
+    },
+    {
+      "name": "renderIdentityAssetDetail",
+      "file": "app.js",
+      "line": 2674
+    },
+    {
+      "name": "renderAssetDetail",
+      "file": "app.js",
+      "line": 2757
+    },
+    {
+      "name": "currentDetailAssetId",
+      "file": "app.js",
+      "line": 2846
+    },
+    {
+      "name": "toggleGiftDetailLayout",
+      "file": "app.js",
+      "line": 2850
+    },
+    {
+      "name": "ensureCollectibleDetailHero",
+      "file": "app.js",
+      "line": 2868
+    },
+    {
+      "name": "setCollectibleDetailHero",
+      "file": "app.js",
+      "line": 2880
+    },
+    {
+      "name": "renderCollectibleDetail",
+      "file": "app.js",
+      "line": 2911
+    },
+    {
+      "name": "collectibleValueLabel",
+      "file": "app.js",
+      "line": 2991
+    },
+    {
+      "name": "renderStickerDetailSkeleton",
+      "file": "app.js",
+      "line": 3000
+    },
+    {
+      "name": "giftGlowFromBackdrop",
+      "file": "app.js",
+      "line": 3011
+    },
+    {
+      "name": "giftTraitPercent",
+      "file": "app.js",
+      "line": 3018
+    },
+    {
+      "name": "giftTraitTone",
+      "file": "app.js",
+      "line": 3040
+    },
+    {
+      "name": "giftTraitPills",
+      "file": "app.js",
+      "line": 3046
+    },
+    {
+      "name": "giftUpgradeState",
+      "file": "app.js",
+      "line": 3058
+    },
+    {
+      "name": "giftEligibility",
+      "file": "app.js",
+      "line": 3064
+    },
+    {
+      "name": "giftOriginSender",
+      "file": "app.js",
+      "line": 3076
+    },
+    {
+      "name": "giftDemandBadge",
+      "file": "app.js",
+      "line": 3087
+    },
+    {
+      "name": "giftDemandHasData",
+      "file": "app.js",
+      "line": 3096
+    },
+    {
+      "name": "giftMarketLinks",
+      "file": "app.js",
+      "line": 3101
+    },
+    {
+      "name": "applyCollectibleDetailHierarchy",
+      "file": "app.js",
+      "line": 3114
+    },
+    {
+      "name": "renderGiftDetailPage",
+      "file": "app.js",
+      "line": 3151
+    },
+    {
+      "name": "stickerDetailPackRows",
+      "file": "app.js",
+      "line": 3310
+    },
+    {
+      "name": "stickerDetailStatsRows",
+      "file": "app.js",
+      "line": 3320
+    },
+    {
+      "name": "stickerDetailRows",
+      "file": "app.js",
+      "line": 3331
+    },
+    {
+      "name": "stickerDetailIntelSections",
+      "file": "app.js",
+      "line": 3337
+    },
+    {
+      "name": "renderStickerDetailSalesRows",
+      "file": "app.js",
+      "line": 3373
+    },
+    {
+      "name": "renderStickerDetailPage",
+      "file": "app.js",
+      "line": 3384
+    },
+    {
+      "name": "giftOriginRows",
+      "file": "app.js",
+      "line": 3469
+    },
+    {
+      "name": "formatMintPrice",
+      "file": "app.js",
+      "line": 3483
+    },
+    {
+      "name": "formatGiftStatPercent",
+      "file": "app.js",
+      "line": 3490
+    },
+    {
+      "name": "giftCollectionSupplyPercent",
+      "file": "app.js",
+      "line": 3496
+    },
+    {
+      "name": "giftCollectionPercentLabel",
+      "file": "app.js",
+      "line": 3503
+    },
+    {
+      "name": "giftCollectionStatsRows",
+      "file": "app.js",
+      "line": 3508
+    },
+    {
+      "name": "renderGiftDemandBlock",
+      "file": "app.js",
+      "line": 3597
+    },
+    {
+      "name": "renderGiftSalesRows",
+      "file": "app.js",
+      "line": 3623
+    },
+    {
+      "name": "applyGiftSales",
+      "file": "app.js",
+      "line": 3664
+    },
+    {
+      "name": "stickerMetricGridHtml",
+      "file": "app.js",
+      "line": 3685
+    },
+    {
+      "name": "stickerThumbsHtml",
+      "file": "app.js",
+      "line": 3698
+    },
+    {
+      "name": "stickerDetailCacheKey",
+      "file": "app.js",
+      "line": 3715
+    },
+    {
+      "name": "fetchStickerDetailPayload",
+      "file": "app.js",
+      "line": 3724
+    },
+    {
+      "name": "getStickerDetailCachedPayload",
+      "file": "app.js",
+      "line": 3760
+    },
+    {
+      "name": "applyStickerDetailPayload",
+      "file": "app.js",
+      "line": 3765
+    },
+    {
+      "name": "loadStickerDetail",
+      "file": "app.js",
+      "line": 3789
+    },
+    {
+      "name": "giftDetailComboIdentity",
+      "file": "app.js",
+      "line": 3802
+    },
+    {
+      "name": "giftDetailCacheKey",
+      "file": "app.js",
+      "line": 3812
+    },
+    {
+      "name": "loadPersistentGiftDetailCache",
+      "file": "app.js",
+      "line": 3817
+    },
+    {
+      "name": "flushPersistentGiftDetailCache",
+      "file": "app.js",
+      "line": 3830
+    },
+    {
+      "name": "schedulePersistentGiftDetailCacheWrite",
+      "file": "app.js",
+      "line": 3847
+    },
+    {
+      "name": "giftDetailCacheEntry",
+      "file": "app.js",
+      "line": 3852
+    },
+    {
+      "name": "giftDetailStatsAvailable",
+      "file": "app.js",
+      "line": 3864
+    },
+    {
+      "name": "mergeGiftDetailPayload",
+      "file": "app.js",
+      "line": 3870
+    },
+    {
+      "name": "storeGiftDetailPayload",
+      "file": "app.js",
+      "line": 3889
+    },
+    {
+      "name": "fetchGiftDetailPayload",
+      "file": "app.js",
+      "line": 3911
+    },
+    {
+      "name": "loadGiftSalesFast",
+      "file": "app.js",
+      "line": 3953
+    },
+    {
+      "name": "giftComboHistoryCandidates",
+      "file": "app.js",
+      "line": 3975
+    },
+    {
+      "name": "giftComboHistoryCacheKey",
+      "file": "app.js",
+      "line": 3997
+    },
+    {
+      "name": "hydrateGiftDetailTraitRarities",
+      "file": "app.js",
+      "line": 4003
+    },
+    {
+      "name": "giftModelStatsCacheKey",
+      "file": "app.js",
+      "line": 4042
+    },
+    {
+      "name": "giftCollectionStatsCacheKey",
+      "file": "app.js",
+      "line": 4049
+    },
+    {
+      "name": "applyGiftModelStats",
+      "file": "app.js",
+      "line": 4054
+    },
+    {
+      "name": "applyGiftCollectionStats",
+      "file": "app.js",
+      "line": 4071
+    },
+    {
+      "name": "hydrateGiftDetailModelStats",
+      "file": "app.js",
+      "line": 4093
+    },
+    {
+      "name": "fetchGiftComboHistoryPayload",
+      "file": "app.js",
+      "line": 4143
+    },
+    {
+      "name": "getGiftDetailCachedPayload",
+      "file": "app.js",
+      "line": 4194
+    },
+    {
+      "name": "isVerifiedGiftFloor",
+      "file": "app.js",
+      "line": 4198
+    },
+    {
+      "name": "isEstimatedGiftFloor",
+      "file": "app.js",
+      "line": 4204
+    },
+    {
+      "name": "giftDetailPayloadHasDisplayPrice",
+      "file": "app.js",
+      "line": 4210
+    },
+    {
+      "name": "giftFloorHistoryPointsFromPayload",
+      "file": "app.js",
+      "line": 4215
+    },
+    {
+      "name": "applyGiftFloorHistory",
+      "file": "app.js",
+      "line": 4240
+    },
+    {
+      "name": "refreshGiftDetailChrome",
+      "file": "app.js",
+      "line": 4272
+    },
+    {
+      "name": "loadGiftComboHistoryFast",
+      "file": "app.js",
+      "line": 4280
+    },
+    {
+      "name": "applyGiftVerifiedFloor",
+      "file": "app.js",
+      "line": 4287
+    },
+    {
+      "name": "applyGiftDetailPayload",
+      "file": "app.js",
+      "line": 4321
+    },
+    {
+      "name": "loadGiftDetail",
+      "file": "app.js",
+      "line": 4363
+    },
+    {
+      "name": "buildStickerHistory",
+      "file": "app.js",
+      "line": 4434
+    },
+    {
+      "name": "setDetailHeading",
+      "file": "app.js",
+      "line": 4444
+    },
+    {
+      "name": "tokenActivityMatches",
+      "file": "app.js",
+      "line": 4466
+    },
+    {
+      "name": "renderTokenActivity",
+      "file": "app.js",
+      "line": 4488
+    },
+    {
+      "name": "renderTokenHero",
+      "file": "app.js",
+      "line": 4523
+    },
+    {
+      "name": "renderTokenChartControls",
+      "file": "app.js",
+      "line": 4540
+    },
+    {
+      "name": "tokenChartAxisLabel",
+      "file": "app.js",
+      "line": 4552
+    },
+    {
+      "name": "renderTokenChartMetrics",
+      "file": "app.js",
+      "line": 4562
+    },
+    {
+      "name": "renderPressureMeter",
+      "file": "app.js",
+      "line": 4579
+    },
+    {
+      "name": "ensureTokenDetailSections",
+      "file": "app.js",
+      "line": 4589
+    },
+    {
+      "name": "renderTokenMetricGrid",
+      "file": "app.js",
+      "line": 4612
+    },
+    {
+      "name": "renderHolderRing",
+      "file": "app.js",
+      "line": 4625
+    },
+    {
+      "name": "renderTonNetworkHighlights",
+      "file": "app.js",
+      "line": 4635
+    },
+    {
+      "name": "renderDetailLoadingMetrics",
+      "file": "app.js",
+      "line": 4653
+    },
+    {
+      "name": "ensureStickerThumbOverlay",
+      "file": "app.js",
+      "line": 4658
+    },
+    {
+      "name": "openStickerThumbOverlay",
+      "file": "app.js",
+      "line": 4671
+    },
+    {
+      "name": "closeStickerThumbOverlay",
+      "file": "app.js",
+      "line": 4683
+    },
+    {
+      "name": "formatMetricMoney",
+      "file": "app.js",
+      "line": 4687
+    },
+    {
+      "name": "formatMetricCount",
+      "file": "app.js",
+      "line": 4696
+    },
+    {
+      "name": "tokenApiAddress",
+      "file": "app.js",
+      "line": 4704
+    },
+    {
+      "name": "tokenDetailCacheKey",
+      "file": "app.js",
+      "line": 4708
+    },
+    {
+      "name": "tokenChartQuery",
+      "file": "app.js",
+      "line": 4714
+    },
+    {
+      "name": "requestJsonFast",
+      "file": "app.js",
+      "line": 4727
+    },
+    {
+      "name": "fetchJsonFast",
+      "file": "app.js",
+      "line": 4737
+    },
+    {
+      "name": "normalizeTokenDetailChart",
+      "file": "app.js",
+      "line": 4741
+    },
+    {
+      "name": "setTokenDetailChart",
+      "file": "app.js",
+      "line": 4749
+    },
+    {
+      "name": "tokenChartRangeMs",
+      "file": "app.js",
+      "line": 4759
+    },
+    {
+      "name": "tokenChartRangeLabel",
+      "file": "app.js",
+      "line": 4764
+    },
+    {
+      "name": "requestTokenDetailPayload",
+      "file": "app.js",
+      "line": 4782
+    },
+    {
+      "name": "loadTokenDetailMetrics",
+      "file": "app.js",
+      "line": 4797
+    },
+    {
+      "name": "prefetchTokenDetailMetrics",
+      "file": "app.js",
+      "line": 4826
+    },
+    {
+      "name": "prefetchVisibleTokenDetails",
+      "file": "app.js",
+      "line": 4831
+    },
+    {
+      "name": "prefetchTokenFromIntent",
+      "file": "app.js",
+      "line": 4837
+    },
+    {
+      "name": "pumpDetailWarmupQueue",
+      "file": "app.js",
+      "line": 4847
+    },
+    {
+      "name": "queueDetailWarmup",
+      "file": "app.js",
+      "line": 4867
+    },
+    {
+      "name": "flattenCollectibleAssets",
+      "file": "app.js",
+      "line": 4874
+    },
+    {
+      "name": "preloadStickerAnimatedMedia",
+      "file": "app.js",
+      "line": 4882
+    },
+    {
+      "name": "preloadGiftStaticImages",
+      "file": "app.js",
+      "line": 4907
+    },
+    {
+      "name": "refreshCollectibleDerivedUi",
+      "file": "app.js",
+      "line": 4950
+    },
+    {
+      "name": "syncCollectibleGroupFromChildren",
+      "file": "app.js",
+      "line": 4959
+    },
+    {
+      "name": "prefetchGiftStats",
+      "file": "app.js",
+      "line": 4987
+    },
+    {
+      "name": "applyGiftModelEstimatePayload",
+      "file": "app.js",
+      "line": 5032
+    },
+    {
+      "name": "prefetchGiftModelEstimates",
+      "file": "app.js",
+      "line": 5061
+    },
+    {
+      "name": "scheduleGiftDerivedUiRefresh",
+      "file": "app.js",
+      "line": 5110
+    },
+    {
+      "name": "prefetchGiftDetails",
+      "file": "app.js",
+      "line": 5118
+    },
+    {
+      "name": "applyStickerFloorPayload",
+      "file": "app.js",
+      "line": 5158
+    },
+    {
+      "name": "patchStickerGroupCard",
+      "file": "app.js",
+      "line": 5173
+    },
+    {
+      "name": "scheduleStickerDerivedUiRefresh",
+      "file": "app.js",
+      "line": 5186
+    },
+    {
+      "name": "prefetchStickerDetails",
+      "file": "app.js",
+      "line": 5194
+    },
+    {
+      "name": "prefetchAllVisibleDetails",
+      "file": "app.js",
+      "line": 5219
+    },
+    {
+      "name": "applyTokenDetailMetrics",
+      "file": "app.js",
+      "line": 5225
+    },
+    {
+      "name": "renderTokenDetail",
+      "file": "app.js",
+      "line": 5260
+    },
+    {
+      "name": "renderSales",
+      "file": "app.js",
+      "line": 5322
+    },
+    {
+      "name": "renderMarketIntel",
+      "file": "app.js",
+      "line": 5329
+    },
+    {
+      "name": "drawDetailPriceChart",
+      "file": "app.js",
+      "line": 5349
+    },
+    {
+      "name": "renderWalletState",
+      "file": "app.js",
+      "line": 5396
+    },
+    {
+      "name": "openWalletSheet",
+      "file": "app.js",
+      "line": 5431
+    },
+    {
+      "name": "showConnectionRoute",
+      "file": "app.js",
+      "line": 5441
+    },
+    {
+      "name": "closeWalletSheet",
+      "file": "app.js",
+      "line": 5452
+    },
+    {
+      "name": "setTelegramLoginStatus",
+      "file": "app.js",
+      "line": 5461
+    },
+    {
+      "name": "clearStaticPortfolioPreview",
+      "file": "app.js",
+      "line": 5468
+    },
+    {
+      "name": "finishTelegramImportAtHome",
+      "file": "app.js",
+      "line": 5490
+    },
+    {
+      "name": "importTelegramAccount",
+      "file": "app.js",
+      "line": 5499
+    },
+    {
+      "name": "currentWalletTonName",
+      "file": "app.js",
+      "line": 5613
+    },
+    {
+      "name": "currentWalletLabel",
+      "file": "app.js",
+      "line": 5617
+    },
+    {
+      "name": "currentWalletExplorer",
+      "file": "app.js",
+      "line": 5621
+    },
+    {
+      "name": "syncWalletActionSheet",
+      "file": "app.js",
+      "line": 5626
+    },
+    {
+      "name": "openWalletActionSheet",
+      "file": "app.js",
+      "line": 5633
+    },
+    {
+      "name": "closeWalletActionSheet",
+      "file": "app.js",
+      "line": 5644
+    },
+    {
+      "name": "openTokenSortSheet",
+      "file": "app.js",
+      "line": 5652
+    },
+    {
+      "name": "closeTokenSortSheet",
+      "file": "app.js",
+      "line": 5666
+    },
+    {
+      "name": "setWalletImportStatus",
+      "file": "app.js",
+      "line": 5675
+    },
+    {
+      "name": "ensureSectionStatusUi",
+      "file": "app.js",
+      "line": 5682
+    },
+    {
+      "name": "renderSectionStatusUi",
+      "file": "app.js",
+      "line": 5704
+    },
+    {
+      "name": "showSectionReadyToast",
+      "file": "app.js",
+      "line": 5711
+    },
+    {
+      "name": "setSectionLoading",
+      "file": "app.js",
+      "line": 5722
+    },
+    {
+      "name": "setSectionReady",
+      "file": "app.js",
+      "line": 5734
+    },
+    {
+      "name": "resetSectionLoadingState",
+      "file": "app.js",
+      "line": 5752
+    },
+    {
+      "name": "isSectionLoading",
+      "file": "app.js",
+      "line": 5759
+    },
+    {
+      "name": "walletImportUrl",
+      "file": "app.js",
+      "line": 5763
+    },
+    {
+      "name": "tunnelSafeHeaders",
+      "file": "app.js",
+      "line": 5768
+    },
+    {
+      "name": "assertPricingMode",
+      "file": "app.js",
+      "line": 5778
+    },
+    {
+      "name": "pricingPayloadAllowed",
+      "file": "app.js",
+      "line": 5795
+    },
+    {
+      "name": "parseJsonResponse",
+      "file": "app.js",
+      "line": 5799
+    },
+    {
+      "name": "requestJson",
+      "file": "app.js",
+      "line": 5823
+    },
+    {
+      "name": "telegramInitData",
+      "file": "app.js",
+      "line": 5832
+    },
+    {
+      "name": "fetchWalletImport",
+      "file": "app.js",
+      "line": 5836
+    },
+    {
+      "name": "currentWalletTimestamp",
+      "file": "app.js",
+      "line": 5840
+    },
+    {
+      "name": "setLastUpdatedLabel",
+      "file": "app.js",
+      "line": 5845
+    },
+    {
+      "name": "isCurrentImportSession",
+      "file": "app.js",
+      "line": 5854
+    },
+    {
+      "name": "beginImportSession",
+      "file": "app.js",
+      "line": 5858
+    },
+    {
+      "name": "walletStateKey",
+      "file": "app.js",
+      "line": 5865
+    },
+    {
+      "name": "isGraphHistoryLoadingEnabled",
+      "file": "app.js",
+      "line": 5869
+    },
+    {
+      "name": "setImportLoader",
+      "file": "app.js",
+      "line": 5873
+    },
+    {
+      "name": "cacheableWalletAsset",
+      "file": "app.js",
+      "line": 5919
+    },
+    {
+      "name": "loadWalletAssetSnapshot",
+      "file": "app.js",
+      "line": 5924
+    },
+    {
+      "name": "saveWalletAssetSnapshot",
+      "file": "app.js",
+      "line": 5936
+    },
+    {
+      "name": "mergeLastGoodWalletAssets",
+      "file": "app.js",
+      "line": 5966
+    },
+    {
+      "name": "applyGiftDetailPayloadWithPriceFallback",
+      "file": "app.js",
+      "line": 5987
+    },
+    {
+      "name": "mergeCollectiblePayloadIntoWallet",
+      "file": "app.js",
+      "line": 6000
+    },
+    {
+      "name": "clearImportLoaderFailsafe",
+      "file": "app.js",
+      "line": 6027
+    },
+    {
+      "name": "scheduleImportLoaderFailsafe",
+      "file": "app.js",
+      "line": 6033
+    },
+    {
+      "name": "stopImportLoaderPulse",
+      "file": "app.js",
+      "line": 6046
+    },
+    {
+      "name": "pulseImportLoader",
+      "file": "app.js",
+      "line": 6052
+    },
+    {
+      "name": "nextPaint",
+      "file": "app.js",
+      "line": 6065
+    },
+    {
+      "name": "initTonConnect",
+      "file": "app.js",
+      "line": 6069
+    },
+    {
+      "name": "connectTonWallet",
+      "file": "app.js",
+      "line": 6093
+    },
+    {
+      "name": "importWallet",
+      "file": "app.js",
+      "line": 6109
+    },
+    {
+      "name": "refreshConnectedWallet",
+      "file": "app.js",
+      "line": 6227
+    },
+    {
+      "name": "restoreSavedWallet",
+      "file": "app.js",
+      "line": 6271
+    },
+    {
+      "name": "applyImportedWallet",
+      "file": "app.js",
+      "line": 6287
+    },
+    {
+      "name": "resetActivityState",
+      "file": "app.js",
+      "line": 6321
+    },
+    {
+      "name": "resetDetailWarmCaches",
+      "file": "app.js",
+      "line": 6333
+    },
+    {
+      "name": "refreshActivePortfolio",
+      "file": "app.js",
+      "line": 6342
+    },
+    {
+      "name": "resetWalletSwitchState",
+      "file": "app.js",
+      "line": 6356
+    },
+    {
+      "name": "resetPerformerCards",
+      "file": "app.js",
+      "line": 6409
+    },
+    {
+      "name": "resetWalletBoundUi",
+      "file": "app.js",
+      "line": 6413
+    },
+    {
+      "name": "disconnectWallet",
+      "file": "app.js",
+      "line": 6466
+    },
+    {
+      "name": "normalizeWalletHistory",
+      "file": "app.js",
+      "line": 6526
+    },
+    {
+      "name": "activePortfolioRange",
+      "file": "app.js",
+      "line": 6542
+    },
+    {
+      "name": "setHistoryRangeState",
+      "file": "app.js",
+      "line": 6545
+    },
+    {
+      "name": "applyHistoryStatus",
+      "file": "app.js",
+      "line": 6552
+    },
+    {
+      "name": "setLiveHistoryRange",
+      "file": "app.js",
+      "line": 6559
+    },
+    {
+      "name": "hasFinalHistory",
+      "file": "app.js",
+      "line": 6577
+    },
+    {
+      "name": "pinCachedHistoryToCurrent",
+      "file": "app.js",
+      "line": 6582
+    },
+    {
+      "name": "updateHistoryStatus",
+      "file": "app.js",
+      "line": 6589
+    },
+    {
+      "name": "setRangeLoading",
+      "file": "app.js",
+      "line": 6594
+    },
+    {
+      "name": "syncRangeLoadingButtons",
+      "file": "app.js",
+      "line": 6601
+    },
+    {
+      "name": "refreshLiveHistory",
+      "file": "app.js",
+      "line": 6607
+    },
+    {
+      "name": "delay",
+      "file": "app.js",
+      "line": 6647
+    },
+    {
+      "name": "stopHistoryStatusPolling",
+      "file": "app.js",
+      "line": 6651
+    },
+    {
+      "name": "pollHistoryStatus",
+      "file": "app.js",
+      "line": 6658
+    },
+    {
+      "name": "startHistoryStatusPolling",
+      "file": "app.js",
+      "line": 6684
+    },
+    {
+      "name": "preloadLiveHistoryRanges",
+      "file": "app.js",
+      "line": 6690
+    },
+    {
+      "name": "switchPortfolioRange",
+      "file": "app.js",
+      "line": 6709
+    },
+    {
+      "name": "refreshVisibleLiveHistory",
+      "file": "app.js",
+      "line": 6739
+    },
+    {
+      "name": "collectibleTotals",
+      "file": "app.js",
+      "line": 6746
+    },
+    {
+      "name": "hasPendingCollectiblePrices",
+      "file": "app.js",
+      "line": 6760
+    },
+    {
+      "name": "allocationShareLabel",
+      "file": "app.js",
+      "line": 6765
+    },
+    {
+      "name": "updateAllocationUi",
+      "file": "app.js",
+      "line": 6771
+    },
+    {
+      "name": "renderHomeAssetBrowser",
+      "file": "app.js",
+      "line": 6828
+    },
+    {
+      "name": "updateCategoryAndTopAsset",
+      "file": "app.js",
+      "line": 6862
+    },
+    {
+      "name": "updateDashboardFromWallet",
+      "file": "app.js",
+      "line": 6926
+    },
+    {
+      "name": "updateAssetsFromWallet",
+      "file": "app.js",
+      "line": 6937
+    },
+    {
+      "name": "truncateWalletAddress",
+      "file": "app.js",
+      "line": 6941
+    },
+    {
+      "name": "isTonAddressLike",
+      "file": "app.js",
+      "line": 6946
+    },
+    {
+      "name": "renderDotMatrixText",
+      "file": "app.js",
+      "line": 6994
+    },
+    {
+      "name": "walletHoldingCount",
+      "file": "app.js",
+      "line": 7016
+    },
+    {
+      "name": "renderScreenHeaderDotMatrix",
+      "file": "app.js",
+      "line": 7029
+    },
+    {
+      "name": "renderCollectibleSummaryDotMatrix",
+      "file": "app.js",
+      "line": 7036
+    },
+    {
+      "name": "renderAssetsDotMatrix",
+      "file": "app.js",
+      "line": 7046
+    },
+    {
+      "name": "syncAssetsSummary",
+      "file": "app.js",
+      "line": 7049
+    },
+    {
+      "name": "updateAssetsPortfolioStrip",
+      "file": "app.js",
+      "line": 7086
+    },
+    {
+      "name": "updateAnalyticsFromWallet",
+      "file": "app.js",
+      "line": 7090
+    },
+    {
+      "name": "renderAnalyticsBreakdown",
+      "file": "app.js",
+      "line": 7122
+    },
+    {
+      "name": "watchlistIds",
+      "file": "app.js",
+      "line": 7146
+    },
+    {
+      "name": "watchlistStore",
+      "file": "app.js",
+      "line": 7149
+    },
+    {
+      "name": "setWatchlistIds",
+      "file": "app.js",
+      "line": 7158
+    },
+    {
+      "name": "watchlistAsset",
+      "file": "app.js",
+      "line": 7159
+    },
+    {
+      "name": "saveWatchlistAsset",
+      "file": "app.js",
+      "line": 7165
+    },
+    {
+      "name": "renderWatchlist",
+      "file": "app.js",
+      "line": 7166
+    },
+    {
+      "name": "syncWatchlistButton",
+      "file": "app.js",
+      "line": 7179
+    },
+    {
+      "name": "renderSettingsSummary",
+      "file": "app.js",
+      "line": 7189
+    },
+    {
+      "name": "resolveTokenImage",
+      "file": "app.js",
+      "line": 7196
+    },
+    {
+      "name": "tokenImageCandidates",
+      "file": "app.js",
+      "line": 7209
+    },
+    {
+      "name": "retryTokenImage",
+      "file": "app.js",
+      "line": 7219
+    },
+    {
+      "name": "resolveAnimationMediaUrl",
+      "file": "app.js",
+      "line": 7233
+    },
+    {
+      "name": "fetchJson",
+      "file": "app.js",
+      "line": 7237
+    },
+    {
+      "name": "settledValue",
+      "file": "app.js",
+      "line": 7241
+    },
+    {
+      "name": "parsePct",
+      "file": "app.js",
+      "line": 7248
+    },
+    {
+      "name": "cleanTokenWord",
+      "file": "app.js",
+      "line": 7268
+    },
+    {
+      "name": "isNativeTonImpostor",
+      "file": "app.js",
+      "line": 7272
+    },
+    {
+      "name": "isGenericJettonPlaceholder",
+      "file": "app.js",
+      "line": 7279
+    },
+    {
+      "name": "isDisplayableToken",
+      "file": "app.js",
+      "line": 7283
+    },
+    {
+      "name": "isNativeGramToken",
+      "file": "app.js",
+      "line": 7292
+    },
+    {
+      "name": "tokenRowSort",
+      "file": "app.js",
+      "line": 7296
+    },
+    {
+      "name": "tokenAggregatePnl",
+      "file": "app.js",
+      "line": 7310
+    },
+    {
+      "name": "renderTokenSummary",
+      "file": "app.js",
+      "line": 7324
+    },
+    {
+      "name": "renderTokenRows",
+      "file": "app.js",
+      "line": 7353
+    },
+    {
+      "name": "updateHomeTokenWidgets",
+      "file": "app.js",
+      "line": 7410
+    },
+    {
+      "name": "renderTokenLogo",
+      "file": "app.js",
+      "line": 7452
+    },
+    {
+      "name": "importedWalletTokenFallbacks",
+      "file": "app.js",
+      "line": 7460
+    },
+    {
+      "name": "mergeTokenRefreshIntoWallet",
+      "file": "app.js",
+      "line": 7505
+    },
+    {
+      "name": "syncPortfolioFromDisplayedTokens",
+      "file": "app.js",
+      "line": 7539
+    },
+    {
+      "name": "renderTokenLoadingState",
+      "file": "app.js",
+      "line": 7558
+    },
+    {
+      "name": "renderTokenEmptyState",
+      "file": "app.js",
+      "line": 7566
+    },
+    {
+      "name": "updateTokensFromWallet",
+      "file": "app.js",
+      "line": 7575
+    },
+    {
+      "name": "fetchWalletCollectiblesPayload",
+      "file": "app.js",
+      "line": 7639
+    },
+    {
+      "name": "renderImportedCollectiblesSnapshot",
+      "file": "app.js",
+      "line": 7661
+    },
+    {
+      "name": "updateCollectiblesFromWallet",
+      "file": "app.js",
+      "line": 7674
+    },
+    {
+      "name": "updateCollectiblesFromGetgems",
+      "file": "app.js",
+      "line": 7720
+    },
+    {
+      "name": "groupedAssetChildren",
+      "file": "app.js",
+      "line": 7790
+    },
+    {
+      "name": "stickerOwnedCount",
+      "file": "app.js",
+      "line": 7794
+    },
+    {
+      "name": "rebuildPortfolioCollectibleGroups",
+      "file": "app.js",
+      "line": 7804
+    },
+    {
+      "name": "groupStickerAssets",
+      "file": "app.js",
+      "line": 7822
+    },
+    {
+      "name": "stickerPackLabel",
+      "file": "app.js",
+      "line": 7902
+    },
+    {
+      "name": "stickerEditionLabel",
+      "file": "app.js",
+      "line": 7913
+    },
+    {
+      "name": "stickerPackImageStack",
+      "file": "app.js",
+      "line": 7919
+    },
+    {
+      "name": "stickerPackMeta",
+      "file": "app.js",
+      "line": 7926
+    },
+    {
+      "name": "groupStickerBrandChildren",
+      "file": "app.js",
+      "line": 7931
+    },
+    {
+      "name": "groupGiftAssets",
+      "file": "app.js",
+      "line": 7974
+    },
+    {
+      "name": "stickerBrandName",
+      "file": "app.js",
+      "line": 8040
+    },
+    {
+      "name": "setCollectibleLoading",
+      "file": "app.js",
+      "line": 8103
+    },
+    {
+      "name": "setCollectiblesBanner",
+      "file": "app.js",
+      "line": 8110
+    },
+    {
+      "name": "importedGiftDemandIntel",
+      "file": "app.js",
+      "line": 8127
+    },
+    {
+      "name": "liveCollectibleAsset",
+      "file": "app.js",
+      "line": 8164
+    },
+    {
+      "name": "updateWalletScreen",
+      "file": "app.js",
+      "line": 8270
+    },
+    {
+      "name": "renderActivityRows",
+      "file": "app.js",
+      "line": 8292
+    },
+    {
+      "name": "formatActivityDate",
+      "file": "app.js",
+      "line": 8301
+    },
+    {
+      "name": "activityDayLabel",
+      "file": "app.js",
+      "line": 8311
+    },
+    {
+      "name": "signedActivityValue",
+      "file": "app.js",
+      "line": 8322
+    },
+    {
+      "name": "activityRowsHtml",
+      "file": "app.js",
+      "line": 8329
+    },
+    {
+      "name": "renderFullActivity",
+      "file": "app.js",
+      "line": 8378
+    },
+    {
+      "name": "txRowsHtml",
+      "file": "app.js",
+      "line": 8424
+    },
+    {
+      "name": "txLogoHtml",
+      "file": "app.js",
+      "line": 8436
+    },
+    {
+      "name": "renderTxSheet",
+      "file": "app.js",
+      "line": 8446
+    },
+    {
+      "name": "closeTxSheet",
+      "file": "app.js",
+      "line": 8466
+    },
+    {
+      "name": "txSeedFromHash",
+      "file": "app.js",
+      "line": 8474
+    },
+    {
+      "name": "openTxSheet",
+      "file": "app.js",
+      "line": 8496
+    },
+    {
+      "name": "loadFullActivity",
+      "file": "app.js",
+      "line": 8517
+    },
+    {
+      "name": "startActivityPreload",
+      "file": "app.js",
+      "line": 8533
+    },
+    {
+      "name": "preloadFullActivityBackground",
+      "file": "app.js",
+      "line": 8566
+    },
+    {
+      "name": "nativeCurrencyDisplayText",
+      "file": "app.js",
+      "line": 8571
+    },
+    {
+      "name": "compactMoney",
+      "file": "app.js",
+      "line": 8575
+    },
+    {
+      "name": "renderDonut",
+      "file": "app.js",
+      "line": 8580
+    },
+    {
+      "name": "portfolioHistoryRows",
+      "file": "app.js",
+      "line": 8657
+    },
+    {
+      "name": "portfolioTimeLabel",
+      "file": "app.js",
+      "line": 8661
+    },
+    {
+      "name": "renderPortfolioGraph",
+      "file": "app.js",
+      "line": 8671
+    },
+    {
+      "name": "updateHomeHistoryEmptyState",
+      "file": "app.js",
+      "line": 8734
+    },
+    {
+      "name": "updatePortfolioChartReadout",
+      "file": "app.js",
+      "line": 8744
+    },
+    {
+      "name": "rangePnl",
+      "file": "app.js",
+      "line": 8757
+    },
+    {
+      "name": "renderReferenceFinancialValue",
+      "file": "app.js",
+      "line": 8769
+    },
+    {
+      "name": "resetPortfolioHeader",
+      "file": "app.js",
+      "line": 8780
+    },
+    {
+      "name": "playHomeEntrance",
+      "file": "app.js",
+      "line": 8810
+    },
+    {
+      "name": "formatTonFromUsd",
+      "file": "app.js",
+      "line": 8822
+    },
+    {
+      "name": "applyCurrencyDisplay",
+      "file": "app.js",
+      "line": 8829
+    },
+    {
+      "name": "setCurrency",
+      "file": "app.js",
+      "line": 8859
+    },
+    {
+      "name": "renderAnalyticsChart",
+      "file": "app.js",
+      "line": 8871
+    },
+    {
+      "name": "syncPrivacyControls",
+      "file": "app.js",
+      "line": 9184
+    },
+    {
+      "name": "refreshFrequency",
+      "file": "app.js",
+      "line": 9199
+    },
+    {
+      "name": "stopPortfolioRefresh",
+      "file": "app.js",
+      "line": 9203
+    },
+    {
+      "name": "schedulePortfolioRefresh",
+      "file": "app.js",
+      "line": 9207
+    },
+    {
+      "name": "updateScrollTopButton",
+      "file": "app.js",
+      "line": 9268
+    },
+    {
+      "name": "selectAllocation",
+      "file": "app.js",
+      "line": 9289
+    },
+    {
+      "name": "normalize",
+      "file": "chart-platform.js",
+      "line": 19
+    },
+    {
+      "name": "chartCanvas",
+      "file": "chart-platform.js",
+      "line": 26
+    },
+    {
+      "name": "replaceChart",
+      "file": "chart-platform.js",
+      "line": 38
+    },
+    {
+      "name": "renderSeries",
+      "file": "chart-platform.js",
+      "line": 47
+    },
+    {
+      "name": "renderDonut",
+      "file": "chart-platform.js",
+      "line": 163
+    },
+    {
+      "name": "donutHitIndex",
+      "file": "chart-platform.js",
+      "line": 178
+    },
+    {
+      "name": "rangeButtons",
+      "file": "chart-platform.js",
+      "line": 188
+    },
+    {
+      "name": "mountRangeControls",
+      "file": "chart-platform.js",
+      "line": 194
+    },
+    {
+      "name": "seriesStats",
+      "file": "chart-platform.js",
+      "line": 208
+    },
+    {
+      "name": "sourceText",
+      "file": "terminal-system.js",
+      "line": 33
+    },
+    {
+      "name": "render",
+      "file": "terminal-system.js",
+      "line": 40
+    },
+    {
+      "name": "applyDisplays",
+      "file": "terminal-system.js",
+      "line": 61
+    },
+    {
+      "name": "schedule",
+      "file": "terminal-system.js",
+      "line": 68
+    },
+    {
+      "name": "json",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 6
+    },
+    {
+      "name": "key",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 18
+    },
+    {
+      "name": "comboKey",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 22
+    },
+    {
+      "name": "sourceKey",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 26
+    },
+    {
+      "name": "isBackdropComboEntry",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 35
+    },
+    {
+      "name": "backdropComboBucket",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 42
+    },
+    {
+      "name": "mergeSourceBuckets",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 60
+    },
+    {
+      "name": "isBetterComboCandidate",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 80
+    },
+    {
+      "name": "historyPoint",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 97
+    },
+    {
+      "name": "sameHistoryPoint",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 104
+    },
+    {
+      "name": "historyDay",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 110
+    },
+    {
+      "name": "historySegmentEntry",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 116
+    },
+    {
+      "name": "historySegmentPoints",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 122
+    },
+    {
+      "name": "historySegmentBucketPoints",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 139
+    },
+    {
+      "name": "appendHistorySegment",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 145
+    },
+    {
+      "name": "compactLegacyHistory",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 171
+    },
+    {
+      "name": "retireTelegramFloors",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 196
+    },
+    {
+      "name": "singularWord",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 247
+    },
+    {
+      "name": "wordVariants",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 256
+    },
+    {
+      "name": "collectionAliasKeys",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 264
+    },
+    {
+      "name": "bucketFor",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 276
+    },
+    {
+      "name": "authorized",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 285
+    },
+    {
+      "name": "floorSourcesDatabase",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 290
+    },
+    {
+      "name": "valuationReadDatabase",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 294
+    },
+    {
+      "name": "valuationRecord",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 298
+    },
+    {
+      "name": "readValuationRecords",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 328
+    },
+    {
+      "name": "compactJson",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 361
+    },
+    {
+      "name": "runD1StatementBatches",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 365
+    },
+    {
+      "name": "unixSeconds",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 374
+    },
+    {
+      "name": "storagePolicy",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 380
+    },
+    {
+      "name": "existingIdentityKeys",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 384
+    },
+    {
+      "name": "storagePressure",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 402
+    },
+    {
+      "name": "ingestIdentityAssets",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 408
+    },
+    {
+      "name": "ingestIdentityAliases",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 470
+    },
+    {
+      "name": "readIdentityAliases",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 499
+    },
+    {
+      "name": "ingestIdentitySales",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 516
+    },
+    {
+      "name": "ingestIdentityBaselines",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 588
+    },
+    {
+      "name": "readIdentitySales",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 624
+    },
+    {
+      "name": "readIdentityBaselineSource",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 650
+    },
+    {
+      "name": "readUsernameEvidence",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 663
+    },
+    {
+      "name": "readDnsEvidence",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 723
+    },
+    {
+      "name": "readIdentityAssets",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 766
+    },
+    {
+      "name": "readIdentityKnowledgeQueue",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 785
+    },
+    {
+      "name": "page",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 813
+    },
+    {
+      "name": "ingestIdentityKnowledge",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 862
+    },
+    {
+      "name": "ingestIdentityMarket",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 911
+    },
+    {
+      "name": "readIdentityState",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 939
+    },
+    {
+      "name": "ingestIdentityState",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 953
+    },
+    {
+      "name": "readIdentityBaselines",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 967
+    },
+    {
+      "name": "maintainIdentityStorage",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 978
+    },
+    {
+      "name": "ingestValuationRecords",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 991
+    },
+    {
+      "name": "historyDatabases",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 1073
+    },
+    {
+      "name": "readCombo",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 1079
+    },
+    {
+      "name": "readCombos",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 1116
+    },
+    {
+      "name": "readCollectionCombos",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 1245
+    },
+    {
+      "name": "readComboHistory",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 1295
+    },
+    {
+      "name": "saleRow",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 1350
+    },
+    {
+      "name": "salesDatabase",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 1378
+    },
+    {
+      "name": "salesReadDatabases",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 1384
+    },
+    {
+      "name": "compactSalesDatabaseConfigs",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 1395
+    },
+    {
+      "name": "compactSalesDatabases",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 1405
+    },
+    {
+      "name": "writableCompactSalesDatabaseConfigs",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 1420
+    },
+    {
+      "name": "salesShardSize",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 1430
+    },
+    {
+      "name": "salesWriteDatabaseFor",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 1439
+    },
+    {
+      "name": "saleTimestamp",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 1452
+    },
+    {
+      "name": "mergeSalesRows",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 1457
+    },
+    {
+      "name": "compactSalesReadStatement",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 1471
+    },
+    {
+      "name": "salesReadStatement",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 1498
+    },
+    {
+      "name": "readSales",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 1516
+    },
+    {
+      "name": "readSalesBulk",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 1538
+    },
+    {
+      "name": "readPendingHistoricalSaleRates",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 1586
+    },
+    {
+      "name": "normalizedSalesTarget",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 1625
+    },
+    {
+      "name": "normalizedTelegramFloorTarget",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 1644
+    },
+    {
+      "name": "normalizedEstimateHistoryTarget",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 1667
+    },
+    {
+      "name": "readEstimateHistoryTargets",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 1671
+    },
+    {
+      "name": "ingestEstimateHistoryTargetResult",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 1700
+    },
+    {
+      "name": "ingestTelegramFloorTargets",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 1727
+    },
+    {
+      "name": "readTelegramFloorTargets",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 1762
+    },
+    {
+      "name": "ingestSalesTargets",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 1786
+    },
+    {
+      "name": "readSalesTargets",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 1821
+    },
+    {
+      "name": "readSalesStateFromDatabase",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 1850
+    },
+    {
+      "name": "readSalesState",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 1879
+    },
+    {
+      "name": "readSalesBackfillStateFromDatabase",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 1897
+    },
+    {
+      "name": "readSalesBackfillState",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 1930
+    },
+    {
+      "name": "normalizedSaleForIngest",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 1944
+    },
+    {
+      "name": "compactSaleComboKey",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 2009
+    },
+    {
+      "name": "pruneTouchedSaleCombos",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 2013
+    },
+    {
+      "name": "pruneCompactSalesDatabase",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 2035
+    },
+    {
+      "name": "writeCompactSales",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 2042
+    },
+    {
+      "name": "writeLegacySales",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 2100
+    },
+    {
+      "name": "writeSales",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 2121
+    },
+    {
+      "name": "compactSalesShardStats",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 2145
+    },
+    {
+      "name": "ingestSales",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 2184
+    },
+    {
+      "name": "lastHistorySampleTimes",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 2317
+    },
+    {
+      "name": "latestHistoryEntry",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 2350
+    },
+    {
+      "name": "collectionHistorySampleTimes",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 2380
+    },
+    {
+      "name": "ingestCollection",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 2402
+    },
+    {
+      "name": "ingestCollectionBucket",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 2493
+    },
+    {
+      "name": "ingestTelegramFloorTargetResult",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 2601
+    },
+    {
+      "name": "ingestCombo",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 2705
+    },
+    {
+      "name": "ingestEstimateHistory",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 2788
+    },
+    {
+      "name": "ingestStatus",
+      "file": "cloudflare/gift-registry-worker.mjs",
+      "line": 2838
+    },
+    {
+      "name": "configureRuntime",
+      "file": "cloudflare/identity-ingestion-edge.mjs",
+      "line": 18
+    },
+    {
+      "name": "json",
+      "file": "cloudflare/identity-ingestion-edge.mjs",
+      "line": 33
+    },
+    {
+      "name": "authorized",
+      "file": "cloudflare/identity-ingestion-edge.mjs",
+      "line": 40
+    },
+    {
+      "name": "runUsernameCycle",
+      "file": "cloudflare/identity-ingestion-edge.mjs",
+      "line": 46
+    },
+    {
+      "name": "runUsernameSettlementCycle",
+      "file": "cloudflare/identity-ingestion-edge.mjs",
+      "line": 52
+    },
+    {
+      "name": "runDnsCycle",
+      "file": "cloudflare/identity-ingestion-edge.mjs",
+      "line": 57
+    },
+    {
+      "name": "runRefreshCycle",
+      "file": "cloudflare/identity-ingestion-edge.mjs",
+      "line": 62
+    },
+    {
+      "name": "classificationOptions",
+      "file": "cloudflare/identity-ingestion-edge.mjs",
+      "line": 110
+    },
+    {
+      "name": "knowledgeBatchSize",
+      "file": "cloudflare/identity-ingestion-edge.mjs",
+      "line": 118
+    },
+    {
+      "name": "runKnowledgeKind",
+      "file": "cloudflare/identity-ingestion-edge.mjs",
+      "line": 122
+    },
+    {
+      "name": "runKnowledgeCycle",
+      "file": "cloudflare/identity-ingestion-edge.mjs",
+      "line": 162
+    },
+    {
+      "name": "runIdentityCycle",
+      "file": "cloudflare/identity-ingestion-edge.mjs",
+      "line": 178
+    }
+  ]
+}

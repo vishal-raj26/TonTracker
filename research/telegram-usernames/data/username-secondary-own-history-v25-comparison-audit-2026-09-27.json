@@ -1,0 +1,1136 @@
+{
+  "qualification": false,
+  "productionIntegrated": false,
+  "reservedLabelsOpened": false,
+  "correction": "Normalize the already-recorded realized venue label secondary/sale to secondary/fixed for cohort aggregation. No predictions, labels, candidate parameters, or gates changed.",
+  "protocolSha256": "1a00062c177e5abcbaf14e5b08a4ed9db2964a49702ed50cdb7b27624eaa3d1f",
+  "comparisonSha256": "be022970b33b8662b266496e652da60299d4e677be4020920148173ee3c32186",
+  "candidateSha256": "209077a97ece045bf4c9acd6d3184fdcdfa6b3777fd83fa7b940e186ed45de12",
+  "caseSetSha256": "2eeb006728713436d09abd65e4640bb0baabc919e70c4eec01151b6358716ab3",
+  "attempts": 30995,
+  "venueCounts": {
+    "primary/auction": 23792,
+    "secondary/auction": 4883,
+    "secondary/fixed": 2320
+  },
+  "cohorts": {
+    "all": {
+      "attempts": 30995,
+      "v25": {
+        "attempts": 30995,
+        "evaluated": 30993,
+        "abstentions": 2,
+        "meanAbsoluteLogError": 0.6122530389671293,
+        "medianFactorError": 1.2657269525159915,
+        "p95FactorError": 9.80030959752322,
+        "coverage80": 0.8298970735327332,
+        "meanLogIntervalScore80": 3.6374802131864863
+      },
+      "staticControl": {
+        "attempts": 30995,
+        "evaluated": 30995,
+        "abstentions": 0,
+        "meanAbsoluteLogError": 0.8021293396450518,
+        "medianFactorError": 1.6083011664818299,
+        "p95FactorError": 15.880369570028366,
+        "coverage80": 0.8436522019680593,
+        "meanLogIntervalScore80": 3.702719022117451
+      },
+      "ownHistoryCandidate": {
+        "attempts": 30995,
+        "evaluated": 30995,
+        "abstentions": 0,
+        "meanAbsoluteLogError": 0.7109876343398405,
+        "medianFactorError": 1.443364533525164,
+        "p95FactorError": 14.393879684604489,
+        "coverage80": 0.8941119535408937,
+        "meanLogIntervalScore80": 3.70744356763942
+      },
+      "commonCases": 30993
+    },
+    "secondary/fixed": {
+      "attempts": 2320,
+      "v25": {
+        "attempts": 2320,
+        "evaluated": 2320,
+        "abstentions": 0,
+        "meanAbsoluteLogError": 0.4815312199975237,
+        "medianFactorError": 1.4234774111297348,
+        "p95FactorError": 3.727044247841868,
+        "coverage80": 0.7004310344827587,
+        "meanLogIntervalScore80": 3.677034367378679
+      },
+      "staticControl": {
+        "attempts": 2320,
+        "evaluated": 2320,
+        "abstentions": 0,
+        "meanAbsoluteLogError": 0.5095101155423902,
+        "medianFactorError": 1.450997154019589,
+        "p95FactorError": 3.307778721519354,
+        "coverage80": 0.9461206896551724,
+        "meanLogIntervalScore80": 2.9826575731289955
+      },
+      "ownHistoryCandidate": {
+        "attempts": 2320,
+        "evaluated": 2320,
+        "abstentions": 0,
+        "meanAbsoluteLogError": 0.33264441057765737,
+        "medianFactorError": 1.2271430841800637,
+        "p95FactorError": 3.344351383845338,
+        "coverage80": 0.9737068965517242,
+        "meanLogIntervalScore80": 2.5176699762190387
+      },
+      "commonCases": 2320
+    },
+    "secondary/auction": {
+      "attempts": 4883,
+      "v25": {
+        "attempts": 4883,
+        "evaluated": 4883,
+        "abstentions": 0,
+        "meanAbsoluteLogError": 0.6696264956895621,
+        "medianFactorError": 1.6849262089314478,
+        "p95FactorError": 6.79749592471336,
+        "coverage80": 0.6745852959246365,
+        "meanLogIntervalScore80": 4.195186694532661
+      },
+      "staticControl": {
+        "attempts": 4883,
+        "evaluated": 4883,
+        "abstentions": 0,
+        "meanAbsoluteLogError": 0.7657339699896311,
+        "medianFactorError": 1.7314410109821254,
+        "p95FactorError": 9.456837898441487,
+        "coverage80": 0.8535736227728855,
+        "meanLogIntervalScore80": 3.620937133008308
+      },
+      "ownHistoryCandidate": {
+        "attempts": 4883,
+        "evaluated": 4883,
+        "abstentions": 0,
+        "meanAbsoluteLogError": 0.5981720841071235,
+        "medianFactorError": 1.464325955321867,
+        "p95FactorError": 6.822362147101117,
+        "coverage80": 0.924636493958632,
+        "meanLogIntervalScore80": 3.182677745025718
+      },
+      "commonCases": 4883
+    },
+    "primary/auction": {
+      "attempts": 23792,
+      "v25": {
+        "attempts": 23792,
+        "evaluated": 23790,
+        "abstentions": 2,
+        "meanAbsoluteLogError": 0.6132248771694774,
+        "medianFactorError": 1.2285952,
+        "p95FactorError": 10.197901520659155,
+        "coverage80": 0.8744010088272384,
+        "meanLogIntervalScore80": 3.5191512352066825
+      },
+      "staticControl": {
+        "attempts": 23792,
+        "evaluated": 23792,
+        "abstentions": 0,
+        "meanAbsoluteLogError": 0.8381328361962243,
+        "medianFactorError": 1.609245896106977,
+        "p95FactorError": 16.384186998878747,
+        "coverage80": 0.831624075319435,
+        "meanLogIntervalScore80": 3.7897181615833864
+      },
+      "ownHistoryCandidate": {
+        "attempts": 23792,
+        "evaluated": 23792,
+        "abstentions": 0,
+        "meanAbsoluteLogError": 0.771034482478483,
+        "medianFactorError": 1.4660978595873784,
+        "p95FactorError": 14.943925612581578,
+        "coverage80": 0.8800857431069267,
+        "meanLogIntervalScore80": 3.931161886566757
+      },
+      "commonCases": 23790
+    },
+    "ordinary": {
+      "attempts": 23825,
+      "v25": {
+        "attempts": 23825,
+        "evaluated": 23825,
+        "abstentions": 0,
+        "meanAbsoluteLogError": 0.25010609563369823,
+        "medianFactorError": 1.1920007812138624,
+        "p95FactorError": 2.2326458604282005,
+        "coverage80": 0.9152151101783841,
+        "meanLogIntervalScore80": 2.7802882558272723
+      },
+      "staticControl": {
+        "attempts": 23825,
+        "evaluated": 23825,
+        "abstentions": 0,
+        "meanAbsoluteLogError": 0.42710614189100626,
+        "medianFactorError": 1.5013424440579823,
+        "p95FactorError": 2.4762917385246186,
+        "coverage80": 0.9679748163693599,
+        "meanLogIntervalScore80": 2.599872188280268
+      },
+      "ownHistoryCandidate": {
+        "attempts": 23825,
+        "evaluated": 23825,
+        "abstentions": 0,
+        "meanAbsoluteLogError": 0.3487601099285204,
+        "medianFactorError": 1.3767190169537857,
+        "p95FactorError": 2.2401781167831176,
+        "coverage80": 0.9900944386149003,
+        "meanLogIntervalScore80": 2.956311976835331
+      },
+      "commonCases": 23825
+    },
+    "intermediate": {
+      "attempts": 3308,
+      "v25": {
+        "attempts": 3308,
+        "evaluated": 3308,
+        "abstentions": 0,
+        "meanAbsoluteLogError": 1.00571473309528,
+        "medianFactorError": 2.544131484208804,
+        "p95FactorError": 6.780824600153515,
+        "coverage80": 0.8818016928657799,
+        "meanLogIntervalScore80": 3.041831003438953
+      },
+      "staticControl": {
+        "attempts": 3308,
+        "evaluated": 3308,
+        "abstentions": 0,
+        "meanAbsoluteLogError": 1.4179255161112247,
+        "medianFactorError": 4.008919656230683,
+        "p95FactorError": 10.943443927716725,
+        "coverage80": 0.7605804111245466,
+        "meanLogIntervalScore80": 3.8521301283396983
+      },
+      "ownHistoryCandidate": {
+        "attempts": 3308,
+        "evaluated": 3308,
+        "abstentions": 0,
+        "meanAbsoluteLogError": 1.3209276142449085,
+        "medianFactorError": 3.6679174521314546,
+        "p95FactorError": 10.121440275705472,
+        "coverage80": 0.8412938331318017,
+        "meanLogIntervalScore80": 4.020682236802034
+      },
+      "commonCases": 3308
+    },
+    "premium": {
+      "attempts": 3862,
+      "v25": {
+        "attempts": 3862,
+        "evaluated": 3860,
+        "abstentions": 2,
+        "meanAbsoluteLogError": 2.5103306661026425,
+        "medianFactorError": 9.242921006944444,
+        "p95FactorError": 59.74662845583276,
+        "coverage80": 0.25880829015544043,
+        "meanLogIntervalScore80": 9.438777096587351
+      },
+      "staticControl": {
+        "attempts": 3862,
+        "evaluated": 3862,
+        "abstentions": 0,
+        "meanAbsoluteLogError": 2.5882178778997624,
+        "medianFactorError": 15.03094322905285,
+        "p95FactorError": 55.506233890092254,
+        "coverage80": 0.14785085447954427,
+        "meanLogIntervalScore80": 10.378294857640064
+      },
+      "ownHistoryCandidate": {
+        "attempts": 3862,
+        "evaluated": 3862,
+        "abstentions": 0,
+        "meanAbsoluteLogError": 2.42315472796332,
+        "medianFactorError": 13.555233929684405,
+        "p95FactorError": 44.791481105657944,
+        "coverage80": 0.34722941481097874,
+        "meanLogIntervalScore80": 8.072932079632864
+      },
+      "commonCases": 3860
+    },
+    "secondary/ordinary": {
+      "attempts": 6082,
+      "v25": {
+        "attempts": 6082,
+        "evaluated": 6082,
+        "abstentions": 0,
+        "meanAbsoluteLogError": 0.4947328607961793,
+        "medianFactorError": 1.4906738204197572,
+        "p95FactorError": 3.7963841412869734,
+        "coverage80": 0.6831634330812233,
+        "meanLogIntervalScore80": 3.648729719710978
+      },
+      "staticControl": {
+        "attempts": 6082,
+        "evaluated": 6082,
+        "abstentions": 0,
+        "meanAbsoluteLogError": 0.4864097654433956,
+        "medianFactorError": 1.496023344188774,
+        "p95FactorError": 2.8137226364311165,
+        "coverage80": 0.928313054916146,
+        "meanLogIntervalScore80": 2.8579900691407536
+      },
+      "ownHistoryCandidate": {
+        "attempts": 6082,
+        "evaluated": 6082,
+        "abstentions": 0,
+        "meanAbsoluteLogError": 0.38376972488977307,
+        "medianFactorError": 1.2987820870277846,
+        "p95FactorError": 3.257754066244481,
+        "coverage80": 0.967773758632029,
+        "meanLogIntervalScore80": 2.534037836230196
+      },
+      "commonCases": 6082
+    },
+    "secondary/intermediate": {
+      "attempts": 762,
+      "v25": {
+        "attempts": 762,
+        "evaluated": 762,
+        "abstentions": 0,
+        "meanAbsoluteLogError": 0.8437112334585343,
+        "medianFactorError": 2.25706433127128,
+        "p95FactorError": 5.917159381707115,
+        "coverage80": 0.9278215223097113,
+        "meanLogIntervalScore80": 2.7908890851390638
+      },
+      "staticControl": {
+        "attempts": 762,
+        "evaluated": 762,
+        "abstentions": 0,
+        "meanAbsoluteLogError": 1.3356668240790521,
+        "medianFactorError": 3.824900982806435,
+        "p95FactorError": 9.216485606515429,
+        "coverage80": 0.8359580052493438,
+        "meanLogIntervalScore80": 3.5614745512439514
+      },
+      "ownHistoryCandidate": {
+        "attempts": 762,
+        "evaluated": 762,
+        "abstentions": 0,
+        "meanAbsoluteLogError": 1.1185204855291595,
+        "medianFactorError": 3.056727414343562,
+        "p95FactorError": 8.575251667693646,
+        "coverage80": 0.8241469816272966,
+        "meanLogIntervalScore80": 4.4686378123612025
+      },
+      "commonCases": 762
+    },
+    "secondary/premium": {
+      "attempts": 359,
+      "v25": {
+        "attempts": 359,
+        "evaluated": 359,
+        "abstentions": 0,
+        "meanAbsoluteLogError": 2.047535904146604,
+        "medianFactorError": 7.665740740740741,
+        "p95FactorError": 54.94971767764474,
+        "coverage80": 0.15877437325905291,
+        "meanLogIntervalScore80": 13.085194216053912
+      },
+      "staticControl": {
+        "attempts": 359,
+        "evaluated": 359,
+        "abstentions": 0,
+        "meanAbsoluteLogError": 2.632368050536934,
+        "medianFactorError": 15.852874393672304,
+        "p95FactorError": 119.36946114844547,
+        "coverage80": 0.22284122562674094,
+        "meanLogIntervalScore80": 12.547806076815705
+      },
+      "ownHistoryCandidate": {
+        "attempts": 359,
+        "evaluated": 359,
+        "abstentions": 0,
+        "meanAbsoluteLogError": 1.4100536002295834,
+        "medianFactorError": 3.051302223987387,
+        "p95FactorError": 29.36530186843162,
+        "coverage80": 0.724233983286908,
+        "meanLogIntervalScore80": 7.144539389463556
+      },
+      "commonCases": 359,
+      "candidateVsV25ClusterBootstrap": {
+        "identities": 338,
+        "iterations": 2000,
+        "seed": 27092026,
+        "lower95": 0.26770073226719415,
+        "median": 0.311369739153736,
+        "upper95": 0.35832478791301137
+      }
+    }
+  },
+  "folds": {
+    "2024q4": {
+      "all": {
+        "attempts": 24278,
+        "v25": {
+          "attempts": 24278,
+          "evaluated": 24277,
+          "abstentions": 1,
+          "meanAbsoluteLogError": 0.6138264849977938,
+          "medianFactorError": 1.264977630946282,
+          "p95FactorError": 9.856021584498405,
+          "coverage80": 0.8309099147341105,
+          "meanLogIntervalScore80": 3.6252555065812095
+        },
+        "staticControl": {
+          "attempts": 24278,
+          "evaluated": 24278,
+          "abstentions": 0,
+          "meanAbsoluteLogError": 0.8546863049298193,
+          "medianFactorError": 1.6330635498763073,
+          "p95FactorError": 16.496601284962487,
+          "coverage80": 0.8356948677815306,
+          "meanLogIntervalScore80": 3.770111407860144
+        },
+        "ownHistoryCandidate": {
+          "attempts": 24278,
+          "evaluated": 24278,
+          "abstentions": 0,
+          "meanAbsoluteLogError": 0.7625532772223106,
+          "medianFactorError": 1.486145365756721,
+          "p95FactorError": 14.80746267645149,
+          "coverage80": 0.8803031551198616,
+          "meanLogIntervalScore80": 3.744904743796509
+        },
+        "commonCases": 24277
+      },
+      "secondary/fixed": {
+        "attempts": 1574,
+        "v25": {
+          "attempts": 1574,
+          "evaluated": 1574,
+          "abstentions": 0,
+          "meanAbsoluteLogError": 0.49243361531040936,
+          "medianFactorError": 1.4526484050079893,
+          "p95FactorError": 3.51274075198075,
+          "coverage80": 0.6613722998729352,
+          "meanLogIntervalScore80": 3.784044632303679
+        },
+        "staticControl": {
+          "attempts": 1574,
+          "evaluated": 1574,
+          "abstentions": 0,
+          "meanAbsoluteLogError": 0.4122765833357515,
+          "medianFactorError": 1.3433853338664856,
+          "p95FactorError": 3.0389363889064045,
+          "coverage80": 0.9504447268106735,
+          "meanLogIntervalScore80": 2.9478135490516837
+        },
+        "ownHistoryCandidate": {
+          "attempts": 1574,
+          "evaluated": 1574,
+          "abstentions": 0,
+          "meanAbsoluteLogError": 0.31194487208648425,
+          "medianFactorError": 1.2040946935537347,
+          "p95FactorError": 3.271573857818575,
+          "coverage80": 0.9764930114358322,
+          "meanLogIntervalScore80": 2.4821514097151582
+        },
+        "commonCases": 1574
+      },
+      "secondary/auction": {
+        "attempts": 3483,
+        "v25": {
+          "attempts": 3483,
+          "evaluated": 3483,
+          "abstentions": 0,
+          "meanAbsoluteLogError": 0.6821626670406737,
+          "medianFactorError": 1.6756395725388604,
+          "p95FactorError": 7.374564223298773,
+          "coverage80": 0.6623600344530577,
+          "meanLogIntervalScore80": 4.386083441771182
+        },
+        "staticControl": {
+          "attempts": 3483,
+          "evaluated": 3483,
+          "abstentions": 0,
+          "meanAbsoluteLogError": 0.7519095631507885,
+          "medianFactorError": 1.5662774035274618,
+          "p95FactorError": 12.113700980018736,
+          "coverage80": 0.8584553545793856,
+          "meanLogIntervalScore80": 3.7273856839547044
+        },
+        "ownHistoryCandidate": {
+          "attempts": 3483,
+          "evaluated": 3483,
+          "abstentions": 0,
+          "meanAbsoluteLogError": 0.6139433626568573,
+          "medianFactorError": 1.4723849706651537,
+          "p95FactorError": 6.908717573831585,
+          "coverage80": 0.9193224231983922,
+          "meanLogIntervalScore80": 3.2645752352727517
+        },
+        "commonCases": 3483
+      },
+      "primary/auction": {
+        "attempts": 19221,
+        "v25": {
+          "attempts": 19221,
+          "evaluated": 19220,
+          "abstentions": 1,
+          "meanAbsoluteLogError": 0.6113841049162438,
+          "medianFactorError": 1.2312899546407066,
+          "p95FactorError": 10.21039899978256,
+          "coverage80": 0.8753381893860562,
+          "meanLogIntervalScore80": 3.4743763295700636
+        },
+        "staticControl": {
+          "attempts": 19221,
+          "evaluated": 19221,
+          "abstentions": 0,
+          "meanAbsoluteLogError": 0.9095390333729503,
+          "medianFactorError": 1.6755812712363307,
+          "p95FactorError": 16.840548673317628,
+          "coverage80": 0.8221736642214245,
+          "meanLogIntervalScore80": 3.8451912958018513
+        },
+        "ownHistoryCandidate": {
+          "attempts": 19221,
+          "evaluated": 19221,
+          "abstentions": 0,
+          "meanAbsoluteLogError": 0.8263827326156417,
+          "medianFactorError": 1.5106119071151392,
+          "p95FactorError": 15.373940703424841,
+          "coverage80": 0.8653556006451277,
+          "meanLogIntervalScore80": 3.9353506844881263
+        },
+        "commonCases": 19220
+      },
+      "ordinary": {
+        "attempts": 18511,
+        "v25": {
+          "attempts": 18511,
+          "evaluated": 18511,
+          "abstentions": 0,
+          "meanAbsoluteLogError": 0.23872246310459425,
+          "medianFactorError": 1.1904824285501205,
+          "p95FactorError": 2.1236683204492133,
+          "coverage80": 0.9179947058505753,
+          "meanLogIntervalScore80": 2.7504604113053714
+        },
+        "staticControl": {
+          "attempts": 18511,
+          "evaluated": 18511,
+          "abstentions": 0,
+          "meanAbsoluteLogError": 0.4573277614637473,
+          "medianFactorError": 1.5261515025636034,
+          "p95FactorError": 2.3624662612305136,
+          "coverage80": 0.9698557614391443,
+          "meanLogIntervalScore80": 2.548333010613189
+        },
+        "ownHistoryCandidate": {
+          "attempts": 18511,
+          "evaluated": 18511,
+          "abstentions": 0,
+          "meanAbsoluteLogError": 0.3856429585651397,
+          "medianFactorError": 1.4035557540407582,
+          "p95FactorError": 2.252911755745902,
+          "coverage80": 0.9906542056074766,
+          "meanLogIntervalScore80": 2.895141059113797
+        },
+        "commonCases": 18511
+      },
+      "intermediate": {
+        "attempts": 2632,
+        "v25": {
+          "attempts": 2632,
+          "evaluated": 2632,
+          "abstentions": 0,
+          "meanAbsoluteLogError": 0.9904246737906585,
+          "medianFactorError": 2.5062142231620315,
+          "p95FactorError": 6.780824600153515,
+          "coverage80": 0.8841185410334347,
+          "meanLogIntervalScore80": 3.017608138666189
+        },
+        "staticControl": {
+          "attempts": 2632,
+          "evaluated": 2632,
+          "abstentions": 0,
+          "meanAbsoluteLogError": 1.5022605710337644,
+          "medianFactorError": 4.281014600822577,
+          "p95FactorError": 11.630241734450044,
+          "coverage80": 0.7374620060790273,
+          "meanLogIntervalScore80": 3.9319578771589394
+        },
+        "ownHistoryCandidate": {
+          "attempts": 2632,
+          "evaluated": 2632,
+          "abstentions": 0,
+          "meanAbsoluteLogError": 1.377865128016382,
+          "medianFactorError": 3.8596463105754513,
+          "p95FactorError": 10.756744813650878,
+          "coverage80": 0.8191489361702128,
+          "meanLogIntervalScore80": 4.050410083863209
+        },
+        "commonCases": 2632
+      },
+      "premium": {
+        "attempts": 3135,
+        "v25": {
+          "attempts": 3135,
+          "evaluated": 3134,
+          "abstentions": 1,
+          "meanAbsoluteLogError": 2.5131066752856803,
+          "medianFactorError": 9.224096343727767,
+          "p95FactorError": 59.12351545630186,
+          "coverage80": 0.27185705169112956,
+          "meanLogIntervalScore80": 9.302556042957294
+        },
+        "staticControl": {
+          "attempts": 3135,
+          "evaluated": 3135,
+          "abstentions": 0,
+          "meanAbsoluteLogError": 2.6572663782041017,
+          "medianFactorError": 15.558386528795799,
+          "p95FactorError": 59.472747014636376,
+          "coverage80": 0.12599681020733652,
+          "meanLogIntervalScore80": 10.84837616200518
+        },
+        "ownHistoryCandidate": {
+          "attempts": 3135,
+          "evaluated": 3135,
+          "abstentions": 0,
+          "meanAbsoluteLogError": 2.4714802684098376,
+          "medianFactorError": 14.1153069198863,
+          "p95FactorError": 46.002314254546405,
+          "coverage80": 0.2800637958532695,
+          "meanLogIntervalScore80": 8.505952754038043
+        },
+        "commonCases": 3134
+      },
+      "secondary/ordinary": {
+        "attempts": 4149,
+        "v25": {
+          "attempts": 4149,
+          "evaluated": 4149,
+          "abstentions": 0,
+          "meanAbsoluteLogError": 0.4930540346525424,
+          "medianFactorError": 1.4894346383457626,
+          "p95FactorError": 3.7608669183002554,
+          "coverage80": 0.6558206796818511,
+          "meanLogIntervalScore80": 3.7879337724141404
+        },
+        "staticControl": {
+          "attempts": 4149,
+          "evaluated": 4149,
+          "abstentions": 0,
+          "meanAbsoluteLogError": 0.38879475792473506,
+          "medianFactorError": 1.3891794554274661,
+          "p95FactorError": 2.6661923921864314,
+          "coverage80": 0.943118823812967,
+          "meanLogIntervalScore80": 2.7992209594150985
+        },
+        "ownHistoryCandidate": {
+          "attempts": 4149,
+          "evaluated": 4149,
+          "abstentions": 0,
+          "meanAbsoluteLogError": 0.3739021907978613,
+          "medianFactorError": 1.2716239528245845,
+          "p95FactorError": 3.2259913097634447,
+          "coverage80": 0.967944082911545,
+          "meanLogIntervalScore80": 2.5179804659324043
+        },
+        "commonCases": 4149
+      },
+      "secondary/intermediate": {
+        "attempts": 621,
+        "v25": {
+          "attempts": 621,
+          "evaluated": 621,
+          "abstentions": 0,
+          "meanAbsoluteLogError": 0.830704968658438,
+          "medianFactorError": 2.1959319933920707,
+          "p95FactorError": 5.886730069821265,
+          "coverage80": 0.9355877616747182,
+          "meanLogIntervalScore80": 2.7476354194025236
+        },
+        "staticControl": {
+          "attempts": 621,
+          "evaluated": 621,
+          "abstentions": 0,
+          "meanAbsoluteLogError": 1.399420024628389,
+          "medianFactorError": 4.048114781610265,
+          "p95FactorError": 9.378612494277904,
+          "coverage80": 0.8325281803542673,
+          "meanLogIntervalScore80": 3.5102233972256376
+        },
+        "ownHistoryCandidate": {
+          "attempts": 621,
+          "evaluated": 621,
+          "abstentions": 0,
+          "meanAbsoluteLogError": 1.107521668408427,
+          "medianFactorError": 3.08200304277566,
+          "p95FactorError": 8.60775704694005,
+          "coverage80": 0.822866344605475,
+          "meanLogIntervalScore80": 4.552949191324541
+        },
+        "commonCases": 621
+      },
+      "secondary/premium": {
+        "attempts": 287,
+        "v25": {
+          "attempts": 287,
+          "evaluated": 287,
+          "abstentions": 0,
+          "meanAbsoluteLogError": 2.054056113208941,
+          "medianFactorError": 7.641273211103094,
+          "p95FactorError": 63.86670915179687,
+          "coverage80": 0.1602787456445993,
+          "meanLogIntervalScore80": 13.276641330103852
+        },
+        "staticControl": {
+          "attempts": 287,
+          "evaluated": 287,
+          "abstentions": 0,
+          "meanAbsoluteLogError": 2.7375437794450184,
+          "medianFactorError": 17.34362133578114,
+          "p95FactorError": 133.35839674983828,
+          "coverage80": 0.1951219512195122,
+          "meanLogIntervalScore80": 13.339813146798758
+        },
+        "ownHistoryCandidate": {
+          "attempts": 287,
+          "evaluated": 287,
+          "abstentions": 0,
+          "meanAbsoluteLogError": 1.359842561310093,
+          "medianFactorError": 2.958415289953969,
+          "p95FactorError": 29.20351752264153,
+          "coverage80": 0.7386759581881533,
+          "meanLogIntervalScore80": 6.978883144183068
+        },
+        "commonCases": 287,
+        "candidateVsV25ClusterBootstrap": {
+          "identities": 272,
+          "iterations": 2000,
+          "seed": 27092026,
+          "lower95": 0.2908935792270452,
+          "median": 0.3375143525227745,
+          "upper95": 0.38512881124895637
+        }
+      }
+    },
+    "2025jan": {
+      "all": {
+        "attempts": 6717,
+        "v25": {
+          "attempts": 6717,
+          "evaluated": 6716,
+          "abstentions": 1,
+          "meanAbsoluteLogError": 0.6065653455057747,
+          "medianFactorError": 1.2686377410555096,
+          "p95FactorError": 9.52740098802646,
+          "coverage80": 0.8262358546754021,
+          "meanLogIntervalScore80": 3.681670088448027
+        },
+        "staticControl": {
+          "attempts": 6717,
+          "evaluated": 6717,
+          "abstentions": 0,
+          "meanAbsoluteLogError": 0.6121668559196083,
+          "medianFactorError": 1.3067512750263572,
+          "p95FactorError": 10.049893549494328,
+          "coverage80": 0.8724132797379782,
+          "meanLogIntervalScore80": 3.4591352285993384
+        },
+        "ownHistoryCandidate": {
+          "attempts": 6717,
+          "evaluated": 6717,
+          "abstentions": 0,
+          "meanAbsoluteLogError": 0.5246081974036384,
+          "medianFactorError": 1.173067524639695,
+          "p95FactorError": 9.727172860374656,
+          "coverage80": 0.9440226291499181,
+          "meanLogIntervalScore80": 3.5720434731415893
+        },
+        "commonCases": 6716
+      },
+      "secondary/fixed": {
+        "attempts": 746,
+        "v25": {
+          "attempts": 746,
+          "evaluated": 746,
+          "abstentions": 0,
+          "meanAbsoluteLogError": 0.45852804275559245,
+          "medianFactorError": 1.337148086183698,
+          "p95FactorError": 4.033880742677447,
+          "coverage80": 0.7828418230563002,
+          "meanLogIntervalScore80": 3.4512513151106323
+        },
+        "staticControl": {
+          "attempts": 746,
+          "evaluated": 746,
+          "abstentions": 0,
+          "meanAbsoluteLogError": 0.7146650481070704,
+          "medianFactorError": 2.055765901902087,
+          "p95FactorError": 3.341953279244308,
+          "coverage80": 0.9369973190348525,
+          "meanLogIntervalScore80": 3.056175661463688
+        },
+        "ownHistoryCandidate": {
+          "attempts": 746,
+          "evaluated": 746,
+          "abstentions": 0,
+          "meanAbsoluteLogError": 0.3763187719517948,
+          "medianFactorError": 1.2833139664124469,
+          "p95FactorError": 3.6832859069169404,
+          "coverage80": 0.967828418230563,
+          "meanLogIntervalScore80": 2.5926112948210482
+        },
+        "commonCases": 746
+      },
+      "secondary/auction": {
+        "attempts": 1400,
+        "v25": {
+          "attempts": 1400,
+          "evaluated": 1400,
+          "abstentions": 0,
+          "meanAbsoluteLogError": 0.6384382922496163,
+          "medianFactorError": 1.7085273475722915,
+          "p95FactorError": 6.050826270322093,
+          "coverage80": 0.705,
+          "meanLogIntervalScore80": 3.720262858367123
+        },
+        "staticControl": {
+          "attempts": 1400,
+          "evaluated": 1400,
+          "abstentions": 0,
+          "meanAbsoluteLogError": 0.8001271192894043,
+          "medianFactorError": 2.1546737782869854,
+          "p95FactorError": 5.741154964521835,
+          "coverage80": 0.8414285714285714,
+          "meanLogIntervalScore80": 3.356108345189506
+        },
+        "ownHistoryCandidate": {
+          "attempts": 1400,
+          "evaluated": 1400,
+          "abstentions": 0,
+          "meanAbsoluteLogError": 0.5589353961151751,
+          "medianFactorError": 1.449880382960951,
+          "p95FactorError": 6.074763323536841,
+          "coverage80": 0.9378571428571428,
+          "meanLogIntervalScore80": 2.978928488932568
+        },
+        "commonCases": 1400
+      },
+      "primary/auction": {
+        "attempts": 4571,
+        "v25": {
+          "attempts": 4571,
+          "evaluated": 4570,
+          "abstentions": 1,
+          "meanAbsoluteLogError": 0.6209665932979516,
+          "medianFactorError": 1.2159688077213247,
+          "p95FactorError": 10.163071632725975,
+          "coverage80": 0.8704595185995624,
+          "meanLogIntervalScore80": 3.707460575761569
+        },
+        "staticControl": {
+          "attempts": 4571,
+          "evaluated": 4571,
+          "abstentions": 0,
+          "meanAbsoluteLogError": 0.5378706362544213,
+          "medianFactorError": 1.100513258842093,
+          "p95FactorError": 10.385170504706698,
+          "coverage80": 0.8713629402756509,
+          "meanLogIntervalScore80": 3.556454299668456
+        },
+        "ownHistoryCandidate": {
+          "attempts": 4571,
+          "evaluated": 4571,
+          "abstentions": 0,
+          "meanAbsoluteLogError": 0.5382957566228284,
+          "medianFactorError": 1.12125607281519,
+          "p95FactorError": 10.03595703243324,
+          "coverage80": 0.9420258149201488,
+          "meanLogIntervalScore80": 3.9135480417085855
+        },
+        "commonCases": 4570
+      },
+      "ordinary": {
+        "attempts": 5314,
+        "v25": {
+          "attempts": 5314,
+          "evaluated": 5314,
+          "abstentions": 0,
+          "meanAbsoluteLogError": 0.28976029618812876,
+          "medianFactorError": 1.1990774369714483,
+          "p95FactorError": 2.611807028396371,
+          "coverage80": 0.9055325555137373,
+          "meanLogIntervalScore80": 2.8841917616505817
+        },
+        "staticControl": {
+          "attempts": 5314,
+          "evaluated": 5314,
+          "abstentions": 0,
+          "meanAbsoluteLogError": 0.3218309443165016,
+          "medianFactorError": 1.1236420484633691,
+          "p95FactorError": 2.7026516945907564,
+          "coverage80": 0.9614226571321038,
+          "meanLogIntervalScore80": 2.7794058197810765
+        },
+        "ownHistoryCandidate": {
+          "attempts": 5314,
+          "evaluated": 5314,
+          "abstentions": 0,
+          "meanAbsoluteLogError": 0.22028092078428277,
+          "medianFactorError": 1.1223905448131917,
+          "p95FactorError": 2.1068871518458487,
+          "coverage80": 0.9881445238991343,
+          "meanLogIntervalScore80": 3.1693971966213765
+        },
+        "commonCases": 5314
+      },
+      "intermediate": {
+        "attempts": 676,
+        "v25": {
+          "attempts": 676,
+          "evaluated": 676,
+          "abstentions": 0,
+          "meanAbsoluteLogError": 1.0652464432872293,
+          "medianFactorError": 2.741417437012869,
+          "p95FactorError": 6.9053680777422795,
+          "coverage80": 0.8727810650887574,
+          "meanLogIntervalScore80": 3.136142512435853
+        },
+        "staticControl": {
+          "attempts": 676,
+          "evaluated": 676,
+          "abstentions": 0,
+          "meanAbsoluteLogError": 1.0895677283063123,
+          "medianFactorError": 2.821465961391973,
+          "p95FactorError": 7.343433496193016,
+          "coverage80": 0.8505917159763313,
+          "meanLogIntervalScore80": 3.5413214968422886
+        },
+        "ownHistoryCandidate": {
+          "attempts": 676,
+          "evaluated": 676,
+          "abstentions": 0,
+          "meanAbsoluteLogError": 1.0992419097382324,
+          "medianFactorError": 2.8211748730889967,
+          "p95FactorError": 7.381959561582153,
+          "coverage80": 0.9275147928994083,
+          "meanLogIntervalScore80": 3.9049371281259515
+        },
+        "commonCases": 676
+      },
+      "premium": {
+        "attempts": 727,
+        "v25": {
+          "attempts": 727,
+          "evaluated": 726,
+          "abstentions": 1,
+          "meanAbsoluteLogError": 2.4983471774254595,
+          "medianFactorError": 9.347797455884873,
+          "p95FactorError": 63.607398213111296,
+          "coverage80": 0.2024793388429752,
+          "meanLogIntervalScore80": 10.026816741320973
+        },
+        "staticControl": {
+          "attempts": 727,
+          "evaluated": 727,
+          "abstentions": 0,
+          "meanAbsoluteLogError": 2.290464028581889,
+          "medianFactorError": 9.921187327806603,
+          "p95FactorError": 41.88322807499866,
+          "coverage80": 0.24209078404401652,
+          "meanLogIntervalScore80": 8.351190470866158
+        },
+        "ownHistoryCandidate": {
+          "attempts": 727,
+          "evaluated": 727,
+          "abstentions": 0,
+          "meanAbsoluteLogError": 2.2147632983899754,
+          "medianFactorError": 9.546512658805248,
+          "p95FactorError": 32.47885047509147,
+          "coverage80": 0.6368638239339752,
+          "meanLogIntervalScore80": 6.205642101283184
+        },
+        "commonCases": 726
+      },
+      "secondary/ordinary": {
+        "attempts": 1933,
+        "v25": {
+          "attempts": 1933,
+          "evaluated": 1933,
+          "abstentions": 0,
+          "meanAbsoluteLogError": 0.4983363008737477,
+          "medianFactorError": 1.493346579247355,
+          "p95FactorError": 3.836355007119127,
+          "coverage80": 0.7418520434557683,
+          "meanLogIntervalScore80": 3.3499415072612253
+        },
+        "staticControl": {
+          "attempts": 1933,
+          "evaluated": 1933,
+          "abstentions": 0,
+          "meanAbsoluteLogError": 0.6959310619746454,
+          "medianFactorError": 2.0821269629930343,
+          "p95FactorError": 3.0587507565792915,
+          "coverage80": 0.8965338851526126,
+          "meanLogIntervalScore80": 2.984132353802822
+        },
+        "ownHistoryCandidate": {
+          "attempts": 1933,
+          "evaluated": 1933,
+          "abstentions": 0,
+          "meanAbsoluteLogError": 0.4049494449866911,
+          "medianFactorError": 1.3627893324177913,
+          "p95FactorError": 3.365198843908601,
+          "coverage80": 0.967408173823073,
+          "meanLogIntervalScore80": 2.568503448938717
+        },
+        "commonCases": 1933
+      },
+      "secondary/intermediate": {
+        "attempts": 141,
+        "v25": {
+          "attempts": 141,
+          "evaluated": 141,
+          "abstentions": 0,
+          "meanAbsoluteLogError": 0.900994144386624,
+          "medianFactorError": 2.4120557494845567,
+          "p95FactorError": 6.651529146141216,
+          "coverage80": 0.8936170212765957,
+          "meanLogIntervalScore80": 2.9813892725319144
+        },
+        "staticControl": {
+          "attempts": 141,
+          "evaluated": 141,
+          "abstentions": 0,
+          "meanAbsoluteLogError": 1.0548814514468698,
+          "medianFactorError": 2.7054088943603176,
+          "p95FactorError": 7.656607945893187,
+          "coverage80": 0.851063829787234,
+          "meanLogIntervalScore80": 3.7871977189416386
+        },
+        "ownHistoryCandidate": {
+          "attempts": 141,
+          "evaluated": 141,
+          "abstentions": 0,
+          "meanAbsoluteLogError": 1.1669620843374866,
+          "medianFactorError": 2.957540060060532,
+          "p95FactorError": 8.16836406986464,
+          "coverage80": 0.8297872340425532,
+          "meanLogIntervalScore80": 4.097308973097121
+        },
+        "commonCases": 141
+      },
+      "secondary/premium": {
+        "attempts": 72,
+        "v25": {
+          "attempts": 72,
+          "evaluated": 72,
+          "abstentions": 0,
+          "meanAbsoluteLogError": 2.0215456263564575,
+          "medianFactorError": 7.86789298644668,
+          "p95FactorError": 49.059337126095926,
+          "coverage80": 0.1527777777777778,
+          "meanLogIntervalScore80": 12.32206474754926
+        },
+        "staticControl": {
+          "attempts": 72,
+          "evaluated": 72,
+          "abstentions": 0,
+          "meanAbsoluteLogError": 2.2131259089172053,
+          "medianFactorError": 10.162968277774526,
+          "p95FactorError": 102.27992231777738,
+          "coverage80": 0.3333333333333333,
+          "meanLogIntervalScore80": 9.390777895077653
+        },
+        "ownHistoryCandidate": {
+          "attempts": 72,
+          "evaluated": 72,
+          "abstentions": 0,
+          "meanAbsoluteLogError": 1.6102003803670022,
+          "medianFactorError": 5.090601709636916,
+          "p95FactorError": 33.59342884026305,
+          "coverage80": 0.6666666666666666,
+          "meanLogIntervalScore80": 7.804863589401053
+        },
+        "commonCases": 72,
+        "candidateVsV25ClusterBootstrap": {
+          "identities": 69,
+          "iterations": 2000,
+          "seed": 27092026,
+          "lower95": 0.08113252815444827,
+          "median": 0.20262043563634102,
+          "upper95": 0.32042346564772295
+        }
+      }
+    }
+  },
+  "gates": {
+    "secondaryPremiumUniqueIdentities": {
+      "value": 338,
+      "minimum": 100,
+      "pass": true
+    },
+    "secondaryPremiumBlocks": {
+      "value": 2,
+      "minimum": 2,
+      "pass": true
+    },
+    "secondaryPremiumMedianFactorError": {
+      "value": 3.051302223987387,
+      "maximum": 3,
+      "pass": false
+    },
+    "secondaryPremiumMaleImprovementVsV25": {
+      "value": 0.31134120902398443,
+      "minimum": 0.25,
+      "clusteredLower95": 0.26770073226719415,
+      "lower95MustBePositive": true,
+      "pass": true
+    },
+    "ordinaryMaleRegressionVsV25": {
+      "value": 0.394448660057088,
+      "maximum": 0.05,
+      "pass": false
+    },
+    "intermediateMaleRegressionVsV25": {
+      "value": 0.3134217594481292,
+      "maximum": 0.05,
+      "pass": false
+    },
+    "secondaryPremiumCoverage80": {
+      "value": 0.724233983286908,
+      "minimum": 0.7,
+      "pass": true
+    },
+    "overallCoverage80": {
+      "value": 0.8941119535408937,
+      "range": [
+        0.75,
+        0.85
+      ],
+      "pass": false
+    },
+    "overallIntervalScore80VsV25": {
+      "value": 3.70744356763942,
+      "v25": 3.6374802131864863,
+      "pass": false
+    },
+    "availabilityVsV25": {
+      "candidate": 1,
+      "v25": 0.9999354734634619,
+      "pass": true
+    },
+    "prospectiveCurrentMarket": {
+      "pass": false,
+      "required": true,
+      "note": "Still pending; exposed historical folds cannot qualify production."
+    }
+  },
+  "gateDecision": "rejected",
+  "limitations": [
+    "This audit recomputes aggregates from a frozen, exposed historical comparison; it is not a new fit or untouched evaluation.",
+    "The two temporal folds were already exposed during candidate development.",
+    "Prospective current-market qualification remains mandatory before any production promotion."
+  ]
+}

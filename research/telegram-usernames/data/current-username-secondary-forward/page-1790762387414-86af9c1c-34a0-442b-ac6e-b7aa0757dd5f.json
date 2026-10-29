@@ -1,0 +1,91 @@
+{
+  "schemaVersion": "username-secondary-local-v1",
+  "from": "2026-09-20T14:00:00Z",
+  "pipeline": "username-toncenter-secondary-sales-v1",
+  "collectedAt": "2026-09-30T09:59:47.414Z",
+  "cursor": {
+    "absoluteOffset": 46758,
+    "caughtUp": false
+  },
+  "metadata": {
+    "transfers": 100,
+    "saleContracts": 1,
+    "verifiedSales": 1,
+    "assets": 1,
+    "sales": 1,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-30T09:59:47.414Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:7983050a469d9813d5d50241e78d7f37b05c83df39948a993576c55e8aaa9d37",
+      "normalizedName": "vesui",
+      "displayName": "@vesui",
+      "primaryRoute": "word",
+      "lengthBucket": "4-5",
+      "script": "Latin",
+      "scarcityClass": "5L",
+      "feature": {
+        "classifierVersion": "username-structural-v2",
+        "normalizedUsername": "vesui",
+        "displayUsername": "@vesui",
+        "characterLength": 5,
+        "byteLength": 5,
+        "characterClass": "letters",
+        "primaryRoute": "word",
+        "routes": [
+          "word"
+        ],
+        "scarcityClass": "5L",
+        "patternSignature": "ABCDE",
+        "shapeSignature": "LLLLL",
+        "uniqueCharacterCount": 5,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "repeatedBlock": null,
+        "scripts": [
+          "Latin"
+        ],
+        "primaryScript": "Latin",
+        "containsUnderscore": false,
+        "underscoreCount": 0,
+        "digitCount": 0,
+        "digitRatio": 0,
+        "vowelRatio": 0.6,
+        "pronounceability": "balanced",
+        "leadingZero": false,
+        "roundNumber": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-28T11:10:04.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-secondary:d0b51087faa01c8ced3818398106a709c0126579d82c786d5ebb3c726616e3b8",
+      "assetKind": "username",
+      "assetKey": "0:7983050a469d9813d5d50241e78d7f37b05c83df39948a993576c55e8aaa9d37",
+      "normalizedName": "vesui",
+      "soldAt": "2026-09-28T11:10:04.000Z",
+      "priceGram": 6.35,
+      "historicalUsdRate": 1.6704408504568276,
+      "priceUsd": 10.607299400400855,
+      "marketplace": "Getgems",
+      "source": "toncenter-indexed-secondary-sale",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-completed-sale-contract",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "transactionHash": "UkJWE8rhr9pVJSf9Ge1IewwyRMefCoXkYShROEX91p0=",
+        "saleContract": "0:8ac21b8ad3311e4aa07545d2f95855c8759cd3430be514cc3035e80e67a33066"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "4-5",
+      "script": "Latin",
+      "scarcityClass": "5L"
+    }
+  ]
+}

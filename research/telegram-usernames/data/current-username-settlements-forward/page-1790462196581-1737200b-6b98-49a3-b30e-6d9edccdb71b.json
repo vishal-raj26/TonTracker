@@ -1,0 +1,175 @@
+{
+  "schemaVersion": "username-local-collection-v1",
+  "from": "2026-09-20T13:45:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "collectedAt": "2026-09-26T22:36:36.580Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 65225,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 80,
+    "candidates": 15,
+    "verifiedItems": 3,
+    "wrongCollection": 12,
+    "assets": 3,
+    "sales": 3,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-26T22:36:36.580Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:ae58d117963618896063dacc41dafd443a0cbb065522981b07f491579326f50a",
+      "normalizedName": "niulaoda",
+      "displayName": "@niulaoda",
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "8L",
+      "feature": {
+        "characterLength": 8,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCDEFGE",
+        "uniqueCharacterCount": 7,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-23T17:49:49.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:3463c89a95c8b4062618b2cc629091987a9bed831b256e99cd0cc30564d7e346",
+      "normalizedName": "uz_coiner",
+      "displayName": "@uz_coiner",
+      "primaryRoute": "residual",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "9M",
+      "feature": {
+        "characterLength": 9,
+        "characterClass": "alphanumeric",
+        "routes": [
+          "residual"
+        ],
+        "patternSignature": "ABCDEFGHI",
+        "uniqueCharacterCount": 9,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": true,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-23T17:50:30.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:c5f548e8f32bb9c0ac8a115e6ba314fe20472e64fe37ad82e745a2adcf66f49d",
+      "normalizedName": "xx_yusef",
+      "displayName": "@xx_yusef",
+      "primaryRoute": "pattern",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "8M",
+      "feature": {
+        "characterLength": 8,
+        "characterClass": "alphanumeric",
+        "routes": [
+          "pattern"
+        ],
+        "patternSignature": "AABCDEFG",
+        "uniqueCharacterCount": 7,
+        "maxRunLength": 2,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": true,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-23T17:53:43.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:91fea137aabef75ee4f731f85d92815c5aef0920cda2505c420553a5e52b99c1",
+      "assetKind": "username",
+      "assetKey": "0:ae58d117963618896063dacc41dafd443a0cbb065522981b07f491579326f50a",
+      "normalizedName": "niulaoda",
+      "soldAt": "2026-09-23T17:49:49.000Z",
+      "priceGram": 210,
+      "historicalUsdRate": 1.4080609800552624,
+      "priceUsd": 295.69280581160507,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "0aYMCzgjIrtLmt9cHGlp6EJLu6BDjmYu+RquA6MB7YI=",
+        "messageHash": "9uVUY1guVs8ExlhwyUshQPq7YUJfoRsROd3t+RJWT+U=",
+        "bidAt": "2026-09-23T16:49:31.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "8L"
+    },
+    {
+      "saleId": "toncenter-username-sale:a40931d66a1f1153f02fe73881114da4db86792a2099c9a15c4296f8a751bf38",
+      "assetKind": "username",
+      "assetKey": "0:3463c89a95c8b4062618b2cc629091987a9bed831b256e99cd0cc30564d7e346",
+      "normalizedName": "uz_coiner",
+      "soldAt": "2026-09-23T17:50:30.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.4080762594072294,
+      "priceUsd": 14.080762594072294,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "hwPBeCZwc7YRf1M8CcRMXfEJPMNQJfrISXMKKAXUjDw=",
+        "messageHash": "gitOAKMPB3x71ZHSyPLhkihHwzIwnGSt1+HpqUPe2Uc=",
+        "bidAt": "2026-09-16T17:50:12.000Z"
+      },
+      "primaryRoute": "residual",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "9M"
+    },
+    {
+      "saleId": "toncenter-username-sale:acbd52cc6f0a792b40296eec28ef6d9179aa918c3400d8b1a7ecd73cb80786f3",
+      "assetKind": "username",
+      "assetKey": "0:c5f548e8f32bb9c0ac8a115e6ba314fe20472e64fe37ad82e745a2adcf66f49d",
+      "normalizedName": "xx_yusef",
+      "soldAt": "2026-09-23T17:53:43.000Z",
+      "priceGram": 6,
+      "historicalUsdRate": 1.4081481841616104,
+      "priceUsd": 8.448889104969663,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "QsTt8EZKrr2oKJRxKNNWrTImwN4lXAFt52YapIEvlyw=",
+        "messageHash": "0eLeoh64ZHb2bWwhzJE0oUAskUfiRU8pb9/SG+pWmvo=",
+        "bidAt": "2026-09-23T17:53:43.000Z"
+      },
+      "primaryRoute": "pattern",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "8M"
+    }
+  ]
+}

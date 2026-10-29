@@ -1,0 +1,483 @@
+{
+  "qualification": false,
+  "developmentOnly": true,
+  "productionChanged": false,
+  "reserved2026OutcomesOpened": false,
+  "method": "Latest strictly-prior completed sale of the same NFT contract and unambiguous username; no sale-time, target-price, venue or outcome-based routing",
+  "inputs": {
+    "modelReportSha256": "bcf957d8ac3a1d6adf7800587a0b726b57128fe15012be92e02782022fffa82d",
+    "historicalSalesSha256": "6d724b74f727a797d553190cb72e408d3c70d6069202636a60f7ea2b2850682f",
+    "universeSha256": "5bd5216ddfe76d5c18e490814b968fa6ca9ffc42a65cdf2224c6b9b8a90f9f6b",
+    "historicalSalesLoaded": 340000,
+    "rejected": 0
+  },
+  "attempts": 30995,
+  "cohorts": {
+    "all/all": {
+      "attempts": 30995,
+      "uniqueIdentities": 28363,
+      "ownAvailable": 7108,
+      "ownAvailableIdentities": 5671,
+      "ownAbsent": 23887,
+      "ownAmbiguous": 0,
+      "allStageAll": {
+        "samples": 30995,
+        "meanAbsoluteLogError": 0.8021293396450437,
+        "medianFactorError": 1.6083011664818299
+      },
+      "allStageOwnCovered": {
+        "samples": 7108,
+        "meanAbsoluteLogError": 0.6814021861953691,
+        "medianFactorError": 1.6032599094555045
+      },
+      "lastOwnCovered": {
+        "samples": 7108,
+        "meanAbsoluteLogError": 0.617535493465352,
+        "medianFactorError": 1.5627748847872676
+      }
+    },
+    "all/ordinary": {
+      "attempts": 23825,
+      "uniqueIdentities": 21581,
+      "ownAvailable": 6005,
+      "ownAvailableIdentities": 4724,
+      "ownAbsent": 17820,
+      "ownAmbiguous": 0,
+      "allStageAll": {
+        "samples": 23825,
+        "meanAbsoluteLogError": 0.42710614189100904,
+        "medianFactorError": 1.5013424440579823
+      },
+      "allStageOwnCovered": {
+        "samples": 6005,
+        "meanAbsoluteLogError": 0.48586670203393495,
+        "medianFactorError": 1.495171867179954
+      },
+      "lastOwnCovered": {
+        "samples": 6005,
+        "meanAbsoluteLogError": 0.5410500368693961,
+        "medianFactorError": 1.47435283204115
+      }
+    },
+    "all/intermediate": {
+      "attempts": 3308,
+      "uniqueIdentities": 3206,
+      "ownAvailable": 752,
+      "ownAvailableIdentities": 700,
+      "ownAbsent": 2556,
+      "ownAmbiguous": 0,
+      "allStageAll": {
+        "samples": 3308,
+        "meanAbsoluteLogError": 1.4179255161112283,
+        "medianFactorError": 4.008919656230683
+      },
+      "allStageOwnCovered": {
+        "samples": 752,
+        "meanAbsoluteLogError": 1.3314084283791077,
+        "medianFactorError": 3.7769526534765134
+      },
+      "lastOwnCovered": {
+        "samples": 752,
+        "meanAbsoluteLogError": 0.8738969139191987,
+        "medianFactorError": 2.1859476350551583
+      }
+    },
+    "all/premium": {
+      "attempts": 3862,
+      "uniqueIdentities": 3817,
+      "ownAvailable": 351,
+      "ownAvailableIdentities": 332,
+      "ownAbsent": 3511,
+      "ownAmbiguous": 0,
+      "allStageAll": {
+        "samples": 3862,
+        "meanAbsoluteLogError": 2.5882178778997638,
+        "medianFactorError": 15.030943229052854
+      },
+      "allStageOwnCovered": {
+        "samples": 351,
+        "meanAbsoluteLogError": 2.634068534535083,
+        "medianFactorError": 15.83790419175965
+      },
+      "lastOwnCovered": {
+        "samples": 351,
+        "meanAbsoluteLogError": 1.3768271706089994,
+        "medianFactorError": 3.252772158724947
+      }
+    },
+    "secondary/all": {
+      "attempts": 7203,
+      "uniqueIdentities": 5741,
+      "ownAvailable": 7108,
+      "ownAvailableIdentities": 5671,
+      "ownAbsent": 95,
+      "ownAmbiguous": 0,
+      "allStageAll": {
+        "samples": 7203,
+        "meanAbsoluteLogError": 0.6832073363206616,
+        "medianFactorError": 1.6045644500485974
+      },
+      "allStageOwnCovered": {
+        "samples": 7108,
+        "meanAbsoluteLogError": 0.6814021861953691,
+        "medianFactorError": 1.6032599094555045
+      },
+      "lastOwnCovered": {
+        "samples": 7108,
+        "meanAbsoluteLogError": 0.617535493465352,
+        "medianFactorError": 1.5627748847872676
+      }
+    },
+    "secondary/ordinary": {
+      "attempts": 6082,
+      "uniqueIdentities": 4781,
+      "ownAvailable": 6005,
+      "ownAvailableIdentities": 4724,
+      "ownAbsent": 77,
+      "ownAmbiguous": 0,
+      "allStageAll": {
+        "samples": 6082,
+        "meanAbsoluteLogError": 0.4864097654433942,
+        "medianFactorError": 1.496023344188774
+      },
+      "allStageOwnCovered": {
+        "samples": 6005,
+        "meanAbsoluteLogError": 0.48586670203393495,
+        "medianFactorError": 1.495171867179954
+      },
+      "lastOwnCovered": {
+        "samples": 6005,
+        "meanAbsoluteLogError": 0.5410500368693961,
+        "medianFactorError": 1.47435283204115
+      }
+    },
+    "secondary/intermediate": {
+      "attempts": 762,
+      "uniqueIdentities": 709,
+      "ownAvailable": 752,
+      "ownAvailableIdentities": 700,
+      "ownAbsent": 10,
+      "ownAmbiguous": 0,
+      "allStageAll": {
+        "samples": 762,
+        "meanAbsoluteLogError": 1.3356668240790543,
+        "medianFactorError": 3.824900982806435
+      },
+      "allStageOwnCovered": {
+        "samples": 752,
+        "meanAbsoluteLogError": 1.3314084283791077,
+        "medianFactorError": 3.7769526534765134
+      },
+      "lastOwnCovered": {
+        "samples": 752,
+        "meanAbsoluteLogError": 0.8738969139191987,
+        "medianFactorError": 2.1859476350551583
+      }
+    },
+    "secondary/premium": {
+      "attempts": 359,
+      "uniqueIdentities": 338,
+      "ownAvailable": 351,
+      "ownAvailableIdentities": 332,
+      "ownAbsent": 8,
+      "ownAmbiguous": 0,
+      "allStageAll": {
+        "samples": 359,
+        "meanAbsoluteLogError": 2.632368050536936,
+        "medianFactorError": 15.852874393672302
+      },
+      "allStageOwnCovered": {
+        "samples": 351,
+        "meanAbsoluteLogError": 2.634068534535083,
+        "medianFactorError": 15.83790419175965
+      },
+      "lastOwnCovered": {
+        "samples": 351,
+        "meanAbsoluteLogError": 1.3768271706089994,
+        "medianFactorError": 3.252772158724947
+      }
+    },
+    "secondaryAuction/all": {
+      "attempts": 4883,
+      "uniqueIdentities": 4337,
+      "ownAvailable": 4810,
+      "ownAvailableIdentities": 4278,
+      "ownAbsent": 73,
+      "ownAmbiguous": 0,
+      "allStageAll": {
+        "samples": 4883,
+        "meanAbsoluteLogError": 0.7657339699896312,
+        "medianFactorError": 1.7314410109821254
+      },
+      "allStageOwnCovered": {
+        "samples": 4810,
+        "meanAbsoluteLogError": 0.76340341323725,
+        "medianFactorError": 1.7289403421822158
+      },
+      "lastOwnCovered": {
+        "samples": 4810,
+        "meanAbsoluteLogError": 0.6745751359563431,
+        "medianFactorError": 1.6672541389557094
+      }
+    },
+    "secondaryAuction/ordinary": {
+      "attempts": 3903,
+      "uniqueIdentities": 3480,
+      "ownAvailable": 3847,
+      "ownAvailableIdentities": 3433,
+      "ownAbsent": 56,
+      "ownAmbiguous": 0,
+      "allStageAll": {
+        "samples": 3903,
+        "meanAbsoluteLogError": 0.5235254105809257,
+        "medianFactorError": 1.5514767324107865
+      },
+      "allStageOwnCovered": {
+        "samples": 3847,
+        "meanAbsoluteLogError": 0.5232719772073984,
+        "medianFactorError": 1.5507075347500172
+      },
+      "lastOwnCovered": {
+        "samples": 3847,
+        "meanAbsoluteLogError": 0.5915010021017608,
+        "medianFactorError": 1.5422062887444916
+      }
+    },
+    "secondaryAuction/intermediate": {
+      "attempts": 688,
+      "uniqueIdentities": 643,
+      "ownAvailable": 678,
+      "ownAvailableIdentities": 634,
+      "ownAbsent": 10,
+      "ownAmbiguous": 0,
+      "allStageAll": {
+        "samples": 688,
+        "meanAbsoluteLogError": 1.3432277711884668,
+        "medianFactorError": 3.8858851005034705
+      },
+      "allStageOwnCovered": {
+        "samples": 678,
+        "meanAbsoluteLogError": 1.3386161132308474,
+        "medianFactorError": 3.85369783483376
+      },
+      "lastOwnCovered": {
+        "samples": 678,
+        "meanAbsoluteLogError": 0.8638954591059289,
+        "medianFactorError": 2.1765187772172636
+      }
+    },
+    "secondaryAuction/premium": {
+      "attempts": 292,
+      "uniqueIdentities": 278,
+      "ownAvailable": 285,
+      "ownAvailableIdentities": 273,
+      "ownAbsent": 7,
+      "ownAmbiguous": 0,
+      "allStageAll": {
+        "samples": 292,
+        "meanAbsoluteLogError": 2.6425294225491487,
+        "medianFactorError": 16.226970855885366
+      },
+      "allStageOwnCovered": {
+        "samples": 285,
+        "meanAbsoluteLogError": 2.6363557774870032,
+        "medianFactorError": 15.985783118150081
+      },
+      "lastOwnCovered": {
+        "samples": 285,
+        "meanAbsoluteLogError": 1.345547114353404,
+        "medianFactorError": 3.155432605020973
+      }
+    },
+    "secondaryFixed/all": {
+      "attempts": 2320,
+      "uniqueIdentities": 1921,
+      "ownAvailable": 2298,
+      "ownAvailableIdentities": 1903,
+      "ownAbsent": 22,
+      "ownAmbiguous": 0,
+      "allStageAll": {
+        "samples": 2320,
+        "meanAbsoluteLogError": 0.5095101155423906,
+        "medianFactorError": 1.450997154019589
+      },
+      "allStageOwnCovered": {
+        "samples": 2298,
+        "meanAbsoluteLogError": 0.5097634124479998,
+        "medianFactorError": 1.450997154019589
+      },
+      "lastOwnCovered": {
+        "samples": 2298,
+        "meanAbsoluteLogError": 0.4981444228031829,
+        "medianFactorError": 1.412840938766948
+      }
+    },
+    "secondaryFixed/ordinary": {
+      "attempts": 2179,
+      "uniqueIdentities": 1790,
+      "ownAvailable": 2158,
+      "ownAvailableIdentities": 1773,
+      "ownAbsent": 21,
+      "ownAmbiguous": 0,
+      "allStageAll": {
+        "samples": 2179,
+        "meanAbsoluteLogError": 0.4199286442998456,
+        "medianFactorError": 1.426160939061538
+      },
+      "allStageOwnCovered": {
+        "samples": 2158,
+        "meanAbsoluteLogError": 0.4191854723804041,
+        "medianFactorError": 1.425938493002339
+      },
+      "lastOwnCovered": {
+        "samples": 2158,
+        "meanAbsoluteLogError": 0.4511126581627702,
+        "medianFactorError": 1.3773562875416767
+      }
+    },
+    "secondaryFixed/intermediate": {
+      "attempts": 74,
+      "uniqueIdentities": 74,
+      "ownAvailable": 74,
+      "ownAvailableIdentities": 74,
+      "ownAbsent": 0,
+      "ownAmbiguous": 0,
+      "allStageAll": {
+        "samples": 74,
+        "meanAbsoluteLogError": 1.265370450953703,
+        "medianFactorError": 3.412246476259888
+      },
+      "allStageOwnCovered": {
+        "samples": 74,
+        "meanAbsoluteLogError": 1.265370450953703,
+        "medianFactorError": 3.412246476259888
+      },
+      "lastOwnCovered": {
+        "samples": 74,
+        "meanAbsoluteLogError": 0.9655318647759132,
+        "medianFactorError": 2.329424548376873
+      }
+    },
+    "secondaryFixed/premium": {
+      "attempts": 67,
+      "uniqueIdentities": 65,
+      "ownAvailable": 66,
+      "ownAvailableIdentities": 64,
+      "ownAbsent": 1,
+      "ownAmbiguous": 0,
+      "allStageAll": {
+        "samples": 67,
+        "meanAbsoluteLogError": 2.5880826680359474,
+        "medianFactorError": 11.635321593942198
+      },
+      "allStageOwnCovered": {
+        "samples": 66,
+        "meanAbsoluteLogError": 2.6241918036063336,
+        "medianFactorError": 12.07491570114352
+      },
+      "lastOwnCovered": {
+        "samples": 66,
+        "meanAbsoluteLogError": 1.5119001408036175,
+        "medianFactorError": 4.5008072678415685
+      }
+    },
+    "primary/all": {
+      "attempts": 23792,
+      "uniqueIdentities": 23792,
+      "ownAvailable": 0,
+      "ownAvailableIdentities": 0,
+      "ownAbsent": 23792,
+      "ownAmbiguous": 0,
+      "allStageAll": {
+        "samples": 23792,
+        "meanAbsoluteLogError": 0.8381328361962193,
+        "medianFactorError": 1.609245896106977
+      },
+      "allStageOwnCovered": {
+        "samples": 0,
+        "meanAbsoluteLogError": null,
+        "medianFactorError": null
+      },
+      "lastOwnCovered": {
+        "samples": 0,
+        "meanAbsoluteLogError": null,
+        "medianFactorError": null
+      }
+    },
+    "primary/ordinary": {
+      "attempts": 17743,
+      "uniqueIdentities": 17743,
+      "ownAvailable": 0,
+      "ownAvailableIdentities": 0,
+      "ownAbsent": 17743,
+      "ownAmbiguous": 0,
+      "allStageAll": {
+        "samples": 17743,
+        "meanAbsoluteLogError": 0.4067778637843987,
+        "medianFactorError": 1.5022878756170215
+      },
+      "allStageOwnCovered": {
+        "samples": 0,
+        "meanAbsoluteLogError": null,
+        "medianFactorError": null
+      },
+      "lastOwnCovered": {
+        "samples": 0,
+        "meanAbsoluteLogError": null,
+        "medianFactorError": null
+      }
+    },
+    "primary/intermediate": {
+      "attempts": 2546,
+      "uniqueIdentities": 2546,
+      "ownAvailable": 0,
+      "ownAvailableIdentities": 0,
+      "ownAbsent": 2546,
+      "ownAmbiguous": 0,
+      "allStageAll": {
+        "samples": 2546,
+        "meanAbsoluteLogError": 1.4425449675364121,
+        "medianFactorError": 4.079121258681973
+      },
+      "allStageOwnCovered": {
+        "samples": 0,
+        "meanAbsoluteLogError": null,
+        "medianFactorError": null
+      },
+      "lastOwnCovered": {
+        "samples": 0,
+        "meanAbsoluteLogError": null,
+        "medianFactorError": null
+      }
+    },
+    "primary/premium": {
+      "attempts": 3503,
+      "uniqueIdentities": 3503,
+      "ownAvailable": 0,
+      "ownAvailableIdentities": 0,
+      "ownAbsent": 3503,
+      "ownAmbiguous": 0,
+      "allStageAll": {
+        "samples": 3503,
+        "meanAbsoluteLogError": 2.583693209907544,
+        "medianFactorError": 15.006631542180656
+      },
+      "allStageOwnCovered": {
+        "samples": 0,
+        "meanAbsoluteLogError": null,
+        "medianFactorError": null
+      },
+      "lastOwnCovered": {
+        "samples": 0,
+        "meanAbsoluteLogError": null,
+        "medianFactorError": null
+      }
+    }
+  },
+  "limitations": [
+    "Exposed historical feature-export targets, not an unbiased current-market sample.",
+    "The last own sale is a diagnostic baseline, not an active offer, guaranteed floor or production valuation.",
+    "Actual price and realized venue are used only for retrospective reporting; no target-time routing is tested.",
+    "Any future learned fusion needs a separately frozen chronological protocol, matched v25 and untouched 2026 validation."
+  ]
+}

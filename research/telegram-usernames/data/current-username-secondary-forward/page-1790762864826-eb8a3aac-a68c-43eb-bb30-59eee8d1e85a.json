@@ -1,0 +1,91 @@
+{
+  "schemaVersion": "username-secondary-local-v1",
+  "from": "2026-09-20T14:00:00Z",
+  "pipeline": "username-toncenter-secondary-sales-v1",
+  "collectedAt": "2026-09-30T10:07:44.826Z",
+  "cursor": {
+    "absoluteOffset": 51058,
+    "caughtUp": false
+  },
+  "metadata": {
+    "transfers": 100,
+    "saleContracts": 31,
+    "verifiedSales": 1,
+    "assets": 1,
+    "sales": 1,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-30T10:07:44.826Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:66c9f04e8c17f5f6c6eb8f14c955afca6a22233251f8853d777b87c7e866f002",
+      "normalizedName": "envester",
+      "displayName": "@envester",
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "8L",
+      "feature": {
+        "classifierVersion": "username-structural-v2",
+        "normalizedUsername": "envester",
+        "displayUsername": "@envester",
+        "characterLength": 8,
+        "byteLength": 8,
+        "characterClass": "letters",
+        "primaryRoute": "word",
+        "routes": [
+          "word"
+        ],
+        "scarcityClass": "8L",
+        "patternSignature": "ABCADEAF",
+        "shapeSignature": "LLLLLLLL",
+        "uniqueCharacterCount": 6,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "repeatedBlock": null,
+        "scripts": [
+          "Latin"
+        ],
+        "primaryScript": "Latin",
+        "containsUnderscore": false,
+        "underscoreCount": 0,
+        "digitCount": 0,
+        "digitRatio": 0,
+        "vowelRatio": 0.375,
+        "pronounceability": "balanced",
+        "leadingZero": false,
+        "roundNumber": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-29T03:40:16.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-secondary:0a2926423f5e66e87de444f8aa43e2578177237a563dd50d947362233f4005ac",
+      "assetKind": "username",
+      "assetKey": "0:66c9f04e8c17f5f6c6eb8f14c955afca6a22233251f8853d777b87c7e866f002",
+      "normalizedName": "envester",
+      "soldAt": "2026-09-29T03:40:16.000Z",
+      "priceGram": 16,
+      "historicalUsdRate": 1.5585119370795297,
+      "priceUsd": 24.936190993272476,
+      "marketplace": "Getgems",
+      "source": "toncenter-indexed-secondary-sale",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-completed-sale-contract",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "transactionHash": "Gl3fH5ojtut7S+kSKQpJkfuNzlk6n4ThCti7+wL556Y=",
+        "saleContract": "0:bfb3298a949fead3102c6d899239d518af26524e5bf9017e3c94321a02b24f20"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "8L"
+    }
+  ]
+}

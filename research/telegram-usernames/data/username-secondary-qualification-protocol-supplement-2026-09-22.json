@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "username-secondary-qualification-protocol-supplement-v1",
+  "sealedBeforeOutcomeLabelsOpened": true,
+  "createdAt": "2026-09-22T13:30:58.253Z",
+  "reservation": {
+    "file": "username-secondary-forward-reservation-manifest-2026-09-20.json",
+    "sha256": "7d0fa6468539febb565919dadad4a3eff3412a8a4d907f42316acad92f156c94"
+  },
+  "priceBlindStateAtSeal": {
+    "audit": "username-secondary-integrity-2026-09-22-batch2.json",
+    "sha256": "a35c22150863a1932216a86fb3ad04658a1529a009844c79dae95c1758c62a91",
+    "pricesOpened": false,
+    "uniqueEvents": 562,
+    "uniqueAssets": 539,
+    "cursor": {
+      "absoluteOffset": 12370,
+      "caughtUp": true
+    }
+  },
+  "frozenFiles": {
+    "scripts/evaluate-username-secondary-qualification.js": "9f78890f508e712b5398146d979de256415ddbb409cfdee56d5845bb01689569",
+    "scripts/seal-username-secondary-qualification.js": "d8dee05eb7c0590bceca1a897d3d93928f9d2e4fae9858c3225990e9a4203516"
+  },
+  "gates": {
+    "minimumPremiumUniqueIdentities": 100,
+    "minimumPremiumWeeklyBlocks": 2,
+    "premiumThresholdUsd": 500,
+    "premiumMedianFactorErrorMaximum": 3,
+    "premiumMaleImprovementVsV25Minimum": 0.25,
+    "ordinaryAndIntermediateMaleRegressionMaximum": 0.05,
+    "overallIntervalCoverageMinimum": 0.75,
+    "overallIntervalCoverageMaximum": 0.85,
+    "premiumIntervalCoverageMinimum": 0.7,
+    "premiumImprovementBootstrapLower95Minimum": 0,
+    "overallIntervalScoreRegressionMaximum": 0,
+    "candidateAvailabilityRegressionMaximum": 0
+  },
+  "evaluation": {
+    "baseline": "v25 with historical export only; reserved outcomes never enter baseline evidence",
+    "candidate": "same v25 plus only strictly earlier reserved secondary sales",
+    "simultaneousEventsExcluded": true,
+    "everyReservedEventAttempted": true,
+    "pairedCohortComparison": true,
+    "bootstrap": {
+      "clusteredBy": "nftAddress",
+      "iterations": 2000,
+      "seed": 25092026,
+      "confidence": 0.95
+    },
+    "terminalCondition": "first of exact 4000 unique events or 2026-10-20T00:00:00Z with caught-up cursor",
+    "oneTimeOutput": "username-secondary-qualification-result.json"
+  },
+  "rationale": "The original pre-window reservation froze candidate behavior and gates but omitted the mechanical final evaluator. This supplement freezes evaluation mechanics while all reserved prices and premium counts remain unopened; it does not change the candidate or select events."
+}

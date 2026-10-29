@@ -1,0 +1,76 @@
+{
+  "schemaVersion": "username-forward-v2-local-v1",
+  "from": "2026-09-27T00:00:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "requestedEndUtime": 1790761800,
+  "collectedAt": "2026-09-30T10:14:49.489Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 31325,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 80,
+    "candidates": 4,
+    "verifiedItems": 1,
+    "wrongCollection": 3,
+    "assets": 1,
+    "sales": 1,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-30T10:14:49.489Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:f6aacf6d06d684734ba1091d38ecaabecd981bed9521291d3f0d8f143068e623",
+      "normalizedName": "stickerholderok",
+      "displayName": "@stickerholderok",
+      "primaryRoute": "residual",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "15L",
+      "feature": {
+        "characterLength": 15,
+        "characterClass": "letters",
+        "routes": [
+          "residual"
+        ],
+        "patternSignature": "ABCDEFGHIJKFGIE",
+        "uniqueCharacterCount": 11,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-28T17:48:49.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:910c296d980d1b165383bc3152e4517d721b5522ba322f085d56f41613fcce66",
+      "assetKind": "username",
+      "assetKey": "0:f6aacf6d06d684734ba1091d38ecaabecd981bed9521291d3f0d8f143068e623",
+      "normalizedName": "stickerholderok",
+      "soldAt": "2026-09-28T17:48:49.000Z",
+      "priceGram": 6,
+      "historicalUsdRate": 1.6413730029552478,
+      "priceUsd": 9.848238017731486,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "SW8zXP1Q90uqkNC7c2PeRldO03yGXWku7S816Pva240=",
+        "messageHash": "GSraydbMm1OCxOQwYQRbxdv/eHJDLHSI0jMcVkHi/6w=",
+        "bidAt": "2026-09-28T17:48:49.000Z"
+      },
+      "primaryRoute": "residual",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "15L"
+    }
+  ]
+}

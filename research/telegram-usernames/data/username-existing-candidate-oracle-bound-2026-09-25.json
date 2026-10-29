@@ -1,0 +1,94 @@
+{
+  "schemaVersion": "username-existing-candidate-oracle-bound-v1",
+  "qualification": false,
+  "developmentOnly": true,
+  "productionChanged": false,
+  "reserved2026OutcomesOpened": false,
+  "createdAt": "2026-09-25T15:07:55.897Z",
+  "method": "For each exposed case, use the actual sale price to choose the lower absolute log error of v25 and the saved candidate. This is an infeasible routing oracle, not a trained classifier or an independent test.",
+  "inputs": {
+    "globalFusion": {
+      "file": "username-premium-gated-fusion-development-2026-09-19.json",
+      "sha256": "7e9ac7cb489ef2b863f3f3dd36fa733b108832b6928f4f41f6633d04211e4eba"
+    },
+    "secondaryQ1": {
+      "file": "username-secondary-full-context-development-2025-Q1-2026-09-25.json",
+      "sha256": "318f5bc90ec527cba402acdd7a614b1f29a136ba317b635fd73513fa4a6121fb"
+    },
+    "secondaryQ2": {
+      "file": "username-secondary-full-context-development-2025-Q2-2026-09-25.json",
+      "sha256": "e8fce3d1d3f199ac9a9da2f02b3d9fd60409c8cf2de0e0d201ebd612a5faf36a"
+    }
+  },
+  "globalFusion": {
+    "premium": {
+      "cases": 215,
+      "baselineMale": 2.641293909086072,
+      "candidateMale": 2.3378365269354324,
+      "oracleMale": 2.3175393161226,
+      "oracleImprovement": 0.12257423978821645,
+      "candidateBetterCases": 41
+    },
+    "ordinary": {
+      "cases": 2647,
+      "baselineMale": 0.22685414311933882,
+      "candidateMale": 0.24607842656794565,
+      "oracleMale": 0.22606718580073606,
+      "oracleImprovement": 0.0034690013053399406,
+      "candidateBetterCases": 14
+    },
+    "premiumByFold": {
+      "2024Q3-Q4": {
+        "cases": 132,
+        "baselineMale": 2.3592930555172744,
+        "candidateMale": 2.0938990878604664,
+        "oracleMale": 2.0843435706767557,
+        "oracleImprovement": 0.11653892855639171,
+        "candidateBetterCases": 22
+      },
+      "2025Q1": {
+        "cases": 36,
+        "baselineMale": 3.279548128583156,
+        "candidateMale": 2.5766156191975456,
+        "oracleMale": 2.5624225642205563,
+        "oracleImprovement": 0.2186659674582715,
+        "candidateBetterCases": 13
+      },
+      "2025Q2": {
+        "cases": 47,
+        "baselineMale": 2.944420733962376,
+        "candidateMale": 2.84004279579627,
+        "oracleMale": 2.7849019005337707,
+        "oracleImprovement": 0.05417664384326517,
+        "candidateBetterCases": 6
+      }
+    }
+  },
+  "secondaryFullContext": {
+    "q1Premium": {
+      "cases": 69,
+      "baselineMale": 2.437638518695635,
+      "candidateMale": 2.3629278738730197,
+      "oracleMale": 2.326933181048467,
+      "oracleImprovement": 0.04541499356779364,
+      "candidateBetterCases": 17
+    },
+    "q2Premium": {
+      "cases": 88,
+      "baselineMale": 2.613388967069505,
+      "candidateMale": 2.64185695286722,
+      "oracleMale": 2.595025909946141,
+      "oracleImprovement": 0.007026530437968206,
+      "candidateBetterCases": 10
+    },
+    "q1q2Premium": {
+      "cases": 157,
+      "baselineMale": 2.5361483241536,
+      "candidateMale": 2.5192702875767754,
+      "oracleMale": 2.4772017169911114,
+      "oracleImprovement": 0.02324257087059802,
+      "candidateBetterCases": 27
+    }
+  },
+  "limitation": "This bound applies only to routing between the two saved point predictions in each exposed development experiment. It does not bound a new model, new evidence source, active-auction nowcast, interval quality, or untouched-market performance."
+}

@@ -1,0 +1,176 @@
+{
+  "schemaVersion": "username-forward-v2-local-v1",
+  "from": "2026-09-27T00:00:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "requestedEndUtime": 1790537700,
+  "collectedAt": "2026-09-27T19:47:37.709Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 4511,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 80,
+    "candidates": 12,
+    "verifiedItems": 3,
+    "wrongCollection": 9,
+    "assets": 3,
+    "sales": 3,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-27T19:47:37.709Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:525a254b4e0a9737e118c47bbba7ff3d90caa2492aded6ba4534a464ddfda922",
+      "normalizedName": "vault_of_mystery",
+      "displayName": "@vault_of_mystery",
+      "primaryRoute": "residual",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "16M",
+      "feature": {
+        "characterLength": 16,
+        "characterClass": "alphanumeric",
+        "routes": [
+          "residual"
+        ],
+        "patternSignature": "ABCDEFGHFIJKELMJ",
+        "uniqueCharacterCount": 13,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": true,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-27T08:30:15.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:935f68ecefad5ac3cd4fc446c1cabf0bfcb8aab09d35ffb0f9e75c087599a9f1",
+      "normalizedName": "triogameshoppubg",
+      "displayName": "@triogameshoppubg",
+      "primaryRoute": "pattern",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "16L",
+      "feature": {
+        "characterLength": 16,
+        "characterClass": "letters",
+        "routes": [
+          "pattern"
+        ],
+        "patternSignature": "ABCDEFGHIJDKKLME",
+        "uniqueCharacterCount": 13,
+        "maxRunLength": 2,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-27T08:31:16.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:2ff10134930aee1605fe5cdcb46843c7d438ba1847d38b0793b2f2b4e921fd78",
+      "normalizedName": "casinobids",
+      "displayName": "@casinobids",
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "10L",
+      "feature": {
+        "characterLength": 10,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCDEFGDHC",
+        "uniqueCharacterCount": 8,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-27T08:31:22.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:30348d676addee08d0a89e3dc12d7285d24c963b193dbbda426d1fb0d506bf7e",
+      "assetKind": "username",
+      "assetKey": "0:525a254b4e0a9737e118c47bbba7ff3d90caa2492aded6ba4534a464ddfda922",
+      "normalizedName": "vault_of_mystery",
+      "soldAt": "2026-09-27T08:30:15.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.596216402598373,
+      "priceUsd": 15.962164025983729,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "7psXvu+9R2tDdMoNuDoLMv4RRq3Jzg7l8tHqJqf5ekk=",
+        "messageHash": "r5TSPo78fCHSdf1qG6mhGdtz6g+y8ULGongrCRPht/s=",
+        "bidAt": "2026-09-20T08:29:48.000Z"
+      },
+      "primaryRoute": "residual",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "16M"
+    },
+    {
+      "saleId": "toncenter-username-sale:3e9e00ca9d81fc6b7a8a97a5d7be18ff36e063d452b157db100549beb5457924",
+      "assetKind": "username",
+      "assetKey": "0:935f68ecefad5ac3cd4fc446c1cabf0bfcb8aab09d35ffb0f9e75c087599a9f1",
+      "normalizedName": "triogameshoppubg",
+      "soldAt": "2026-09-27T08:31:16.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.5961903852723887,
+      "priceUsd": 15.961903852723886,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "WI2kvLiSUGjK9sss9pIb5gTgt+2HlDwWj7IX2ZMuQ14=",
+        "messageHash": "o5D67NCsMZequZ20ZLpPUyLHH2vRTOol9TkNGpqTjiM=",
+        "bidAt": "2026-09-20T08:30:57.000Z"
+      },
+      "primaryRoute": "pattern",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "16L"
+    },
+    {
+      "saleId": "toncenter-username-sale:87971226c811ea70da7c7348b4425adc3b2366541cc6548f8ef7d8cea20156ba",
+      "assetKind": "username",
+      "assetKey": "0:2ff10134930aee1605fe5cdcb46843c7d438ba1847d38b0793b2f2b4e921fd78",
+      "normalizedName": "casinobids",
+      "soldAt": "2026-09-27T08:31:22.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.5961878261911442,
+      "priceUsd": 15.961878261911442,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "oIMLEVs6YsEE8SqE/EkVbfq9KbwJ8Txmd12mgB0+eUI=",
+        "messageHash": "hgMosCo7MRHJbfpSDb6rxsQnJX0fHjFL/IV6C8qve2U=",
+        "bidAt": "2026-09-20T08:30:48.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "10L"
+    }
+  ]
+}

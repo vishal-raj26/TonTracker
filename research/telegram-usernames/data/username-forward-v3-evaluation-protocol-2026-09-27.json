@@ -1,0 +1,60 @@
+{
+  "schemaVersion": "username-forward-v3-evaluation-protocol-v1",
+  "sealedBeforeWindow": true,
+  "zeroCollectedEventsAtSeal": true,
+  "createdAt": "2026-09-27T07:07:42.044Z",
+  "reservationSha256": "0bc76fdfa33091b0364289663a42f1a9e40e6982832f0a978d545bb54cc4afdd",
+  "frozenFiles": {
+    "scripts/seal-username-forward-v3-qualification.js": "d6a447815e5d3dfc7176bda7c9efa182cb9b451a60c5a5e8f6e5f17fd14be7a4",
+    "scripts/collect-username-forward-v3-lifecycles.js": "2b411397fbf98d47fecb8cbe8a1e45130a06536f48830360eb66bfe133cc75d7",
+    "scripts/evaluate-username-forward-v3-qualification.js": "c2ca152d213237bdd5fb01a5fc811f6f0121155ac2c3c2aacf6b38d7acd8f14b",
+    "scripts/evaluate-username-forward-v2-qualification.js": "f52a3e3c6358e6cb5259fb3e2481c54abab721f92190d77f234ef95a4a2e46c4",
+    "scripts/collect-username-forward-v2-lifecycles.js": "a9d5cc818c59af3faae2e3a4b37524bb9fda5be30d080a65d0ce61884fe214c5",
+    "scripts/evaluate-username-secondary-qualification.js": "6c03e2f15d360f687156c3ec2fe0937cf55539ee77327a82db1169764c0a7807",
+    "scripts/evaluate-username-rebuild.js": "f232c75d3442d9568f9ece1019329ad130a36e14b89ba71d6e0cce5e813909a3",
+    "lib/ton-address.js": "ad80245515d01853de458b75f4eb55463a6c37d2d7ce8a8c9cfc609d4b84c96c",
+    "lib/username-structural.js": "574f14fd12fadb5d94d72263cc40aa3dc79b979d504afc9f6220f7a60ba96e58",
+    "lib/username-semantic.js": "53d88f7fa5c51faa25a1ac9e9dff7ba8b6dfdf817d972e5b9dfc060693aa10c7",
+    "lib/username-snapshot-knowledge.js": "c847fc42b311c4371d2d0432c867810565c4b9f343dc6aacb06af7f5377262f1"
+  },
+  "evaluation": {
+    "baseline": "same-case v25 historical-only plus strictly prior selected v3 sales; no earlier reserved outcomes",
+    "candidate": "baseline plus exact verified chain bid available at each frozen pre-close horizon",
+    "allCasesAttempted": true,
+    "noHoldoutOutcomeTuning": true,
+    "developmentCalibrationCutoff": "2026-10-04T00:00:00Z",
+    "reportBy": [
+      "overall",
+      "ordinary",
+      "intermediate",
+      "premium",
+      "block"
+    ],
+    "metrics": [
+      "median-factor-error",
+      "mean-absolute-log-error",
+      "80-percent-interval-score",
+      "80-percent-interval-coverage",
+      "availability",
+      "abstentions",
+      "premium-unique-identities"
+    ],
+    "uncertainty": "deterministic exact-identity-clustered bootstrap 95-percent confidence interval for paired premium MALE improvement",
+    "finalEvaluator": "implementation and exact hash must be sealed before any v3 outcome label is opened"
+  },
+  "gates": {
+    "minimumPremiumUniqueIdentities": 100,
+    "minimumPremiumWeeklyBlocks": 2,
+    "premiumThresholdUsd": 500,
+    "premiumMedianFactorErrorMaximum": 3,
+    "premiumMaleImprovementVsV25Minimum": 0.25,
+    "premiumImprovementLowerConfidenceBoundPositive": true,
+    "ordinaryAndIntermediateMaleRegressionMaximum": 0.05,
+    "overallIntervalCoverageMinimum": 0.75,
+    "overallIntervalCoverageMaximum": 0.85,
+    "premiumIntervalCoverageMinimum": 0.7,
+    "noOverallIntervalScoreRegression": true,
+    "noAvailabilityRegression": true
+  },
+  "invariant": "All three independently reserved blocks terminal-seal price-blind before lifecycle or label access; every sealed event has one lifecycle attempt; exact predeclared block and all-case gates govern one final report"
+}

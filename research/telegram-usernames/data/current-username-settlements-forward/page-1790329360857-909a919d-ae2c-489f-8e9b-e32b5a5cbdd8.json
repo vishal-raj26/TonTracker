@@ -1,0 +1,125 @@
+{
+  "schemaVersion": "username-local-collection-v1",
+  "from": "2026-09-20T13:45:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "collectedAt": "2026-09-25T09:42:40.857Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 51305,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 80,
+    "candidates": 14,
+    "verifiedItems": 2,
+    "wrongCollection": 12,
+    "assets": 2,
+    "sales": 2,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-25T09:42:40.857Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:492aa7b796239d05db5a8f0f348d3bf8078c4898a7d859509ff0a7a98cc69a43",
+      "normalizedName": "eviangirl",
+      "displayName": "@eviangirl",
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "9L",
+      "feature": {
+        "characterLength": 9,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCDEFCGH",
+        "uniqueCharacterCount": 8,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-22T23:06:18.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:b44bdebd293882682d5d5806cbe22c3fba50c038d738c2dbcecc6bec4c344009",
+      "normalizedName": "t_s_x",
+      "displayName": "@t_s_x",
+      "primaryRoute": "residual",
+      "lengthBucket": "4-5",
+      "script": "Latin",
+      "scarcityClass": "5M",
+      "feature": {
+        "characterLength": 5,
+        "characterClass": "alphanumeric",
+        "routes": [
+          "residual"
+        ],
+        "patternSignature": "ABCBD",
+        "uniqueCharacterCount": 4,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": true,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-22T23:07:20.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:4fd3998f304c876fc19d278f6271559a39623ced7ff7ed4225cdece86fa645d9",
+      "assetKind": "username",
+      "assetKey": "0:492aa7b796239d05db5a8f0f348d3bf8078c4898a7d859509ff0a7a98cc69a43",
+      "normalizedName": "eviangirl",
+      "soldAt": "2026-09-22T23:06:18.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.4609824814976538,
+      "priceUsd": 14.609824814976538,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "AywPHgqpVjT59IfKlfq20ZukkewxTbHe5HMtZr89BAE=",
+        "messageHash": "IYzXhZIVuCP2uoH/qBro+knlwmlmqYVbFlWGFnAPlw8=",
+        "bidAt": "2026-09-15T23:05:54.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "9L"
+    },
+    {
+      "saleId": "toncenter-username-sale:6cbf46fba43acafa50a191a47a28d29a5a8977ef0f0414e7cdb75cd623e68a3c",
+      "assetKind": "username",
+      "assetKey": "0:b44bdebd293882682d5d5806cbe22c3fba50c038d738c2dbcecc6bec4c344009",
+      "normalizedName": "t_s_x",
+      "soldAt": "2026-09-22T23:07:20.000Z",
+      "priceGram": 35,
+      "historicalUsdRate": 1.461009426352106,
+      "priceUsd": 51.13532992232371,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "bXV8im4L1GVOlZky8z6FHGBB57OwB6mTy/x0cy0SnPc=",
+        "messageHash": "hSlw/qtxSdIbm3Q1ITlzKJVRz1JG1brcorY/h+7OmV8=",
+        "bidAt": "2026-09-22T22:07:02.000Z"
+      },
+      "primaryRoute": "residual",
+      "lengthBucket": "4-5",
+      "script": "Latin",
+      "scarcityClass": "5M"
+    }
+  ]
+}

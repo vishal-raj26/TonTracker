@@ -1,0 +1,14 @@
+{
+  "purpose": "Development-only training-density ablation; not untouched qualification",
+  "version": "direct-semantic-density-v1",
+  "maxDenseTrainingRows": 30000,
+  "featurePolicy": "Existing118 historical structural/semantic features plus fixed128 spelling hashes; no base/vector prices in direct models",
+  "modelPolicy": "Same100 iterations,15 leaves,min leaf20,rate0.1,seed17; absolute log-price center and10/90 quantiles; no random validation",
+  "folds": [
+    {"id": "2024h2", "trainingUntil": "2024-05-01T00:00:00.000Z", "evaluationFrom": "2024-07-01T00:00:00.000Z", "evaluationUntil": "2025-01-01T00:00:00.000Z"},
+    {"id": "2025q1", "trainingUntil": "2024-11-01T00:00:00.000Z", "evaluationFrom": "2025-01-01T00:00:00.000Z", "evaluationUntil": "2025-04-01T00:00:00.000Z"},
+    {"id": "2025q2plus", "trainingUntil": "2025-02-01T00:00:00.000Z", "evaluationFrom": "2025-04-01T00:00:00.000Z", "evaluationUntil": "2025-07-21T00:00:00.000Z"}
+  ],
+  "calibrationPolicy": "Saved stride50 development outcomes in [trainingUntil,evaluationFrom); same calibration events for sparse and dense",
+  "evaluationPolicy": "All saved stride50 development attempts in each evaluation interval; report each fold and nonoverlapping pooled metrics, unique identities, all failures; cannot compare baseline interval score because endpoints are absent"
+}

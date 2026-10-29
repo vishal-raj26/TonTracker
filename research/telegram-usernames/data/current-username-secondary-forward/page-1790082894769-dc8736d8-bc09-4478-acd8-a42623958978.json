@@ -1,0 +1,91 @@
+{
+  "schemaVersion": "username-secondary-local-v1",
+  "from": "2026-09-20T14:00:00Z",
+  "pipeline": "username-toncenter-secondary-sales-v1",
+  "collectedAt": "2026-09-22T13:14:54.769Z",
+  "cursor": {
+    "absoluteOffset": 12100,
+    "caughtUp": false
+  },
+  "metadata": {
+    "transfers": 100,
+    "saleContracts": 18,
+    "verifiedSales": 1,
+    "assets": 1,
+    "sales": 1,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-22T13:14:54.769Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:494346aeb1e47e3d574cbc5469f37d3d611ab73d6a2efa33fbc5cb07b8ae71fe",
+      "normalizedName": "pavlusha",
+      "displayName": "@pavlusha",
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "8L",
+      "feature": {
+        "classifierVersion": "username-structural-v2",
+        "normalizedUsername": "pavlusha",
+        "displayUsername": "@pavlusha",
+        "characterLength": 8,
+        "byteLength": 8,
+        "characterClass": "letters",
+        "primaryRoute": "word",
+        "routes": [
+          "word"
+        ],
+        "scarcityClass": "8L",
+        "patternSignature": "ABCDEFGB",
+        "shapeSignature": "LLLLLLLL",
+        "uniqueCharacterCount": 7,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "repeatedBlock": null,
+        "scripts": [
+          "Latin"
+        ],
+        "primaryScript": "Latin",
+        "containsUnderscore": false,
+        "underscoreCount": 0,
+        "digitCount": 0,
+        "digitRatio": 0,
+        "vowelRatio": 0.375,
+        "pronounceability": "balanced",
+        "leadingZero": false,
+        "roundNumber": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-22T12:32:25.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-secondary:9eab4f65f98312bc932f439ce09a9afdac50fe65a7549f1829a976f295fa214d",
+      "assetKind": "username",
+      "assetKey": "0:494346aeb1e47e3d574cbc5469f37d3d611ab73d6a2efa33fbc5cb07b8ae71fe",
+      "normalizedName": "pavlusha",
+      "soldAt": "2026-09-22T12:32:25.000Z",
+      "priceGram": 400,
+      "historicalUsdRate": 1.4192611955544625,
+      "priceUsd": 567.704478221785,
+      "marketplace": "Getgems",
+      "source": "toncenter-indexed-secondary-sale",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-completed-sale-contract",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "nearest-observation",
+        "transactionHash": "TvawgHNUX65WTEzKbmOhdL8CKSQzSJ6l4SCREU+29a4=",
+        "saleContract": "0:950acbfc1b8db9dc528000b692b48d1ffb6c1ffc3164424b5f584e195fe22c10"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "8L"
+    }
+  ]
+}

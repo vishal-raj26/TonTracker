@@ -1,0 +1,126 @@
+{
+  "schemaVersion": "username-forward-v2-local-v1",
+  "from": "2026-09-27T00:00:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "requestedEndUtime": 1790761800,
+  "collectedAt": "2026-09-30T10:22:08.235Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 39485,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 80,
+    "candidates": 6,
+    "verifiedItems": 2,
+    "wrongCollection": 4,
+    "assets": 2,
+    "sales": 2,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-30T10:22:08.235Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:84a50a7df99f804add3c2cd8e10b7b94f9f2a3e3387adffcd20c144d84cb6e9b",
+      "normalizedName": "elonmusk_bnb",
+      "displayName": "@elonmusk_bnb",
+      "primaryRoute": "residual",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "12M",
+      "feature": {
+        "characterLength": 12,
+        "characterClass": "alphanumeric",
+        "routes": [
+          "residual"
+        ],
+        "patternSignature": "ABCDEFGHIJDJ",
+        "uniqueCharacterCount": 10,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": true,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-29T07:44:33.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:fb1b561601ed205bbbfadc075ff6d3f45214a5d47756d9d13320f4cc99f58851",
+      "normalizedName": "fliz_hothit_uncut_ullu_video_18",
+      "displayName": "@fliz_hothit_uncut_ullu_video_18",
+      "primaryRoute": "pattern",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "31M",
+      "feature": {
+        "characterLength": 31,
+        "characterClass": "alphanumeric",
+        "routes": [
+          "pattern"
+        ],
+        "patternSignature": "ABCDEFGHFCHEIJKIHEIBBIELCMNGEOP",
+        "uniqueCharacterCount": 16,
+        "maxRunLength": 2,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": true,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-29T07:45:19.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:55b3e55c40c7c929a989cbfbba5e740c85d0d36844f0429ad3b63b57cd5ba814",
+      "assetKind": "username",
+      "assetKey": "0:84a50a7df99f804add3c2cd8e10b7b94f9f2a3e3387adffcd20c144d84cb6e9b",
+      "normalizedName": "elonmusk_bnb",
+      "soldAt": "2026-09-29T07:44:33.000Z",
+      "priceGram": 6,
+      "historicalUsdRate": 1.5833992134675343,
+      "priceUsd": 9.500395280805206,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "Kn0ro5YE6ogPit9ys9l+4lwJKYBDCGMNkn+c4+1xAHk=",
+        "messageHash": "hebMlOnj2UKd9csF9WP6QZzxCRi8jRNcjTZQbocrXQo=",
+        "bidAt": "2026-09-29T07:44:33.000Z"
+      },
+      "primaryRoute": "residual",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "12M"
+    },
+    {
+      "saleId": "toncenter-username-sale:c9dd7d9f5f8599330bd2569300251b8296a5debfba727f8300e111e2f9f88466",
+      "assetKind": "username",
+      "assetKey": "0:fb1b561601ed205bbbfadc075ff6d3f45214a5d47756d9d13320f4cc99f58851",
+      "normalizedName": "fliz_hothit_uncut_ullu_video_18",
+      "soldAt": "2026-09-29T07:45:19.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.5833942991737804,
+      "priceUsd": 15.833942991737803,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "1qS0HYpUutaxQkzgUrs0Lvf0m+tUZeWVgC7mCUgeC9g=",
+        "messageHash": "3Ez7W9uWx7KbdgKRZyrNyape20xplWPycDQvXLbLSgA=",
+        "bidAt": "2026-09-22T07:40:32.000Z"
+      },
+      "primaryRoute": "pattern",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "31M"
+    }
+  ]
+}

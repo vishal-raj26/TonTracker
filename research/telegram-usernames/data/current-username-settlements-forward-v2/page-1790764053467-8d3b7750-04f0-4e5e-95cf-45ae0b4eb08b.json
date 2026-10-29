@@ -1,0 +1,126 @@
+{
+  "schemaVersion": "username-forward-v2-local-v1",
+  "from": "2026-09-27T00:00:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "requestedEndUtime": 1790761800,
+  "collectedAt": "2026-09-30T10:27:33.467Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 45005,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 80,
+    "candidates": 10,
+    "verifiedItems": 2,
+    "wrongCollection": 8,
+    "assets": 2,
+    "sales": 2,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-30T10:27:33.467Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:491dcfe1dec9d7001cb8d0ccd10b63b40c9cf083f12315eba2d90bf0485245ac",
+      "normalizedName": "tobrut_ewe_ceweko_montok_tanteku",
+      "displayName": "@tobrut_ewe_ceweko_montok_tanteku",
+      "primaryRoute": "residual",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "32M",
+      "feature": {
+        "characterLength": 32,
+        "characterClass": "alphanumeric",
+        "routes": [
+          "residual"
+        ],
+        "patternSignature": "ABCDEAFGHGFIGHGJBFKBLABJFAMLAGJE",
+        "uniqueCharacterCount": 13,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": true,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-29T14:18:35.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:efac6ed7308c4e889b00e0693da82ecb077f2b1bf8878ee19cae9a6326fbaf05",
+      "normalizedName": "golyy_movie_grup_pelicula_sexo",
+      "displayName": "@golyy_movie_grup_pelicula_sexo",
+      "primaryRoute": "pattern",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "30M",
+      "feature": {
+        "characterLength": 30,
+        "characterClass": "alphanumeric",
+        "routes": [
+          "pattern"
+        ],
+        "patternSignature": "ABCDDEFBGHIEAJKLELICHMKCNEOIPB",
+        "uniqueCharacterCount": 16,
+        "maxRunLength": 2,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": true,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-29T14:18:43.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:3d351d31e3771d049f53611403e3cf0f9228bf290f39b85b4cb77506c8694a89",
+      "assetKind": "username",
+      "assetKey": "0:491dcfe1dec9d7001cb8d0ccd10b63b40c9cf083f12315eba2d90bf0485245ac",
+      "normalizedName": "tobrut_ewe_ceweko_montok_tanteku",
+      "soldAt": "2026-09-29T14:18:35.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.5365749315467467,
+      "priceUsd": 15.365749315467468,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "QQuPNX96JTtQgMGlFUkJabmOoKy8gaKhUF2FupzUdKg=",
+        "messageHash": "uRVKy7Roj88kvqXoo96F4373u70EQeIxRGuH11CpYyI=",
+        "bidAt": "2026-09-22T14:12:24.000Z"
+      },
+      "primaryRoute": "residual",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "32M"
+    },
+    {
+      "saleId": "toncenter-username-sale:b9d8b93b0070d73cc7bfaca484ece02a27bffe3b045619dff0a8637a1e885e5f",
+      "assetKind": "username",
+      "assetKey": "0:efac6ed7308c4e889b00e0693da82ecb077f2b1bf8878ee19cae9a6326fbaf05",
+      "normalizedName": "golyy_movie_grup_pelicula_sexo",
+      "soldAt": "2026-09-29T14:18:43.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.5365646256966772,
+      "priceUsd": 15.365646256966771,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "mlNXS3LPnTWq2OerW+Ks666TMHZ32h2WlAUKs5N+CfI=",
+        "messageHash": "z1pnZOvjLOOib9BaFUJk6Y3MH0ODIx/cvHFhfSxr/0s=",
+        "bidAt": "2026-09-22T14:13:46.000Z"
+      },
+      "primaryRoute": "pattern",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "30M"
+    }
+  ]
+}

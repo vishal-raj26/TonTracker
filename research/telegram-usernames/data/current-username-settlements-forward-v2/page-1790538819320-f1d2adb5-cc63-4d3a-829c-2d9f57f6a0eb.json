@@ -1,0 +1,126 @@
+{
+  "schemaVersion": "username-forward-v2-local-v1",
+  "from": "2026-09-27T00:00:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "requestedEndUtime": 1790537700,
+  "collectedAt": "2026-09-27T19:53:39.320Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 12511,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 80,
+    "candidates": 6,
+    "verifiedItems": 2,
+    "wrongCollection": 4,
+    "assets": 2,
+    "sales": 2,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-27T19:53:39.320Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:281a4965be2f93b8e93881278058ab23c668cae7e65e6051dfcb143ca13e949e",
+      "normalizedName": "tobruts_tiktoks_newn_sesso_hijab",
+      "displayName": "@tobruts_tiktoks_newn_sesso_hijab",
+      "primaryRoute": "pattern",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "32M",
+      "feature": {
+        "characterLength": 32,
+        "characterClass": "alphanumeric",
+        "routes": [
+          "pattern"
+        ],
+        "patternSignature": "ABCDEAFGAHIABIFGJKLJGFKFFBGMHNOC",
+        "uniqueCharacterCount": 15,
+        "maxRunLength": 2,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": true,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-27T16:47:15.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:7eabe4f53acef10efe2cb7f842d1ec36c06879b914190d55ed20f9008e18ff7a",
+      "normalizedName": "videos_vviral_nepali_kanda_girls",
+      "displayName": "@videos_vviral_nepali_kanda_girls",
+      "primaryRoute": "pattern",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "32M",
+      "feature": {
+        "characterLength": 32,
+        "characterClass": "alphanumeric",
+        "routes": [
+          "pattern"
+        ],
+        "patternSignature": "ABCDEFGAABHIJGKDLIJBGMIKCIGNBHJF",
+        "uniqueCharacterCount": 14,
+        "maxRunLength": 2,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": true,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-27T16:47:45.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:8aa5af6e17d3cc59025d998b563b814f9b7490baeac27e1a064def612b681c07",
+      "assetKind": "username",
+      "assetKey": "0:281a4965be2f93b8e93881278058ab23c668cae7e65e6051dfcb143ca13e949e",
+      "normalizedName": "tobruts_tiktoks_newn_sesso_hijab",
+      "soldAt": "2026-09-27T16:47:15.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.6879432667599823,
+      "priceUsd": 16.879432667599822,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "nearest-observation",
+        "txHash": "f0NhAipXLcSLBYtDoMPSOdK+YObdH6UxsuhMG8SZOis=",
+        "messageHash": "HoQ9tNxW7WhmbTTPurvlg9M9QypSBfc3QbHn0QTGlrw=",
+        "bidAt": "2026-09-20T16:46:53.000Z"
+      },
+      "primaryRoute": "pattern",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "32M"
+    },
+    {
+      "saleId": "toncenter-username-sale:8af03881e03c538852eb8dad71c493a889e87cf05b94025b409280bac85aac94",
+      "assetKind": "username",
+      "assetKey": "0:7eabe4f53acef10efe2cb7f842d1ec36c06879b914190d55ed20f9008e18ff7a",
+      "normalizedName": "videos_vviral_nepali_kanda_girls",
+      "soldAt": "2026-09-27T16:47:45.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.6879432667599823,
+      "priceUsd": 16.879432667599822,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "nearest-observation",
+        "txHash": "dNf75j0CnfCX9YzQpaBt16sFe399DB3bbhYNkCwvhiY=",
+        "messageHash": "hXWAxZ6qfQQCvzVI4GMjkWTxDrZYP+9h17OW6pg4Q4k=",
+        "bidAt": "2026-09-20T16:47:11.000Z"
+      },
+      "primaryRoute": "pattern",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "32M"
+    }
+  ]
+}

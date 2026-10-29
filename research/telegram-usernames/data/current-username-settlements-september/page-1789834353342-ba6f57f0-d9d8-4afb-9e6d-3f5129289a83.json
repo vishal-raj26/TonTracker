@@ -1,0 +1,175 @@
+{
+  "schemaVersion": "username-local-collection-v1",
+  "from": "2026-09-01T00:00:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "collectedAt": "2026-09-19T16:12:33.342Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 12480,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 80,
+    "candidates": 28,
+    "verifiedItems": 3,
+    "wrongCollection": 25,
+    "assets": 3,
+    "sales": 3,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-19T16:12:33.342Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:aa34e87ad2b83207067ec6cddae4a81cbb835a0f6c01e96c7e1259c0d49aaab4",
+      "normalizedName": "chadianar",
+      "displayName": "@chadianar",
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "9L",
+      "feature": {
+        "characterLength": 9,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCDECFCG",
+        "uniqueCharacterCount": 7,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-01T17:30:23.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:56ab6cabf1555f0e03d8ebdceffde45be8ae99f09782b10efd0adfa255f0e8a8",
+      "normalizedName": "pornhub_zx",
+      "displayName": "@pornhub_zx",
+      "primaryRoute": "residual",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "10M",
+      "feature": {
+        "characterLength": 10,
+        "characterClass": "alphanumeric",
+        "routes": [
+          "residual"
+        ],
+        "patternSignature": "ABCDEFGHIJ",
+        "uniqueCharacterCount": 10,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": true,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-01T17:30:32.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:a19a6b963c55330a93bec5ec095d13da5dedbfbcf3f2549a666e7ebb4fb3ff7c",
+      "normalizedName": "neverdialog",
+      "displayName": "@neverdialog",
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "11L",
+      "feature": {
+        "characterLength": 11,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCBDEFGHIJ",
+        "uniqueCharacterCount": 10,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-01T17:31:02.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:2ad1d499e5e7041b78fa314451b4077e7ef0a7f3725a0bf56fc125d53fa9f572",
+      "assetKind": "username",
+      "assetKey": "0:aa34e87ad2b83207067ec6cddae4a81cbb835a0f6c01e96c7e1259c0d49aaab4",
+      "normalizedName": "chadianar",
+      "soldAt": "2026-09-01T17:30:23.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.3390846933870093,
+      "priceUsd": 13.390846933870094,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "i6OXvgqIYp9ySZCDZZj7+6jYySMktE64BqRGwJvLLRg=",
+        "messageHash": "spQ0q65RbWJzOtGUw7PFkPWe25hZ6vYvcoNXfVCvY+w=",
+        "bidAt": "2026-08-25T17:30:06.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "9L"
+    },
+    {
+      "saleId": "toncenter-username-sale:116d2c63403dfc080f47b0bba6946eded3276e700382522f2752954e65e0c4ef",
+      "assetKind": "username",
+      "assetKey": "0:56ab6cabf1555f0e03d8ebdceffde45be8ae99f09782b10efd0adfa255f0e8a8",
+      "normalizedName": "pornhub_zx",
+      "soldAt": "2026-09-01T17:30:32.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.3390780973255365,
+      "priceUsd": 13.390780973255366,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "5h8kl14pBGrMQ0GcaIropGSRYlpPhaWOxM4+nlHfldo=",
+        "messageHash": "f7aIcHS4cPPzwjhlB7MCuakMfuv3wyW3iwcHRtayD+E=",
+        "bidAt": "2026-08-25T17:30:14.000Z"
+      },
+      "primaryRoute": "residual",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "10M"
+    },
+    {
+      "saleId": "toncenter-username-sale:45c44337981ecce968ebc3c6bd56f175d8e7f3367562c7e919074fe8299603b3",
+      "assetKind": "username",
+      "assetKey": "0:a19a6b963c55330a93bec5ec095d13da5dedbfbcf3f2549a666e7ebb4fb3ff7c",
+      "normalizedName": "neverdialog",
+      "soldAt": "2026-09-01T17:31:02.000Z",
+      "priceGram": 111,
+      "historicalUsdRate": 1.339056110453961,
+      "priceUsd": 148.63522826038965,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "F9sTAbrqq8jL91x4Q7Li9zuVbjDiEmn0oylrN1UXLOo=",
+        "messageHash": "2774zMdywuqawJ3BMIWR8TKkSNazcjmubAArSltOdSQ=",
+        "bidAt": "2026-08-31T01:30:45.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "11L"
+    }
+  ]
+}

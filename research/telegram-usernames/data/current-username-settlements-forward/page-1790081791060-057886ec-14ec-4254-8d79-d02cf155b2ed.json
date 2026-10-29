@@ -1,0 +1,125 @@
+{
+  "schemaVersion": "username-local-collection-v1",
+  "from": "2026-09-20T13:45:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "collectedAt": "2026-09-22T12:56:31.060Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 18009,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 80,
+    "candidates": 8,
+    "verifiedItems": 2,
+    "wrongCollection": 6,
+    "assets": 2,
+    "sales": 2,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-22T12:56:31.060Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:12d9c36d2923d166b3b720cda5787bf39748ed29fbd6dae96352c53677705e32",
+      "normalizedName": "bentley_official",
+      "displayName": "@bentley_official",
+      "primaryRoute": "pattern",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "16M",
+      "feature": {
+        "characterLength": 16,
+        "characterClass": "alphanumeric",
+        "routes": [
+          "pattern"
+        ],
+        "patternSignature": "ABCDEBFGHIIJKJLE",
+        "uniqueCharacterCount": 12,
+        "maxRunLength": 2,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": true,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-21T11:20:16.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:324a413fc1b51b72cd1cfb437dfb051f573edd9749d87ebf09108984c9d83e22",
+      "normalizedName": "yurystre",
+      "displayName": "@yurystre",
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "8L",
+      "feature": {
+        "characterLength": 8,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCADECF",
+        "uniqueCharacterCount": 6,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-21T11:21:36.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:ff5783fe4c497ea71f414eef08226f3e2b7c832798bc637dba9f5e61b33d9176",
+      "assetKind": "username",
+      "assetKey": "0:12d9c36d2923d166b3b720cda5787bf39748ed29fbd6dae96352c53677705e32",
+      "normalizedName": "bentley_official",
+      "soldAt": "2026-09-21T11:20:16.000Z",
+      "priceGram": 9.62,
+      "historicalUsdRate": 1.4281402006791737,
+      "priceUsd": 13.73870873053365,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "XDPs1hT7aqiwDFHK5XeJSu037wCDxZX4g1SQDiLEdBo=",
+        "messageHash": "YMTwAznJqVFDz8lYwGCJyoHYzNHs+i0KwvfwJ4ktx3s=",
+        "bidAt": "2026-09-21T10:20:00.000Z"
+      },
+      "primaryRoute": "pattern",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "16M"
+    },
+    {
+      "saleId": "toncenter-username-sale:d596973e9df3bfb51a4da0c95042f768c650ab9e9d314b034486ca7a6a445897",
+      "assetKind": "username",
+      "assetKey": "0:324a413fc1b51b72cd1cfb437dfb051f573edd9749d87ebf09108984c9d83e22",
+      "normalizedName": "yurystre",
+      "soldAt": "2026-09-21T11:21:36.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.4281718789812932,
+      "priceUsd": 14.281718789812931,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "jQRPwin8yjcT4lzfkuYS7Lzq4NBZStfi413QvTLhGj4=",
+        "messageHash": "B7Anyoig029c+Sv+eqdtGDblBLKJL2LAxljOMAc2aW4=",
+        "bidAt": "2026-09-14T11:21:20.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "8L"
+    }
+  ]
+}

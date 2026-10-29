@@ -1,0 +1,108 @@
+{
+  "schemaVersion": "username-forward-v2-reservation-v1",
+  "sealedBeforeWindow": true,
+  "createdAt": "2026-09-25T14:47:50.789Z",
+  "predecessor": {
+    "originalForwardManifestSha256": "3b55296dc54d5c96772039bff0024bbb26515d772817c92305f2dedd6d93f936",
+    "lateQualificationReportSha256": "e2f96c13a182922e2e97c3abf74e4e4df1715239fd38ae398e4c71d0f1ae4382",
+    "earlierForwardLabelsRemainUnopened": true
+  },
+  "window": {
+    "fromInclusive": "2026-09-27T00:00:00Z",
+    "untilExclusive": "2026-10-20T00:00:00Z",
+    "directory": "current-username-settlements-forward-v2",
+    "maximumRawSaleRows": 10000,
+    "weeklyBlocks": [
+      "2026-09-27T00:00:00Z",
+      "2026-10-04T00:00:00Z",
+      "2026-10-11T00:00:00Z",
+      "2026-10-18T00:00:00Z",
+      "2026-10-20T00:00:00Z"
+    ]
+  },
+  "candidate": {
+    "estimatorVersion": "username-market-v25",
+    "calibrationVersion": "username-calibration-v5",
+    "modelVersion": "telegram-username-learned-v15",
+    "maxHistory": 30000,
+    "strategy": "same-case v25 fallback plus exact independently verified active-auction bid at 24h/6h/1h; never portfolio eligible",
+    "horizonsHours": [
+      24,
+      6,
+      1
+    ],
+    "files": {
+      "lib/username-estimator.js": "c83daedfead6f2dbe7d247e9fdd669446cf075f3bf1a501437b789739ae5a8c7",
+      "lib/username-learned-model.js": "2e5e895b7dcdc8635d70edf1ee3a6232a893387f4f62f0426d8e579767079d7a",
+      "lib/username-backtest.js": "bc358537d100cc113412c048be68b7443d9636a1b1c232b4b9fd07bbbbfd6651",
+      "lib/username-active-auction-nowcast.js": "4c088c257915780a711b46f288461e1a10824d22c0f2248ee8be6ce986a7aef0",
+      "lib/username-auction-bid-evidence.js": "11afca7e5a45dcca07250d8380688e7f539ce887e3127716de796d5b40f7fd06"
+    }
+  },
+  "collectionFiles": {
+    "lib/toncenter-username-settlement-ledger.js": "e922d151e62cbc90ac0771cc6d3153845f6af1d53dd10350d280f8c8e7d8d873",
+    "scripts/collect-username-forward-v2-local.js": "66c140ae2e4a4a6afdbf14dd47021be08e498e05adc4d323a45702c6bad7a288",
+    "scripts/audit-username-forward-v2-reservation.js": "83073b9aced411f2e3a972f5b9be624f9f69022f5ed72ce795cce43cf5c2436f",
+    "scripts/audit-reserved-username-collection.js": "68f3a0c3763d695d65f08f2bacfa49e049b3b3f34609d089657e2253e08270d6"
+  },
+  "trainingSources": {
+    "research/telegram-usernames/data/dune_username_sales.part": "6d724b74f727a797d553190cb72e408d3c70d6069202636a60f7ea2b2850682f",
+    "research/telegram-usernames/data/tonapi_username_universe.csv": "5bd5216ddfe76d5c18e490814b968fa6ca9ffc42a65cdf2224c6b9b8a90f9f6b"
+  },
+  "selection": {
+    "chronologicalUnfilteredCollection": true,
+    "includeEveryContractVerifiedUsernameSettlement": true,
+    "noPriceNameOutcomeOrPredictionFiltering": true,
+    "retainAllLifecycleFailuresAndUnavailableCases": true,
+    "stopAtFirstOf": [
+      "maximumRawSaleRows",
+      "untilExclusive"
+    ],
+    "capacitySafety": "Collector counts all raw sale rows; if fewer than ten slots remain, stop below cap rather than risk exceeding it",
+    "noPoolingWithOriginalForwardCohort": true
+  },
+  "evaluation": {
+    "baseline": "same-case v25 historical-only plus strictly prior new-cohort sales; no original forward holdout labels",
+    "candidate": "baseline plus exact verified chain bid available at each frozen pre-close horizon",
+    "allCasesAttempted": true,
+    "developmentCalibrationCutoff": "2026-09-27T00:00:00Z",
+    "noHoldoutOutcomeTuning": true,
+    "reportBy": [
+      "overall",
+      "ordinary",
+      "intermediate",
+      "premium",
+      "weekly-block"
+    ],
+    "metrics": [
+      "median-factor-error",
+      "mean-absolute-log-error",
+      "80-percent-interval-score",
+      "80-percent-interval-coverage",
+      "availability",
+      "abstentions",
+      "premium-unique-identities"
+    ],
+    "uncertainty": "deterministic identity-clustered bootstrap 95-percent confidence interval for paired premium MALE improvement",
+    "finalEvaluator": "implementation and exact hash must be sealed in a supplement before any holdout label is opened"
+  },
+  "gates": {
+    "minimumPremiumUniqueIdentities": 100,
+    "minimumPremiumWeeklyBlocks": 2,
+    "premiumThresholdUsd": 500,
+    "premiumMedianFactorErrorMaximum": 3,
+    "premiumMaleImprovementVsV25Minimum": 0.25,
+    "premiumImprovementLowerConfidenceBoundPositive": true,
+    "ordinaryAndIntermediateMaleRegressionMaximum": 0.05,
+    "overallIntervalCoverageMinimum": 0.75,
+    "overallIntervalCoverageMaximum": 0.85,
+    "premiumIntervalCoverageMinimum": 0.7,
+    "noOverallIntervalScoreRegression": true,
+    "noAvailabilityRegression": true
+  },
+  "limitations": [
+    "This cohort tests active-auction nowcasting only, never inactive resale or portfolio valuation.",
+    "A one-week cap, fewer than 100 premium identities, or inconclusive clustered uncertainty fails qualification.",
+    "No best-in-market claim without separate competitor evidence."
+  ]
+}

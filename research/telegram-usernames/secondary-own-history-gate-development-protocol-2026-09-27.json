@@ -1,0 +1,51 @@
+{
+  "version": "secondary-own-history-gate-development-v1",
+  "frozenBeforeFit": true,
+  "purpose": "Test a prediction-time gate between current v25 and the already rejected own-history HGB, without changing either frozen base prediction",
+  "sources": {
+    "pairedV25Report": {
+      "path": "research/telegram-usernames/data/username-secondary-own-history-v25-comparison-2026-09-27.json",
+      "sha256": "be022970b33b8662b266496e652da60299d4e677be4020920148173ee3c32186",
+      "caseSetSha256": "2eeb006728713436d09abd65e4640bb0baabc919e70c4eec01151b6358716ab3"
+    },
+    "ownHistoryReport": {
+      "path": "research/telegram-usernames/data/username-secondary-own-history-development-2026-09-27.json",
+      "sha256": "209077a97ece045bf4c9acd6d3184fdcdfa6b3777fd83fa7b940e186ed45de12"
+    }
+  },
+  "sourceCodeSha256": "1676873e25cc92fbdbc6f61758deadd5613fa8ca48313f8ec73bb454edccd4f9",
+  "windows": {
+    "gateFit": ["2024-10-01T00:00:00Z", "2024-12-01T00:00:00Z"],
+    "developmentCheck": ["2024-12-01T00:00:00Z", "2025-01-01T00:00:00Z"],
+    "laterCheck": ["2025-01-01T00:00:00Z", "2025-02-01T00:00:00Z"]
+  },
+  "gate": {
+    "population": "Fit only on gateFit rows with strictly-prior exact-own-sale evidence and both valid base predictions; predict on all cases",
+    "target": "One if frozen own-history prediction has lower absolute log error than frozen v25 on the gateFit event; zero otherwise; ties are zero",
+    "featuresInOrder": ["logV25PointUsd", "logOwnCandidateOverV25", "logPriorOwnPriceOverV25", "log1pPriorOwnAgeDays", "logV25IntervalRatio"],
+    "model": "StandardScaler plus LogisticRegression with C=0.25, max_iter=1000, lbfgs solver, random_state=17",
+    "identityWeight": "Each fit event receives inverse square root of its fit-window NFT event count",
+    "blend": "For eligible cases, use the predicted probability as a log-space geometric mixing weight for point, lower, and upper; use v25 unchanged without own evidence; use the available valid source on one-source cases",
+    "noThresholdSearch": true,
+    "forbiddenFeatures": ["current realized venue", "target sale price", "target outcome cohort", "future or simultaneous own sale", "post-cutoff semantic knowledge"]
+  },
+  "evaluation": {
+    "allCasesRetained": true,
+    "decemberAndJanuarySeparate": true,
+    "pooledDecisionWindow": "developmentCheck plus laterCheck; fit-window results are reported as in-sample diagnostics only",
+    "cohorts": ["all", "ordinary", "intermediate", "premium", "secondary/ordinary", "secondary/intermediate", "secondary/premium"],
+    "metrics": ["attempts", "abstentions", "mean absolute log error", "median factor error", "nominal 80 percent interval coverage", "mean log interval score"],
+    "uncertainty": "2000 deterministic NFT-identity-cluster bootstrap resamples for paired secondary-premium MALE improvement"
+  },
+  "developmentGates": {
+    "secondaryPremiumMedianFactorMaximum": 3,
+    "secondaryPremiumMaleImprovementVsV25Minimum": 0.25,
+    "positiveBootstrapLowerBound": true,
+    "ordinaryAndIntermediateMaleRegressionMaximum": 0.05,
+    "secondaryPremiumCoverageMinimum": 0.7,
+    "allCaseCoverageRange": [0.75, 0.85],
+    "noIntervalScoreRegression": true,
+    "noAvailabilityRegression": true
+  },
+  "interpretation": "Exposed historical development only. A gate pass would not authorize production integration or current-market qualification; reserved prospective outcomes remain sealed."
+}

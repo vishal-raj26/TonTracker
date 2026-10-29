@@ -1,0 +1,76 @@
+{
+  "schemaVersion": "username-forward-reservation-v1",
+  "sealedBeforeWindow": true,
+  "createdAt": "2026-09-20T13:41:04.586Z",
+  "window": {
+    "fromInclusive": "2026-09-20T13:45:00Z",
+    "untilExclusive": "2026-10-20T00:00:00Z",
+    "directory": "current-username-settlements-forward",
+    "maximumUniqueEvents": 4000,
+    "weeklyBlocks": [
+      "2026-09-20T13:45:00Z",
+      "2026-09-27T00:00:00Z",
+      "2026-10-04T00:00:00Z",
+      "2026-10-11T00:00:00Z",
+      "2026-10-18T00:00:00Z",
+      "2026-10-20T00:00:00Z"
+    ]
+  },
+  "candidate": {
+    "estimatorVersion": "username-market-v25",
+    "calibrationVersion": "username-calibration-v5",
+    "modelVersion": "telegram-username-learned-v15",
+    "maxHistory": 30000,
+    "strategy": "v25 for inactive/uncovered names; exact independently verified chain bid overlay at24h/6h/1h while active; never portfolio eligible",
+    "horizonsHours": [
+      24,
+      6,
+      1
+    ],
+    "files": {
+      "lib/username-estimator.js": "c83daedfead6f2dbe7d247e9fdd669446cf075f3bf1a501437b789739ae5a8c7",
+      "lib/username-learned-model.js": "2e5e895b7dcdc8635d70edf1ee3a6232a893387f4f62f0426d8e579767079d7a",
+      "lib/username-backtest.js": "bc358537d100cc113412c048be68b7443d9636a1b1c232b4b9fd07bbbbfd6651",
+      "lib/username-active-auction-nowcast.js": "4c088c257915780a711b46f288461e1a10824d22c0f2248ee8be6ce986a7aef0",
+      "lib/username-auction-bid-evidence.js": "11afca7e5a45dcca07250d8380688e7f539ce887e3127716de796d5b40f7fd06"
+    }
+  },
+  "protocolFiles": {
+    "scripts/collect-username-settlements-local.js": "9d527ddf811fe8a26b98bd300440b880fbb436a6fb97a8dd2995afd05d00fef0",
+    "scripts/audit-reserved-username-collection.js": "68f3a0c3763d695d65f08f2bacfa49e049b3b3f34609d089657e2253e08270d6",
+    "scripts/collect-username-late-lifecycles.js": "a7f2c4cebb542bf051366688ff4137e11499de159d296a83c533e48b999365cc",
+    "scripts/evaluate-username-late-qualification.js": "3e0b94b2b65be28e86c01b0d7153a0c9951d40697b03a3b73c4fe16c511e3ad3"
+  },
+  "predecessor": {
+    "lateManifestSha256": "e4a41c1366bd12957ebd3c5a8e5cac92a2a898ed30f14227fa9947253c9d6106",
+    "lateResultSha256": "e2f96c13a182922e2e97c3abf74e4e4df1715239fd38ae398e4c71d0f1ae4382",
+    "lateLabelsDevelopmentOnly": true
+  },
+  "selection": {
+    "includeEveryContractVerifiedUsernameSettlementInWindow": true,
+    "noPriceSelection": true,
+    "noNameSelection": true,
+    "noOutcomeFiltering": true,
+    "stopAtFirstOf": [
+      "maximumUniqueEvents",
+      "untilExclusive"
+    ],
+    "retainLifecycleFailures": true
+  },
+  "gates": {
+    "minimumPremiumUniqueIdentities": 100,
+    "minimumPremiumWeeklyBlocks": 2,
+    "premiumThresholdUsd": 500,
+    "premiumMedianFactorErrorMaximum": 3,
+    "premiumMaleImprovementVsV25Minimum": 0.25,
+    "ordinaryAndIntermediateMaleRegressionMaximum": 0.05,
+    "overallIntervalCoverageMinimum": 0.75,
+    "overallIntervalCoverageMaximum": 0.85,
+    "premiumIntervalCoverageMinimum": 0.7,
+    "activeAuctionAvailabilityReportedSeparately": true
+  },
+  "limitations": [
+    "This prospective block can qualify active-auction nowcasting only; it cannot qualify inactive resale without independent inactive-market outcomes.",
+    "If fewer than100 premium identities appear, evidence is insufficient and the gate fails without post-hoc pooling or extension."
+  ]
+}

@@ -1,0 +1,91 @@
+{
+  "schemaVersion": "username-secondary-local-v1",
+  "from": "2026-09-20T14:00:00Z",
+  "pipeline": "username-toncenter-secondary-sales-v1",
+  "collectedAt": "2026-09-22T13:10:01.528Z",
+  "cursor": {
+    "absoluteOffset": 4900,
+    "caughtUp": false
+  },
+  "metadata": {
+    "transfers": 100,
+    "saleContracts": 6,
+    "verifiedSales": 1,
+    "assets": 1,
+    "sales": 1,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-22T13:10:01.528Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:8629ef7df8ea505fab31ec6043e2e5ea26fe9b3ba4add3218af445bbd1fb5efd",
+      "normalizedName": "godfight",
+      "displayName": "@godfight",
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "8L",
+      "feature": {
+        "classifierVersion": "username-structural-v2",
+        "normalizedUsername": "godfight",
+        "displayUsername": "@godfight",
+        "characterLength": 8,
+        "byteLength": 8,
+        "characterClass": "letters",
+        "primaryRoute": "word",
+        "routes": [
+          "word"
+        ],
+        "scarcityClass": "8L",
+        "patternSignature": "ABCDEAFG",
+        "shapeSignature": "LLLLLLLL",
+        "uniqueCharacterCount": 7,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "repeatedBlock": null,
+        "scripts": [
+          "Latin"
+        ],
+        "primaryScript": "Latin",
+        "containsUnderscore": false,
+        "underscoreCount": 0,
+        "digitCount": 0,
+        "digitRatio": 0,
+        "vowelRatio": 0.25,
+        "pronounceability": "balanced",
+        "leadingZero": false,
+        "roundNumber": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-21T09:54:00.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-secondary:e204a8ea85eec37d70acb01302393484899e44ad0c09bbb9d35fa415eb805e93",
+      "assetKind": "username",
+      "assetKey": "0:8629ef7df8ea505fab31ec6043e2e5ea26fe9b3ba4add3218af445bbd1fb5efd",
+      "normalizedName": "godfight",
+      "soldAt": "2026-09-21T09:54:00.000Z",
+      "priceGram": 50.6,
+      "historicalUsdRate": 1.4251292843192729,
+      "priceUsd": 72.11154178655521,
+      "marketplace": "Getgems",
+      "source": "toncenter-indexed-secondary-sale",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-completed-sale-contract",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "transactionHash": "uWsJbYro/hO5tzktDvYBQC9I2r5E/q6O/P/G1LIztLk=",
+        "saleContract": "0:e8343b7d979bf4324ba739ce1c24a8505905aaa8bf2699ddb158f43c9c7bae75"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "8L"
+    }
+  ]
+}

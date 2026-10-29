@@ -1,0 +1,91 @@
+{
+  "schemaVersion": "username-secondary-local-v1",
+  "from": "2026-09-20T14:00:00Z",
+  "pipeline": "username-toncenter-secondary-sales-v1",
+  "collectedAt": "2026-09-25T09:14:05.545Z",
+  "cursor": {
+    "absoluteOffset": 15870,
+    "caughtUp": false
+  },
+  "metadata": {
+    "transfers": 100,
+    "saleContracts": 2,
+    "verifiedSales": 1,
+    "assets": 1,
+    "sales": 1,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-25T09:14:05.545Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:aadbba9efe55075c1b22f39ce7eeebc44ac8ba51423e2e1e68a41f6309bdddec",
+      "normalizedName": "vippayme",
+      "displayName": "@vippayme",
+      "primaryRoute": "pattern",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "8L",
+      "feature": {
+        "classifierVersion": "username-structural-v2",
+        "normalizedUsername": "vippayme",
+        "displayUsername": "@vippayme",
+        "characterLength": 8,
+        "byteLength": 8,
+        "characterClass": "letters",
+        "primaryRoute": "pattern",
+        "routes": [
+          "pattern"
+        ],
+        "scarcityClass": "8L",
+        "patternSignature": "ABCCDEFG",
+        "shapeSignature": "LLLLLLLL",
+        "uniqueCharacterCount": 7,
+        "maxRunLength": 2,
+        "palindrome": false,
+        "sequence": null,
+        "repeatedBlock": null,
+        "scripts": [
+          "Latin"
+        ],
+        "primaryScript": "Latin",
+        "containsUnderscore": false,
+        "underscoreCount": 0,
+        "digitCount": 0,
+        "digitRatio": 0,
+        "vowelRatio": 0.5,
+        "pronounceability": "balanced",
+        "leadingZero": false,
+        "roundNumber": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-23T05:00:50.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-secondary:e04d9e8b76bbbc110e9cb251a8abbfbca21c45956d584fb23f93e4c586974499",
+      "assetKind": "username",
+      "assetKey": "0:aadbba9efe55075c1b22f39ce7eeebc44ac8ba51423e2e1e68a41f6309bdddec",
+      "normalizedName": "vippayme",
+      "soldAt": "2026-09-23T05:00:50.000Z",
+      "priceGram": 9.5,
+      "historicalUsdRate": 1.470227174141408,
+      "priceUsd": 13.967158154343375,
+      "marketplace": "Getgems",
+      "source": "toncenter-indexed-secondary-sale",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-completed-sale-contract",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "transactionHash": "MzhHE187YP/RsX9iAlFjvNnG6XHVgoclFF6regjejDM=",
+        "saleContract": "0:b575eafe8b9abe62fe065419a5f5e418c3a5983480beb97a5122a96cf1500d80"
+      },
+      "primaryRoute": "pattern",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "8L"
+    }
+  ]
+}

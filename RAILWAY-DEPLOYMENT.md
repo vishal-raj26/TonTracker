@@ -1,37 +1,31 @@
 # Railway Deployment
 
-## Services
+## Production Services
 
-Create three Railway services in one project:
+The web application and every background responsibility must be separate.
+Do not deploy any legacy PostgreSQL worker, hourly snapshot job, Telegram-floor
+worker, or second copy of a long-running Gift worker.
 
-1. **TonTrack API**
-   - Source: this repo
-   - Start command: `npm start`
-   - Runs the web app and API.
+| Railway service | Start command | Schedule | Responsibility |
+| --- | --- | --- | --- |
+| **TonTrack API** | `npm start` | always on | Serves the Mini App and reads prepared D1 materializations only. |
+| **Gift floor singleton** | `npm start` + `GIFT_COMBO_CONTINUOUS=1` | always on | Writes complete Thermos floor snapshots and compact seven-day history. |
+| **Gift sales singleton** | `npm start` + `GIFT_SALES_CONTINUOUS=1` | always on | Backfills and polls GiftSatellite sales under its durable checkpoint. |
+| **DNS D1 cron** | `python -m dns_worker direct-d1-cycle --page-size 25` | every 5 minutes | Seeds verified DNS ownership, then writes compact verified sale evidence. |
+| **Username market cron** | `npm run worker:run -- --role username-market` | every 5 minutes | Advances one resumable Fragment market page. |
+| **Identity baseline cron** | `npm run worker:run -- --role identity-baselines` | hourly at minute 7 | Rebuilds prepared DNS and Username valuations. |
 
-2. **PostgreSQL**
-   - Railway PostgreSQL plugin/service.
-   - Exposes `DATABASE_URL`.
-
-3. **Gift Snapshot Cron**
-   - Source: this repo
-   - Start command: `npm run worker:gift-snapshots:once`
-   - Cron schedule: `0 * * * *`
-   - Runs once every hour UTC and exits.
-
-4. **Gift Sales Worker**
-   - Source: this repo
-   - Start command: `npm start`
-   - Set `GIFT_SALES_CONTINUOUS=1` only on this service.
-   - Use a Railway worker service with no HTTP health check.
-   - Continuously stores GiftSatellite recent sales in D1; it must be a separate service from the combo-floor worker.
+The DNS service is a separate Python deployment from `dns-worker/`. Deploy it
+using `railway up dns-worker --path-as-root --service dns-d1-ingest-cron
+--environment production --detach`; deploying it from the repository root can
+replace its Python command with the web server.
 
 ## Required Variables
 
-Set these on the API service and cron service:
+Set D1 read credentials on the API service. The API must not run background
+scans or carry a PostgreSQL connection string in production.
 
 ```env
-DATABASE_URL=${{Postgres.DATABASE_URL}}
 TONAPI_KEY=your_tonapi_key
 DUNE_API_KEY=your_dune_api_key
 DUNE_GIFT_MODEL_STATS_QUERY_ID=your_dune_query_id
@@ -46,10 +40,12 @@ Set this on the API service:
 GIFT_SNAPSHOT_AUTORUN=0
 ```
 
-Set this only on a dedicated snapshot/worker service:
+Set these only on the dedicated Gift floor singleton:
 
 ```env
-GIFT_SNAPSHOT_AUTORUN=1
+GIFT_COMBO_CONTINUOUS=1
+D1_REGISTRY_URL=https://your-registry.workers.dev
+D1_INGEST_SECRET=your_registry_ingest_secret
 ```
 
 Set these only on the dedicated Gift Sales Worker:
@@ -65,7 +61,7 @@ D1_REGISTRY_URL=https://your-registry.workers.dev
 D1_INGEST_SECRET=your_registry_ingest_secret
 ```
 
-Each cycle first checks the latest page for every collection so new sales continue updating. It then walks each collection's complete chronological history until the 365-day boundary, checkpointing every burst. This is the canonical archive because a current floor registry cannot represent variants that sold but are no longer actively listed. D1 de-duplicates overlapping checkpoint pages by sale ID. Wallet-requested exact collection/model/backdrop scans remain available as an optional catch-up tool, but must never replace chronological coverage. GiftSatellite enforces a maximum page size of 20 and a shared one-request-per-second limit. Tune `GIFT_SALES_BACKFILL_PAGES_PER_COLLECTION`, `GIFT_SALES_REQUEST_INTERVAL_MS`, and `GIFT_SALES_CYCLE_DELAY_MS` only after observing the provider's limits. Set `GIFT_SALES_BACKFILL_MODE=exact` only for a targeted exact-combination run.
+Each cycle first checks the latest page for every collection so new sales continue updating. It then walks chronological history toward the 365-day boundary, checkpointing every burst. This is the canonical archive because a current floor registry cannot represent variants that sold but are no longer actively listed. D1 de-duplicates overlapping checkpoint pages by sale ID. Wallet-requested exact collection/model/backdrop scans are only catch-up work and never replace chronological coverage. GiftSatellite enforces a maximum page size of 20 and a shared one-request-per-second limit. Tune `GIFT_SALES_BACKFILL_PAGES_PER_COLLECTION`, `GIFT_SALES_REQUEST_INTERVAL_MS`, and `GIFT_SALES_CYCLE_DELAY_MS` only after observing provider limits. Set `GIFT_SALES_BACKFILL_MODE=exact` only for a targeted exact-combination run.
 
 Before starting this worker, apply `cloudflare/schema.sql` to a new D1 database. For the existing registry, apply `cloudflare/migrations/0002_gift_sales_backfill.sql` and `cloudflare/migrations/0003_gift_sales_scan_targets.sql`, then deploy `cloudflare/gift-registry-worker.mjs`. The registry exposes exact-combination reads at `/sales`, latest checkpoints at `/sales-state`, historical checkpoints at `/sales-backfill-state`, wallet-priority targets at `/sales-targets`, and coverage through `/stats`.
 
@@ -109,15 +105,13 @@ docs/dune-gift-collection-stats.sql
 
 `DUNE_GIFT_COLLECTION_STATS_QUERY_ID` defaults to the public TonTrack-compatible query `5254340`, but it can be overridden if we create a better query later. If a field is not present in the Dune result, TonTrack shows it as unavailable rather than estimating it.
 
-## Snapshot Storage
+## Storage
 
-When `DATABASE_URL` exists, gift floor snapshots are stored in Postgres.
-
-The tables are auto-created by the app, but the schema is also available here:
-
-```text
-data/gift-floor-snapshots.schema.sql
-```
+Cloudflare D1 is the production source of truth for current Gift floors,
+seven-day compact history, compact sales, and identity valuations. Do not store
+raw scanner payloads or repeated complete snapshots in D1. PostgreSQL is
+rollback-only until parity is verified, and no active production worker may
+write new valuation data to it.
 
 ## Commands
 
@@ -127,16 +121,10 @@ API:
 npm start
 ```
 
-Hourly gift snapshot job:
+Gift floor worker:
 
 ```bash
-npm run worker:gift-snapshots:once
-```
-
-Local long-running worker:
-
-```bash
-npm run worker:gift-snapshots
+npm run worker:gift-combos
 ```
 
 Gift sales worker:
@@ -154,5 +142,10 @@ npm run worker:gift-sales:once
 ## Expected Result
 
 - Users do not trigger gift history building.
-- The cron job stores one fresh floor snapshot per gift collection every hour.
+- One Gift floor singleton publishes complete snapshots and seven-day history.
+- One Gift sales singleton preserves 365-day sale evidence under a durable checkpoint.
+- Bounded DNS, Username, and baseline crons can resume safely without duplicate workers.
 - Gift detail pages read already-stored graph history instantly.
+- `GET /api/health` returns the active runtime mode and Railway revision, so a
+  Mini App can be checked against the intended deployment before debugging UI
+  cache or tunnel issues.

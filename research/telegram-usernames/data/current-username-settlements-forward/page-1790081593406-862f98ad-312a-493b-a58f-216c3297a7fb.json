@@ -1,0 +1,175 @@
+{
+  "schemaVersion": "username-local-collection-v1",
+  "from": "2026-09-20T13:45:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "collectedAt": "2026-09-22T12:53:13.406Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 12889,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 80,
+    "candidates": 12,
+    "verifiedItems": 3,
+    "wrongCollection": 9,
+    "assets": 3,
+    "sales": 3,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-22T12:53:13.406Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:451bebe5fbe92019097b02d218eb555e1a06e7e583c09412ae2264fe2bcb81b9",
+      "normalizedName": "glocktether",
+      "displayName": "@glocktether",
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "11L",
+      "feature": {
+        "characterLength": 11,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCDEFGFHGI",
+        "uniqueCharacterCount": 9,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-21T07:16:57.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:d81f80bfcba3c87c26983b65a988c33be5cd964f3d1b99331339f22bb292e649",
+      "normalizedName": "vip6k",
+      "displayName": "@vip6k",
+      "primaryRoute": "alphanumeric",
+      "lengthBucket": "4-5",
+      "script": "Latin",
+      "scarcityClass": "5M",
+      "feature": {
+        "characterLength": 5,
+        "characterClass": "alphanumeric",
+        "routes": [
+          "alphanumeric"
+        ],
+        "patternSignature": "ABCDE",
+        "uniqueCharacterCount": 5,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-21T07:21:28.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:8d033ece9e9b2e43d5783d0b4166852e25d284d136ea3acc98deafe2dc94d3a6",
+      "normalizedName": "tt66t",
+      "displayName": "@tt66t",
+      "primaryRoute": "pattern",
+      "lengthBucket": "4-5",
+      "script": "Latin",
+      "scarcityClass": "5M",
+      "feature": {
+        "characterLength": 5,
+        "characterClass": "alphanumeric",
+        "routes": [
+          "pattern"
+        ],
+        "patternSignature": "AABBA",
+        "uniqueCharacterCount": 2,
+        "maxRunLength": 2,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-21T07:21:58.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:eaf76574dc13f9deb9be1895e0941d103572ce084fe913f0fd9e2f5c86c8c79b",
+      "assetKind": "username",
+      "assetKey": "0:451bebe5fbe92019097b02d218eb555e1a06e7e583c09412ae2264fe2bcb81b9",
+      "normalizedName": "glocktether",
+      "soldAt": "2026-09-21T07:16:57.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.3988996984829565,
+      "priceUsd": 13.988996984829566,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "s7YBfHgGnTFgCTeQdBMt/OYXCPrkIlO4jzrRXTmZYYI=",
+        "messageHash": "xecMla4+cMk+AoVUAw4tc0LNpAM8dFM7uqv4pwFXuIo=",
+        "bidAt": "2026-09-14T07:16:41.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "11L"
+    },
+    {
+      "saleId": "toncenter-username-sale:589d5e27dee9b160f84730cf2fff41100300c4978826b72cfa4b5b69072845b0",
+      "assetKind": "username",
+      "assetKey": "0:d81f80bfcba3c87c26983b65a988c33be5cd964f3d1b99331339f22bb292e649",
+      "normalizedName": "vip6k",
+      "soldAt": "2026-09-21T07:21:28.000Z",
+      "priceGram": 119,
+      "historicalUsdRate": 1.399172120829972,
+      "priceUsd": 166.50148237876667,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "rg8yDhxLb9TdHrka+VJrIdbpVJs86CkaCfvUpASj4M0=",
+        "messageHash": "jfoopifnPcuZQfG4bqqzpyHMAP/MzkLx1q7XD5iwtvU=",
+        "bidAt": "2026-09-14T07:21:09.000Z"
+      },
+      "primaryRoute": "alphanumeric",
+      "lengthBucket": "4-5",
+      "script": "Latin",
+      "scarcityClass": "5M"
+    },
+    {
+      "saleId": "toncenter-username-sale:c80227e313a5c9be985079b2af4759ee7353bb62ea8884fa8a9a117b6c8bd915",
+      "assetKind": "username",
+      "assetKey": "0:8d033ece9e9b2e43d5783d0b4166852e25d284d136ea3acc98deafe2dc94d3a6",
+      "normalizedName": "tt66t",
+      "soldAt": "2026-09-21T07:21:58.000Z",
+      "priceGram": 119,
+      "historicalUsdRate": 1.3992022782853613,
+      "priceUsd": 166.505071115958,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "fYLDbahyxPJYpC6NPIk3UemYzO0UWPNdtRC/Kvptk3U=",
+        "messageHash": "05t7cI16j1eDoDFAQbMIiGGDnNKOd3Wd4vR7M4+YkmY=",
+        "bidAt": "2026-09-14T07:21:41.000Z"
+      },
+      "primaryRoute": "pattern",
+      "lengthBucket": "4-5",
+      "script": "Latin",
+      "scarcityClass": "5M"
+    }
+  ]
+}

@@ -1,0 +1,76 @@
+{
+  "schemaVersion": "username-forward-v2-local-v1",
+  "from": "2026-09-27T00:00:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "requestedEndUtime": 1790761800,
+  "collectedAt": "2026-09-30T10:17:36.715Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 34445,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 80,
+    "candidates": 20,
+    "verifiedItems": 1,
+    "wrongCollection": 19,
+    "assets": 1,
+    "sales": 1,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-30T10:17:36.715Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:80a2f4c8e4d30d7168ba93d5acf0bd7b41e8811ee9c75feff5af3cbdce622086",
+      "normalizedName": "huijinlu",
+      "displayName": "@huijinlu",
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "8L",
+      "feature": {
+        "characterLength": 8,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCDCEFB",
+        "uniqueCharacterCount": 6,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-28T20:41:53.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:dd478084440a7cb47e3472ad35d411b9dcef97a56dce311a70d7c8d22b02c176",
+      "assetKind": "username",
+      "assetKey": "0:80a2f4c8e4d30d7168ba93d5acf0bd7b41e8811ee9c75feff5af3cbdce622086",
+      "normalizedName": "huijinlu",
+      "soldAt": "2026-09-28T20:41:53.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.6012037955277398,
+      "priceUsd": 16.0120379552774,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "gHERWSt2HdNEUIrlBRalUUeZW1xB1kgefwb0E/z3jJs=",
+        "messageHash": "lXXZxsV8sNnj0nbufMhBVJFsC5O2EJr7OvDuEcLB8bw=",
+        "bidAt": "2026-09-21T20:41:36.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "8L"
+    }
+  ]
+}

@@ -1,0 +1,176 @@
+{
+  "schemaVersion": "username-forward-v2-local-v1",
+  "from": "2026-09-27T00:00:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "requestedEndUtime": 1790761800,
+  "collectedAt": "2026-09-30T10:17:49.619Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 34685,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 80,
+    "candidates": 16,
+    "verifiedItems": 3,
+    "wrongCollection": 13,
+    "assets": 3,
+    "sales": 3,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-30T10:17:49.619Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:e6de29924f29295199c5159591423cdd6bc96cdab95075372a5aeb0b7a4e584f",
+      "normalizedName": "healthcommission",
+      "displayName": "@healthcommission",
+      "primaryRoute": "pattern",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "16L",
+      "feature": {
+        "characterLength": 16,
+        "characterClass": "letters",
+        "routes": [
+          "pattern"
+        ],
+        "patternSignature": "ABCDEAFGHHIJJIGK",
+        "uniqueCharacterCount": 11,
+        "maxRunLength": 2,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-28T21:04:44.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:8f6059ae2415b1f170eb364861a53cd3ab6ee2e8129ab5a427b777b54bbe9769",
+      "normalizedName": "heartfucker",
+      "displayName": "@heartfucker",
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "11L",
+      "feature": {
+        "characterLength": 11,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCDEFGHIBD",
+        "uniqueCharacterCount": 9,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-28T21:07:29.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:cec9e0cbf29b5d4ae758f8676dd1a36ec9fb665d3d4eec46a1a51f14137f275e",
+      "normalizedName": "wojdanan",
+      "displayName": "@wojdanan",
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "8L",
+      "feature": {
+        "characterLength": 8,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCDEFEF",
+        "uniqueCharacterCount": 6,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-28T21:08:38.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:fcff1e12aeec0034f33f513e10c7e131396280beb0f21d5b4c25dbb94c9b5a18",
+      "assetKind": "username",
+      "assetKey": "0:e6de29924f29295199c5159591423cdd6bc96cdab95075372a5aeb0b7a4e584f",
+      "normalizedName": "healthcommission",
+      "soldAt": "2026-09-28T21:04:44.000Z",
+      "priceGram": 15,
+      "historicalUsdRate": 1.6038480434272568,
+      "priceUsd": 24.057720651408854,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "Pr4P0nR48bhkfADj0pc/FxiXxYa3qGHCR55n97sp0z8=",
+        "messageHash": "K6Q7geOOw+xy7mIjzkyDyfpkma2nnIistjsPQW52fgY=",
+        "bidAt": "2026-09-21T21:02:33.000Z"
+      },
+      "primaryRoute": "pattern",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "16L"
+    },
+    {
+      "saleId": "toncenter-username-sale:7417b680567d6bb2085f8572b02e7360926ac81f6935d6165581c36744755e7d",
+      "assetKind": "username",
+      "assetKey": "0:8f6059ae2415b1f170eb364861a53cd3ab6ee2e8129ab5a427b777b54bbe9769",
+      "normalizedName": "heartfucker",
+      "soldAt": "2026-09-28T21:07:29.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.6033544446466093,
+      "priceUsd": 16.03354444646609,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "DPGEJVsoZJ8W8A+enNpoccfc+KN6a3VEeYGeN2K4vz8=",
+        "messageHash": "4FBwIn/tb2PbiX873WInxct6btPD9CFxNq/oIxJSJzA=",
+        "bidAt": "2026-09-27T22:48:53.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "11L"
+    },
+    {
+      "saleId": "toncenter-username-sale:4d3ab17eff1ce9448b9c17d0f01a573d0ec7252a703644979e2d9c8c22e98349",
+      "assetKind": "username",
+      "assetKey": "0:cec9e0cbf29b5d4ae758f8676dd1a36ec9fb665d3d4eec46a1a51f14137f275e",
+      "normalizedName": "wojdanan",
+      "soldAt": "2026-09-28T21:08:38.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.6031480306110657,
+      "priceUsd": 16.03148030611066,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "SduAaM2QRj6s7YAhEKxgZjrhAFmIxl1lqiEtn7SfudI=",
+        "messageHash": "BW/fSyexy7Io0Dys38o8ztgvyBolDudnX5I881lGupo=",
+        "bidAt": "2026-09-21T21:05:59.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "8L"
+    }
+  ]
+}

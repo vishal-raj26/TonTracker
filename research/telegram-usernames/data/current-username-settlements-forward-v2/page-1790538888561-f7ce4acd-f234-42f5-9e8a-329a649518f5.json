@@ -1,0 +1,176 @@
+{
+  "schemaVersion": "username-forward-v2-local-v1",
+  "from": "2026-09-27T00:00:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "requestedEndUtime": 1790537700,
+  "collectedAt": "2026-09-27T19:54:48.560Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 14031,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 80,
+    "candidates": 10,
+    "verifiedItems": 3,
+    "wrongCollection": 7,
+    "assets": 3,
+    "sales": 3,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-27T19:54:48.560Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:48d35e5fc730f2c1100b742185ac731835afb448164395bb3f3f8c57ae764348",
+      "normalizedName": "manchesteryunayted_uzbekistan",
+      "displayName": "@manchesteryunayted_uzbekistan",
+      "primaryRoute": "residual",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "29M",
+      "feature": {
+        "characterLength": 29,
+        "characterClass": "alphanumeric",
+        "routes": [
+          "residual"
+        ],
+        "patternSignature": "ABCDEFGHFIJKCBJHFLMKNOFPQGHBC",
+        "uniqueCharacterCount": 17,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": true,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-27T17:40:52.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:920f9cd29ce102a171be6efeebc50fbab5154702b6a588e8c85c75f240147166",
+      "normalizedName": "relaxations_music",
+      "displayName": "@relaxations_music",
+      "primaryRoute": "residual",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "17M",
+      "feature": {
+        "characterLength": 17,
+        "characterClass": "alphanumeric",
+        "routes": [
+          "residual"
+        ],
+        "patternSignature": "ABCDEDFGHIJKLMJGN",
+        "uniqueCharacterCount": 14,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": true,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-27T17:42:13.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:d52f285f1e77cf5079b9bb7b580f504bc78f5395faa59dffad647564ee563ac9",
+      "normalizedName": "mpkob",
+      "displayName": "@mpkob",
+      "primaryRoute": "word",
+      "lengthBucket": "4-5",
+      "script": "Latin",
+      "scarcityClass": "5L",
+      "feature": {
+        "characterLength": 5,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCDE",
+        "uniqueCharacterCount": 5,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-27T17:42:18.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:d136747cf0314a2d51f2d75362e23fb87213452aadb16a954d16f9f49dc5b60f",
+      "assetKind": "username",
+      "assetKey": "0:48d35e5fc730f2c1100b742185ac731835afb448164395bb3f3f8c57ae764348",
+      "normalizedName": "manchesteryunayted_uzbekistan",
+      "soldAt": "2026-09-27T17:40:52.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.6591575804411403,
+      "priceUsd": 16.591575804411402,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "nearest-observation",
+        "txHash": "HfMHxXbU+RRlevXj1Yk2DYDfkFMuEhe+3U8EhmtZyk8=",
+        "messageHash": "yahJGEvVW9hfEFgPuBLtUzrPDeUG/HTp20cOEkciJWA=",
+        "bidAt": "2026-09-20T17:40:23.000Z"
+      },
+      "primaryRoute": "residual",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "29M"
+    },
+    {
+      "saleId": "toncenter-username-sale:6893a3c3b822b04fe5d2f3a0739cded8ead0e9ad2abe2aadd436d100d27db4bc",
+      "assetKind": "username",
+      "assetKey": "0:920f9cd29ce102a171be6efeebc50fbab5154702b6a588e8c85c75f240147166",
+      "normalizedName": "relaxations_music",
+      "soldAt": "2026-09-27T17:42:13.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.6591575804411403,
+      "priceUsd": 16.591575804411402,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "nearest-observation",
+        "txHash": "ecXILjh/w8ErvHYaCMowTrGU6PRRM501Mw9sNZ37HGQ=",
+        "messageHash": "Q0ygF2YDPUR8ptxSBX8DK6lP4Tc4rNKhHBe2IzeXsYE=",
+        "bidAt": "2026-09-20T17:41:56.000Z"
+      },
+      "primaryRoute": "residual",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "17M"
+    },
+    {
+      "saleId": "toncenter-username-sale:8c628729c960bb3682038b07fe142b6ab5eb846eb8156e8b6e7fc863ecf89aa7",
+      "assetKind": "username",
+      "assetKey": "0:d52f285f1e77cf5079b9bb7b580f504bc78f5395faa59dffad647564ee563ac9",
+      "normalizedName": "mpkob",
+      "soldAt": "2026-09-27T17:42:18.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.6591575804411403,
+      "priceUsd": 16.591575804411402,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "nearest-observation",
+        "txHash": "RubFrEMVSlTaJyKKXKzgQlBRz+v1qLEt+As9fmtnBU4=",
+        "messageHash": "ucvODz3+ehfYmZ/68pxSgnAchKYPmN41SyVord5ybx0=",
+        "bidAt": "2026-09-20T17:40:52.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "4-5",
+      "script": "Latin",
+      "scarcityClass": "5L"
+    }
+  ]
+}

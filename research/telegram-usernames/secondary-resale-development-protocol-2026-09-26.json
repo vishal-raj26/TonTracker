@@ -1,0 +1,77 @@
+{
+  "version": "secondary-resale-development-v1",
+  "purpose": "Exposed historical development of an inactive-resale magnitude model; not untouched or current-market qualification",
+  "frozenBeforeFitting": true,
+  "sourceFiles": {
+    "historicalSales": {
+      "path": "research/telegram-usernames/data/dune_username_sales.part",
+      "sha256": "6d724b74f727a797d553190cb72e408d3c70d6069202636a60f7ea2b2850682f"
+    },
+    "pointInTimeFeatures": {
+      "path": "research/telegram-usernames/data/username-broad-training-2026-09-09.json",
+      "sha256": "00b13883db59d511ee1625f0186c115c1d765e6e9b504c4a0980de15acaec77a"
+    }
+  },
+  "eligibility": {
+    "economicIdentity": "exact NFT contract + sale timestamp + native price; reject missing, duplicate or mismatched join",
+    "targetPopulation": "all feature-export rows in each evaluation interval; do not select attempts by realized price or venue for prediction",
+    "trainingForResaleCandidate": "only strictly earlier secondary auction or fixed-sale rows; label is completed historical USD sale",
+    "trainingForAllStageControl": "all strictly earlier completed-sale rows from the same feature export",
+    "retrospectiveStrataOnly": "actual USD cohort and realized primary/secondary venue may segment reports, never form target input or publication routing",
+    "featurePolicy": "frozen 118 structural/historical-snapshot semantic features plus 128 SHA-256 character n-gram indicators from username; no current knowledge, target price, realized venue, baseline price or vector-derived price",
+    "repeatedIdentityPolicy": "strictly prior sales may train; report repeated versus first-observed identity errors and identity-clustered uncertainty"
+  },
+  "model": {
+    "family": "sklearn HistGradientBoostingRegressor on log historical USD",
+    "centerLoss": "absolute_error",
+    "quantileLosses": [0.1, 0.9],
+    "params": {
+      "max_iter": 100,
+      "max_leaf_nodes": 15,
+      "min_samples_leaf": 20,
+      "learning_rate": 0.1,
+      "early_stopping": false,
+      "random_state": 17
+    },
+    "missingPolicy": "fail on nonfinite prepared feature or label; no case filtering by outcome",
+    "modelSelection": "no threshold or hyperparameter tuning on these folds; if this fixed recipe fails, record failure and design a new separately declared experiment"
+  },
+  "folds": [
+    {
+      "id": "2024q4",
+      "trainUntilExclusive": "2024-07-01T00:00:00Z",
+      "calibrationFromInclusive": "2024-07-01T00:00:00Z",
+      "calibrationUntilExclusive": "2024-10-01T00:00:00Z",
+      "evaluationFromInclusive": "2024-10-01T00:00:00Z",
+      "evaluationUntilExclusive": "2025-01-01T00:00:00Z"
+    },
+    {
+      "id": "2025jan",
+      "trainUntilExclusive": "2024-10-01T00:00:00Z",
+      "calibrationFromInclusive": "2024-10-01T00:00:00Z",
+      "calibrationUntilExclusive": "2025-01-01T00:00:00Z",
+      "evaluationFromInclusive": "2025-01-01T00:00:00Z",
+      "evaluationUntilExclusive": "2025-02-01T00:00:00Z"
+    }
+  ],
+  "calibration": "fit 10th/90th log-price quantiles on the same training subset as each center; on secondary calibration outcomes only compute score=max(lower-actual,actual-upper), choose sorted score at one-based rank min(n,ceil((n+1)*0.8)), expand both log-price ends by max(0,score); do not use evaluation outcomes",
+  "controls": [
+    "same-target time-safe v25 baseline, with unavailable cases retained",
+    "same-target all-stage HGB fitted with the identical features and parameters",
+    "saved global-fusion point only on its exact overlapping exposed attempts, labelled a subset rather than a full control"
+  ],
+  "reporting": {
+    "attempts": "every eligible evaluation row in each fold; report source-export coverage and any feature or baseline unavailability explicitly",
+    "metrics": "paired mean absolute log error, median and p95 factor error, nominal 80% coverage, mean log interval score, abstentions and common-availability comparisons",
+    "strata": "full feature-export population; retrospective secondary auction and fixed-sale; premium >=500 USD, intermediate [100,500), ordinary <100; first-observed and repeated identities",
+    "uncertainty": "deterministic 2000-resample 95% paired bootstrap clustered by exact NFT identity",
+    "historicalViabilityGate": "at least 100 secondary-premium identities across both evaluation blocks, secondary-premium MALE at least 25% lower than same-case v25 with positive lower clustered confidence bound, secondary-premium median factor <=3, ordinary secondary MALE no more than 5% worse, premium 80% interval coverage >=70%, no secondary-premium interval-score regression versus same-target all-stage HGB, and no availability regression versus v25; also report full-population regressions even if resale strata pass",
+    "qualification": "failure or success here remains exposed historical development only; production still requires independently sealed prospective current-market validation and all existing integration gates"
+  },
+  "limitations": [
+    "The feature export was selected as latest 30000 rows for earlier experiments, so this is not an unbiased full historical market census.",
+    "The 2024Q4 outcomes serve as evaluation in one fold and calibration in the next; folds are temporal development replications, not independent untouched tests.",
+    "Historical Dune labels have mixed on-chain trace coverage; a missing transaction hash alone neither proves nor disproves an indexed sale.",
+    "A model trained on secondary sales may still perform badly for unsold or illiquid wallets; no estimate becomes a guaranteed executable bid."
+  ]
+}

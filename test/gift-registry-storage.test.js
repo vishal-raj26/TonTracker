@@ -6,9 +6,11 @@ const path = require("node:path");
 const test = require("node:test");
 
 let normalizedSaleForIngest;
+let readIdentityKnowledgeQueue;
+let pruneCompactSalesDatabase;
 
 test.before(async () => {
-  ({ normalizedSaleForIngest } = await import("../cloudflare/gift-registry-worker.mjs"));
+  ({ normalizedSaleForIngest, readIdentityKnowledgeQueue, pruneCompactSalesDatabase } = await import("../cloudflare/gift-registry-worker.mjs"));
 });
 
 test("registry stats default to active and compact sales storage", () => {
@@ -21,15 +23,15 @@ test("registry stats default to active and compact sales storage", () => {
   assert.match(source, /sales_stats_scope: includeLegacySales/);
 });
 
-test("identity sale quota is reconciled from real rows, not upsert change counts", () => {
+test("identity storage hot paths probe incoming keys", () => {
   const source = fs.readFileSync(
     path.join(__dirname, "..", "cloudflare", "gift-registry-worker.mjs"),
     "utf8"
   );
-  assert.match(source, /const salesBefore = await exactIdentityCount\(database, "identity_sales"\)/);
-  assert.match(source, /const trackedSales = await exactIdentityCount\(database, "identity_sales"\)/);
-  assert.match(source, /SET tracked_sales=\?1,updated_at=CURRENT_TIMESTAMP/);
-  assert.doesNotMatch(source, /SET tracked_sales=tracked_sales\+\?/);
+  const ingestSales = source.slice(source.indexOf("async function ingestIdentitySales"), source.indexOf("async function ingestIdentityBaselines"));
+  assert.match(ingestSales, /existingIdentityKeys\(database, "identity_sales", "sale_id"/);
+  assert.doesNotMatch(ingestSales, /exactIdentityCount/);
+  assert.match(ingestSales, /SET tracked_sales=tracked_sales\+\?1/);
 });
 
 test("DNS knowledge queues use the current semantic route marker consistently", () => {
@@ -49,10 +51,48 @@ test("identity knowledge queues separate fast lexical coverage from full enrichm
   );
   const queue = source.slice(source.indexOf("async function readIdentityKnowledgeQueue"), source.indexOf("async function ingestIdentityKnowledge"));
   assert.match(queue, /const mode = String\(body\.mode \|\| "full"\)\.toLowerCase\(\)/);
-  assert.match(queue, /json_extract\(a\.semantic_json,'\$\.lexicalLookupComplete'\) IS NOT 1/);
+  assert.match(queue, /lexicalLookupComplete/);
   assert.match(queue, /lexicalLookupAttemptedAt/);
   assert.match(queue, /7 \* 86400000/);
-  assert.match(queue, /json_extract\(a\.semantic_json,'\$\.entityLookupComplete'\) IS NOT 1/);
+  assert.match(queue, /entityLookupComplete/);
+  assert.match(queue, /const pageSize = 64/);
+  assert.match(queue, /WHERE s\.asset_kind=\?1 AND s\.normalized_name>\?2/);
+  assert.match(queue, /WHERE asset_kind=\?1 AND asset_key>\?2/);
+  assert.doesNotMatch(queue, /GROUP BY s\.asset_kind/);
+});
+
+test("knowledge queue pages without dropping pending assets past the returned limit", async () => {
+  const state = new Map();
+  const rows = Array.from({ length: 70 }, (_, index) => ({
+    asset_kind: "username", asset_key: `username:${String(index).padStart(3, "0")}`,
+    normalized_name: String(index).padStart(3, "0"), semantic_json: "{}",
+    source_updated_at: "2026-09-01T00:00:00Z",
+  }));
+  const calls = [];
+  const database = {
+    prepare(sql) {
+      return { bind(...args) {
+        calls.push({ sql, args });
+        return {
+          async first() { return { cursor_json: state.get(args[0]) || "{}" }; },
+          async all() {
+            if (sql.includes("FROM identity_sales")) return { results: [] };
+            return { results: rows.filter((row) => row.asset_key > args[1]).slice(0, args[2]) };
+          },
+          async run() { state.set(args[0], args[1]); return { meta: { changes: 1 } }; },
+        };
+      } };
+    },
+  };
+  const seen = [];
+  for (let index = 0; index < 6; index += 1) {
+    const result = await readIdentityKnowledgeQueue({ VALUATION_READ_MODEL: database },
+      { assetKind: "username", mode: "fast", limit: 12 });
+    seen.push(...result.records.map((row) => row.asset_key));
+  }
+  assert.deepEqual(seen, rows.map((row) => row.asset_key));
+  assert.ok(calls.filter((call) => call.sql.includes("FROM identity_assets WHERE asset_kind=?1"))
+    .every((call) => call.args[2] === 64));
 });
 
 test("newer valuation versions cannot be overwritten by an older writer", () => {

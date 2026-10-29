@@ -1,0 +1,285 @@
+{
+  "schemaVersion": "username-late-qualification-result-v1",
+  "qualification": true,
+  "passed": false,
+  "evaluatedAt": "2026-09-20T13:34:15.144Z",
+  "manifest": "username-late-qualification-manifest-2026-09-20.json",
+  "manifestSha256": "e4a41c1366bd12957ebd3c5a8e5cac92a2a898ed30f14227fa9947253c9d6106",
+  "lifecycleFile": "username-late-lifecycles-2026-09-20.jsonl",
+  "lifecycleSha256": "8d6a78bd15f5c102853b8b7e0c999e5513591f376b51214750a21c5b1907dc1d",
+  "sources": {
+    "historicalSales": 340000,
+    "historicalRejected": 0,
+    "earlyEvents": 998,
+    "holdoutEvents": 988,
+    "holdoutUniqueIdentities": 981,
+    "premiumUniqueIdentities": 31
+  },
+  "lifecycleCoverage": {
+    "attempted": 988,
+    "verifiedWithBids": 705,
+    "latestBidMatchesSale": 694,
+    "unavailable": 283,
+    "fetchErrors": 0,
+    "parseErrors": 1
+  },
+  "baselineV25": {
+    "overall": {
+      "samples": 988,
+      "intervalSamples": 988,
+      "medianFactorError": 1.6225036407424567,
+      "medianPredictionRatio": 1.5512808217644691,
+      "coverage": 0.7419028340080972,
+      "meanAbsoluteLogError": 0.7701475466165801,
+      "medianRelativeError": 0.6133750751529932,
+      "meanLogIntervalWidth": 2.4285453765740534,
+      "meanLogIntervalScore80": 3.6246148765568185
+    },
+    "ordinary": {
+      "samples": 860,
+      "intervalSamples": 860,
+      "medianFactorError": 1.5900894305971693,
+      "medianPredictionRatio": 1.572537890106259,
+      "coverage": 0.8093023255813954,
+      "meanAbsoluteLogError": 0.539593293591869,
+      "medianRelativeError": 0.5792451120878837,
+      "meanLogIntervalWidth": 2.404359393897845,
+      "meanLogIntervalScore80": 2.944566600746149
+    },
+    "intermediate": {
+      "samples": 97,
+      "intervalSamples": 97,
+      "medianFactorError": 7.29790220226297,
+      "medianPredictionRatio": 0.1370256783778104,
+      "coverage": 0.24742268041237114,
+      "meanAbsoluteLogError": 2.0448401753489396,
+      "medianRelativeError": 0.8629743216221896,
+      "meanLogIntervalWidth": 2.428790533423411,
+      "meanLogIntervalScore80": 5.701665785796227
+    },
+    "premium": {
+      "samples": 31,
+      "intervalSamples": 31,
+      "medianFactorError": 24.621712524526078,
+      "medianPredictionRatio": 0.04061455916211694,
+      "coverage": 0.41935483870967744,
+      "meanAbsoluteLogError": 3.177614405139579,
+      "medianRelativeError": 0.959385440837883,
+      "meanLogIntervalWidth": 3.09874424390152,
+      "meanLogIntervalScore80": 15.991310973361767
+    }
+  },
+  "horizons": {
+    "1": {
+      "hoursBeforeClose": 1,
+      "availability": {
+        "all": 705,
+        "ordinary": 605,
+        "intermediate": 77,
+        "premium": 23
+      },
+      "premiumMaleImprovement": 0.7452355741401986,
+      "ordinaryMaleRegression": -0.6006306131631789,
+      "intermediateMaleRegression": -0.7693520670540531,
+      "passed": false,
+      "gates": {
+        "minimumPremiumIdentities": false,
+        "premiumMedian": true,
+        "premiumMaleImprovementVsV25": true,
+        "ordinaryRegressionVsV25": true,
+        "intermediateRegressionVsV25": true,
+        "overallIntervalCoverage": true,
+        "premiumIntervalCoverage": true
+      },
+      "cohorts": {
+        "overall": {
+          "samples": 988,
+          "intervalSamples": 988,
+          "medianFactorError": 1,
+          "medianPredictionRatio": 1,
+          "coverage": 0.8157894736842105,
+          "meanAbsoluteLogError": 0.25928359786638056,
+          "medianRelativeError": 0,
+          "meanLogIntervalWidth": 0.7394680102231698,
+          "meanLogIntervalScore80": 1.466708361372619
+        },
+        "ordinary": {
+          "samples": 860,
+          "intervalSamples": 860,
+          "medianFactorError": 1,
+          "medianPredictionRatio": 1,
+          "coverage": 0.8162790697674419,
+          "meanAbsoluteLogError": 0.21549704280304555,
+          "medianRelativeError": 0,
+          "meanLogIntervalWidth": 0.7600920241075221,
+          "meanLogIntervalScore80": 1.3216437142635102
+        },
+        "intermediate": {
+          "samples": 97,
+          "intervalSamples": 97,
+          "medianFactorError": 1,
+          "medianPredictionRatio": 1,
+          "coverage": 0.8144329896907216,
+          "meanAbsoluteLogError": 0.4716381596490604,
+          "medianRelativeError": 0,
+          "meanLogIntervalWidth": 0.5515487453488387,
+          "meanLogIntervalScore80": 1.7688574816625309
+        },
+        "premium": {
+          "samples": 31,
+          "intervalSamples": 31,
+          "medianFactorError": 1,
+          "medianPredictionRatio": 1,
+          "coverage": 0.8064516129032258,
+          "meanAbsoluteLogError": 0.8095431095292192,
+          "medianRelativeError": 0,
+          "meanLogIntervalWidth": 0.7553233893286041,
+          "meanLogIntervalScore80": 4.545648098330724
+        }
+      }
+    },
+    "6": {
+      "hoursBeforeClose": 6,
+      "availability": {
+        "all": 705,
+        "ordinary": 605,
+        "intermediate": 77,
+        "premium": 23
+      },
+      "premiumMaleImprovement": 0.6803735574595279,
+      "ordinaryMaleRegression": -0.5501942624649756,
+      "intermediateMaleRegression": -0.7293880173637265,
+      "passed": false,
+      "gates": {
+        "minimumPremiumIdentities": false,
+        "premiumMedian": true,
+        "premiumMaleImprovementVsV25": true,
+        "ordinaryRegressionVsV25": true,
+        "intermediateRegressionVsV25": true,
+        "overallIntervalCoverage": true,
+        "premiumIntervalCoverage": true
+      },
+      "cohorts": {
+        "overall": {
+          "samples": 988,
+          "intervalSamples": 988,
+          "medianFactorError": 1,
+          "medianPredictionRatio": 1,
+          "coverage": 0.791497975708502,
+          "meanAbsoluteLogError": 0.29746289974592427,
+          "medianRelativeError": 0,
+          "meanLogIntervalWidth": 1.1240758371629835,
+          "meanLogIntervalScore80": 2.0100105973439053
+        },
+        "ordinary": {
+          "samples": 860,
+          "intervalSamples": 860,
+          "medianFactorError": 1,
+          "medianPredictionRatio": 1,
+          "coverage": 0.7953488372093023,
+          "meanAbsoluteLogError": 0.24271215939304355,
+          "medianRelativeError": 0,
+          "meanLogIntervalWidth": 1.1392697949717892,
+          "meanLogIntervalScore80": 1.7904781182631173
+        },
+        "intermediate": {
+          "samples": 97,
+          "intervalSamples": 97,
+          "medianFactorError": 1,
+          "medianPredictionRatio": 1,
+          "coverage": 0.7835051546391752,
+          "meanAbsoluteLogError": 0.5533582540254817,
+          "medianRelativeError": 0,
+          "meanLogIntervalWidth": 0.979411946961385,
+          "meanLogIntervalScore80": 2.617610073868761
+        },
+        "premium": {
+          "samples": 31,
+          "intervalSamples": 31,
+          "medianFactorError": 1,
+          "medianPredictionRatio": 1,
+          "coverage": 0.7096774193548387,
+          "meanAbsoluteLogError": 1.0156495880801224,
+          "medianRelativeError": 0,
+          "meanLogIntervalWidth": 1.1552240189044682,
+          "meanLogIntervalScore80": 6.199068106588156
+        }
+      }
+    },
+    "24": {
+      "hoursBeforeClose": 24,
+      "availability": {
+        "all": 705,
+        "ordinary": 605,
+        "intermediate": 77,
+        "premium": 23
+      },
+      "premiumMaleImprovement": 0.6602688483138196,
+      "ordinaryMaleRegression": -0.548345882616019,
+      "intermediateMaleRegression": -0.727489584438031,
+      "passed": false,
+      "gates": {
+        "minimumPremiumIdentities": false,
+        "premiumMedian": true,
+        "premiumMaleImprovementVsV25": true,
+        "ordinaryRegressionVsV25": true,
+        "intermediateRegressionVsV25": true,
+        "overallIntervalCoverage": true,
+        "premiumIntervalCoverage": true
+      },
+      "cohorts": {
+        "overall": {
+          "samples": 988,
+          "intervalSamples": 988,
+          "medianFactorError": 1,
+          "medianPredictionRatio": 1,
+          "coverage": 0.7995951417004049,
+          "meanAbsoluteLogError": 0.3007166747760072,
+          "medianRelativeError": 0,
+          "meanLogIntervalWidth": 1.1992571767771154,
+          "meanLogIntervalScore80": 2.085247602043796
+        },
+        "ordinary": {
+          "samples": 860,
+          "intervalSamples": 860,
+          "medianFactorError": 1,
+          "medianPredictionRatio": 1,
+          "coverage": 0.8046511627906977,
+          "meanAbsoluteLogError": 0.24370953276355092,
+          "medianRelativeError": 0,
+          "meanLogIntervalWidth": 1.213389692614791,
+          "meanLogIntervalScore80": 1.8488865846356792
+        },
+        "intermediate": {
+          "samples": 97,
+          "intervalSamples": 97,
+          "medianFactorError": 1,
+          "medianPredictionRatio": 1,
+          "coverage": 0.7835051546391752,
+          "meanAbsoluteLogError": 0.557240245942149,
+          "medianRelativeError": 0,
+          "meanLogIntervalWidth": 1.0630486449578036,
+          "meanLogIntervalScore80": 2.6808036263685704
+        },
+        "premium": {
+          "samples": 31,
+          "intervalSamples": 31,
+          "medianFactorError": 1,
+          "medianPredictionRatio": 1,
+          "coverage": 0.7096774193548387,
+          "meanAbsoluteLogError": 1.0795346014726663,
+          "medianRelativeError": 0,
+          "meanLogIntervalWidth": 1.2333947240699525,
+          "meanLogIntervalScore80": 6.77884568628512
+        }
+      }
+    }
+  },
+  "limitations": [
+    "The active-auction candidate is never portfolio eligible and does not qualify inactive resale valuation.",
+    "Uncovered auction states fall back to v25 and are retained in all aggregate metrics.",
+    "Historical event-day GRAM/USD labels convert both bid and settlement; factor errors are therefore equivalent to native-GRAM errors, not an intraday FX test.",
+    "The single non-monotonic decoded bid lifecycle remains a parse error and is not repaired.",
+    "Late holdout labels are exposed by this one-time report and are development-only after evaluation."
+  ]
+}

@@ -1,0 +1,75 @@
+{
+  "schemaVersion": "username-local-collection-v1",
+  "from": "2026-09-20T13:45:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "collectedAt": "2026-09-22T12:56:04.924Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 17209,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 80,
+    "candidates": 1,
+    "verifiedItems": 1,
+    "wrongCollection": 0,
+    "assets": 1,
+    "sales": 1,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-22T12:56:04.924Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:5157fa0c5ef344dd51f538b49066d14d93d9bc4c7f96cd198ecf3c2225907761",
+      "normalizedName": "dubaiislamicbank",
+      "displayName": "@dubaiislamicbank",
+      "primaryRoute": "pattern",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "16L",
+      "feature": {
+        "characterLength": 16,
+        "characterClass": "letters",
+        "routes": [
+          "pattern"
+        ],
+        "patternSignature": "ABCDEEFGDHEICDJK",
+        "uniqueCharacterCount": 11,
+        "maxRunLength": 2,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-21T10:56:07.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:fd6944dd8517e636c57fbad5be307f420f6f215c6843b1bab2cacd6f8d7c2a2c",
+      "assetKind": "username",
+      "assetKey": "0:5157fa0c5ef344dd51f538b49066d14d93d9bc4c7f96cd198ecf3c2225907761",
+      "normalizedName": "dubaiislamicbank",
+      "soldAt": "2026-09-21T10:56:07.000Z",
+      "priceGram": 6.010001,
+      "historicalUsdRate": 1.4257261793630753,
+      "priceUsd": 8.568615763698261,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "yW5cKjrOvyvtwuv9xJnoHmjVkkvYbxKMjAf3gvY5bG8=",
+        "messageHash": "2ZMTUsX7sJssUgKyDGsaeJZL/6VF+quXM4EfZkjdouo=",
+        "bidAt": "2026-09-21T02:58:51.000Z"
+      },
+      "primaryRoute": "pattern",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "16L"
+    }
+  ]
+}

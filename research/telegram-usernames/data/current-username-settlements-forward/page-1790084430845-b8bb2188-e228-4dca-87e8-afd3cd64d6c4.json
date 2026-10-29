@@ -1,0 +1,75 @@
+{
+  "schemaVersion": "username-local-collection-v1",
+  "from": "2026-09-20T13:45:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "collectedAt": "2026-09-22T13:40:30.845Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 41449,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 80,
+    "candidates": 14,
+    "verifiedItems": 1,
+    "wrongCollection": 13,
+    "assets": 1,
+    "sales": 1,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-22T13:40:30.845Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:16d43e261cedbb6886a0a3e42195895a81772b0a7dd6d9ebeaea9093ed554b3a",
+      "normalizedName": "guitantou",
+      "displayName": "@guitantou",
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "9L",
+      "feature": {
+        "characterLength": 9,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCDEFDGB",
+        "uniqueCharacterCount": 7,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-22T13:22:08.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:17b83ae4dfd642ae930531d65737b8af7c65eb972d287bd5ff9e9037d763d62e",
+      "assetKind": "username",
+      "assetKey": "0:16d43e261cedbb6886a0a3e42195895a81772b0a7dd6d9ebeaea9093ed554b3a",
+      "normalizedName": "guitantou",
+      "soldAt": "2026-09-22T13:22:08.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.426969287909366,
+      "priceUsd": 14.269692879093661,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "nearest-observation",
+        "txHash": "eGpaDO2PBmuxEoZJY9vGvuXlJZDtrSWx6T3+39X+sKs=",
+        "messageHash": "YW4cvo6wgsOZRB399NwmhWwZpjfdkbtXKUTCGtb926I=",
+        "bidAt": "2026-09-15T13:21:52.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "9L"
+    }
+  ]
+}

@@ -1,0 +1,91 @@
+{
+  "schemaVersion": "username-secondary-local-v1",
+  "from": "2026-09-20T14:00:00Z",
+  "pipeline": "username-toncenter-secondary-sales-v1",
+  "collectedAt": "2026-09-27T19:57:13.638Z",
+  "cursor": {
+    "absoluteOffset": 38140,
+    "caughtUp": false
+  },
+  "metadata": {
+    "transfers": 100,
+    "saleContracts": 3,
+    "verifiedSales": 1,
+    "assets": 1,
+    "sales": 1,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-27T19:57:13.638Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:d7672ff48b4c9c0b1e8da23f3360717de9a0e0a35228901039ffa02bb17419a0",
+      "normalizedName": "privatizer",
+      "displayName": "@privatizer",
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "10L",
+      "feature": {
+        "classifierVersion": "username-structural-v2",
+        "normalizedUsername": "privatizer",
+        "displayUsername": "@privatizer",
+        "characterLength": 10,
+        "byteLength": 10,
+        "characterClass": "letters",
+        "primaryRoute": "word",
+        "routes": [
+          "word"
+        ],
+        "scarcityClass": "10L",
+        "patternSignature": "ABCDEFCGHB",
+        "shapeSignature": "LLLLLLLLLL",
+        "uniqueCharacterCount": 8,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "repeatedBlock": null,
+        "scripts": [
+          "Latin"
+        ],
+        "primaryScript": "Latin",
+        "containsUnderscore": false,
+        "underscoreCount": 0,
+        "digitCount": 0,
+        "digitRatio": 0,
+        "vowelRatio": 0.4,
+        "pronounceability": "balanced",
+        "leadingZero": false,
+        "roundNumber": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-27T12:01:33.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-secondary:99149e4be9db3f23990a900c6287dcea1fa72ca0480438eb685cc247d9c3ef4d",
+      "assetKind": "username",
+      "assetKey": "0:d7672ff48b4c9c0b1e8da23f3360717de9a0e0a35228901039ffa02bb17419a0",
+      "normalizedName": "privatizer",
+      "soldAt": "2026-09-27T12:01:33.000Z",
+      "priceGram": 100,
+      "historicalUsdRate": 1.6231339432479823,
+      "priceUsd": 162.31339432479822,
+      "marketplace": "Getgems",
+      "source": "toncenter-indexed-secondary-sale",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-completed-sale-contract",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "transactionHash": "F5C8nK1iTSHbL8EshTe/rPY0POZgBmlscHe4Mg4NoSY=",
+        "saleContract": "0:2b1061bb9ebee2b2685f061cf4bbc86237d7bf64a8e6acc499f3492f36700914"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "10L"
+    }
+  ]
+}

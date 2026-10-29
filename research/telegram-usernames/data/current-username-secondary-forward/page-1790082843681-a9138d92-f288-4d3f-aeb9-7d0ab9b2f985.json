@@ -1,0 +1,91 @@
+{
+  "schemaVersion": "username-secondary-local-v1",
+  "from": "2026-09-20T14:00:00Z",
+  "pipeline": "username-toncenter-secondary-sales-v1",
+  "collectedAt": "2026-09-22T13:14:03.681Z",
+  "cursor": {
+    "absoluteOffset": 10400,
+    "caughtUp": false
+  },
+  "metadata": {
+    "transfers": 100,
+    "saleContracts": 6,
+    "verifiedSales": 1,
+    "assets": 1,
+    "sales": 1,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-22T13:14:03.681Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:bdce7fca89932e2520967c1c8b75e37c2f30c08143a6d60ac5d1182a71deaf17",
+      "normalizedName": "osuzhdenny",
+      "displayName": "@osuzhdenny",
+      "primaryRoute": "pattern",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "10L",
+      "feature": {
+        "classifierVersion": "username-structural-v2",
+        "normalizedUsername": "osuzhdenny",
+        "displayUsername": "@osuzhdenny",
+        "characterLength": 10,
+        "byteLength": 10,
+        "characterClass": "letters",
+        "primaryRoute": "pattern",
+        "routes": [
+          "pattern"
+        ],
+        "scarcityClass": "10L",
+        "patternSignature": "ABCDEFGHHI",
+        "shapeSignature": "LLLLLLLLLL",
+        "uniqueCharacterCount": 9,
+        "maxRunLength": 2,
+        "palindrome": false,
+        "sequence": null,
+        "repeatedBlock": null,
+        "scripts": [
+          "Latin"
+        ],
+        "primaryScript": "Latin",
+        "containsUnderscore": false,
+        "underscoreCount": 0,
+        "digitCount": 0,
+        "digitRatio": 0,
+        "vowelRatio": 0.4,
+        "pronounceability": "balanced",
+        "leadingZero": false,
+        "roundNumber": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-22T06:09:42.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-secondary:779703f40ac4936cac54034f2616c4446fff71fbaaed127772cb5526c06b327c",
+      "assetKind": "username",
+      "assetKey": "0:bdce7fca89932e2520967c1c8b75e37c2f30c08143a6d60ac5d1182a71deaf17",
+      "normalizedName": "osuzhdenny",
+      "soldAt": "2026-09-22T06:09:42.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.437672592322765,
+      "priceUsd": 14.37672592322765,
+      "marketplace": "Getgems",
+      "source": "toncenter-indexed-secondary-sale",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-completed-sale-contract",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "transactionHash": "2FgeQeoSnQHndrsHT9nPoBlBM5mSLAmlhHj66/OAZWQ=",
+        "saleContract": "0:016400772e8578ec04c4cb41c9ed21be33423d0765c92f9d41b7f110cc897c61"
+      },
+      "primaryRoute": "pattern",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "10L"
+    }
+  ]
+}

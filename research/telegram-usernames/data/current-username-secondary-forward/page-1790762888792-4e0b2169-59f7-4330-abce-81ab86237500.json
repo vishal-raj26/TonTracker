@@ -1,0 +1,159 @@
+{
+  "schemaVersion": "username-secondary-local-v1",
+  "from": "2026-09-20T14:00:00Z",
+  "pipeline": "username-toncenter-secondary-sales-v1",
+  "collectedAt": "2026-09-30T10:08:08.792Z",
+  "cursor": {
+    "absoluteOffset": 51558,
+    "caughtUp": false
+  },
+  "metadata": {
+    "transfers": 100,
+    "saleContracts": 4,
+    "verifiedSales": 2,
+    "assets": 2,
+    "sales": 2,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-30T10:08:08.792Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:eb8abcace4d0fa4f7e64eb6d9b1ad50c8c6d48e844b8f0702ca5b9b9d5a4b4fc",
+      "normalizedName": "traffbrawl",
+      "displayName": "@traffbrawl",
+      "primaryRoute": "pattern",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "10L",
+      "feature": {
+        "classifierVersion": "username-structural-v2",
+        "normalizedUsername": "traffbrawl",
+        "displayUsername": "@traffbrawl",
+        "characterLength": 10,
+        "byteLength": 10,
+        "characterClass": "letters",
+        "primaryRoute": "pattern",
+        "routes": [
+          "pattern"
+        ],
+        "scarcityClass": "10L",
+        "patternSignature": "ABCDDEBCFG",
+        "shapeSignature": "LLLLLLLLLL",
+        "uniqueCharacterCount": 7,
+        "maxRunLength": 2,
+        "palindrome": false,
+        "sequence": null,
+        "repeatedBlock": null,
+        "scripts": [
+          "Latin"
+        ],
+        "primaryScript": "Latin",
+        "containsUnderscore": false,
+        "underscoreCount": 0,
+        "digitCount": 0,
+        "digitRatio": 0,
+        "vowelRatio": 0.2,
+        "pronounceability": "difficult",
+        "leadingZero": false,
+        "roundNumber": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-29T07:03:07.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:54b601c6a8ab59ebdcc3f4200cd9e2e7a1b2ad1f8194c5d6dfe48bbb1039f094",
+      "normalizedName": "aisee",
+      "displayName": "@aisee",
+      "primaryRoute": "pattern",
+      "lengthBucket": "4-5",
+      "script": "Latin",
+      "scarcityClass": "5L",
+      "feature": {
+        "classifierVersion": "username-structural-v2",
+        "normalizedUsername": "aisee",
+        "displayUsername": "@aisee",
+        "characterLength": 5,
+        "byteLength": 5,
+        "characterClass": "letters",
+        "primaryRoute": "pattern",
+        "routes": [
+          "pattern"
+        ],
+        "scarcityClass": "5L",
+        "patternSignature": "ABCDD",
+        "shapeSignature": "LLLLL",
+        "uniqueCharacterCount": 4,
+        "maxRunLength": 2,
+        "palindrome": false,
+        "sequence": null,
+        "repeatedBlock": null,
+        "scripts": [
+          "Latin"
+        ],
+        "primaryScript": "Latin",
+        "containsUnderscore": false,
+        "underscoreCount": 0,
+        "digitCount": 0,
+        "digitRatio": 0,
+        "vowelRatio": 0.8,
+        "pronounceability": "difficult",
+        "leadingZero": false,
+        "roundNumber": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-29T07:21:30.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-secondary:ea44af7a55205b844b610e6930b718e7b1ed30d9ae7babea3cb2c1d3ca85e814",
+      "assetKind": "username",
+      "assetKey": "0:eb8abcace4d0fa4f7e64eb6d9b1ad50c8c6d48e844b8f0702ca5b9b9d5a4b4fc",
+      "normalizedName": "traffbrawl",
+      "soldAt": "2026-09-29T07:03:07.000Z",
+      "priceGram": 13,
+      "historicalUsdRate": 1.5794245256654547,
+      "priceUsd": 20.53251883365091,
+      "marketplace": "Getgems",
+      "source": "toncenter-indexed-secondary-sale",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-completed-sale-contract",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "transactionHash": "wIzTKMEj4rV7ThVq4OaV7Mj2bP3XhW1xVyLZiR/Z9OI=",
+        "saleContract": "0:71ef4396548ee14e75290558d4bb62aaefad965ba86c77337ccf7231d0a63052"
+      },
+      "primaryRoute": "pattern",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "10L"
+    },
+    {
+      "saleId": "toncenter-username-secondary:e82961cc0ac539592dbbcfdbe6435784ad6f42cf31083c51c2cbaae8d37071c2",
+      "assetKind": "username",
+      "assetKey": "0:54b601c6a8ab59ebdcc3f4200cd9e2e7a1b2ad1f8194c5d6dfe48bbb1039f094",
+      "normalizedName": "aisee",
+      "soldAt": "2026-09-29T07:21:30.000Z",
+      "priceGram": 1800000,
+      "historicalUsdRate": 1.578097840852174,
+      "priceUsd": 2840576.113533913,
+      "marketplace": "Getgems",
+      "source": "toncenter-indexed-secondary-sale",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-completed-sale-contract",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "transactionHash": "ev7lkbYiw+bSw2J2Pu261pdKCKJCuDDArOPhq+ZFNqE=",
+        "saleContract": "0:7ddc6b9bfde425c17df1119f3805d2611214c91625e0b9a829afe8bf4ffc78a2"
+      },
+      "primaryRoute": "pattern",
+      "lengthBucket": "4-5",
+      "script": "Latin",
+      "scarcityClass": "5L"
+    }
+  ]
+}

@@ -1,0 +1,125 @@
+{
+  "schemaVersion": "username-local-collection-v1",
+  "from": "2026-09-20T13:45:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "collectedAt": "2026-09-22T12:46:39.401Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 1769,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 80,
+    "candidates": 9,
+    "verifiedItems": 2,
+    "wrongCollection": 7,
+    "assets": 2,
+    "sales": 2,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-22T12:46:39.401Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:d6f8d72ea25d041bca77b2ad298b5041662e8595ef3b68380e0dd8d6b2b9c88f",
+      "normalizedName": "devchauhan",
+      "displayName": "@devchauhan",
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "10L",
+      "feature": {
+        "characterLength": 10,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCDEFGEFH",
+        "uniqueCharacterCount": 8,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-20T15:24:30.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:2a0716f1becc6a363c2b374b96452240a9cb82c2402742ad9223660e8c347ba3",
+      "normalizedName": "cercandolapace",
+      "displayName": "@cercandolapace",
+      "primaryRoute": "residual",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "14L",
+      "feature": {
+        "characterLength": 14,
+        "characterClass": "letters",
+        "routes": [
+          "residual"
+        ],
+        "patternSignature": "ABCADEFGHDIDAB",
+        "uniqueCharacterCount": 9,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-20T15:25:24.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:ab7df652c0441f37e3f84250aed1182a1374470845832fb2b9d9ea76a29109ba",
+      "assetKind": "username",
+      "assetKey": "0:d6f8d72ea25d041bca77b2ad298b5041662e8595ef3b68380e0dd8d6b2b9c88f",
+      "normalizedName": "devchauhan",
+      "soldAt": "2026-09-20T15:24:30.000Z",
+      "priceGram": 119,
+      "historicalUsdRate": 1.3744407026209973,
+      "priceUsd": 163.55844361189867,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "EJDMu1H9DTZ5MVxp+FVk/X77CB8Amh+fZ6xCJPm3bNQ=",
+        "messageHash": "5Di7gQBYa7kd5gaEz8MBnZ48S6zwqvWvpLHfd4WIJPY=",
+        "bidAt": "2026-09-13T15:24:13.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "10L"
+    },
+    {
+      "saleId": "toncenter-username-sale:80d12d775f16c81c8f5e75590ece3e9eab328afd32d360c989139148dd719782",
+      "assetKind": "username",
+      "assetKey": "0:2a0716f1becc6a363c2b374b96452240a9cb82c2402742ad9223660e8c347ba3",
+      "normalizedName": "cercandolapace",
+      "soldAt": "2026-09-20T15:25:24.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.3744491404880512,
+      "priceUsd": 13.744491404880513,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "dDGRrYacn7rxXq87H+f3uxJ0LXMswcymKyrT1pzsqqc=",
+        "messageHash": "zoWcJi7WhZ3GtXqqZJkJ3Fmb2QqQi2TtzT0EHNwQUnY=",
+        "bidAt": "2026-09-13T15:25:07.000Z"
+      },
+      "primaryRoute": "residual",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "14L"
+    }
+  ]
+}

@@ -1,0 +1,91 @@
+{
+  "schemaVersion": "username-secondary-local-v1",
+  "from": "2026-09-20T14:00:00Z",
+  "pipeline": "username-toncenter-secondary-sales-v1",
+  "collectedAt": "2026-09-26T22:18:23.298Z",
+  "cursor": {
+    "absoluteOffset": 35638,
+    "caughtUp": false
+  },
+  "metadata": {
+    "transfers": 100,
+    "saleContracts": 25,
+    "verifiedSales": 1,
+    "assets": 1,
+    "sales": 1,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-26T22:18:23.298Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:31c0e980e38a3d341a55ec7c5e9aa1ceade73dc43a43265ad38f469b41eaec04",
+      "normalizedName": "bmw_m5f90_competition",
+      "displayName": "@bmw_m5f90_competition",
+      "primaryRoute": "alphanumeric",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "21M",
+      "feature": {
+        "classifierVersion": "username-structural-v2",
+        "normalizedUsername": "bmw_m5f90_competition",
+        "displayUsername": "@bmw_m5f90_competition",
+        "characterLength": 21,
+        "byteLength": 21,
+        "characterClass": "alphanumeric",
+        "primaryRoute": "alphanumeric",
+        "routes": [
+          "alphanumeric"
+        ],
+        "scarcityClass": "21M",
+        "patternSignature": "ABCDBEFGHDIJBKLMNMNJO",
+        "shapeSignature": "LLL_LNLNN_LLLLLLLLLLL",
+        "uniqueCharacterCount": 15,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "repeatedBlock": null,
+        "scripts": [
+          "Latin"
+        ],
+        "primaryScript": "Latin",
+        "containsUnderscore": true,
+        "underscoreCount": 2,
+        "digitCount": 3,
+        "digitRatio": 0.14285714285714285,
+        "vowelRatio": 0.3125,
+        "pronounceability": "not-applicable",
+        "leadingZero": false,
+        "roundNumber": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-26T21:23:21.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-secondary:bec46967a54ae42ee47697763aa7ef2f032e4a852c3b2b880f9a4bdb709b939b",
+      "assetKind": "username",
+      "assetKey": "0:31c0e980e38a3d341a55ec7c5e9aa1ceade73dc43a43265ad38f469b41eaec04",
+      "normalizedName": "bmw_m5f90_competition",
+      "soldAt": "2026-09-26T21:23:21.000Z",
+      "priceGram": 5.9,
+      "historicalUsdRate": 1.5714420413871713,
+      "priceUsd": 9.27150804418431,
+      "marketplace": "Getgems",
+      "source": "toncenter-indexed-secondary-sale",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-completed-sale-contract",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "transactionHash": "ILogE9o+Ayzsyk17yCDhQl5GyT6Ovj9+2xv8sprtPEw=",
+        "saleContract": "0:e2bc002f0226677188578095956406a5d947b5c43deb0b9a0699c2f72c7af558"
+      },
+      "primaryRoute": "alphanumeric",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "21M"
+    }
+  ]
+}

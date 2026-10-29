@@ -1,0 +1,91 @@
+{
+  "schemaVersion": "username-secondary-local-v1",
+  "from": "2026-09-20T14:00:00Z",
+  "pipeline": "username-toncenter-secondary-sales-v1",
+  "collectedAt": "2026-09-22T13:09:06.694Z",
+  "cursor": {
+    "absoluteOffset": 3100,
+    "caughtUp": false
+  },
+  "metadata": {
+    "transfers": 100,
+    "saleContracts": 7,
+    "verifiedSales": 1,
+    "assets": 1,
+    "sales": 1,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-22T13:09:06.694Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:a4b417993f16c156ff4f4538c8a9a260d03e958d9aa9cae7c8efc4eafe6603fd",
+      "normalizedName": "heraldo",
+      "displayName": "@heraldo",
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "7L",
+      "feature": {
+        "classifierVersion": "username-structural-v2",
+        "normalizedUsername": "heraldo",
+        "displayUsername": "@heraldo",
+        "characterLength": 7,
+        "byteLength": 7,
+        "characterClass": "letters",
+        "primaryRoute": "word",
+        "routes": [
+          "word"
+        ],
+        "scarcityClass": "7L",
+        "patternSignature": "ABCDEFG",
+        "shapeSignature": "LLLLLLL",
+        "uniqueCharacterCount": 7,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "repeatedBlock": null,
+        "scripts": [
+          "Latin"
+        ],
+        "primaryScript": "Latin",
+        "containsUnderscore": false,
+        "underscoreCount": 0,
+        "digitCount": 0,
+        "digitRatio": 0,
+        "vowelRatio": 0.42857142857142855,
+        "pronounceability": "balanced",
+        "leadingZero": false,
+        "roundNumber": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-20T22:41:37.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-secondary:92a80c99810057744fdef0c65fa1f71c7e87d26d4b6392bc78fe0de8ba148f73",
+      "assetKind": "username",
+      "assetKey": "0:a4b417993f16c156ff4f4538c8a9a260d03e958d9aa9cae7c8efc4eafe6603fd",
+      "normalizedName": "heraldo",
+      "soldAt": "2026-09-20T22:41:37.000Z",
+      "priceGram": 5.9,
+      "historicalUsdRate": 1.3847485521732743,
+      "priceUsd": 8.170016457822319,
+      "marketplace": "Getgems",
+      "source": "toncenter-indexed-secondary-sale",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-completed-sale-contract",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "transactionHash": "aZ9eWQejFpV/WWPRsmxWQTA9vcc4tY9y8BlfqQYe6UU=",
+        "saleContract": "0:60a0c67d9201ea6eb1f1a1a3361cbd38635be631796433aca72d0055a9087847"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "7L"
+    }
+  ]
+}

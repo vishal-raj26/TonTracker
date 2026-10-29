@@ -1,0 +1,91 @@
+{
+  "schemaVersion": "username-secondary-local-v1",
+  "from": "2026-09-20T14:00:00Z",
+  "pipeline": "username-toncenter-secondary-sales-v1",
+  "collectedAt": "2026-09-30T10:10:38.400Z",
+  "cursor": {
+    "absoluteOffset": 54758,
+    "caughtUp": false
+  },
+  "metadata": {
+    "transfers": 100,
+    "saleContracts": 4,
+    "verifiedSales": 1,
+    "assets": 1,
+    "sales": 1,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-30T10:10:38.400Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:8f57ff36bbb56cde9301499d1c2a6aea8656c09741d26ab07e6bb5e4df784e10",
+      "normalizedName": "paohie",
+      "displayName": "@paohie",
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "6L",
+      "feature": {
+        "classifierVersion": "username-structural-v2",
+        "normalizedUsername": "paohie",
+        "displayUsername": "@paohie",
+        "characterLength": 6,
+        "byteLength": 6,
+        "characterClass": "letters",
+        "primaryRoute": "word",
+        "routes": [
+          "word"
+        ],
+        "scarcityClass": "6L",
+        "patternSignature": "ABCDEF",
+        "shapeSignature": "LLLLLL",
+        "uniqueCharacterCount": 6,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "repeatedBlock": null,
+        "scripts": [
+          "Latin"
+        ],
+        "primaryScript": "Latin",
+        "containsUnderscore": false,
+        "underscoreCount": 0,
+        "digitCount": 0,
+        "digitRatio": 0,
+        "vowelRatio": 0.6666666666666666,
+        "pronounceability": "balanced",
+        "leadingZero": false,
+        "roundNumber": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-29T19:44:30.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-secondary:ccaf2b241e013d3a7253fcdb28b2bdf0f98bf92050f48ba0dcacca65e8f15836",
+      "assetKind": "username",
+      "assetKey": "0:8f57ff36bbb56cde9301499d1c2a6aea8656c09741d26ab07e6bb5e4df784e10",
+      "normalizedName": "paohie",
+      "soldAt": "2026-09-29T19:44:30.000Z",
+      "priceGram": 5.7,
+      "historicalUsdRate": 1.523020454737275,
+      "priceUsd": 8.681216592002468,
+      "marketplace": "Getgems",
+      "source": "toncenter-indexed-secondary-sale",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-completed-sale-contract",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "transactionHash": "5ZMzK8OOluMrW42vv8mTQsEU0GceK1QvAGHMEC1YtH4=",
+        "saleContract": "0:bb6db0f92808b339a04ed3423974e6bf05396145af97845e85f6f1b6c7153e2c"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "6L"
+    }
+  ]
+}

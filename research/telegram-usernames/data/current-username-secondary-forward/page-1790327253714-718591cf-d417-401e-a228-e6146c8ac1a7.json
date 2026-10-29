@@ -1,0 +1,91 @@
+{
+  "schemaVersion": "username-secondary-local-v1",
+  "from": "2026-09-20T14:00:00Z",
+  "pipeline": "username-toncenter-secondary-sales-v1",
+  "collectedAt": "2026-09-25T09:07:33.714Z",
+  "cursor": {
+    "absoluteOffset": 12670,
+    "caughtUp": false
+  },
+  "metadata": {
+    "transfers": 100,
+    "saleContracts": 2,
+    "verifiedSales": 1,
+    "assets": 1,
+    "sales": 1,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-25T09:07:33.714Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:fd666ed46e795980e62110dd3bdaedefa8e7530602dcbfef611a46db7a055066",
+      "normalizedName": "texniktester",
+      "displayName": "@texniktester",
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "12L",
+      "feature": {
+        "classifierVersion": "username-structural-v2",
+        "normalizedUsername": "texniktester",
+        "displayUsername": "@texniktester",
+        "characterLength": 12,
+        "byteLength": 12,
+        "characterClass": "letters",
+        "primaryRoute": "word",
+        "routes": [
+          "word"
+        ],
+        "scarcityClass": "12L",
+        "patternSignature": "ABCDEFABGABH",
+        "shapeSignature": "LLLLLLLLLLLL",
+        "uniqueCharacterCount": 8,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "repeatedBlock": null,
+        "scripts": [
+          "Latin"
+        ],
+        "primaryScript": "Latin",
+        "containsUnderscore": false,
+        "underscoreCount": 0,
+        "digitCount": 0,
+        "digitRatio": 0,
+        "vowelRatio": 0.3333333333333333,
+        "pronounceability": "balanced",
+        "leadingZero": false,
+        "roundNumber": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-22T14:01:12.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-secondary:8db326047e27a8976c7d19c78c562273099313f000fa39571bd77c1b864c46a6",
+      "assetKind": "username",
+      "assetKey": "0:fd666ed46e795980e62110dd3bdaedefa8e7530602dcbfef611a46db7a055066",
+      "normalizedName": "texniktester",
+      "soldAt": "2026-09-22T14:01:12.000Z",
+      "priceGram": 5.97,
+      "historicalUsdRate": 1.432962924595584,
+      "priceUsd": 8.554788659835635,
+      "marketplace": "Getgems",
+      "source": "toncenter-indexed-secondary-sale",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-completed-sale-contract",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "transactionHash": "rxBDHFVDYbB1mUj2KxG9LXc0il+9f2yX1o7fu/KPPoE=",
+        "saleContract": "0:e283243decdde334f0c83ca54609417dc887168cb910d89e2d3b29124129b819"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "12L"
+    }
+  ]
+}

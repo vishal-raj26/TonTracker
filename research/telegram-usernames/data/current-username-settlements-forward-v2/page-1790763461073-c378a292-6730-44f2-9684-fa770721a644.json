@@ -1,0 +1,76 @@
+{
+  "schemaVersion": "username-forward-v2-local-v1",
+  "from": "2026-09-27T00:00:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "requestedEndUtime": 1790761800,
+  "collectedAt": "2026-09-30T10:17:41.073Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 34525,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 80,
+    "candidates": 13,
+    "verifiedItems": 1,
+    "wrongCollection": 12,
+    "assets": 1,
+    "sales": 1,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-30T10:17:41.073Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:51ced6866280e288c22d46baf56a4836a6637bd80d3045f7f63b7843225c5fe2",
+      "normalizedName": "bet27",
+      "displayName": "@bet27",
+      "primaryRoute": "alphanumeric",
+      "lengthBucket": "4-5",
+      "script": "Latin",
+      "scarcityClass": "5M",
+      "feature": {
+        "characterLength": 5,
+        "characterClass": "alphanumeric",
+        "routes": [
+          "alphanumeric"
+        ],
+        "patternSignature": "ABCDE",
+        "uniqueCharacterCount": 5,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-28T20:53:27.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:b698d613696ac8ec2d15a9adb38e85e514335d14bc20450e4d5269452871b031",
+      "assetKind": "username",
+      "assetKey": "0:51ced6866280e288c22d46baf56a4836a6637bd80d3045f7f63b7843225c5fe2",
+      "normalizedName": "bet27",
+      "soldAt": "2026-09-28T20:53:27.000Z",
+      "priceGram": 19,
+      "historicalUsdRate": 1.5947496335436888,
+      "priceUsd": 30.300243037330088,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "xZRAFZfRLT1qc7f7L5JvIymL8GQB2SXFocREhrPJg1g=",
+        "messageHash": "bW0F4MrEsRxoxzYkDXnh+v6YxpU7bscE15AqtrKCYSY=",
+        "bidAt": "2026-09-28T20:53:27.000Z"
+      },
+      "primaryRoute": "alphanumeric",
+      "lengthBucket": "4-5",
+      "script": "Latin",
+      "scarcityClass": "5M"
+    }
+  ]
+}

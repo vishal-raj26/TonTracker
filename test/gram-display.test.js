@@ -33,6 +33,43 @@ test("assets monetary value is not converted to dot-matrix display", () => {
 test("native amount and currency controls do not expose TON as the currency label", () => {
   assert.doesNotMatch(appSource, /(?:toFixed|toLocaleString|compactNumber)[^\n]{0,180}\}\s*TON/);
   assert.doesNotMatch(htmlSource, />TON<\/b>/);
-  assert.match(htmlSource, /data-currency-option="GRAM">GRAM<\/b>/);
+  assert.match(htmlSource, /data-currency-option="GRAM"[^>]*>GRAM<\/button>/);
   assert.match(htmlSource, /id="txAmountTitle">0 GRAM<\/h2>/);
+});
+
+test("GRAM detail uses the native TON market data path", () => {
+  assert.match(serverSource, /GRAM:\s*"the-open-network"/);
+  assert.match(serverSource, /TONCOIN:\s*"the-open-network"/);
+  assert.match(serverSource, /function isNativeTonSymbol\(symbol = ""\)/);
+  assert.match(serverSource, /if \(!address && isNativeTonSymbol\(symbol\)\)/);
+  assert.match(serverSource, /getRateChart\(nativeTon \? "TON" : address/);
+});
+
+test("unpriced gifts accept only verified detail floors while preserving known import prices", () => {
+  assert.match(appSource, /function applyGiftDetailPayloadWithPriceFallback\(detail, payload = \{\}\)/);
+  assert.match(appSource, /const hasKnownPrice = Number\(detail\.floorUsd \|\| detail\.floorTon \|\| 0\) > 0/);
+  assert.match(appSource, /const hasVerifiedDetailPrice = isVerifiedGiftFloor\(floor\) \|\| isEstimatedGiftFloor\(floor\)/);
+  assert.match(appSource, /applyFloor: !hasKnownPrice && hasVerifiedDetailPrice/);
+  assert.match(appSource, /applyGiftDetailPayloadWithPriceFallback\(asset, payload\)/);
+});
+
+test("gift detail cache retries payloads that have no usable floor", () => {
+  assert.match(appSource, /exact-combo-detail-v6-resilient/);
+  assert.match(appSource, /giftDetailPayloadHasDisplayPrice\(cached\.value\)/);
+  assert.match(appSource, /!giftDetailPayloadHasDisplayPrice\(cachedPayload\)/);
+  assert.match(appSource, /giftAssets\.forEach\(\(asset\) => \{[\s\S]{0,180}syncCollectibleGroupFromChildren\(asset\)/);
+  assert.match(appSource, /if \(name === "gifts"\) \{/);
+  assert.match(appSource, /renderGiftGrid\(\);\r?\n\s*updateCollectibleSummaryBanner\("gifts"\);/);
+});
+
+test("gift model estimate is hydrated and shown separately from the exact combo floor", () => {
+  assert.match(serverSource, /modelFloorTon/);
+  assert.match(serverSource, /modelFloorSource/);
+  assert.match(appSource, /function applyGiftModelEstimate\(asset = \{\}, model = \{\}\)/);
+  assert.match(appSource, /model\.traitMetrics\?\.Model \|\| model\.traitMetrics\?\.model/);
+  assert.match(appSource, /function prefetchGiftModelEstimates\(assets = giftAssets\)/);
+  // Model evidence belongs in the detail view, not every compact holding row.
+  assert.match(appSource, /giftModelEstimateHtml\(detail\)/);
+  assert.match(appSource, /Model estimate/);
+  assert.match(appSource, /asset\.modelFloor = \{/);
 });

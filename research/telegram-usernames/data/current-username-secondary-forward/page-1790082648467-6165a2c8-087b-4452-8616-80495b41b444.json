@@ -1,0 +1,91 @@
+{
+  "schemaVersion": "username-secondary-local-v1",
+  "from": "2026-09-20T14:00:00Z",
+  "pipeline": "username-toncenter-secondary-sales-v1",
+  "collectedAt": "2026-09-22T13:10:48.467Z",
+  "cursor": {
+    "absoluteOffset": 6600,
+    "caughtUp": false
+  },
+  "metadata": {
+    "transfers": 100,
+    "saleContracts": 5,
+    "verifiedSales": 1,
+    "assets": 1,
+    "sales": 1,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-22T13:10:48.467Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:33b5d8f40b4b712d1096e69691a0ed0a247b82d256219b570a4017a1d40f41bd",
+      "normalizedName": "liljeff",
+      "displayName": "@liljeff",
+      "primaryRoute": "pattern",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "7L",
+      "feature": {
+        "classifierVersion": "username-structural-v2",
+        "normalizedUsername": "liljeff",
+        "displayUsername": "@liljeff",
+        "characterLength": 7,
+        "byteLength": 7,
+        "characterClass": "letters",
+        "primaryRoute": "pattern",
+        "routes": [
+          "pattern"
+        ],
+        "scarcityClass": "7L",
+        "patternSignature": "ABACDEE",
+        "shapeSignature": "LLLLLLL",
+        "uniqueCharacterCount": 5,
+        "maxRunLength": 2,
+        "palindrome": false,
+        "sequence": null,
+        "repeatedBlock": null,
+        "scripts": [
+          "Latin"
+        ],
+        "primaryScript": "Latin",
+        "containsUnderscore": false,
+        "underscoreCount": 0,
+        "digitCount": 0,
+        "digitRatio": 0,
+        "vowelRatio": 0.2857142857142857,
+        "pronounceability": "balanced",
+        "leadingZero": false,
+        "roundNumber": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-21T14:01:39.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-secondary:4a4cd0ccb9db128e851edbb12a1fd240e609b7484ec69fa1482edb983f718027",
+      "assetKind": "username",
+      "assetKey": "0:33b5d8f40b4b712d1096e69691a0ed0a247b82d256219b570a4017a1d40f41bd",
+      "normalizedName": "liljeff",
+      "soldAt": "2026-09-21T14:01:39.000Z",
+      "priceGram": 28.5,
+      "historicalUsdRate": 1.4288102242138858,
+      "priceUsd": 40.721091390095744,
+      "marketplace": "Getgems",
+      "source": "toncenter-indexed-secondary-sale",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-completed-sale-contract",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "transactionHash": "Y8IdvnOT00mDw8K7zwF5Ea5WU1iqR9gjGuq/ckVZgvc=",
+        "saleContract": "0:b2f31b085bd536766c9e48cea9c5af3b01160205434f9e7c93659b2d595e1207"
+      },
+      "primaryRoute": "pattern",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "7L"
+    }
+  ]
+}

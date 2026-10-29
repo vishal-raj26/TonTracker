@@ -1,0 +1,226 @@
+{
+  "schemaVersion": "username-forward-v2-local-v1",
+  "from": "2026-09-27T00:00:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "requestedEndUtime": 1790761800,
+  "collectedAt": "2026-09-30T10:21:30.905Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 38765,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 80,
+    "candidates": 21,
+    "verifiedItems": 4,
+    "wrongCollection": 17,
+    "assets": 4,
+    "sales": 4,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-30T10:21:30.905Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:54b601c6a8ab59ebdcc3f4200cd9e2e7a1b2ad1f8194c5d6dfe48bbb1039f094",
+      "normalizedName": "aisee",
+      "displayName": "@aisee",
+      "primaryRoute": "pattern",
+      "lengthBucket": "4-5",
+      "script": "Latin",
+      "scarcityClass": "5L",
+      "feature": {
+        "characterLength": 5,
+        "characterClass": "letters",
+        "routes": [
+          "pattern"
+        ],
+        "patternSignature": "ABCDD",
+        "uniqueCharacterCount": 4,
+        "maxRunLength": 2,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-29T06:17:39.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:ed936ebf97d9847a844a2949524ee24faf9a73577f1cccb79361c1bd9c48e355",
+      "normalizedName": "welltone_luxury_residence",
+      "displayName": "@welltone_luxury_residence",
+      "primaryRoute": "pattern",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "25M",
+      "feature": {
+        "characterLength": 25,
+        "characterClass": "alphanumeric",
+        "routes": [
+          "pattern"
+        ],
+        "patternSignature": "ABCCDEFBGCHIHJKGJBLMNBFOB",
+        "uniqueCharacterCount": 15,
+        "maxRunLength": 2,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": true,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-29T06:18:37.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:8b42f1b3f688649689194c38aae71bcbef2fff99d9aff744e23c0fd251bf8aa9",
+      "normalizedName": "xyydu",
+      "displayName": "@xyydu",
+      "primaryRoute": "pattern",
+      "lengthBucket": "4-5",
+      "script": "Latin",
+      "scarcityClass": "5L",
+      "feature": {
+        "characterLength": 5,
+        "characterClass": "letters",
+        "routes": [
+          "pattern"
+        ],
+        "patternSignature": "ABBCD",
+        "uniqueCharacterCount": 4,
+        "maxRunLength": 2,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-29T06:19:41.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:301a1a93a13344bc7824214add180233de062c95e492f1e48af3b6ebe9ae81c8",
+      "normalizedName": "vega_alora",
+      "displayName": "@vega_alora",
+      "primaryRoute": "residual",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "10M",
+      "feature": {
+        "characterLength": 10,
+        "characterClass": "alphanumeric",
+        "routes": [
+          "residual"
+        ],
+        "patternSignature": "ABCDEDFGHD",
+        "uniqueCharacterCount": 8,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": true,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-29T06:21:37.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:4b2faf21a2b69a0fef57f237a9307d379e412bdc5f8dbb64c81a7e8d80bc1559",
+      "assetKind": "username",
+      "assetKey": "0:54b601c6a8ab59ebdcc3f4200cd9e2e7a1b2ad1f8194c5d6dfe48bbb1039f094",
+      "normalizedName": "aisee",
+      "soldAt": "2026-09-29T06:17:39.000Z",
+      "priceGram": 125,
+      "historicalUsdRate": 1.5602268303884885,
+      "priceUsd": 195.02835379856106,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "lPgT0NBf/VEH1jnbIAyLFSY32RCIs+VLFB1sC+v77tc=",
+        "messageHash": "H/zPcEjPPJYFNBzFTdY5JfQVbjF8eT+YoCSIH50inOo=",
+        "bidAt": "2026-09-29T06:17:39.000Z"
+      },
+      "primaryRoute": "pattern",
+      "lengthBucket": "4-5",
+      "script": "Latin",
+      "scarcityClass": "5L"
+    },
+    {
+      "saleId": "toncenter-username-sale:101829b71e2079bc82c41befcffb769ca880ffe5722b21959558d8e8cbab09df",
+      "assetKind": "username",
+      "assetKey": "0:ed936ebf97d9847a844a2949524ee24faf9a73577f1cccb79361c1bd9c48e355",
+      "normalizedName": "welltone_luxury_residence",
+      "soldAt": "2026-09-29T06:18:37.000Z",
+      "priceGram": 11,
+      "historicalUsdRate": 1.5602504886876942,
+      "priceUsd": 17.162755375564636,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "7T7f4xgFssglEsl7/GqbZHLCkmls4il7z8kJttTo978=",
+        "messageHash": "9LVbavlvYjEWJjkvQtMd4R/XC/GM5x5It58ZLv09t+4=",
+        "bidAt": "2026-09-28T11:08:03.000Z"
+      },
+      "primaryRoute": "pattern",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "25M"
+    },
+    {
+      "saleId": "toncenter-username-sale:fab8aabbce661fbfe65770e9435fa8aa05fb314ce451451517cb63d1a4d76a87",
+      "assetKind": "username",
+      "assetKey": "0:8b42f1b3f688649689194c38aae71bcbef2fff99d9aff744e23c0fd251bf8aa9",
+      "normalizedName": "xyydu",
+      "soldAt": "2026-09-29T06:19:41.000Z",
+      "priceGram": 9,
+      "historicalUsdRate": 1.5602917697353464,
+      "priceUsd": 14.042625927618118,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "Nc7UCvKlbeKU+JnqfW0iD6PCRlZso8EMfhSInX7x3jI=",
+        "messageHash": "UYdAdUlw5Gs9FOv0GAgOUANKJgjcSkNXNE2sb/c8qEE=",
+        "bidAt": "2026-09-29T06:19:41.000Z"
+      },
+      "primaryRoute": "pattern",
+      "lengthBucket": "4-5",
+      "script": "Latin",
+      "scarcityClass": "5L"
+    },
+    {
+      "saleId": "toncenter-username-sale:d921f7759fe697e6a3e845e924cfb728e9dc9c125cd90f9190db37c58a615901",
+      "assetKind": "username",
+      "assetKey": "0:301a1a93a13344bc7824214add180233de062c95e492f1e48af3b6ebe9ae81c8",
+      "normalizedName": "vega_alora",
+      "soldAt": "2026-09-29T06:21:37.000Z",
+      "priceGram": 11,
+      "historicalUsdRate": 1.560366591634216,
+      "priceUsd": 17.164032507976376,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "ozrkGrAInRLc+2f6tm/0iKlQFPFF3fsYDhdueYlHnKM=",
+        "messageHash": "flnRhDPgvJ4MS262zU99t/CxrNRaKmgHyjoh0x+Dk1k=",
+        "bidAt": "2026-09-26T16:24:25.000Z"
+      },
+      "primaryRoute": "residual",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "10M"
+    }
+  ]
+}

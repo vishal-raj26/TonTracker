@@ -1,0 +1,126 @@
+{
+  "schemaVersion": "username-forward-v2-local-v1",
+  "from": "2026-09-27T00:00:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "requestedEndUtime": 1790537700,
+  "collectedAt": "2026-09-27T19:55:17.339Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 14751,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 80,
+    "candidates": 3,
+    "verifiedItems": 2,
+    "wrongCollection": 1,
+    "assets": 2,
+    "sales": 2,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-27T19:55:17.339Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:0cb6bc4dc2c3c5df8b2944088f69ea6e5c11ee3f7850e3ba6bbf4f5328b1be44",
+      "normalizedName": "cryptofuckeer",
+      "displayName": "@cryptofuckeer",
+      "primaryRoute": "pattern",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "13L",
+      "feature": {
+        "characterLength": 13,
+        "characterClass": "letters",
+        "routes": [
+          "pattern"
+        ],
+        "patternSignature": "ABCDEFGHAIJJB",
+        "uniqueCharacterCount": 10,
+        "maxRunLength": 2,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-27T18:25:07.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:784752cce40a344a0fe6c8ad01502a7ef56953751872fd027f75d204c1d07232",
+      "normalizedName": "petr_ekaterinburg",
+      "displayName": "@petr_ekaterinburg",
+      "primaryRoute": "residual",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "17M",
+      "feature": {
+        "characterLength": 17,
+        "characterClass": "alphanumeric",
+        "routes": [
+          "residual"
+        ],
+        "patternSignature": "ABCDEBFGCBDHIJKDL",
+        "uniqueCharacterCount": 12,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": true,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-27T18:25:39.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:9129775e7dcaa47adb19e770aebf44076030b669247762967ae4c26745be3432",
+      "assetKind": "username",
+      "assetKey": "0:0cb6bc4dc2c3c5df8b2944088f69ea6e5c11ee3f7850e3ba6bbf4f5328b1be44",
+      "normalizedName": "cryptofuckeer",
+      "soldAt": "2026-09-27T18:25:07.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.6829856780802057,
+      "priceUsd": 16.829856780802057,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "nearest-observation",
+        "txHash": "/iXFlJMIdvPE46hevCiC/h30r69x3fgLmBq730JOUaM=",
+        "messageHash": "CxqsyocylAZ5CTvdSwXOQFfQCzWVlmXgpZQjg//jMqk=",
+        "bidAt": "2026-09-20T18:23:44.000Z"
+      },
+      "primaryRoute": "pattern",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "13L"
+    },
+    {
+      "saleId": "toncenter-username-sale:2082f2cb2f4db26b9ae9579865cdde399d34362b7aa04b16a16d366fb93ddfd7",
+      "assetKind": "username",
+      "assetKey": "0:784752cce40a344a0fe6c8ad01502a7ef56953751872fd027f75d204c1d07232",
+      "normalizedName": "petr_ekaterinburg",
+      "soldAt": "2026-09-27T18:25:39.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.6829856780802057,
+      "priceUsd": 16.829856780802057,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "nearest-observation",
+        "txHash": "fd/pVCkkdCCREVj5/Oh3xbWjUUAojTbz2nZI/q+PK+g=",
+        "messageHash": "c6+RFdQBDGPVqwK4BSCigW7kyWQz1ynIVlDfvEBmVak=",
+        "bidAt": "2026-09-20T18:23:57.000Z"
+      },
+      "primaryRoute": "residual",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "17M"
+    }
+  ]
+}

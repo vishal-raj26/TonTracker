@@ -1,0 +1,226 @@
+{
+  "schemaVersion": "username-forward-v2-local-v1",
+  "from": "2026-09-27T00:00:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "requestedEndUtime": 1790761800,
+  "collectedAt": "2026-09-30T10:17:02.636Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 33805,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 80,
+    "candidates": 16,
+    "verifiedItems": 4,
+    "wrongCollection": 12,
+    "assets": 4,
+    "sales": 4,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-30T10:17:02.636Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:3c03821221f219f8603228b92d427e223118286c804e712a9807247abc940e71",
+      "normalizedName": "bnnnv",
+      "displayName": "@bnnnv",
+      "primaryRoute": "pattern",
+      "lengthBucket": "4-5",
+      "script": "Latin",
+      "scarcityClass": "5L",
+      "feature": {
+        "characterLength": 5,
+        "characterClass": "letters",
+        "routes": [
+          "pattern"
+        ],
+        "patternSignature": "ABBBC",
+        "uniqueCharacterCount": 3,
+        "maxRunLength": 3,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-28T20:12:07.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:2ecccf38709ae2d981e691dd87dd50ec3727b7c336428f0e21143ee92dbea400",
+      "normalizedName": "catcash",
+      "displayName": "@catcash",
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "7L",
+      "feature": {
+        "characterLength": 7,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCABDE",
+        "uniqueCharacterCount": 5,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-28T20:13:03.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:e9b90d4c499bad1efd7c8917dcec4af6f486aa85f8f22601ce24f7bb62958b76",
+      "normalizedName": "superdemka",
+      "displayName": "@superdemka",
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "10L",
+      "feature": {
+        "characterLength": 10,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCDEFDGHI",
+        "uniqueCharacterCount": 9,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-28T20:13:51.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:feeab7428d1b20875e68d4935f12b472c03d7f6060a3d13baf7d251c0268153b",
+      "normalizedName": "gram_high",
+      "displayName": "@gram_high",
+      "primaryRoute": "residual",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "9M",
+      "feature": {
+        "characterLength": 9,
+        "characterClass": "alphanumeric",
+        "routes": [
+          "residual"
+        ],
+        "patternSignature": "ABCDEFGAF",
+        "uniqueCharacterCount": 7,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": true,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-28T20:14:11.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:b07552c9baeac59ec44766561fc2192959333ee9251938218d54f6254468fae2",
+      "assetKind": "username",
+      "assetKey": "0:3c03821221f219f8603228b92d427e223118286c804e712a9807247abc940e71",
+      "normalizedName": "bnnnv",
+      "soldAt": "2026-09-28T20:12:07.000Z",
+      "priceGram": 11,
+      "historicalUsdRate": 1.610984870140861,
+      "priceUsd": 17.72083357154947,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "lGPHI0DjUrJnPPbe4TDk9wV8dZlISOcTcSnjArKyWEo=",
+        "messageHash": "lxYzRP6CNbt5IKVUEFv8GAHtSK2TkDHepjtpWT8U8eE=",
+        "bidAt": "2026-09-28T19:11:43.000Z"
+      },
+      "primaryRoute": "pattern",
+      "lengthBucket": "4-5",
+      "script": "Latin",
+      "scarcityClass": "5L"
+    },
+    {
+      "saleId": "toncenter-username-sale:5d5e539bb99371924f2724f3b8877079174a5cf7c0657b4f74c379641ffc5829",
+      "assetKind": "username",
+      "assetKey": "0:2ecccf38709ae2d981e691dd87dd50ec3727b7c336428f0e21143ee92dbea400",
+      "normalizedName": "catcash",
+      "soldAt": "2026-09-28T20:13:03.000Z",
+      "priceGram": 50,
+      "historicalUsdRate": 1.6108014857317492,
+      "priceUsd": 80.54007428658745,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "R4vZ0a6gX+lMwSBnfbDBul9K+7KE6zHtPAbqt2Xvhtg=",
+        "messageHash": "ZrGXYVUt12DKjCZkymCzgseNzLxtNRVt3t2ybLBXTP4=",
+        "bidAt": "2026-09-28T19:12:38.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "7L"
+    },
+    {
+      "saleId": "toncenter-username-sale:c2cae3b5c3f7b9ee51b676d8b1c54caa663661ecf2ec8478b80a532a84fbd1ba",
+      "assetKind": "username",
+      "assetKey": "0:e9b90d4c499bad1efd7c8917dcec4af6f486aa85f8f22601ce24f7bb62958b76",
+      "normalizedName": "superdemka",
+      "soldAt": "2026-09-28T20:13:51.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.6106442990953675,
+      "priceUsd": 16.106442990953674,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "F41GrdSt1dsiNwKWNOwWtuZ92EfHIfdMbRm117nXTaM=",
+        "messageHash": "VdK1OWMTo+5QU7qaZNGAvl0LKaXVA/icisQjspJFN1M=",
+        "bidAt": "2026-09-21T20:13:33.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "10L"
+    },
+    {
+      "saleId": "toncenter-username-sale:89b0d9780ac7823e3780370d34e6befe130c22c5098aed0f55b2ac9ef427f92c",
+      "assetKind": "username",
+      "assetKey": "0:feeab7428d1b20875e68d4935f12b472c03d7f6060a3d13baf7d251c0268153b",
+      "normalizedName": "gram_high",
+      "soldAt": "2026-09-28T20:14:11.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.6105788046635419,
+      "priceUsd": 16.105788046635418,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "gW+8Rv1aMupBrzaT1u1BnxulIEFj4dPyMl3fr0ndHdM=",
+        "messageHash": "cimL3t/fZxHTch0udLtD4AnIS4/BYv++QSM5iVDdQ3s=",
+        "bidAt": "2026-09-21T20:13:48.000Z"
+      },
+      "primaryRoute": "residual",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "9M"
+    }
+  ]
+}

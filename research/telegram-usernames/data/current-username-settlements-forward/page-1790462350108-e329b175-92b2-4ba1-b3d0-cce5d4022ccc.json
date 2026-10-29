@@ -1,0 +1,125 @@
+{
+  "schemaVersion": "username-local-collection-v1",
+  "from": "2026-09-20T13:45:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "collectedAt": "2026-09-26T22:39:10.108Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 68185,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 80,
+    "candidates": 8,
+    "verifiedItems": 2,
+    "wrongCollection": 6,
+    "assets": 2,
+    "sales": 2,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-26T22:39:10.108Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:9f9a33dac464dbe59c384ca9dcc9a23a9ed14df3bbdea94d71b5f27a05b27158",
+      "normalizedName": "spielbegeistert",
+      "displayName": "@spielbegeistert",
+      "primaryRoute": "residual",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "15L",
+      "feature": {
+        "characterLength": 15,
+        "characterClass": "letters",
+        "routes": [
+          "residual"
+        ],
+        "patternSignature": "ABCDEFDGDCAHDIH",
+        "uniqueCharacterCount": 9,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-23T21:15:30.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:76b5ff9ef17a73eba21e8508f5e0c35e03601b7c85213ef05338bf894b3dac98",
+      "normalizedName": "ninjathief",
+      "displayName": "@ninjathief",
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "10L",
+      "feature": {
+        "characterLength": 10,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABACDEFBGH",
+        "uniqueCharacterCount": 8,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-23T21:21:35.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:b79325250f4ce7bd25580b426c4be1df3d5baefe151b52a16c3eb488381be78b",
+      "assetKind": "username",
+      "assetKey": "0:9f9a33dac464dbe59c384ca9dcc9a23a9ed14df3bbdea94d71b5f27a05b27158",
+      "normalizedName": "spielbegeistert",
+      "soldAt": "2026-09-23T21:15:30.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.4053601814919077,
+      "priceUsd": 14.053601814919077,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "C0WIOWGqMiG1F/41MWdN+bksYjbLWfowsWMPveeRfBg=",
+        "messageHash": "PUEnlep7bi3OMXH2wy1Io3grOMW73L7+OPT2QSVz3u4=",
+        "bidAt": "2026-09-16T21:15:12.000Z"
+      },
+      "primaryRoute": "residual",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "15L"
+    },
+    {
+      "saleId": "toncenter-username-sale:43d1d80fb1ca547c6a7504d1252fddcf51bc199fc19c893b30beb323a1ffdff4",
+      "assetKind": "username",
+      "assetKey": "0:76b5ff9ef17a73eba21e8508f5e0c35e03601b7c85213ef05338bf894b3dac98",
+      "normalizedName": "ninjathief",
+      "soldAt": "2026-09-23T21:21:35.000Z",
+      "priceGram": 11,
+      "historicalUsdRate": 1.4056080562125017,
+      "priceUsd": 15.461688618337519,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "ziK9dCqEigucgkrDRFAt9Mn5oD36Vx1cPmkLsDnETec=",
+        "messageHash": "FrRrj4mPxAy8fNhtF80Fu3lZ5USZ+qV2/UWl0Zn5tWI=",
+        "bidAt": "2026-09-23T21:21:35.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "10L"
+    }
+  ]
+}

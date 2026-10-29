@@ -1,0 +1,75 @@
+{
+  "schemaVersion": "username-local-collection-v1",
+  "from": "2026-09-20T13:45:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "collectedAt": "2026-09-25T15:21:37.700Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 58665,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 80,
+    "candidates": 10,
+    "verifiedItems": 1,
+    "wrongCollection": 9,
+    "assets": 1,
+    "sales": 1,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-25T15:21:37.699Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:1959f936c1d8b49686a70b0a0d8b91bbc6e1efad6cf4215cc3f45e4f4036b45c",
+      "normalizedName": "wingsoffuneral",
+      "displayName": "@wingsoffuneral",
+      "primaryRoute": "pattern",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "14L",
+      "feature": {
+        "characterLength": 14,
+        "characterClass": "letters",
+        "routes": [
+          "pattern"
+        ],
+        "patternSignature": "ABCDEFGGHCIJKL",
+        "uniqueCharacterCount": 12,
+        "maxRunLength": 2,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-23T11:15:03.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:600e228f35f6fb88569866429ff8a144b0b19ca2a00c1441e4361c7e7c887bf7",
+      "assetKind": "username",
+      "assetKey": "0:1959f936c1d8b49686a70b0a0d8b91bbc6e1efad6cf4215cc3f45e4f4036b45c",
+      "normalizedName": "wingsoffuneral",
+      "soldAt": "2026-09-23T11:15:03.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.442892154278089,
+      "priceUsd": 14.428921542780891,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "PnlJlrLrRLktpQWJKbfuzPMMfN7PlvQKLx8CIWwO1Mk=",
+        "messageHash": "+o5nBLUFstiqZRbpeU9FVYDUcY3CjQYoRi8PQRalXUM=",
+        "bidAt": "2026-09-16T11:14:46.000Z"
+      },
+      "primaryRoute": "pattern",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "14L"
+    }
+  ]
+}

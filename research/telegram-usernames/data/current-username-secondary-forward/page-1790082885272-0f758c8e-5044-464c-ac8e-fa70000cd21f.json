@@ -1,0 +1,91 @@
+{
+  "schemaVersion": "username-secondary-local-v1",
+  "from": "2026-09-20T14:00:00Z",
+  "pipeline": "username-toncenter-secondary-sales-v1",
+  "collectedAt": "2026-09-22T13:14:45.272Z",
+  "cursor": {
+    "absoluteOffset": 11800,
+    "caughtUp": false
+  },
+  "metadata": {
+    "transfers": 100,
+    "saleContracts": 12,
+    "verifiedSales": 1,
+    "assets": 1,
+    "sales": 1,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-22T13:14:45.272Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:505e4ed03501aca6c86c143c997f6e636acc9191617b646b1ec21c90689caac7",
+      "normalizedName": "goomr",
+      "displayName": "@goomr",
+      "primaryRoute": "pattern",
+      "lengthBucket": "4-5",
+      "script": "Latin",
+      "scarcityClass": "5L",
+      "feature": {
+        "classifierVersion": "username-structural-v2",
+        "normalizedUsername": "goomr",
+        "displayUsername": "@goomr",
+        "characterLength": 5,
+        "byteLength": 5,
+        "characterClass": "letters",
+        "primaryRoute": "pattern",
+        "routes": [
+          "pattern"
+        ],
+        "scarcityClass": "5L",
+        "patternSignature": "ABBCD",
+        "shapeSignature": "LLLLL",
+        "uniqueCharacterCount": 4,
+        "maxRunLength": 2,
+        "palindrome": false,
+        "sequence": null,
+        "repeatedBlock": null,
+        "scripts": [
+          "Latin"
+        ],
+        "primaryScript": "Latin",
+        "containsUnderscore": false,
+        "underscoreCount": 0,
+        "digitCount": 0,
+        "digitRatio": 0,
+        "vowelRatio": 0.4,
+        "pronounceability": "balanced",
+        "leadingZero": false,
+        "roundNumber": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-22T11:33:49.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-secondary:001c012775c4c4ecb7ad5b0cfe32b45ee26903e4aac986dbb0c118a119ee45c6",
+      "assetKind": "username",
+      "assetKey": "0:505e4ed03501aca6c86c143c997f6e636acc9191617b646b1ec21c90689caac7",
+      "normalizedName": "goomr",
+      "soldAt": "2026-09-22T11:33:49.000Z",
+      "priceGram": 5.919999,
+      "historicalUsdRate": 1.418797172711775,
+      "priceUsd": 8.399277843656535,
+      "marketplace": "Getgems",
+      "source": "toncenter-indexed-secondary-sale",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-completed-sale-contract",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "nearest-observation",
+        "transactionHash": "hOa0ry5cspoyef47h3V+bw6239rjwcixZ+SxEEx297c=",
+        "saleContract": "0:52eb7807f51ab0b4f61c45b325dc2afae25bc23d3c727ad50cde9afd01faea83"
+      },
+      "primaryRoute": "pattern",
+      "lengthBucket": "4-5",
+      "script": "Latin",
+      "scarcityClass": "5L"
+    }
+  ]
+}

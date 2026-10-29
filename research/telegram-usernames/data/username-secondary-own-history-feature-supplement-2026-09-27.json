@@ -1,0 +1,35 @@
+{
+  "schemaVersion": "secondary-own-history-feature-supplement-v1",
+  "sealedBeforeCandidateFit": true,
+  "labelsOpened": false,
+  "createdAt": "2026-09-27",
+  "protocolSha256": "6c02cb4c743579def9e922c98736cbae658b6f3015e9b7e24fa82d1f4bfd1b25",
+  "frozenFeatureExporter": {
+    "path": "scripts/export-username-own-history-features.js",
+    "sha256": "247498938dd794538465b2bcf44f8a2e37268c69df46008559ccc562d6c7976b"
+  },
+  "frozenPreparedInputs": {
+    "historicalSalesSha256": "6d724b74f727a797d553190cb72e408d3c70d6069202636a60f7ea2b2850682f",
+    "baseFeaturesSha256": "00b13883db59d511ee1625f0186c115c1d765e6e9b504c4a0980de15acaec77a",
+    "featureRows": 81617,
+    "uniqueEconomicEventJoins": 81617,
+    "ownHistoryAvailability": {
+      "available": 14324,
+      "absent": 67293,
+      "ambiguous": 0
+    }
+  },
+  "pointInTimeFeatureAudit": {
+    "path": "research/telegram-usernames/data/username-secondary-own-history-feature-audit-2026-09-27.json",
+    "sha256": "3411b039e48f1e6b8a92ba5759fa5aa5c40bf40b23a10219a2122b133df1c84c",
+    "labelsOpened": false,
+    "prohibitedTargetFieldsPresent": false
+  },
+  "featureFile": {
+    "path": "research/telegram-usernames/data/username-secondary-own-history-features-2026-09-27.json",
+    "sha256": "03746b61f77a9a203f5a877303f071409549e731ab6098a4d61c076d29b64aca",
+    "rows": 81617
+  },
+  "identityAndTimeRule": "Exact NFT address and unambiguous username; use only latest completed own sale with eventTime strictly less than target time; exclude simultaneous/future sales",
+  "invariant": "This supplement freezes only point-in-time feature construction. Candidate fitting remains forbidden until the evaluator, audit code, and their hashes are sealed in a subsequent supplement."
+}

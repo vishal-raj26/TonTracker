@@ -1,0 +1,176 @@
+{
+  "schemaVersion": "username-forward-v2-local-v1",
+  "from": "2026-09-27T00:00:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "requestedEndUtime": 1790761800,
+  "collectedAt": "2026-09-30T10:13:01.186Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 29325,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 80,
+    "candidates": 12,
+    "verifiedItems": 3,
+    "wrongCollection": 9,
+    "assets": 3,
+    "sales": 3,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-30T10:13:01.185Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:6fc7c11b11dc717a620aa14662e544da789a7b1e867a8c016d33722ee739e8a2",
+      "normalizedName": "liveshack",
+      "displayName": "@liveshack",
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "9L",
+      "feature": {
+        "characterLength": 9,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCDEFGHI",
+        "uniqueCharacterCount": 9,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-28T15:48:02.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:99c7a8588edc597d563254a672c668da63e989adf6ce949fe924720652db10e7",
+      "normalizedName": "backshack",
+      "displayName": "@backshack",
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "9L",
+      "feature": {
+        "characterLength": 9,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCDEFBCD",
+        "uniqueCharacterCount": 6,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-28T15:48:07.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:735b8e8cf5735b3382acb675745f8bca70274e059d93e5bcf924588091a9ec3b",
+      "normalizedName": "netinya",
+      "displayName": "@netinya",
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "7L",
+      "feature": {
+        "characterLength": 7,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCDAEF",
+        "uniqueCharacterCount": 6,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-28T15:48:13.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:214ed0211f9e12848bd8c89606988134c8db8258e413a590ce49d46222c01b08",
+      "assetKind": "username",
+      "assetKey": "0:6fc7c11b11dc717a620aa14662e544da789a7b1e867a8c016d33722ee739e8a2",
+      "normalizedName": "liveshack",
+      "soldAt": "2026-09-28T15:48:02.000Z",
+      "priceGram": 6.02,
+      "historicalUsdRate": 1.5904160824322302,
+      "priceUsd": 9.574304816242025,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "VnRWLfo0Xq9pnLvEyxVluzAAWeGpe8uBDbxsrqWyRyg=",
+        "messageHash": "17QXhyaJA/WbkD161WA6RXyDEbTMgUmiMp38yV6YRpU=",
+        "bidAt": "2026-09-27T15:49:02.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "9L"
+    },
+    {
+      "saleId": "toncenter-username-sale:d02f8aed75720e1800342f6b6f5352662ccd4e654033f4dc7ef0937ab3075fd9",
+      "assetKind": "username",
+      "assetKey": "0:99c7a8588edc597d563254a672c668da63e989adf6ce949fe924720652db10e7",
+      "normalizedName": "backshack",
+      "soldAt": "2026-09-28T15:48:07.000Z",
+      "priceGram": 5.010001,
+      "historicalUsdRate": 1.5903991063783554,
+      "priceUsd": 7.967901113354666,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "PcQUqTsb0BXu5oA7m8v+4wKfTir6VAfp5UP1DE5sPcA=",
+        "messageHash": "TxavDJlMaQ9tpgFuJ/wUrWPJDDipFvSjj3CfrJXz6r0=",
+        "bidAt": "2026-09-27T15:47:24.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "9L"
+    },
+    {
+      "saleId": "toncenter-username-sale:0fcde5b61782a3017088b36f3d0302f7288b63e2d2e947cf76edfd42f99874b4",
+      "assetKind": "username",
+      "assetKey": "0:735b8e8cf5735b3382acb675745f8bca70274e059d93e5bcf924588091a9ec3b",
+      "normalizedName": "netinya",
+      "soldAt": "2026-09-28T15:48:13.000Z",
+      "priceGram": 6.13,
+      "historicalUsdRate": 1.5903787351137055,
+      "priceUsd": 9.749021646247014,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "QrWq/8/JLlSCvD/oxEVaUYSJKBGXBBFSujiBVnfMue8=",
+        "messageHash": "FvRHqA1r6/Z3wIyE8FnePCLP9tKGM5PHKZw0AoprJB8=",
+        "bidAt": "2026-09-27T15:49:32.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "7L"
+    }
+  ]
+}

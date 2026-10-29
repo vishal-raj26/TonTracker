@@ -1,0 +1,77 @@
+{
+  "version": "secondary-own-history-v25-paired-comparison-v1",
+  "frozenBeforeReplay": true,
+  "createdAt": "2026-09-27",
+  "purpose": "Complete the mandatory exposed-development same-case comparison of the rejected own-history HGB candidate against the current v25 runtime estimator; this is diagnostic only and cannot qualify production.",
+  "candidateReport": {
+    "path": "research/telegram-usernames/data/username-secondary-own-history-development-2026-09-27.json",
+    "sha256": "209077a97ece045bf4c9acd6d3184fdcdfa6b3777fd83fa7b940e186ed45de12",
+    "attempts": 30995,
+    "caseSetSha256": "2eeb006728713436d09abd65e4640bb0baabc919e70c4eec01151b6358716ab3"
+  },
+  "inputs": {
+    "duneSales": {
+      "path": "research/telegram-usernames/data/dune_username_sales.part",
+      "sha256": "6d724b74f727a797d553190cb72e408d3c70d6069202636a60f7ea2b2850682f"
+    },
+    "historicalInventory": {
+      "path": "research/telegram-usernames/data/tonapi_username_universe.csv",
+      "sha256": "5bd5216ddfe76d5c18e490814b968fa6ca9ffc42a65cdf2224c6b9b8a90f9f6b"
+    }
+  },
+  "preFitAudit": {
+    "candidateCases": 30995,
+    "currentV25EligibleCases": 30995,
+    "missing": 0,
+    "unexpected": 0,
+    "matchingCaseSetSha256": "2eeb006728713436d09abd65e4640bb0baabc919e70c4eec01151b6358716ab3"
+  },
+  "window": {
+    "fromInclusive": "2024-10-01T00:00:00Z",
+    "untilExclusive": "2025-02-01T00:00:00Z",
+    "note": "Continuous current-v25 chronological replay spans the exact 2024Q4 and January2025 candidate evaluation events; no target rows are skipped."
+  },
+  "runtime": {
+    "estimatorVersion": "username-market-v25",
+    "calibrationVersion": "username-calibration-v5",
+    "evaluationStride": 1,
+    "maxHistory": 1500,
+    "modelRefreshInterval": 50,
+    "historicalSemanticSnapshot": null,
+    "historicalRetrieval": false,
+    "classifierStandardization": false,
+    "postFitShrinkage": true,
+    "predictionInputs": "Only current v25 estimator behavior on finalized strictly-prior events; realized venue and target outcomes are never supplied to prediction."
+  },
+  "allCases": true,
+  "joinIdentity": "Exact contract/NFT address + event timestamp + normalized username; case-set fingerprint also includes the historical outcome to guard label mismatches.",
+  "reporting": {
+    "cohorts": ["all", "secondary/fixed", "secondary/auction", "primary/auction", "ordinary", "intermediate", "premium", "secondary/ordinary", "secondary/intermediate", "secondary/premium"],
+    "metrics": ["attempts", "availability/abstentions", "mean-absolute-log-error", "median-factor-error", "p95-factor-error", "nominal-80-coverage", "mean-log-interval-score"],
+    "uncertainty": "2000 deterministic identity-cluster bootstrap replicates, LCG seed 27092026, for paired secondary-premium mean-absolute-log-error improvement on common predictions."
+  },
+  "interpretation": {
+    "qualification": false,
+    "reservedOutcomes": "Remain sealed and unused.",
+    "tuning": "No candidate or gate tuning is permitted after viewing this comparison.",
+    "limitations": [
+      "Both temporal folds and the fitted candidate have already been exposed during development.",
+      "This comparison measures historical paired agreement only; it cannot establish current-market accuracy or qualify the estimator.",
+      "The HGB candidate and v25 runtime use different model families/features by design; all event outcomes and event identities must be exactly paired.",
+      "A failed hard gate remains failed; no exposed-window variant is a replacement for untouched prospective qualification."
+    ]
+  },
+  "sourceSha256": {
+    "scripts/compare-username-resale-own-history-v25.js": "8bd563e48fdd898edf75cc0460144e020bfcf07bebebc8592d56b0518d8fc660",
+    "scripts/evaluate-username-rebuild.js": "f232c75d3442d9568f9ece1019329ad130a36e14b89ba71d6e0cce5e813909a3",
+    "lib/username-backtest.js": "bc358537d100cc113412c048be68b7443d9636a1b1c232b4b9fd07bbbbfd6651",
+    "lib/username-estimator.js": "c83daedfead6f2dbe7d247e9fdd669446cf075f3bf1a501437b789739ae5a8c7",
+    "lib/username-learned-model.js": "2e5e895b7dcdc8635d70edf1ee3a6232a893387f4f62f0426d8e579767079d7a",
+    "lib/username-engine.js": "f28ed480ff56bd7ecd85fe67aa0fe93f7bc5046d6548b01c7a51d517df489f59"
+  },
+  "outputPath": "C:\\Users\\vishu\\Documents\\New project\\ton-portfolio-chart-platform\\research\\telegram-usernames\\data\\username-secondary-own-history-v25-comparison-2026-09-27.json",
+  "duneSalesSha256": "6d724b74f727a797d553190cb72e408d3c70d6069202636a60f7ea2b2850682f",
+  "candidateReportSha256": "209077a97ece045bf4c9acd6d3184fdcdfa6b3777fd83fa7b940e186ed45de12",
+  "caseSetSha256": "2eeb006728713436d09abd65e4640bb0baabc919e70c4eec01151b6358716ab3",
+  "comparatorSha256": "8bd563e48fdd898edf75cc0460144e020bfcf07bebebc8592d56b0518d8fc660"
+}

@@ -1,0 +1,91 @@
+{
+  "schemaVersion": "username-secondary-local-v1",
+  "from": "2026-09-20T14:00:00Z",
+  "pipeline": "username-toncenter-secondary-sales-v1",
+  "collectedAt": "2026-09-22T13:10:20.395Z",
+  "cursor": {
+    "absoluteOffset": 5600,
+    "caughtUp": false
+  },
+  "metadata": {
+    "transfers": 100,
+    "saleContracts": 18,
+    "verifiedSales": 1,
+    "assets": 1,
+    "sales": 1,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-22T13:10:20.395Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:10808e3f52f2c1a22b65293de71a0d10fc4ccd73c70092a750354f5652b4a383",
+      "normalizedName": "taxidex",
+      "displayName": "@taxidex",
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "7L",
+      "feature": {
+        "classifierVersion": "username-structural-v2",
+        "normalizedUsername": "taxidex",
+        "displayUsername": "@taxidex",
+        "characterLength": 7,
+        "byteLength": 7,
+        "characterClass": "letters",
+        "primaryRoute": "word",
+        "routes": [
+          "word"
+        ],
+        "scarcityClass": "7L",
+        "patternSignature": "ABCDEFC",
+        "shapeSignature": "LLLLLLL",
+        "uniqueCharacterCount": 6,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "repeatedBlock": null,
+        "scripts": [
+          "Latin"
+        ],
+        "primaryScript": "Latin",
+        "containsUnderscore": false,
+        "underscoreCount": 0,
+        "digitCount": 0,
+        "digitRatio": 0,
+        "vowelRatio": 0.42857142857142855,
+        "pronounceability": "balanced",
+        "leadingZero": false,
+        "roundNumber": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-21T11:09:39.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-secondary:1e898a192477fa27ab5ff8939491d3f31df314796501afebd55107a2273f2042",
+      "assetKind": "username",
+      "assetKey": "0:10808e3f52f2c1a22b65293de71a0d10fc4ccd73c70092a750354f5652b4a383",
+      "normalizedName": "taxidex",
+      "soldAt": "2026-09-21T11:09:39.000Z",
+      "priceGram": 155,
+      "historicalUsdRate": 1.4275626096105178,
+      "priceUsd": 221.27220448963027,
+      "marketplace": "Getgems",
+      "source": "toncenter-indexed-secondary-sale",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-completed-sale-contract",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "transactionHash": "/FWn60SMuU9X0xnkaybuHJVbGtSci/JgtHF3wGYpY+k=",
+        "saleContract": "0:a31a82c3aff0d2abf411d5c0552ce915ddab7d4ec18638ea2e6ec1d1b2235151"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "7L"
+    }
+  ]
+}

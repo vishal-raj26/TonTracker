@@ -1,0 +1,126 @@
+{
+  "schemaVersion": "username-forward-v2-local-v1",
+  "from": "2026-09-27T00:00:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "requestedEndUtime": 1790761800,
+  "collectedAt": "2026-09-30T10:17:14.922Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 34045,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 80,
+    "candidates": 9,
+    "verifiedItems": 2,
+    "wrongCollection": 7,
+    "assets": 2,
+    "sales": 2,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-30T10:17:14.922Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:0872a3120f1d0919b1377980fdced5993b0d6f76a3efcd104079fd42e7acca44",
+      "normalizedName": "guccimorty",
+      "displayName": "@guccimorty",
+      "primaryRoute": "pattern",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "10L",
+      "feature": {
+        "characterLength": 10,
+        "characterClass": "letters",
+        "routes": [
+          "pattern"
+        ],
+        "patternSignature": "ABCCDEFGHI",
+        "uniqueCharacterCount": 9,
+        "maxRunLength": 2,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-28T20:27:25.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:41bf190173ac2c28045ae784e9169bb8119b376d44dc731070604cd03ec30a4d",
+      "normalizedName": "webggbro",
+      "displayName": "@webggbro",
+      "primaryRoute": "pattern",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "8L",
+      "feature": {
+        "characterLength": 8,
+        "characterClass": "letters",
+        "routes": [
+          "pattern"
+        ],
+        "patternSignature": "ABCDDCEF",
+        "uniqueCharacterCount": 6,
+        "maxRunLength": 2,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-28T20:27:43.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:8d17187da9e3ce7f3838760ac85b9a486160adf6ea510907cb091abcc8072f02",
+      "assetKind": "username",
+      "assetKey": "0:0872a3120f1d0919b1377980fdced5993b0d6f76a3efcd104079fd42e7acca44",
+      "normalizedName": "guccimorty",
+      "soldAt": "2026-09-28T20:27:25.000Z",
+      "priceGram": 167,
+      "historicalUsdRate": 1.6065944230389013,
+      "priceUsd": 268.3012686474965,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "3IuvfPiOt+jy6IidOYxYO4iobn9SHU3MjLfr9Q4Ut20=",
+        "messageHash": "8v4jMrBVG9w2cdCxgx+IlbZ4zQE+FysOXgO+tyW72R0=",
+        "bidAt": "2026-09-24T13:19:01.000Z"
+      },
+      "primaryRoute": "pattern",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "10L"
+    },
+    {
+      "saleId": "toncenter-username-sale:79bbe1cb543250ac6170fd376af4828a17e77d35fe0d00805c2cce7184104f42",
+      "assetKind": "username",
+      "assetKey": "0:41bf190173ac2c28045ae784e9169bb8119b376d44dc731070604cd03ec30a4d",
+      "normalizedName": "webggbro",
+      "soldAt": "2026-09-28T20:27:43.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.606540803047552,
+      "priceUsd": 16.06540803047552,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "Seqcb/BYeZmDsGuCgD0YJuN0RgJv5ixcDoYywit1P1I=",
+        "messageHash": "LNV662d++Cu7IyCgzjVxjec9rPF2M4a33AXRKvDIemw=",
+        "bidAt": "2026-09-21T20:25:37.000Z"
+      },
+      "primaryRoute": "pattern",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "8L"
+    }
+  ]
+}

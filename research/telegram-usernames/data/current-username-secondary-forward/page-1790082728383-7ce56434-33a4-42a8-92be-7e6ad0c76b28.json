@@ -1,0 +1,91 @@
+{
+  "schemaVersion": "username-secondary-local-v1",
+  "from": "2026-09-20T14:00:00Z",
+  "pipeline": "username-toncenter-secondary-sales-v1",
+  "collectedAt": "2026-09-22T13:12:08.383Z",
+  "cursor": {
+    "absoluteOffset": 9200,
+    "caughtUp": false
+  },
+  "metadata": {
+    "transfers": 100,
+    "saleContracts": 1,
+    "verifiedSales": 1,
+    "assets": 1,
+    "sales": 1,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-22T13:12:08.382Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:87e8e1908bf9c93120f121eb931c87c49e0df82cdb6bde60d35d9401d8e58bc5",
+      "normalizedName": "twited",
+      "displayName": "@twited",
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "6L",
+      "feature": {
+        "classifierVersion": "username-structural-v2",
+        "normalizedUsername": "twited",
+        "displayUsername": "@twited",
+        "characterLength": 6,
+        "byteLength": 6,
+        "characterClass": "letters",
+        "primaryRoute": "word",
+        "routes": [
+          "word"
+        ],
+        "scarcityClass": "6L",
+        "patternSignature": "ABCADE",
+        "shapeSignature": "LLLLLL",
+        "uniqueCharacterCount": 5,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "repeatedBlock": null,
+        "scripts": [
+          "Latin"
+        ],
+        "primaryScript": "Latin",
+        "containsUnderscore": false,
+        "underscoreCount": 0,
+        "digitCount": 0,
+        "digitRatio": 0,
+        "vowelRatio": 0.3333333333333333,
+        "pronounceability": "balanced",
+        "leadingZero": false,
+        "roundNumber": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-21T21:40:50.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-secondary:0adda280ae22048be5be8e6932a1cc8da949ae19cefff9b1b549bfbe31fed9e2",
+      "assetKind": "username",
+      "assetKey": "0:87e8e1908bf9c93120f121eb931c87c49e0df82cdb6bde60d35d9401d8e58bc5",
+      "normalizedName": "twited",
+      "soldAt": "2026-09-21T21:40:50.000Z",
+      "priceGram": 10000,
+      "historicalUsdRate": 1.4536939660354729,
+      "priceUsd": 14536.939660354728,
+      "marketplace": "Getgems",
+      "source": "toncenter-indexed-secondary-sale",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-completed-sale-contract",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "transactionHash": "VeT2Ga9DZm1OVVIYjA4S5FHTHc6BJ/DoyszcYEWjp5U=",
+        "saleContract": "0:b4aba88c626ee47d5bd8c80a91ca5be98f7c71fe96fb56b2c713f885c528cc8e"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "6L"
+    }
+  ]
+}

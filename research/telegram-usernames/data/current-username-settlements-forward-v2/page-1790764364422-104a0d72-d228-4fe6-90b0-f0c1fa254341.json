@@ -1,0 +1,76 @@
+{
+  "schemaVersion": "username-forward-v2-local-v1",
+  "from": "2026-09-27T00:00:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "requestedEndUtime": 1790761800,
+  "collectedAt": "2026-09-30T10:32:44.422Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 50365,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 80,
+    "candidates": 11,
+    "verifiedItems": 1,
+    "wrongCollection": 10,
+    "assets": 1,
+    "sales": 1,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-30T10:32:44.422Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:ecced8b5b5d28258c76c378b83f01d922aecffe89ba5e872bba642bd12124ce2",
+      "normalizedName": "fuckyouboobs",
+      "displayName": "@fuckyouboobs",
+      "primaryRoute": "pattern",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "12L",
+      "feature": {
+        "characterLength": 12,
+        "characterClass": "letters",
+        "routes": [
+          "pattern"
+        ],
+        "patternSignature": "ABCDEFBGFFGH",
+        "uniqueCharacterCount": 8,
+        "maxRunLength": 2,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-29T20:25:57.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:60de3a6ffb2ec29cae22d3fa4c511214be1ce76350bf547cba635cfe915234a9",
+      "assetKind": "username",
+      "assetKey": "0:ecced8b5b5d28258c76c378b83f01d922aecffe89ba5e872bba642bd12124ce2",
+      "normalizedName": "fuckyouboobs",
+      "soldAt": "2026-09-29T20:25:57.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.5158841466724302,
+      "priceUsd": 15.158841466724303,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "HS59hYuncDBnDQgElChDK2TnmLllEOjUmQ/4zBwj1ko=",
+        "messageHash": "d8kOAepDgVZaBwvnVgER/8VD/mXjvIBavAOfO3cb66g=",
+        "bidAt": "2026-09-29T20:25:57.000Z"
+      },
+      "primaryRoute": "pattern",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "12L"
+    }
+  ]
+}

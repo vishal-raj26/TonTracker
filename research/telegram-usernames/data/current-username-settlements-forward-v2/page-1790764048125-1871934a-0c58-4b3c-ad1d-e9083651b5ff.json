@@ -1,0 +1,176 @@
+{
+  "schemaVersion": "username-forward-v2-local-v1",
+  "from": "2026-09-27T00:00:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "requestedEndUtime": 1790761800,
+  "collectedAt": "2026-09-30T10:27:28.124Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 44925,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 80,
+    "candidates": 9,
+    "verifiedItems": 3,
+    "wrongCollection": 6,
+    "assets": 3,
+    "sales": 3,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-30T10:27:28.124Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:e344a267e56696c1db27a1219f9c528e97feec2b95c422e00cbb354790bd7fba",
+      "normalizedName": "berbagia_pemersatu_18link_malam",
+      "displayName": "@berbagia_pemersatu_18link_malam",
+      "primaryRoute": "alphanumeric",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "31M",
+      "feature": {
+        "characterLength": 31,
+        "characterClass": "alphanumeric",
+        "routes": [
+          "alphanumeric"
+        ],
+        "patternSignature": "ABCADEFDGHBIBCJDKLGMNOFPQGIDODI",
+        "uniqueCharacterCount": 17,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": true,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-29T14:10:07.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:ee3eb7c67a34ca0956c6e1ed69586045f46cffaf4202f25866096ccf8d4d3c82",
+      "normalizedName": "seaneomz",
+      "displayName": "@seaneomz",
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "8L",
+      "feature": {
+        "characterLength": 8,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCDBEFG",
+        "uniqueCharacterCount": 7,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-29T14:10:17.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:1cdd7429253596a43005a562eeefa26744f68f1391fa92699cffe3d12446608e",
+      "normalizedName": "bedavabonus",
+      "displayName": "@bedavabonus",
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "11L",
+      "feature": {
+        "characterLength": 11,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCDEDAFGHI",
+        "uniqueCharacterCount": 9,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-29T14:12:31.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:a5f44530840fd14108367f5f6d80c9278f72e0e2c465b4d93afd11e54346464d",
+      "assetKind": "username",
+      "assetKey": "0:e344a267e56696c1db27a1219f9c528e97feec2b95c422e00cbb354790bd7fba",
+      "normalizedName": "berbagia_pemersatu_18link_malam",
+      "soldAt": "2026-09-29T14:10:07.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.537705487544972,
+      "priceUsd": 15.377054875449721,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "91rECzWYaa+Bx/EU0z1lPYCo65hh9B1u7OTGzuJuF0o=",
+        "messageHash": "CvVr64yICwzhF1cQMzoXwS6JyFCXHJXsB01C/frjB7s=",
+        "bidAt": "2026-09-22T14:09:43.000Z"
+      },
+      "primaryRoute": "alphanumeric",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "31M"
+    },
+    {
+      "saleId": "toncenter-username-sale:5244e5a734bee43034c109709a4e4170cb04f93bcc6b176d278358bc54544484",
+      "assetKind": "username",
+      "assetKey": "0:ee3eb7c67a34ca0956c6e1ed69586045f46cffaf4202f25866096ccf8d4d3c82",
+      "normalizedName": "seaneomz",
+      "soldAt": "2026-09-29T14:10:17.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.537680489850227,
+      "priceUsd": 15.37680489850227,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "IhdHppmtfBKaGLNu2grf6GID7FWuNCIqNIlg9lYkmIg=",
+        "messageHash": "BXlmoemUhKyu9wMhUyjzVwr2GLpbVOSC10461YZ5mhw=",
+        "bidAt": "2026-09-22T14:09:33.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "8L"
+    },
+    {
+      "saleId": "toncenter-username-sale:222c9fad8ef7fa0ed5fa7812ed050b4782eaaf9f7b6026a6ff98870ccc5ecf65",
+      "assetKind": "username",
+      "assetKey": "0:1cdd7429253596a43005a562eeefa26744f68f1391fa92699cffe3d12446608e",
+      "normalizedName": "bedavabonus",
+      "soldAt": "2026-09-29T14:12:31.000Z",
+      "priceGram": 120,
+      "historicalUsdRate": 1.5373455207406443,
+      "priceUsd": 184.48146248887733,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "A4Q/HIoF21VnDa3dQRu0jg9GIAzX9u/N8zur6DT0+EA=",
+        "messageHash": "9Aaeii6WEfRBApwKvnIiPpvsZEyKRy7CeD5aXer2LOY=",
+        "bidAt": "2026-09-29T14:12:31.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "11L"
+    }
+  ]
+}

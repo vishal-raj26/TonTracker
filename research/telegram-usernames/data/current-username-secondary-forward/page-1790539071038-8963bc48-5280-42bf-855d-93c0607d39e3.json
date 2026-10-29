@@ -1,0 +1,91 @@
+{
+  "schemaVersion": "username-secondary-local-v1",
+  "from": "2026-09-20T14:00:00Z",
+  "pipeline": "username-toncenter-secondary-sales-v1",
+  "collectedAt": "2026-09-27T19:57:51.038Z",
+  "cursor": {
+    "absoluteOffset": 39040,
+    "caughtUp": false
+  },
+  "metadata": {
+    "transfers": 100,
+    "saleContracts": 1,
+    "verifiedSales": 1,
+    "assets": 1,
+    "sales": 1,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-27T19:57:51.038Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:6a7faf5e50a3994a9a152bfe2621360e6d3f125317ed56d7ad33d53967bc6ee6",
+      "normalizedName": "enewax",
+      "displayName": "@enewax",
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "6L",
+      "feature": {
+        "classifierVersion": "username-structural-v2",
+        "normalizedUsername": "enewax",
+        "displayUsername": "@enewax",
+        "characterLength": 6,
+        "byteLength": 6,
+        "characterClass": "letters",
+        "primaryRoute": "word",
+        "routes": [
+          "word"
+        ],
+        "scarcityClass": "6L",
+        "patternSignature": "ABACDE",
+        "shapeSignature": "LLLLLL",
+        "uniqueCharacterCount": 5,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "repeatedBlock": null,
+        "scripts": [
+          "Latin"
+        ],
+        "primaryScript": "Latin",
+        "containsUnderscore": false,
+        "underscoreCount": 0,
+        "digitCount": 0,
+        "digitRatio": 0,
+        "vowelRatio": 0.5,
+        "pronounceability": "balanced",
+        "leadingZero": false,
+        "roundNumber": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-27T14:29:13.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-secondary:a71d935eff29b865a02eb6f8eb2e770dc353cd179494ca0d7bf9b1133a19a75f",
+      "assetKind": "username",
+      "assetKey": "0:6a7faf5e50a3994a9a152bfe2621360e6d3f125317ed56d7ad33d53967bc6ee6",
+      "normalizedName": "enewax",
+      "soldAt": "2026-09-27T14:29:13.000Z",
+      "priceGram": 50,
+      "historicalUsdRate": 1.5887076950564267,
+      "priceUsd": 79.43538475282134,
+      "marketplace": "Getgems",
+      "source": "toncenter-indexed-secondary-sale",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-completed-sale-contract",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "transactionHash": "lVVmD34aCSzgSietYp12ELjld07sGa8IRh+OtEvPd+8=",
+        "saleContract": "0:7384c79ae96a6e82011f149de92fb84623108eafbc9e08b3aeb892c02fb40e2c"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "6L"
+    }
+  ]
+}

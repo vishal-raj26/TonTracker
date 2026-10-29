@@ -1,0 +1,159 @@
+{
+  "schemaVersion": "username-secondary-local-v1",
+  "from": "2026-09-20T14:00:00Z",
+  "pipeline": "username-toncenter-secondary-sales-v1",
+  "collectedAt": "2026-09-22T13:08:48.926Z",
+  "cursor": {
+    "absoluteOffset": 2500,
+    "caughtUp": false
+  },
+  "metadata": {
+    "transfers": 100,
+    "saleContracts": 12,
+    "verifiedSales": 2,
+    "assets": 2,
+    "sales": 2,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-22T13:08:48.926Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:17323d1933b018b45c3b4d94573b82dd75951c0f23c0f21e2271c257e143b880",
+      "normalizedName": "icciq",
+      "displayName": "@icciq",
+      "primaryRoute": "pattern",
+      "lengthBucket": "4-5",
+      "script": "Latin",
+      "scarcityClass": "5L",
+      "feature": {
+        "classifierVersion": "username-structural-v2",
+        "normalizedUsername": "icciq",
+        "displayUsername": "@icciq",
+        "characterLength": 5,
+        "byteLength": 5,
+        "characterClass": "letters",
+        "primaryRoute": "pattern",
+        "routes": [
+          "pattern"
+        ],
+        "scarcityClass": "5L",
+        "patternSignature": "ABBAC",
+        "shapeSignature": "LLLLL",
+        "uniqueCharacterCount": 3,
+        "maxRunLength": 2,
+        "palindrome": false,
+        "sequence": null,
+        "repeatedBlock": null,
+        "scripts": [
+          "Latin"
+        ],
+        "primaryScript": "Latin",
+        "containsUnderscore": false,
+        "underscoreCount": 0,
+        "digitCount": 0,
+        "digitRatio": 0,
+        "vowelRatio": 0.4,
+        "pronounceability": "balanced",
+        "leadingZero": false,
+        "roundNumber": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-20T20:34:38.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:d9a942dc2679e7225bed7dd2ac7f2feb3741cac1e0dba7e1933577059476009b",
+      "normalizedName": "worola",
+      "displayName": "@worola",
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "6L",
+      "feature": {
+        "classifierVersion": "username-structural-v2",
+        "normalizedUsername": "worola",
+        "displayUsername": "@worola",
+        "characterLength": 6,
+        "byteLength": 6,
+        "characterClass": "letters",
+        "primaryRoute": "word",
+        "routes": [
+          "word"
+        ],
+        "scarcityClass": "6L",
+        "patternSignature": "ABCBDE",
+        "shapeSignature": "LLLLLL",
+        "uniqueCharacterCount": 5,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "repeatedBlock": null,
+        "scripts": [
+          "Latin"
+        ],
+        "primaryScript": "Latin",
+        "containsUnderscore": false,
+        "underscoreCount": 0,
+        "digitCount": 0,
+        "digitRatio": 0,
+        "vowelRatio": 0.5,
+        "pronounceability": "balanced",
+        "leadingZero": false,
+        "roundNumber": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-20T20:38:09.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-secondary:643bafbd39101e76f2101f711cabf50492bcbd3ec34d197fa29755416980e5b7",
+      "assetKind": "username",
+      "assetKey": "0:17323d1933b018b45c3b4d94573b82dd75951c0f23c0f21e2271c257e143b880",
+      "normalizedName": "icciq",
+      "soldAt": "2026-09-20T20:34:38.000Z",
+      "priceGram": 11,
+      "historicalUsdRate": 1.3844161329733882,
+      "priceUsd": 15.22857746270727,
+      "marketplace": "Getgems",
+      "source": "toncenter-indexed-secondary-sale",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-completed-sale-contract",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "transactionHash": "S2qJQxILKQ7oNW8j3RroVr4WbPXghko1ehYMqX2i6/c=",
+        "saleContract": "0:b6d7fb32785c5327531c66c9dd3a80431ff59949fd837383f580fcae3c8f402b"
+      },
+      "primaryRoute": "pattern",
+      "lengthBucket": "4-5",
+      "script": "Latin",
+      "scarcityClass": "5L"
+    },
+    {
+      "saleId": "toncenter-username-secondary:8e6aba14c822c53744d14e47f1bb4418d27bde6eb8b7b8cb01f0f89ce3d9beea",
+      "assetKind": "username",
+      "assetKey": "0:d9a942dc2679e7225bed7dd2ac7f2feb3741cac1e0dba7e1933577059476009b",
+      "normalizedName": "worola",
+      "soldAt": "2026-09-20T20:38:09.000Z",
+      "priceGram": 9,
+      "historicalUsdRate": 1.3843826385506997,
+      "priceUsd": 12.459443746956296,
+      "marketplace": "Getgems",
+      "source": "toncenter-indexed-secondary-sale",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-completed-sale-contract",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "transactionHash": "BdvWmQejMfON+kWIfzVospr4AD06mD7TbeP6Fc3ZhJQ=",
+        "saleContract": "0:15b94e26a5e5b481bd305fd20c512b805cabe724037699755c4a366af8fa114e"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "6L"
+    }
+  ]
+}

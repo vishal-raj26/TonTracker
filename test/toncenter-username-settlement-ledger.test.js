@@ -49,14 +49,14 @@ test("ingests only collection-verified settlements with historical USD", async (
   };
   const fetch = async (url) => {
     const parsed = new URL(url);
-    if (parsed.pathname.endsWith("/messages")) assert.equal(parsed.searchParams.get("start_utime"), "1666742400");
+    if (parsed.pathname.endsWith("/messages")) { assert.equal(parsed.searchParams.get("start_utime"), "1666742400"); assert.equal(parsed.searchParams.get("end_utime"), "1747695000"); }
     const payload = parsed.pathname.endsWith("/messages")
       ? { messages: [convictionMessage()] }
       : { nft_items: [{ address: NFT, collection_address: USERNAME_COLLECTION, content: { domain: "conviction.t.me" } }] };
     return { ok: true, status: 200, json: async () => payload };
   };
   const worker = createTonCenterUsernameSettlementLedger({
-    ledger, fetch, requestDelayMs: 0, pageLimit: 10,
+    ledger, fetch, requestDelayMs: 0, pageLimit: 10, historyEndUtime: 1747695000,
     attributeHistoricalUsd: async (events) => events.map((event) => ({
       ...event, historicalUsdRate: 3.5, priceUsd: event.priceGram * 3.5,
       historicalUsdSource: "test", historicalUsdMethod: "exact",
@@ -85,4 +85,14 @@ test("rejects the same payload when the NFT is outside the username collection",
   const result = await worker.runPage();
   assert.equal(result.sales, 0);
   assert.equal(writes.length, 0);
+});
+
+test("time-offset recovery omits the stalled logical-time filter and advances absolute offset",async()=>{
+  const writes=[];
+  const ledger={readState:async()=>({state:{cursor:{startLt:"100",offset:1}}}),ingestAssets:async()=>0,ingestSales:async()=>0,
+    writeState:async(_pipeline,cursor)=>writes.push(cursor)};
+  const fetch=async url=>{const parsed=new URL(url);assert.equal(parsed.searchParams.has("start_lt"),false);assert.equal(parsed.searchParams.get("offset"),"240");
+    return {ok:true,status:200,json:async()=>({messages:[]})};};
+  await createTonCenterUsernameSettlementLedger({ledger,fetch,requestDelayMs:0,pageLimit:10,paginationMode:"time-offset",initialOffset:240,attributeHistoricalUsd:async rows=>rows}).runPage();
+  assert.deepEqual(writes[0],{paginationMode:"time-offset",absoluteOffset:240,caughtUp:true});
 });

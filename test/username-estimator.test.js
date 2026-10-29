@@ -36,40 +36,44 @@ test("keeps a fresh exact sale dominant over broad low-price comparables", () =>
   const result = estimateTelegramUsernameValue("kisser", events, { nowMs });
 
   assert.equal(result.ownSaleCount, 1);
-  assert.ok(result.estimateUsd >= 900);
+  assert.ok(result.estimateUsd > 500 && result.estimateUsd <= 900);
   assert.equal(result.lastSaleAnchor.priceUsd, 900);
 });
 
 test("moves an old exact-sale anchor only with measured segment movement", () => {
   const nowMs = Date.parse("2026-08-26T00:00:00Z");
   const events = [sale("heldname", 500, 400, nowMs, "exact")];
-  for (let index = 0; index < 8; index += 1) {
-    events.push(sale(`oldname${index}`, 100, 300 + index, nowMs));
-    events.push(sale(`newname${index}`, 200, 10 + index, nowMs));
+  for (let index = 0; index < 12; index += 1) {
+    const name = `sampleword${String.fromCharCode(97 + index)}`;
+    events.push(sale(name, 100, 300 + index, nowMs));
+    events.push(sale(name, 200, 10 + index, nowMs));
   }
   const result = estimateTelegramUsernameValue("heldname", events, { nowMs });
   assert.equal(result.trend.direction, "up");
   assert.ok(result.lastSaleAnchor.marketAdjustedUsd > 500);
-  assert.ok(result.estimateUsd >= result.lastSaleAnchor.marketAdjustedUsd);
+  const flat = estimateTelegramUsernameValue("heldname", events.map((event) => event.username === "heldname" ? event : { ...event, priceUsd: 100 }), { nowMs });
+  assert.ok(result.estimateUsd > flat.estimateUsd);
 });
 
-test("never values an exact-sale username below its latest historical USD sale", () => {
+test("allows an old exact sale to lose value when the observed market declines", () => {
   const nowMs = Date.parse("2026-08-26T00:00:00Z");
   const events = [sale("conviction", 1_700, 400, nowMs, "exact")];
   for (let index = 0; index < 12; index += 1) {
-    events.push(sale(`oldmarket${index}`, 500, 300 + index, nowMs));
-    events.push(sale(`newmarket${index}`, 50, 10 + index, nowMs));
+    const name = `sampleword${String.fromCharCode(97 + index)}`;
+    events.push(sale(name, 500, 300 + index, nowMs));
+    events.push(sale(name, 50, 10 + index, nowMs));
   }
   const result = estimateTelegramUsernameValue("conviction", events, { nowMs });
   assert.equal(result.trend.direction, "down");
   assert.ok(result.lastSaleAnchor.marketAdjustedUsd < result.lastSaleAnchor.priceUsd);
-  assert.ok(result.estimateUsd >= result.lastSaleAnchor.priceUsd);
+  assert.ok(result.estimateUsd < result.lastSaleAnchor.priceUsd);
+  assert.ok(result.estimateUsd > 0);
 });
 
 test("publishes a learned estimate only when its structural cohort is prepared", () => {
   const nowMs = Date.parse("2026-08-24T00:00:00Z");
   const learned = trainUsernameLearnedModel(Array.from({ length: 30 }, (_, index) => (
-    sale(`ordinaryname${index}`, 100 + index, index + 1, nowMs)
+    sale(`ordinaryname${String.fromCharCode(97 + index % 26)}${String.fromCharCode(97 + Math.floor(index / 26))}`, 100 + index, index + 1, nowMs)
   )), { nowMs });
   const featureOnly = estimateTelegramUsernameValue("newmarketname", [], { nowMs, learnedModel: learned });
   const oneSale = estimateTelegramUsernameValue("singleusername", [
@@ -78,6 +82,9 @@ test("publishes a learned estimate only when its structural cohort is prepared",
 
   assert.equal(featureOnly.status, "estimated");
   assert.equal(featureOnly.confidenceBand, "low");
+  const unsupported = estimateTelegramUsernameValue("1234", [], { nowMs, learnedModel: learned });
+  assert.equal(unsupported.status, "unavailable");
+  assert.equal(unsupported.reason, "unsupported-model-cohort");
   assert.equal(oneSale.status, "estimated");
   assert.equal(oneSale.ownSaleCount, 1);
   assert.equal(oneSale.confidenceBand, "low");
@@ -104,7 +111,7 @@ test("learns distinct structural price levels from completed sales", () => {
   const numeric = estimateTelegramUsernameValue("777", events, { nowMs, learnedModel: model });
   const ordinary = estimateTelegramUsernameValue("anothername", events, { nowMs, learnedModel: model });
   assert.ok(numeric.estimateUsd > ordinary.estimateUsd * 3);
-  assert.equal(numeric.learnedModel.modelVersion, "username-learned-ridge-v12");
+  assert.equal(numeric.learnedModel.modelVersion, "username-learned-ridge-v15");
 });
 
 test("learns recurring market-name premiums from completed sales", () => {
@@ -198,10 +205,10 @@ test("keeps learned conditional price branches inside their training regimes", (
 test("uses recent segment sales to move older comparable evidence with the market", () => {
   const nowMs = Date.parse("2026-08-24T00:00:00Z");
   const rising = [];
-  for (let index = 0; index < 8; index += 1) {
+  for (let index = 0; index < 12; index += 1) {
     const suffix = String.fromCharCode(97 + index);
-    rising.push(sale(`olderword${suffix}`, 100 + index, 260 + index, nowMs));
-    rising.push(sale(`recentword${suffix}`, 210 + index * 2, 15 + index, nowMs));
+    rising.push(sale(`marketword${suffix}`, 100 + index, 260 + index, nowMs));
+    rising.push(sale(`marketword${suffix}`, 210 + index * 2, 15 + index, nowMs));
   }
   const result = estimateTelegramUsernameValue("nextword", rising, { nowMs });
   assert.equal(result.trend.direction, "up");

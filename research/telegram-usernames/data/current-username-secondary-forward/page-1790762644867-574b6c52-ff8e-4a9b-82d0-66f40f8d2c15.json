@@ -1,0 +1,91 @@
+{
+  "schemaVersion": "username-secondary-local-v1",
+  "from": "2026-09-20T14:00:00Z",
+  "pipeline": "username-toncenter-secondary-sales-v1",
+  "collectedAt": "2026-09-30T10:04:04.867Z",
+  "cursor": {
+    "absoluteOffset": 49858,
+    "caughtUp": false
+  },
+  "metadata": {
+    "transfers": 100,
+    "saleContracts": 1,
+    "verifiedSales": 1,
+    "assets": 1,
+    "sales": 1,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-30T10:04:04.867Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:644d7a94029b86560c5fed5da4d5b6b42cdd6a29992fda6a3c8dcf7fc922c294",
+      "normalizedName": "boyfounder",
+      "displayName": "@boyfounder",
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "10L",
+      "feature": {
+        "classifierVersion": "username-structural-v2",
+        "normalizedUsername": "boyfounder",
+        "displayUsername": "@boyfounder",
+        "characterLength": 10,
+        "byteLength": 10,
+        "characterClass": "letters",
+        "primaryRoute": "word",
+        "routes": [
+          "word"
+        ],
+        "scarcityClass": "10L",
+        "patternSignature": "ABCDBEFGHI",
+        "shapeSignature": "LLLLLLLLLL",
+        "uniqueCharacterCount": 9,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "repeatedBlock": null,
+        "scripts": [
+          "Latin"
+        ],
+        "primaryScript": "Latin",
+        "containsUnderscore": false,
+        "underscoreCount": 0,
+        "digitCount": 0,
+        "digitRatio": 0,
+        "vowelRatio": 0.5,
+        "pronounceability": "balanced",
+        "leadingZero": false,
+        "roundNumber": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-28T20:12:11.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-secondary:5237ade38dcf554b8e5c3be8a253b3caab49df122983e336490aa0722f195b80",
+      "assetKind": "username",
+      "assetKey": "0:644d7a94029b86560c5fed5da4d5b6b42cdd6a29992fda6a3c8dcf7fc922c294",
+      "normalizedName": "boyfounder",
+      "soldAt": "2026-09-28T20:12:11.000Z",
+      "priceGram": 150,
+      "historicalUsdRate": 1.608783289934801,
+      "priceUsd": 241.31749349022013,
+      "marketplace": "Getgems",
+      "source": "toncenter-indexed-secondary-sale",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-completed-sale-contract",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "transactionHash": "wtJcrpx2Ar3l+Yqi66MoWy3U0BFGPIniBV8Hsf6hV0I=",
+        "saleContract": "0:1e66e74af14478744f8528c18e3e98a08714076187a1894e02f65339c2ec103e"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "10L"
+    }
+  ]
+}

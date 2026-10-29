@@ -1,0 +1,63 @@
+{
+  "version": "username-anchor-residual-development-v1",
+  "frozenBeforeFit": true,
+  "purpose": "One fixed experiment learning log-return corrections to v25 using strictly-prior exact-NFT sale anchors, with no parameter search",
+  "sources": {
+    "paired": {
+      "path": "research/telegram-usernames/data/username-secondary-own-history-v25-comparison-2026-09-27.json",
+      "sha256": "be022970b33b8662b266496e652da60299d4e677be4020920148173ee3c32186"
+    },
+    "ownFeatures": {
+      "path": "research/telegram-usernames/data/username-secondary-own-history-features-2026-09-27.json",
+      "sha256": "03746b61f77a9a203f5a877303f071409549e731ab6098a4d61c076d29b64aca"
+    },
+    "savedGate": {
+      "path": "research/telegram-usernames/data/username-secondary-own-history-gate-development-2026-09-27.json",
+      "sha256": "ead5ac822e124b5d24edd2057ec07c64a9ba0d4f4fb99596ae00a948ff34b494"
+    }
+  },
+  "caseSetSha256": "2eeb006728713436d09abd65e4640bb0baabc919e70c4eec01151b6358716ab3",
+  "attempts": 30995,
+  "windows": {
+    "fit": ["2024-10-01T00:00:00Z", "2024-12-01T00:00:00Z"],
+    "calibration": ["2024-12-01T00:00:00Z", "2025-01-01T00:00:00Z"],
+    "check": ["2025-01-01T00:00:00Z", "2025-02-01T00:00:00Z"]
+  },
+  "features": ["logV25Point", "logPriorOwnOverV25", "log1pPriorOwnAgeDays", "log1pPriorOwnSaleCount", "logV25RangeRatio", "usernameLength"],
+  "forbiddenFeatures": ["target outcome", "realizedVenue", "NFT address", "username spelling", "current auction bid", "future or simultaneous own sale"],
+  "model": {
+    "family": "sklearn HistGradientBoostingRegressor",
+    "target": "log(actualUsd / v25EstimateUsd)",
+    "losses": ["absolute_error", "quantile_0.1", "quantile_0.9"],
+    "params": {"max_iter": 100, "max_leaf_nodes": 15, "min_samples_leaf": 20, "learning_rate": 0.1, "early_stopping": false, "random_state": 17},
+    "fitPopulation": "Every fit-window case with available v25 and strictly prior own evidence, irrespective of realized venue or target price",
+    "weight": "Inverse square root of fit-window eligible event count per NFT",
+    "fallback": "Keep v25 including its unavailable state whenever anchor features are unavailable",
+    "calibration": "Nonnegative finite-sample 80 percent conformal expansion of residual 10th/90th quantiles on every eligible December case, with no outcome-cohort stratification",
+    "parameterSearch": false,
+    "refitAfterCheck": false
+  },
+  "gates": {
+    "premiumMedianFactorMaximum": 3,
+    "premiumMaleImprovementMinimum": 0.25,
+    "positiveIdentityBootstrapLowerBound": true,
+    "ordinaryAndIntermediateMaleRegressionMaximum": 0.05,
+    "premiumCoverageMinimum": 0.7,
+    "overallCoverageRange": [0.75, 0.85],
+    "noIntervalScoreRegression": true,
+    "noAvailabilityRegression": true,
+    "premiumIndependentIdentitiesMinimum": 100,
+    "independentTemporalBlocksMinimum": 2
+  },
+  "reporting": {
+    "allCasesRetained": true,
+    "cohorts": ["all", "ordinary", "intermediate", "premium", "secondary", "secondary/ordinary", "secondary/intermediate", "secondary/premium", "ownAvailable", "ownAbsent", "newToFitIdentity", "seenFitIdentity"],
+    "metrics": ["MALE", "medianFactor", "p95Factor", "80 percent coverage", "log interval score", "abstentions"],
+    "controls": ["same-case v25", "saved absolute-price own-history HGB", "saved static HGB", "saved logistic gate January summary"],
+    "bootstrap": {"iterations": 2000, "seed": 30092026, "unit": "exact NFT identity", "cohorts": ["premium", "secondary/premium"]}
+  },
+  "qualification": false,
+  "limits": ["January outcomes are already exposed; this is development only", "A single check block cannot meet the independent temporal support gate", "No reserved prospective labels may be accessed", "No production integration on a development result"],
+  "codeSeal": "research/telegram-usernames/data/username-anchor-residual-code-seal-2026-09-30.json",
+  "output": "research/telegram-usernames/data/username-anchor-residual-development-2026-09-30.json"
+}

@@ -1,0 +1,91 @@
+{
+  "schemaVersion": "username-secondary-local-v1",
+  "from": "2026-09-20T14:00:00Z",
+  "pipeline": "username-toncenter-secondary-sales-v1",
+  "collectedAt": "2026-09-25T09:14:14.141Z",
+  "cursor": {
+    "absoluteOffset": 16170,
+    "caughtUp": false
+  },
+  "metadata": {
+    "transfers": 100,
+    "saleContracts": 23,
+    "verifiedSales": 1,
+    "assets": 1,
+    "sales": 1,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-25T09:14:14.141Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:f55b99aef8f70e11c40ffc94d341a4069aa2080c443108ad39f0632de5540125",
+      "normalizedName": "acetylate",
+      "displayName": "@acetylate",
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "9L",
+      "feature": {
+        "classifierVersion": "username-structural-v2",
+        "normalizedUsername": "acetylate",
+        "displayUsername": "@acetylate",
+        "characterLength": 9,
+        "byteLength": 9,
+        "characterClass": "letters",
+        "primaryRoute": "word",
+        "routes": [
+          "word"
+        ],
+        "scarcityClass": "9L",
+        "patternSignature": "ABCDEFADC",
+        "shapeSignature": "LLLLLLLLL",
+        "uniqueCharacterCount": 6,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "repeatedBlock": null,
+        "scripts": [
+          "Latin"
+        ],
+        "primaryScript": "Latin",
+        "containsUnderscore": false,
+        "underscoreCount": 0,
+        "digitCount": 0,
+        "digitRatio": 0,
+        "vowelRatio": 0.5555555555555556,
+        "pronounceability": "balanced",
+        "leadingZero": false,
+        "roundNumber": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-23T06:39:28.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-secondary:a0c607e7bae417c794f7cf1ffe49338f61e17fde7bdafeebca971242e865fec1",
+      "assetKind": "username",
+      "assetKey": "0:f55b99aef8f70e11c40ffc94d341a4069aa2080c443108ad39f0632de5540125",
+      "normalizedName": "acetylate",
+      "soldAt": "2026-09-23T06:39:28.000Z",
+      "priceGram": 5.8,
+      "historicalUsdRate": 1.473429253136286,
+      "priceUsd": 8.545889668190458,
+      "marketplace": "Getgems",
+      "source": "toncenter-indexed-secondary-sale",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-completed-sale-contract",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "transactionHash": "F6Wc5Y9LnZF1ZUB9boKysPSWlQ3GNAdxHX9Wsymr6LQ=",
+        "saleContract": "0:32cc975f3e913607d63c7097ef7f52ed9cd061eba2b38e22b403f7407b43c0d5"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "9L"
+    }
+  ]
+}

@@ -1,0 +1,91 @@
+{
+  "schemaVersion": "username-secondary-local-v1",
+  "from": "2026-09-20T14:00:00Z",
+  "pipeline": "username-toncenter-secondary-sales-v1",
+  "collectedAt": "2026-09-30T10:03:32.134Z",
+  "cursor": {
+    "absoluteOffset": 49258,
+    "caughtUp": false
+  },
+  "metadata": {
+    "transfers": 100,
+    "saleContracts": 4,
+    "verifiedSales": 1,
+    "assets": 1,
+    "sales": 1,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-30T10:03:32.134Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:70acfc8a225857603fbbbc4489dd5351187c653f126da3bc24312ccf6d151db2",
+      "normalizedName": "richweb3",
+      "displayName": "@richweb3",
+      "primaryRoute": "alphanumeric",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "8M",
+      "feature": {
+        "classifierVersion": "username-structural-v2",
+        "normalizedUsername": "richweb3",
+        "displayUsername": "@richweb3",
+        "characterLength": 8,
+        "byteLength": 8,
+        "characterClass": "alphanumeric",
+        "primaryRoute": "alphanumeric",
+        "routes": [
+          "alphanumeric"
+        ],
+        "scarcityClass": "8M",
+        "patternSignature": "ABCDEFGH",
+        "shapeSignature": "LLLLLLLN",
+        "uniqueCharacterCount": 8,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "repeatedBlock": null,
+        "scripts": [
+          "Latin"
+        ],
+        "primaryScript": "Latin",
+        "containsUnderscore": false,
+        "underscoreCount": 0,
+        "digitCount": 1,
+        "digitRatio": 0.125,
+        "vowelRatio": 0.2857142857142857,
+        "pronounceability": "not-applicable",
+        "leadingZero": false,
+        "roundNumber": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-28T18:35:14.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-secondary:605e3b60ed49e9e87c1ee32a7488806640618eae64beba9c9e418c0c8c4b6850",
+      "assetKind": "username",
+      "assetKey": "0:70acfc8a225857603fbbbc4489dd5351187c653f126da3bc24312ccf6d151db2",
+      "normalizedName": "richweb3",
+      "soldAt": "2026-09-28T18:35:14.000Z",
+      "priceGram": 2000,
+      "historicalUsdRate": 1.6418856828188457,
+      "priceUsd": 3283.7713656376914,
+      "marketplace": "Getgems",
+      "source": "toncenter-indexed-secondary-sale",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-completed-sale-contract",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "transactionHash": "gWJcyFH1xkdd71eXP3xeS0H8aJ7pYugThMPnmH0KiNA=",
+        "saleContract": "0:069394a876b67b81797a61763b9996ffe61300971b6aa07f630ff3d5f82989bc"
+      },
+      "primaryRoute": "alphanumeric",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "8M"
+    }
+  ]
+}

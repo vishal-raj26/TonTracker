@@ -1,0 +1,997 @@
+{
+  "schemaVersion": "username-secondary-development-v1",
+  "qualification": false,
+  "developmentOnly": true,
+  "productionChanged": false,
+  "reserved2026OutcomesOpened": false,
+  "createdAt": "2026-09-25T09:59:41.569Z",
+  "design": {
+    "folds": [
+      {
+        "name": "2024-Q4",
+        "from": "2024-10-01T00:00:00Z",
+        "until": "2025-01-01T00:00:00Z"
+      },
+      {
+        "name": "2025-Q1",
+        "from": "2025-01-01T00:00:00Z",
+        "until": "2025-04-01T00:00:00Z"
+      },
+      {
+        "name": "2025-Q2",
+        "from": "2025-04-01T00:00:00Z",
+        "until": "2025-07-01T00:00:00Z"
+      }
+    ],
+    "target": "historical secondary fixed sales only",
+    "baseline": "v25 using only sales before each fold",
+    "candidate": "same v25 plus strictly earlier sampled secondary fixed sales inside each fold",
+    "maxHistory": 30000,
+    "modelRefreshInterval": 50,
+    "everySelectedTargetRetained": true,
+    "sameTimeExcluded": true
+  },
+  "sources": {
+    "dune_username_sales.part": "6d724b74f727a797d553190cb72e408d3c70d6069202636a60f7ea2b2850682f",
+    "tonapi_username_universe.csv": "5bd5216ddfe76d5c18e490814b968fa6ca9ffc42a65cdf2224c6b9b8a90f9f6b",
+    "loadedSales": 340000,
+    "rejected": 0
+  },
+  "code": {
+    "evaluatorSha256": "e010db9198fe829f26b04fe8e03d2e4c3f63dde7a394ac4764f6104968cb0c17",
+    "frozenSecondaryEvaluatorSha256": "6c03e2f15d360f687156c3ec2fe0937cf55539ee77327a82db1169764c0a7807"
+  },
+  "attempts": 773,
+  "uniqueIdentities": 743,
+  "premiumEvents": 199,
+  "premiumIdentities": 190,
+  "folds": [
+    {
+      "name": "2024-Q4",
+      "from": "2024-10-01T00:00:00Z",
+      "until": "2025-01-01T00:00:00Z",
+      "populationEvents": 1574,
+      "attempts": 193,
+      "uniqueIdentities": 187,
+      "premiumEvents": 42,
+      "premiumIdentities": 42,
+      "baselineOwnAnchors": 151,
+      "candidateOwnAnchors": 151,
+      "cohorts": {
+        "overall": {
+          "attempts": 193,
+          "baseline": {
+            "samples": 193,
+            "intervalSamples": 193,
+            "medianFactorError": 2.1634327184673796,
+            "medianPredictionRatio": 0.9528931956742768,
+            "coverage": 0.49740932642487046,
+            "meanAbsoluteLogError": 1.0891400838480914,
+            "medianRelativeError": 0.7037409813536559,
+            "meanLogIntervalWidth": 2.78909612749073,
+            "meanLogIntervalScore80": 6.68842014660789
+          },
+          "candidate": {
+            "samples": 193,
+            "intervalSamples": 193,
+            "medianFactorError": 2.1181589765027606,
+            "medianPredictionRatio": 0.9528931956742768,
+            "coverage": 0.5284974093264249,
+            "meanAbsoluteLogError": 1.0750710051005243,
+            "medianRelativeError": 0.688033016429096,
+            "meanLogIntervalWidth": 2.9138007916940927,
+            "meanLogIntervalScore80": 6.5637701459247815
+          },
+          "paired": 193,
+          "baselineAbstentions": 0,
+          "candidateAbstentions": 0
+        },
+        "ordinary": {
+          "attempts": 100,
+          "baseline": {
+            "samples": 100,
+            "intervalSamples": 100,
+            "medianFactorError": 1.7042961860670198,
+            "medianPredictionRatio": 1.6587070471753058,
+            "coverage": 0.37,
+            "meanAbsoluteLogError": 0.5936583021679938,
+            "medianRelativeError": 0.6722151711509199,
+            "meanLogIntervalWidth": 2.7972177625818655,
+            "meanLogIntervalScore80": 4.713802815376418
+          },
+          "candidate": {
+            "samples": 100,
+            "intervalSamples": 100,
+            "medianFactorError": 1.6587070471753058,
+            "medianPredictionRatio": 1.5998559127898337,
+            "coverage": 0.43,
+            "meanAbsoluteLogError": 0.5755646741917697,
+            "medianRelativeError": 0.6081915374190634,
+            "meanLogIntervalWidth": 2.891271578690026,
+            "meanLogIntervalScore80": 4.448502319885292
+          },
+          "paired": 100,
+          "baselineAbstentions": 0,
+          "candidateAbstentions": 0
+        },
+        "intermediate": {
+          "attempts": 51,
+          "baseline": {
+            "samples": 51,
+            "intervalSamples": 51,
+            "medianFactorError": 2.0240250628042076,
+            "medianPredictionRatio": 0.5046703445584904,
+            "coverage": 1,
+            "meanAbsoluteLogError": 0.8823687187833417,
+            "medianRelativeError": 0.5290020506863888,
+            "meanLogIntervalWidth": 2.610169224865163,
+            "meanLogIntervalScore80": 2.610169224865163
+          },
+          "candidate": {
+            "samples": 51,
+            "intervalSamples": 51,
+            "medianFactorError": 2.0183209057460467,
+            "medianPredictionRatio": 0.5046703445584904,
+            "coverage": 1,
+            "meanAbsoluteLogError": 0.8836086465980474,
+            "medianRelativeError": 0.5278919046713505,
+            "meanLogIntervalWidth": 2.767980937237992,
+            "meanLogIntervalScore80": 2.767980937237992
+          },
+          "paired": 51,
+          "baselineAbstentions": 0,
+          "candidateAbstentions": 0
+        },
+        "premium": {
+          "attempts": 42,
+          "baseline": {
+            "samples": 42,
+            "intervalSamples": 42,
+            "medianFactorError": 14.61714880227365,
+            "medianPredictionRatio": 0.09276820636733252,
+            "coverage": 0.19047619047619047,
+            "meanAbsoluteLogError": 2.519938126379328,
+            "medianRelativeError": 0.9315872053074774,
+            "meanLogIntervalWidth": 2.9870272828428828,
+            "meanLogIntervalScore80": 16.342051816418007
+          },
+          "candidate": {
+            "samples": 42,
+            "intervalSamples": 42,
+            "medianFactorError": 11.789523442719394,
+            "medianPredictionRatio": 0.09276820636733252,
+            "coverage": 0.19047619047619047,
+            "meanAbsoluteLogError": 2.4968617997315237,
+            "medianRelativeError": 0.9151789294233476,
+            "meanLogIntervalWidth": 3.144508741162383,
+            "meanLogIntervalScore80": 16.20929472323371
+          },
+          "paired": 42,
+          "baselineAbstentions": 0,
+          "candidateAbstentions": 0
+        }
+      },
+      "paired": {
+        "overall": {
+          "samples": 193,
+          "baseline": {
+            "samples": 193,
+            "intervalSamples": 193,
+            "medianFactorError": 2.1634327184673796,
+            "medianPredictionRatio": 0.9528931956742768,
+            "coverage": 0.49740932642487046,
+            "meanAbsoluteLogError": 1.0891400838480914,
+            "medianRelativeError": 0.7037409813536559,
+            "meanLogIntervalWidth": 2.78909612749073,
+            "meanLogIntervalScore80": 6.68842014660789
+          },
+          "candidate": {
+            "samples": 193,
+            "intervalSamples": 193,
+            "medianFactorError": 2.1181589765027606,
+            "medianPredictionRatio": 0.9528931956742768,
+            "coverage": 0.5284974093264249,
+            "meanAbsoluteLogError": 1.0750710051005243,
+            "medianRelativeError": 0.688033016429096,
+            "meanLogIntervalWidth": 2.9138007916940927,
+            "meanLogIntervalScore80": 6.5637701459247815
+          },
+          "maleImprovement": 0.012917602571249518,
+          "intervalScoreImprovement": 0.018636688179095074
+        },
+        "ordinary": {
+          "samples": 100,
+          "baseline": {
+            "samples": 100,
+            "intervalSamples": 100,
+            "medianFactorError": 1.7042961860670198,
+            "medianPredictionRatio": 1.6587070471753058,
+            "coverage": 0.37,
+            "meanAbsoluteLogError": 0.5936583021679938,
+            "medianRelativeError": 0.6722151711509199,
+            "meanLogIntervalWidth": 2.7972177625818655,
+            "meanLogIntervalScore80": 4.713802815376418
+          },
+          "candidate": {
+            "samples": 100,
+            "intervalSamples": 100,
+            "medianFactorError": 1.6587070471753058,
+            "medianPredictionRatio": 1.5998559127898337,
+            "coverage": 0.43,
+            "meanAbsoluteLogError": 0.5755646741917697,
+            "medianRelativeError": 0.6081915374190634,
+            "meanLogIntervalWidth": 2.891271578690026,
+            "meanLogIntervalScore80": 4.448502319885292
+          },
+          "maleImprovement": 0.030478185700675845,
+          "intervalScoreImprovement": 0.05628162778165357
+        },
+        "intermediate": {
+          "samples": 51,
+          "baseline": {
+            "samples": 51,
+            "intervalSamples": 51,
+            "medianFactorError": 2.0240250628042076,
+            "medianPredictionRatio": 0.5046703445584904,
+            "coverage": 1,
+            "meanAbsoluteLogError": 0.8823687187833417,
+            "medianRelativeError": 0.5290020506863888,
+            "meanLogIntervalWidth": 2.610169224865163,
+            "meanLogIntervalScore80": 2.610169224865163
+          },
+          "candidate": {
+            "samples": 51,
+            "intervalSamples": 51,
+            "medianFactorError": 2.0183209057460467,
+            "medianPredictionRatio": 0.5046703445584904,
+            "coverage": 1,
+            "meanAbsoluteLogError": 0.8836086465980474,
+            "medianRelativeError": 0.5278919046713505,
+            "meanLogIntervalWidth": 2.767980937237992,
+            "meanLogIntervalScore80": 2.767980937237992
+          },
+          "maleImprovement": -0.0014052263960755563,
+          "intervalScoreImprovement": -0.06046033754036833
+        },
+        "premium": {
+          "samples": 42,
+          "baseline": {
+            "samples": 42,
+            "intervalSamples": 42,
+            "medianFactorError": 14.61714880227365,
+            "medianPredictionRatio": 0.09276820636733252,
+            "coverage": 0.19047619047619047,
+            "meanAbsoluteLogError": 2.519938126379328,
+            "medianRelativeError": 0.9315872053074774,
+            "meanLogIntervalWidth": 2.9870272828428828,
+            "meanLogIntervalScore80": 16.342051816418007
+          },
+          "candidate": {
+            "samples": 42,
+            "intervalSamples": 42,
+            "medianFactorError": 11.789523442719394,
+            "medianPredictionRatio": 0.09276820636733252,
+            "coverage": 0.19047619047619047,
+            "meanAbsoluteLogError": 2.4968617997315237,
+            "medianRelativeError": 0.9151789294233476,
+            "meanLogIntervalWidth": 3.144508741162383,
+            "meanLogIntervalScore80": 16.20929472323371
+          },
+          "maleImprovement": 0.009157497323539746,
+          "intervalScoreImprovement": 0.00812364901761733
+        }
+      }
+    },
+    {
+      "name": "2025-Q1",
+      "from": "2025-01-01T00:00:00Z",
+      "until": "2025-04-01T00:00:00Z",
+      "populationEvents": 2392,
+      "attempts": 266,
+      "uniqueIdentities": 256,
+      "premiumEvents": 69,
+      "premiumIdentities": 64,
+      "baselineOwnAnchors": 215,
+      "candidateOwnAnchors": 215,
+      "cohorts": {
+        "overall": {
+          "attempts": 266,
+          "baseline": {
+            "samples": 266,
+            "intervalSamples": 266,
+            "medianFactorError": 2.621313833571621,
+            "medianPredictionRatio": 0.5412163536510951,
+            "coverage": 0.5300751879699248,
+            "meanAbsoluteLogError": 1.2322140243034045,
+            "medianRelativeError": 0.777162670514359,
+            "meanLogIntervalWidth": 2.5321915863068583,
+            "meanLogIntervalScore80": 6.557806406988142
+          },
+          "candidate": {
+            "samples": 266,
+            "intervalSamples": 266,
+            "medianFactorError": 2.6106119161096673,
+            "medianPredictionRatio": 0.5868539395059447,
+            "coverage": 0.6165413533834586,
+            "meanAbsoluteLogError": 1.2048030389712208,
+            "medianRelativeError": 0.7606725608992999,
+            "meanLogIntervalWidth": 2.9733821196269385,
+            "meanLogIntervalScore80": 6.105448256170947
+          },
+          "paired": 266,
+          "baselineAbstentions": 0,
+          "candidateAbstentions": 0
+        },
+        "ordinary": {
+          "attempts": 100,
+          "baseline": {
+            "samples": 100,
+            "intervalSamples": 100,
+            "medianFactorError": 1.7782463053761126,
+            "medianPredictionRatio": 1.7273243631538502,
+            "coverage": 0.52,
+            "meanAbsoluteLogError": 0.6262617781145402,
+            "medianRelativeError": 0.7273243631538502,
+            "meanLogIntervalWidth": 2.4722768137446165,
+            "meanLogIntervalScore80": 3.275779222132389
+          },
+          "candidate": {
+            "samples": 100,
+            "intervalSamples": 100,
+            "medianFactorError": 1.7955165452976072,
+            "medianPredictionRatio": 1.7606725608993,
+            "coverage": 0.54,
+            "meanAbsoluteLogError": 0.6316641016283241,
+            "medianRelativeError": 0.7606725608992999,
+            "meanLogIntervalWidth": 2.967513941860791,
+            "meanLogIntervalScore80": 3.7349432115335355
+          },
+          "paired": 100,
+          "baselineAbstentions": 0,
+          "candidateAbstentions": 0
+        },
+        "intermediate": {
+          "attempts": 97,
+          "baseline": {
+            "samples": 97,
+            "intervalSamples": 97,
+            "medianFactorError": 2.6065795489180124,
+            "medianPredictionRatio": 0.389426681770015,
+            "coverage": 0.845360824742268,
+            "meanAbsoluteLogError": 0.9994401532294088,
+            "medianRelativeError": 0.6385435864136818,
+            "meanLogIntervalWidth": 2.4491682426411714,
+            "meanLogIntervalScore80": 2.6450223944826017
+          },
+          "candidate": {
+            "samples": 97,
+            "intervalSamples": 97,
+            "medianFactorError": 2.595504552352048,
+            "medianPredictionRatio": 0.39200496948880037,
+            "coverage": 0.979381443298969,
+            "meanAbsoluteLogError": 0.9945804171923491,
+            "medianRelativeError": 0.6298205476513905,
+            "meanLogIntervalWidth": 2.9102252323016953,
+            "meanLogIntervalScore80": 2.9245973240126895
+          },
+          "paired": 97,
+          "baselineAbstentions": 0,
+          "candidateAbstentions": 0
+        },
+        "premium": {
+          "attempts": 69,
+          "baseline": {
+            "samples": 69,
+            "intervalSamples": 69,
+            "medianFactorError": 11.413396239577551,
+            "medianPredictionRatio": 0.0876163395197268,
+            "coverage": 0.10144927536231885,
+            "meanAbsoluteLogError": 2.437638518695635,
+            "medianRelativeError": 0.9123836604802732,
+            "meanLogIntervalWidth": 2.735738565898107,
+            "meanLogIntervalScore80": 16.814947967837607
+          },
+          "candidate": {
+            "samples": 69,
+            "intervalSamples": 69,
+            "medianFactorError": 10.530210969059352,
+            "medianPredictionRatio": 0.09496485900788448,
+            "coverage": 0.21739130434782608,
+            "meanAbsoluteLogError": 2.330969532403688,
+            "medianRelativeError": 0.9050351409921156,
+            "meanLogIntervalWidth": 3.0706724942235,
+            "meanLogIntervalScore80": 14.012593834186776
+          },
+          "paired": 69,
+          "baselineAbstentions": 0,
+          "candidateAbstentions": 0
+        }
+      },
+      "paired": {
+        "overall": {
+          "samples": 266,
+          "baseline": {
+            "samples": 266,
+            "intervalSamples": 266,
+            "medianFactorError": 2.621313833571621,
+            "medianPredictionRatio": 0.5412163536510951,
+            "coverage": 0.5300751879699248,
+            "meanAbsoluteLogError": 1.2322140243034045,
+            "medianRelativeError": 0.777162670514359,
+            "meanLogIntervalWidth": 2.5321915863068583,
+            "meanLogIntervalScore80": 6.557806406988142
+          },
+          "candidate": {
+            "samples": 266,
+            "intervalSamples": 266,
+            "medianFactorError": 2.6106119161096673,
+            "medianPredictionRatio": 0.5868539395059447,
+            "coverage": 0.6165413533834586,
+            "meanAbsoluteLogError": 1.2048030389712208,
+            "medianRelativeError": 0.7606725608992999,
+            "meanLogIntervalWidth": 2.9733821196269385,
+            "meanLogIntervalScore80": 6.105448256170947
+          },
+          "maleImprovement": 0.022245311927592906,
+          "intervalScoreImprovement": 0.0689801013849925
+        },
+        "ordinary": {
+          "samples": 100,
+          "baseline": {
+            "samples": 100,
+            "intervalSamples": 100,
+            "medianFactorError": 1.7782463053761126,
+            "medianPredictionRatio": 1.7273243631538502,
+            "coverage": 0.52,
+            "meanAbsoluteLogError": 0.6262617781145402,
+            "medianRelativeError": 0.7273243631538502,
+            "meanLogIntervalWidth": 2.4722768137446165,
+            "meanLogIntervalScore80": 3.275779222132389
+          },
+          "candidate": {
+            "samples": 100,
+            "intervalSamples": 100,
+            "medianFactorError": 1.7955165452976072,
+            "medianPredictionRatio": 1.7606725608993,
+            "coverage": 0.54,
+            "meanAbsoluteLogError": 0.6316641016283241,
+            "medianRelativeError": 0.7606725608992999,
+            "meanLogIntervalWidth": 2.967513941860791,
+            "meanLogIntervalScore80": 3.7349432115335355
+          },
+          "maleImprovement": -0.008626302454619596,
+          "intervalScoreImprovement": -0.140169394292162
+        },
+        "intermediate": {
+          "samples": 97,
+          "baseline": {
+            "samples": 97,
+            "intervalSamples": 97,
+            "medianFactorError": 2.6065795489180124,
+            "medianPredictionRatio": 0.389426681770015,
+            "coverage": 0.845360824742268,
+            "meanAbsoluteLogError": 0.9994401532294088,
+            "medianRelativeError": 0.6385435864136818,
+            "meanLogIntervalWidth": 2.4491682426411714,
+            "meanLogIntervalScore80": 2.6450223944826017
+          },
+          "candidate": {
+            "samples": 97,
+            "intervalSamples": 97,
+            "medianFactorError": 2.595504552352048,
+            "medianPredictionRatio": 0.39200496948880037,
+            "coverage": 0.979381443298969,
+            "meanAbsoluteLogError": 0.9945804171923491,
+            "medianRelativeError": 0.6298205476513905,
+            "meanLogIntervalWidth": 2.9102252323016953,
+            "meanLogIntervalScore80": 2.9245973240126895
+          },
+          "maleImprovement": 0.004862458268618513,
+          "intervalScoreImprovement": -0.10569851132953301
+        },
+        "premium": {
+          "samples": 69,
+          "baseline": {
+            "samples": 69,
+            "intervalSamples": 69,
+            "medianFactorError": 11.413396239577551,
+            "medianPredictionRatio": 0.0876163395197268,
+            "coverage": 0.10144927536231885,
+            "meanAbsoluteLogError": 2.437638518695635,
+            "medianRelativeError": 0.9123836604802732,
+            "meanLogIntervalWidth": 2.735738565898107,
+            "meanLogIntervalScore80": 16.814947967837607
+          },
+          "candidate": {
+            "samples": 69,
+            "intervalSamples": 69,
+            "medianFactorError": 10.530210969059352,
+            "medianPredictionRatio": 0.09496485900788448,
+            "coverage": 0.21739130434782608,
+            "meanAbsoluteLogError": 2.330969532403688,
+            "medianRelativeError": 0.9050351409921156,
+            "meanLogIntervalWidth": 3.0706724942235,
+            "meanLogIntervalScore80": 14.012593834186776
+          },
+          "maleImprovement": 0.04375914864892482,
+          "intervalScoreImprovement": 0.1666585075975833
+        }
+      }
+    },
+    {
+      "name": "2025-Q2",
+      "from": "2025-04-01T00:00:00Z",
+      "until": "2025-07-01T00:00:00Z",
+      "populationEvents": 4471,
+      "attempts": 314,
+      "uniqueIdentities": 308,
+      "premiumEvents": 88,
+      "premiumIdentities": 86,
+      "baselineOwnAnchors": 214,
+      "candidateOwnAnchors": 215,
+      "cohorts": {
+        "overall": {
+          "attempts": 314,
+          "baseline": {
+            "samples": 314,
+            "intervalSamples": 314,
+            "medianFactorError": 3.091430063913471,
+            "medianPredictionRatio": 0.33396369067064924,
+            "coverage": 0.37261146496815284,
+            "meanAbsoluteLogError": 1.4670898615962018,
+            "medianRelativeError": 0.8381139770328766,
+            "meanLogIntervalWidth": 2.5594264235510082,
+            "meanLogIntervalScore80": 7.918636322451497
+          },
+          "candidate": {
+            "samples": 314,
+            "intervalSamples": 314,
+            "medianFactorError": 3.08170890124468,
+            "medianPredictionRatio": 0.3446954620912943,
+            "coverage": 0.3885350318471338,
+            "meanAbsoluteLogError": 1.4599866080687556,
+            "medianRelativeError": 0.8381139770328766,
+            "meanLogIntervalWidth": 2.6291134520181716,
+            "meanLogIntervalScore80": 7.784546729521647
+          },
+          "paired": 314,
+          "baselineAbstentions": 0,
+          "candidateAbstentions": 0
+        },
+        "ordinary": {
+          "attempts": 100,
+          "baseline": {
+            "samples": 100,
+            "intervalSamples": 100,
+            "medianFactorError": 2.137762662853653,
+            "medianPredictionRatio": 2.127825120830358,
+            "coverage": 0.18,
+            "meanAbsoluteLogError": 0.6968264846124568,
+            "medianRelativeError": 1.1278251208303578,
+            "meanLogIntervalWidth": 2.460892383482752,
+            "meanLogIntervalScore80": 4.963495682221504
+          },
+          "candidate": {
+            "samples": 100,
+            "intervalSamples": 100,
+            "medianFactorError": 2.1708135822941967,
+            "medianPredictionRatio": 2.136842473663948,
+            "coverage": 0.18,
+            "meanAbsoluteLogError": 0.7116107330571566,
+            "medianRelativeError": 1.1368424736639482,
+            "meanLogIntervalWidth": 2.5464159015853163,
+            "meanLogIntervalScore80": 4.94942049593931
+          },
+          "paired": 100,
+          "baselineAbstentions": 0,
+          "candidateAbstentions": 0
+        },
+        "intermediate": {
+          "attempts": 126,
+          "baseline": {
+            "samples": 126,
+            "intervalSamples": 126,
+            "medianFactorError": 3.7438067030740774,
+            "medianPredictionRatio": 0.27084846088173103,
+            "coverage": 0.746031746031746,
+            "meanAbsoluteLogError": 1.2778201506178204,
+            "medianRelativeError": 0.7446191051995164,
+            "meanLogIntervalWidth": 2.4535438901295796,
+            "meanLogIntervalScore80": 2.9894943440031825
+          },
+          "candidate": {
+            "samples": 126,
+            "intervalSamples": 126,
+            "medianFactorError": 3.6959012292738707,
+            "medianPredictionRatio": 0.2774631571229562,
+            "coverage": 0.7857142857142857,
+            "meanAbsoluteLogError": 1.2592893687071514,
+            "medianRelativeError": 0.7403765232450834,
+            "meanLogIntervalWidth": 2.490337203189653,
+            "meanLogIntervalScore80": 3.1022656939793456
+          },
+          "paired": 126,
+          "baselineAbstentions": 0,
+          "candidateAbstentions": 0
+        },
+        "premium": {
+          "attempts": 88,
+          "baseline": {
+            "samples": 88,
+            "intervalSamples": 88,
+            "medianFactorError": 13.647122472442009,
+            "medianPredictionRatio": 0.07423511706856123,
+            "coverage": 0.056818181818181816,
+            "meanAbsoluteLogError": 2.613388967069505,
+            "medianRelativeError": 0.9267244796828543,
+            "meanLogIntervalWidth": 2.823001460118355,
+            "meanLogIntervalScore80": 18.334385791854768
+          },
+          "candidate": {
+            "samples": 88,
+            "intervalSamples": 88,
+            "medianFactorError": 13.470713585275703,
+            "medianPredictionRatio": 0.07563500658652349,
+            "coverage": 0.056818181818181816,
+            "meanAbsoluteLogError": 2.597775695122417,
+            "medianRelativeError": 0.9257648829314388,
+            "meanLogIntervalWidth": 2.9217902974236125,
+            "meanLogIntervalScore80": 17.71045620493717
+          },
+          "paired": 88,
+          "baselineAbstentions": 0,
+          "candidateAbstentions": 0
+        }
+      },
+      "paired": {
+        "overall": {
+          "samples": 314,
+          "baseline": {
+            "samples": 314,
+            "intervalSamples": 314,
+            "medianFactorError": 3.091430063913471,
+            "medianPredictionRatio": 0.33396369067064924,
+            "coverage": 0.37261146496815284,
+            "meanAbsoluteLogError": 1.4670898615962018,
+            "medianRelativeError": 0.8381139770328766,
+            "meanLogIntervalWidth": 2.5594264235510082,
+            "meanLogIntervalScore80": 7.918636322451497
+          },
+          "candidate": {
+            "samples": 314,
+            "intervalSamples": 314,
+            "medianFactorError": 3.08170890124468,
+            "medianPredictionRatio": 0.3446954620912943,
+            "coverage": 0.3885350318471338,
+            "meanAbsoluteLogError": 1.4599866080687556,
+            "medianRelativeError": 0.8381139770328766,
+            "meanLogIntervalWidth": 2.6291134520181716,
+            "meanLogIntervalScore80": 7.784546729521647
+          },
+          "maleImprovement": 0.0048417303625272485,
+          "intervalScoreImprovement": 0.01693341977957353
+        },
+        "ordinary": {
+          "samples": 100,
+          "baseline": {
+            "samples": 100,
+            "intervalSamples": 100,
+            "medianFactorError": 2.137762662853653,
+            "medianPredictionRatio": 2.127825120830358,
+            "coverage": 0.18,
+            "meanAbsoluteLogError": 0.6968264846124568,
+            "medianRelativeError": 1.1278251208303578,
+            "meanLogIntervalWidth": 2.460892383482752,
+            "meanLogIntervalScore80": 4.963495682221504
+          },
+          "candidate": {
+            "samples": 100,
+            "intervalSamples": 100,
+            "medianFactorError": 2.1708135822941967,
+            "medianPredictionRatio": 2.136842473663948,
+            "coverage": 0.18,
+            "meanAbsoluteLogError": 0.7116107330571566,
+            "medianRelativeError": 1.1368424736639482,
+            "meanLogIntervalWidth": 2.5464159015853163,
+            "meanLogIntervalScore80": 4.94942049593931
+          },
+          "maleImprovement": -0.021216542096447667,
+          "intervalScoreImprovement": 0.0028357406117243897
+        },
+        "intermediate": {
+          "samples": 126,
+          "baseline": {
+            "samples": 126,
+            "intervalSamples": 126,
+            "medianFactorError": 3.7438067030740774,
+            "medianPredictionRatio": 0.27084846088173103,
+            "coverage": 0.746031746031746,
+            "meanAbsoluteLogError": 1.2778201506178204,
+            "medianRelativeError": 0.7446191051995164,
+            "meanLogIntervalWidth": 2.4535438901295796,
+            "meanLogIntervalScore80": 2.9894943440031825
+          },
+          "candidate": {
+            "samples": 126,
+            "intervalSamples": 126,
+            "medianFactorError": 3.6959012292738707,
+            "medianPredictionRatio": 0.2774631571229562,
+            "coverage": 0.7857142857142857,
+            "meanAbsoluteLogError": 1.2592893687071514,
+            "medianRelativeError": 0.7403765232450834,
+            "meanLogIntervalWidth": 2.490337203189653,
+            "meanLogIntervalScore80": 3.1022656939793456
+          },
+          "maleImprovement": 0.01450187015888698,
+          "intervalScoreImprovement": -0.03772255003672389
+        },
+        "premium": {
+          "samples": 88,
+          "baseline": {
+            "samples": 88,
+            "intervalSamples": 88,
+            "medianFactorError": 13.647122472442009,
+            "medianPredictionRatio": 0.07423511706856123,
+            "coverage": 0.056818181818181816,
+            "meanAbsoluteLogError": 2.613388967069505,
+            "medianRelativeError": 0.9267244796828543,
+            "meanLogIntervalWidth": 2.823001460118355,
+            "meanLogIntervalScore80": 18.334385791854768
+          },
+          "candidate": {
+            "samples": 88,
+            "intervalSamples": 88,
+            "medianFactorError": 13.470713585275703,
+            "medianPredictionRatio": 0.07563500658652349,
+            "coverage": 0.056818181818181816,
+            "meanAbsoluteLogError": 2.597775695122417,
+            "medianRelativeError": 0.9257648829314388,
+            "meanLogIntervalWidth": 2.9217902974236125,
+            "meanLogIntervalScore80": 17.71045620493717
+          },
+          "maleImprovement": 0.005974339122046509,
+          "intervalScoreImprovement": 0.03403056933572241
+        }
+      }
+    }
+  ],
+  "cohorts": {
+    "overall": {
+      "attempts": 773,
+      "baseline": {
+        "samples": 773,
+        "intervalSamples": 773,
+        "medianFactorError": 2.6070490438270837,
+        "medianPredictionRatio": 0.5358121488905953,
+        "coverage": 0.4579560155239327,
+        "meanAbsoluteLogError": 1.2919006250822695,
+        "medianRelativeError": 0.8026090037635387,
+        "meanLogIntervalWidth": 2.607397686362682,
+        "meanLogIntervalScore80": 7.143199738426825
+      },
+      "candidate": {
+        "samples": 773,
+        "intervalSamples": 773,
+        "medianFactorError": 2.595504552352048,
+        "medianPredictionRatio": 0.5421298875752741,
+        "coverage": 0.5019404915912031,
+        "meanAbsoluteLogError": 1.2760699964868494,
+        "medianRelativeError": 0.8019054089674882,
+        "meanLogIntervalWidth": 2.8186608286564403,
+        "meanLogIntervalScore80": 6.901946374352853
+      },
+      "paired": 773,
+      "baselineAbstentions": 0,
+      "candidateAbstentions": 0
+    },
+    "ordinary": {
+      "attempts": 300,
+      "baseline": {
+        "samples": 300,
+        "intervalSamples": 300,
+        "medianFactorError": 1.8986482593848069,
+        "medianPredictionRatio": 1.8718350864443967,
+        "coverage": 0.3566666666666667,
+        "meanAbsoluteLogError": 0.6389155216316641,
+        "medianRelativeError": 0.8718350864443967,
+        "meanLogIntervalWidth": 2.5767956532697407,
+        "meanLogIntervalScore80": 4.317692573243434
+      },
+      "candidate": {
+        "samples": 300,
+        "intervalSamples": 300,
+        "medianFactorError": 1.9007420074970909,
+        "medianPredictionRatio": 1.8707137425265457,
+        "coverage": 0.38333333333333336,
+        "meanAbsoluteLogError": 0.6396131696257507,
+        "medianRelativeError": 0.8707137425265457,
+        "meanLogIntervalWidth": 2.801733807378711,
+        "meanLogIntervalScore80": 4.377622009119378
+      },
+      "paired": 300,
+      "baselineAbstentions": 0,
+      "candidateAbstentions": 0
+    },
+    "intermediate": {
+      "attempts": 274,
+      "baseline": {
+        "samples": 274,
+        "intervalSamples": 274,
+        "medianFactorError": 3.030754405286343,
+        "medianPredictionRatio": 0.33396369067064924,
+        "coverage": 0.8284671532846716,
+        "meanAbsoluteLogError": 1.1056636441571115,
+        "medianRelativeError": 0.6870986135722281,
+        "meanLogIntervalWidth": 2.4811477378125666,
+        "meanLogIntervalScore80": 2.7969419345888165
+      },
+      "candidate": {
+        "samples": 274,
+        "intervalSamples": 274,
+        "medianFactorError": 3.0279691743882315,
+        "medianPredictionRatio": 0.3353894345154612,
+        "coverage": 0.8941605839416058,
+        "meanAbsoluteLogError": 1.0956525616834278,
+        "medianRelativeError": 0.6849442708026183,
+        "meanLogIntervalWidth": 2.690661908519337,
+        "meanLogIntervalScore80": 2.9771476119334546
+      },
+      "paired": 274,
+      "baselineAbstentions": 0,
+      "candidateAbstentions": 0
+    },
+    "premium": {
+      "attempts": 199,
+      "baseline": {
+        "samples": 199,
+        "intervalSamples": 199,
+        "medianFactorError": 13.328095679802116,
+        "medianPredictionRatio": 0.07502947337896415,
+        "coverage": 0.10050251256281408,
+        "meanAbsoluteLogError": 2.5327270763821463,
+        "medianRelativeError": 0.9249705266210358,
+        "meanLogIntervalWidth": 2.827362992044149,
+        "meanLogIntervalScore80": 17.387052943485283
+      },
+      "candidate": {
+        "samples": 199,
+        "intervalSamples": 199,
+        "medianFactorError": 11.613097884774184,
+        "medianPredictionRatio": 0.08610966771502804,
+        "coverage": 0.1407035175879397,
+        "meanAbsoluteLogError": 2.4839666055042775,
+        "medianRelativeError": 0.913890332284972,
+        "meanLogIntervalWidth": 3.0204186703694424,
+        "meanLogIntervalScore80": 16.111454768689313
+      },
+      "paired": 199,
+      "baselineAbstentions": 0,
+      "candidateAbstentions": 0
+    }
+  },
+  "paired": {
+    "overall": {
+      "samples": 773,
+      "baseline": {
+        "samples": 773,
+        "intervalSamples": 773,
+        "medianFactorError": 2.6070490438270837,
+        "medianPredictionRatio": 0.5358121488905953,
+        "coverage": 0.4579560155239327,
+        "meanAbsoluteLogError": 1.2919006250822695,
+        "medianRelativeError": 0.8026090037635387,
+        "meanLogIntervalWidth": 2.607397686362682,
+        "meanLogIntervalScore80": 7.143199738426825
+      },
+      "candidate": {
+        "samples": 773,
+        "intervalSamples": 773,
+        "medianFactorError": 2.595504552352048,
+        "medianPredictionRatio": 0.5421298875752741,
+        "coverage": 0.5019404915912031,
+        "meanAbsoluteLogError": 1.2760699964868494,
+        "medianRelativeError": 0.8019054089674882,
+        "meanLogIntervalWidth": 2.8186608286564403,
+        "meanLogIntervalScore80": 6.901946374352853
+      },
+      "maleImprovement": 0.012253751014643297,
+      "intervalScoreImprovement": 0.033773851062311684
+    },
+    "ordinary": {
+      "samples": 300,
+      "baseline": {
+        "samples": 300,
+        "intervalSamples": 300,
+        "medianFactorError": 1.8986482593848069,
+        "medianPredictionRatio": 1.8718350864443967,
+        "coverage": 0.3566666666666667,
+        "meanAbsoluteLogError": 0.6389155216316641,
+        "medianRelativeError": 0.8718350864443967,
+        "meanLogIntervalWidth": 2.5767956532697407,
+        "meanLogIntervalScore80": 4.317692573243434
+      },
+      "candidate": {
+        "samples": 300,
+        "intervalSamples": 300,
+        "medianFactorError": 1.9007420074970909,
+        "medianPredictionRatio": 1.8707137425265457,
+        "coverage": 0.38333333333333336,
+        "meanAbsoluteLogError": 0.6396131696257507,
+        "medianRelativeError": 0.8707137425265457,
+        "meanLogIntervalWidth": 2.801733807378711,
+        "meanLogIntervalScore80": 4.377622009119378
+      },
+      "maleImprovement": -0.0010919252553215541,
+      "intervalScoreImprovement": -0.013879968260668665
+    },
+    "intermediate": {
+      "samples": 274,
+      "baseline": {
+        "samples": 274,
+        "intervalSamples": 274,
+        "medianFactorError": 3.030754405286343,
+        "medianPredictionRatio": 0.33396369067064924,
+        "coverage": 0.8284671532846716,
+        "meanAbsoluteLogError": 1.1056636441571115,
+        "medianRelativeError": 0.6870986135722281,
+        "meanLogIntervalWidth": 2.4811477378125666,
+        "meanLogIntervalScore80": 2.7969419345888165
+      },
+      "candidate": {
+        "samples": 274,
+        "intervalSamples": 274,
+        "medianFactorError": 3.0279691743882315,
+        "medianPredictionRatio": 0.3353894345154612,
+        "coverage": 0.8941605839416058,
+        "meanAbsoluteLogError": 1.0956525616834278,
+        "medianRelativeError": 0.6849442708026183,
+        "meanLogIntervalWidth": 2.690661908519337,
+        "meanLogIntervalScore80": 2.9771476119334546
+      },
+      "maleImprovement": 0.009054365246236772,
+      "intervalScoreImprovement": -0.06442953824535884
+    },
+    "premium": {
+      "samples": 199,
+      "baseline": {
+        "samples": 199,
+        "intervalSamples": 199,
+        "medianFactorError": 13.328095679802116,
+        "medianPredictionRatio": 0.07502947337896415,
+        "coverage": 0.10050251256281408,
+        "meanAbsoluteLogError": 2.5327270763821463,
+        "medianRelativeError": 0.9249705266210358,
+        "meanLogIntervalWidth": 2.827362992044149,
+        "meanLogIntervalScore80": 17.387052943485283
+      },
+      "candidate": {
+        "samples": 199,
+        "intervalSamples": 199,
+        "medianFactorError": 11.613097884774184,
+        "medianPredictionRatio": 0.08610966771502804,
+        "coverage": 0.1407035175879397,
+        "meanAbsoluteLogError": 2.4839666055042775,
+        "medianRelativeError": 0.913890332284972,
+        "meanLogIntervalWidth": 3.0204186703694424,
+        "meanLogIntervalScore80": 16.111454768689313
+      },
+      "maleImprovement": 0.019252161566306755,
+      "intervalScoreImprovement": 0.07336482950515896
+    }
+  },
+  "bootstrapPremiumMaleImprovement": {
+    "identities": 190,
+    "iterations": 2000,
+    "lower95": 0.0022086729815431077,
+    "median": 0.017686000347755516,
+    "upper95": 0.04554613469688747
+  },
+  "limitations": [
+    "The folds and labels are exposed development evidence, not untouched qualification.",
+    "All intermediate and premium fixed-sale targets are included, with 100 deterministic ordinary controls per fold. The sampled result is not a representative full-market overall metric.",
+    "Within-fold candidate evidence includes only previously sampled targets; it understates what full ingestion would supply.",
+    "Market stage and sale type select evaluation targets only; they are realized-event metadata and are not estimator inputs.",
+    "This experiment tests the marginal value of prior verified secondary outcomes, not private offers or active-auction bids.",
+    "No result from this report changes production behavior or the sealed 2026 reservation."
+  ]
+}

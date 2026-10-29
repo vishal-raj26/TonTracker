@@ -1,0 +1,126 @@
+{
+  "schemaVersion": "username-forward-v2-local-v1",
+  "from": "2026-09-27T00:00:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "requestedEndUtime": 1790537700,
+  "collectedAt": "2026-09-27T19:50:46.848Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 8191,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 80,
+    "candidates": 12,
+    "verifiedItems": 2,
+    "wrongCollection": 10,
+    "assets": 2,
+    "sales": 2,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-27T19:50:46.848Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:bd5255d2f820471d805d6ed2a2e0a23767532bfd31cf507752fa78fe87afc61c",
+      "normalizedName": "foodchain",
+      "displayName": "@foodchain",
+      "primaryRoute": "pattern",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "9L",
+      "feature": {
+        "characterLength": 9,
+        "characterClass": "letters",
+        "routes": [
+          "pattern"
+        ],
+        "patternSignature": "ABBCDEFGH",
+        "uniqueCharacterCount": 8,
+        "maxRunLength": 2,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-27T12:37:08.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:4511cfd9d6c60970d756a57b9226f2d10f352cafce75c2aa08945e4e9393c7e7",
+      "normalizedName": "vsvvi",
+      "displayName": "@vsvvi",
+      "primaryRoute": "pattern",
+      "lengthBucket": "4-5",
+      "script": "Latin",
+      "scarcityClass": "5L",
+      "feature": {
+        "characterLength": 5,
+        "characterClass": "letters",
+        "routes": [
+          "pattern"
+        ],
+        "patternSignature": "ABAAC",
+        "uniqueCharacterCount": 3,
+        "maxRunLength": 2,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-27T12:39:56.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:14a59a7cb4d96aa1740c3f953f64e9d2ee53ef569cce14308596ab214d4a056b",
+      "assetKind": "username",
+      "assetKey": "0:bd5255d2f820471d805d6ed2a2e0a23767532bfd31cf507752fa78fe87afc61c",
+      "normalizedName": "foodchain",
+      "soldAt": "2026-09-27T12:37:08.000Z",
+      "priceGram": 117,
+      "historicalUsdRate": 1.6150852122869204,
+      "priceUsd": 188.9649698375697,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "hWQlVMJPEPNwhW6PQ/9KN4NRVRocTmWizDWGmO5vS30=",
+        "messageHash": "4su+gEsimJtNZVvUmKKDsPKDum7zTrgWA1Am6i+nwCI=",
+        "bidAt": "2026-09-20T12:36:38.000Z"
+      },
+      "primaryRoute": "pattern",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "9L"
+    },
+    {
+      "saleId": "toncenter-username-sale:0ad4a01cee0594a377b3ff61fb1516c52d33956063a52a62a90e7696d56c812c",
+      "assetKind": "username",
+      "assetKey": "0:4511cfd9d6c60970d756a57b9226f2d10f352cafce75c2aa08945e4e9393c7e7",
+      "normalizedName": "vsvvi",
+      "soldAt": "2026-09-27T12:39:56.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.6155476742932042,
+      "priceUsd": 16.15547674293204,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "rnv9qsvqy6It2Q7vql8PAFAdfJ2Q+zhTrzjeakQx0A0=",
+        "messageHash": "VuthB4GNQ8zQ7k/O32pAHY78Hk42ebqSNBUtmmOQskk=",
+        "bidAt": "2026-09-20T12:39:32.000Z"
+      },
+      "primaryRoute": "pattern",
+      "lengthBucket": "4-5",
+      "script": "Latin",
+      "scarcityClass": "5L"
+    }
+  ]
+}

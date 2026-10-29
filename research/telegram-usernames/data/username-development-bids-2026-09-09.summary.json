@@ -1,0 +1,17 @@
+{
+  "developmentOnly": true,
+  "qualification": false,
+  "sampling": "40 deterministic ordinary and40 deterministic missing-own/vector premium cases; separate strata, not representative pooled accuracy",
+  "ordinary": {"attempted":40,"priorBidsObserved":3,"publicSaleMatches":19,"fetchErrors":0},
+  "missingEvidencePremium": {"attempted":40,"priorBidsObserved":19,"publicSaleMatches":36,"fetchErrors":0},
+  "coveredLatestBidEqualsFinalNativeAmount":22,
+  "coveredTotal":22,
+  "limitations": [
+    "Auction-close evidence availability is not general unlisted resale valuation accuracy",
+    "Public bid event timestamps precede target sales, but current retrieval does not prove archived availability at the historical cutoff",
+    "Amounts remain native TON; no target outcome USD conversion used to claim a USD prediction",
+    "Public history is not independently chain-verified here; absent sections do not prove absent historical bids",
+    "Collection and exact-name contract mapping comes from existing inventory; its exported index is truncated/signed64-bit and was not asserted equal to the full256-bit username hash",
+    "No production publication or numerical valuation changes"
+  ]
+}

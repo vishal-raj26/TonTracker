@@ -1,0 +1,91 @@
+{
+  "schemaVersion": "username-secondary-local-v1",
+  "from": "2026-09-20T14:00:00Z",
+  "pipeline": "username-toncenter-secondary-sales-v1",
+  "collectedAt": "2026-09-25T21:47:29.250Z",
+  "cursor": {
+    "absoluteOffset": 29132,
+    "caughtUp": false
+  },
+  "metadata": {
+    "transfers": 100,
+    "saleContracts": 2,
+    "verifiedSales": 1,
+    "assets": 1,
+    "sales": 1,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-25T21:47:29.250Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:689d4673aff829171b53275c11c6deffb17a1a4a3484073325694cbb49da2e37",
+      "normalizedName": "cantyner",
+      "displayName": "@cantyner",
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "8L",
+      "feature": {
+        "classifierVersion": "username-structural-v2",
+        "normalizedUsername": "cantyner",
+        "displayUsername": "@cantyner",
+        "characterLength": 8,
+        "byteLength": 8,
+        "characterClass": "letters",
+        "primaryRoute": "word",
+        "routes": [
+          "word"
+        ],
+        "scarcityClass": "8L",
+        "patternSignature": "ABCDECFG",
+        "shapeSignature": "LLLLLLLL",
+        "uniqueCharacterCount": 7,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "repeatedBlock": null,
+        "scripts": [
+          "Latin"
+        ],
+        "primaryScript": "Latin",
+        "containsUnderscore": false,
+        "underscoreCount": 0,
+        "digitCount": 0,
+        "digitRatio": 0,
+        "vowelRatio": 0.375,
+        "pronounceability": "balanced",
+        "leadingZero": false,
+        "roundNumber": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-25T18:32:29.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-secondary:3e7d96e7c24d62fbe3dd91b9279a5535fa52c399d71bb8aab7ed93c725ba25de",
+      "assetKind": "username",
+      "assetKey": "0:689d4673aff829171b53275c11c6deffb17a1a4a3484073325694cbb49da2e37",
+      "normalizedName": "cantyner",
+      "soldAt": "2026-09-25T18:32:29.000Z",
+      "priceGram": 6.5,
+      "historicalUsdRate": 1.426295646299279,
+      "priceUsd": 9.270921700945314,
+      "marketplace": "Getgems",
+      "source": "toncenter-indexed-secondary-sale",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-completed-sale-contract",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "nearest-observation",
+        "transactionHash": "3OBe4wCuOYwFTCIzOYv7q1zqJm8+c2E1syL7B0QH6ik=",
+        "saleContract": "0:bf1bb13f5a0b13d094ebc2589aebe1561010e542ec4a32947166746a04c18ac6"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "8L"
+    }
+  ]
+}

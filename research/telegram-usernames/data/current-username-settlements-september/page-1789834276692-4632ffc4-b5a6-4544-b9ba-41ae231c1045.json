@@ -1,0 +1,175 @@
+{
+  "schemaVersion": "username-local-collection-v1",
+  "from": "2026-09-01T00:00:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "collectedAt": "2026-09-19T16:11:16.692Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 11120,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 80,
+    "candidates": 5,
+    "verifiedItems": 3,
+    "wrongCollection": 2,
+    "assets": 3,
+    "sales": 3,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-19T16:11:16.691Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:1a847b9d41bebe2cca287ab5efdc0da53b32369bdfdd9f9384ac7d993c91c2b0",
+      "normalizedName": "villainevil",
+      "displayName": "@villainevil",
+      "primaryRoute": "pattern",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "11L",
+      "feature": {
+        "characterLength": 11,
+        "characterClass": "letters",
+        "routes": [
+          "pattern"
+        ],
+        "patternSignature": "ABCCDBEFABC",
+        "uniqueCharacterCount": 6,
+        "maxRunLength": 2,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-01T16:11:14.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:9032c34a41217db8cfc614e5ccb15c03a7cbeee9cbe278f645487ce9b76c02f9",
+      "normalizedName": "luckytotal",
+      "displayName": "@luckytotal",
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "10L",
+      "feature": {
+        "characterLength": 10,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCDEFGFHA",
+        "uniqueCharacterCount": 8,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-01T16:12:36.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:5cb0049d09801033be8580d5efe8560612e193399d11b9133dfd31dd3930b833",
+      "normalizedName": "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwx",
+      "displayName": "@wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwx",
+      "primaryRoute": "pattern",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "32L",
+      "feature": {
+        "characterLength": 32,
+        "characterClass": "letters",
+        "routes": [
+          "pattern"
+        ],
+        "patternSignature": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAB",
+        "uniqueCharacterCount": 2,
+        "maxRunLength": 31,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-01T16:13:11.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:d260cffe4e663326f6156f0b62dae17f3e59d3995d29718bfd789062877c0bbb",
+      "assetKind": "username",
+      "assetKey": "0:1a847b9d41bebe2cca287ab5efdc0da53b32369bdfdd9f9384ac7d993c91c2b0",
+      "normalizedName": "villainevil",
+      "soldAt": "2026-09-01T16:11:14.000Z",
+      "priceGram": 13,
+      "historicalUsdRate": 1.3408606295618495,
+      "priceUsd": 17.431188184304045,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "uJ2fpsrgOY4AK9UaewKp3jUlg7mk1IVpQSyuAeU97vM=",
+        "messageHash": "UO6voEIb2wrO0ID0sWvtD25mvblnS25HNAH+c9dz0fk=",
+        "bidAt": "2026-09-01T00:46:20.000Z"
+      },
+      "primaryRoute": "pattern",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "11L"
+    },
+    {
+      "saleId": "toncenter-username-sale:4c00f418c249f922d429b80c4be2e80355aafb08ba83b82e06f82916b8f9e999",
+      "assetKind": "username",
+      "assetKey": "0:9032c34a41217db8cfc614e5ccb15c03a7cbeee9cbe278f645487ce9b76c02f9",
+      "normalizedName": "luckytotal",
+      "soldAt": "2026-09-01T16:12:36.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.3408056143971212,
+      "priceUsd": 13.408056143971212,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "d/xQSiIkjllr3rx0wSWh4SdfZAnm3sqSZgZR16Vtx/E=",
+        "messageHash": "VSBYhBHBbkqkGzCEGEh0hWgekQTsbbZ8jzjMTeH0vqA=",
+        "bidAt": "2026-08-25T16:12:18.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "10L"
+    },
+    {
+      "saleId": "toncenter-username-sale:d1d03aff007994b1ecf8dc9852754d28ec99005061f0ae40910a1b9e5ba090d1",
+      "assetKind": "username",
+      "assetKey": "0:5cb0049d09801033be8580d5efe8560612e193399d11b9133dfd31dd3930b833",
+      "normalizedName": "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwx",
+      "soldAt": "2026-09-01T16:13:11.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.3407821323146152,
+      "priceUsd": 13.407821323146152,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "0q5NlYOb+CLaNJLjHzkCFpeT6/bCtU1h6cT79GvY/Rc=",
+        "messageHash": "TxtvmYLnmjD0GfDmbtQOtRb3OICAQXa4HXY1wZTU5UI=",
+        "bidAt": "2026-08-25T16:12:53.000Z"
+      },
+      "primaryRoute": "pattern",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "32L"
+    }
+  ]
+}

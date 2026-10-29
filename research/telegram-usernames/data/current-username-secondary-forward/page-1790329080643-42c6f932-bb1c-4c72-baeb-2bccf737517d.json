@@ -1,0 +1,91 @@
+{
+  "schemaVersion": "username-secondary-local-v1",
+  "from": "2026-09-20T14:00:00Z",
+  "pipeline": "username-toncenter-secondary-sales-v1",
+  "collectedAt": "2026-09-25T09:38:00.642Z",
+  "cursor": {
+    "absoluteOffset": 25370,
+    "caughtUp": false
+  },
+  "metadata": {
+    "transfers": 100,
+    "saleContracts": 39,
+    "verifiedSales": 1,
+    "assets": 1,
+    "sales": 1,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-25T09:38:00.642Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:c731dbcecd870e46691eebc613f723c9a6808f572574dbfaeeb9f6f2d6f4a3a5",
+      "normalizedName": "crypto4mo",
+      "displayName": "@crypto4mo",
+      "primaryRoute": "alphanumeric",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "9M",
+      "feature": {
+        "classifierVersion": "username-structural-v2",
+        "normalizedUsername": "crypto4mo",
+        "displayUsername": "@crypto4mo",
+        "characterLength": 9,
+        "byteLength": 9,
+        "characterClass": "alphanumeric",
+        "primaryRoute": "alphanumeric",
+        "routes": [
+          "alphanumeric"
+        ],
+        "scarcityClass": "9M",
+        "patternSignature": "ABCDEFGHF",
+        "shapeSignature": "LLLLLLNLL",
+        "uniqueCharacterCount": 8,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "repeatedBlock": null,
+        "scripts": [
+          "Latin"
+        ],
+        "primaryScript": "Latin",
+        "containsUnderscore": false,
+        "underscoreCount": 0,
+        "digitCount": 1,
+        "digitRatio": 0.1111111111111111,
+        "vowelRatio": 0.375,
+        "pronounceability": "not-applicable",
+        "leadingZero": false,
+        "roundNumber": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-24T23:48:00.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-secondary:3b836314bcba946fb985e84b58a06d2307828213176214ee85f869bf42012ccf",
+      "assetKind": "username",
+      "assetKey": "0:c731dbcecd870e46691eebc613f723c9a6808f572574dbfaeeb9f6f2d6f4a3a5",
+      "normalizedName": "crypto4mo",
+      "soldAt": "2026-09-24T23:48:00.000Z",
+      "priceGram": 25,
+      "historicalUsdRate": 1.4077695535357226,
+      "priceUsd": 35.19423883839307,
+      "marketplace": "Getgems",
+      "source": "toncenter-indexed-secondary-sale",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-completed-sale-contract",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "transactionHash": "spPxZDeSi/QPzLhgYH64tcNj4EOTRb5NInjuanqdMmE=",
+        "saleContract": "0:dec130210b1bf9427cef0dc581f211ecf288e675fdc5986dde5946909c99c1de"
+      },
+      "primaryRoute": "alphanumeric",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "9M"
+    }
+  ]
+}

@@ -1,0 +1,125 @@
+{
+  "schemaVersion": "username-local-collection-v1",
+  "from": "2026-09-20T13:45:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "collectedAt": "2026-09-22T13:00:29.865Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 24569,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 80,
+    "candidates": 3,
+    "verifiedItems": 2,
+    "wrongCollection": 1,
+    "assets": 2,
+    "sales": 2,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-22T13:00:29.865Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:4da388f6d51fa8141948743934256516015d478a28db0b6cd78690b8dc6993d1",
+      "normalizedName": "memecoin24x7",
+      "displayName": "@memecoin24x7",
+      "primaryRoute": "alphanumeric",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "12M",
+      "feature": {
+        "characterLength": 12,
+        "characterClass": "alphanumeric",
+        "routes": [
+          "alphanumeric"
+        ],
+        "patternSignature": "ABABCDEFGHIJ",
+        "uniqueCharacterCount": 10,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-21T16:21:06.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:c9b0986dffa17c5e6a8266f6b2240dc9aac2d0f02480f2c6c397f9bf4cd2ed0e",
+      "normalizedName": "sendyourtits",
+      "displayName": "@sendyourtits",
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "12L",
+      "feature": {
+        "characterLength": 12,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCDEFGHIJIA",
+        "uniqueCharacterCount": 10,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-21T16:22:59.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:4cac6c2af4006ac28a895cbcdbdcef4122c3fe063b492e42c29449aa4584afdb",
+      "assetKind": "username",
+      "assetKey": "0:4da388f6d51fa8141948743934256516015d478a28db0b6cd78690b8dc6993d1",
+      "normalizedName": "memecoin24x7",
+      "soldAt": "2026-09-21T16:21:06.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.4384611301783277,
+      "priceUsd": 14.384611301783277,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "qKzbOlo6tkIJVZxiOsACIKfm76Nwud69tbDglaaXXlU=",
+        "messageHash": "l5GI89R4DqST8IPe8mT7GDYHdEaEvRBo4gP4GxiYKQ4=",
+        "bidAt": "2026-09-14T16:20:49.000Z"
+      },
+      "primaryRoute": "alphanumeric",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "12M"
+    },
+    {
+      "saleId": "toncenter-username-sale:39db7736f236f0b8c0109f9aa8bcad239d773e17d71aefc23cd928e50ea8b7e6",
+      "assetKind": "username",
+      "assetKey": "0:c9b0986dffa17c5e6a8266f6b2240dc9aac2d0f02480f2c6c397f9bf4cd2ed0e",
+      "normalizedName": "sendyourtits",
+      "soldAt": "2026-09-21T16:22:59.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.4385336047122033,
+      "priceUsd": 14.385336047122033,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "okvcx78ZRJtCsq6BBB0kc7UUIyNq3rqCOOVq3RVskGA=",
+        "messageHash": "xW6eIeRIaw0PK2vEH8oQaZM5FJXIJggumGN5p0P3mmA=",
+        "bidAt": "2026-09-14T16:22:42.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "12L"
+    }
+  ]
+}

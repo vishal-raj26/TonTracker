@@ -1,0 +1,125 @@
+{
+  "schemaVersion": "username-local-collection-v1",
+  "from": "2026-09-10T00:00:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "collectedAt": "2026-09-20T12:54:49.648Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 15620,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 20,
+    "candidates": 2,
+    "verifiedItems": 2,
+    "wrongCollection": 0,
+    "assets": 2,
+    "sales": 2,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-20T12:54:49.647Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:ebd2451eeb4c20d7de458bdaecdbcff93c86e5927f535273dfe24e0c428cb623",
+      "normalizedName": "slyack",
+      "displayName": "@slyack",
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "6L",
+      "feature": {
+        "characterLength": 6,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCDEF",
+        "uniqueCharacterCount": 6,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-10T20:25:24.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:5deabc42565b891664eb6d47145821fc960083b6f32ca2f210c392b46953ff45",
+      "normalizedName": "drugdeallers",
+      "displayName": "@drugdeallers",
+      "primaryRoute": "pattern",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "12L",
+      "feature": {
+        "characterLength": 12,
+        "characterClass": "letters",
+        "routes": [
+          "pattern"
+        ],
+        "patternSignature": "ABCDAEFGGEBH",
+        "uniqueCharacterCount": 8,
+        "maxRunLength": 2,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-10T20:25:26.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:f991ab4ed3e5346ca55e58b149490aeed926af67fbbee3dc34c5f32b10c1e8ba",
+      "assetKind": "username",
+      "assetKey": "0:ebd2451eeb4c20d7de458bdaecdbcff93c86e5927f535273dfe24e0c428cb623",
+      "normalizedName": "slyack",
+      "soldAt": "2026-09-10T20:25:24.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.3560206296777468,
+      "priceUsd": 13.56020629677747,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "SM1E8RLBfDZgu8EbEyMI8nMbw3AWUBOAL+Ec0aUtoO4=",
+        "messageHash": "OfKFmPxnVgkrYZJ/MC3UMzOT7lB2bN/XLS/DixvqFrY=",
+        "bidAt": "2026-09-03T20:25:06.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "6L"
+    },
+    {
+      "saleId": "toncenter-username-sale:7062dce6de4271ad98b32284fec22fd72f3dab495e7de15d5d1bd1c593fffd5c",
+      "assetKind": "username",
+      "assetKey": "0:5deabc42565b891664eb6d47145821fc960083b6f32ca2f210c392b46953ff45",
+      "normalizedName": "drugdeallers",
+      "soldAt": "2026-09-10T20:25:26.000Z",
+      "priceGram": 11,
+      "historicalUsdRate": 1.3560213186097494,
+      "priceUsd": 14.916234504707244,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "Y9a5ES99y+RuKtNVBmobZCmp7fyaD/lObBX/92Ds1Y0=",
+        "messageHash": "NvTypFIBZVPjofECrS8y6Gxgn8HFeCgI+sv0qdIjw4U=",
+        "bidAt": "2026-09-09T10:42:21.000Z"
+      },
+      "primaryRoute": "pattern",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "12L"
+    }
+  ]
+}

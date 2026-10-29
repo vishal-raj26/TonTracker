@@ -1,0 +1,159 @@
+{
+  "schemaVersion": "username-secondary-local-v1",
+  "from": "2026-09-20T14:00:00Z",
+  "pipeline": "username-toncenter-secondary-sales-v1",
+  "collectedAt": "2026-09-30T10:09:33.536Z",
+  "cursor": {
+    "absoluteOffset": 53358,
+    "caughtUp": false
+  },
+  "metadata": {
+    "transfers": 100,
+    "saleContracts": 20,
+    "verifiedSales": 2,
+    "assets": 2,
+    "sales": 2,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-30T10:09:33.536Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:d63f231fb2f1f0f3cc4aca57876b470815971e1db042a4bb27b6c41d27301d53",
+      "normalizedName": "mini_oscar",
+      "displayName": "@mini_oscar",
+      "primaryRoute": "residual",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "10M",
+      "feature": {
+        "classifierVersion": "username-structural-v2",
+        "normalizedUsername": "mini_oscar",
+        "displayUsername": "@mini_oscar",
+        "characterLength": 10,
+        "byteLength": 10,
+        "characterClass": "alphanumeric",
+        "primaryRoute": "residual",
+        "routes": [
+          "residual"
+        ],
+        "scarcityClass": "10M",
+        "patternSignature": "ABCBDEFGHI",
+        "shapeSignature": "LLLL_LLLLL",
+        "uniqueCharacterCount": 9,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "repeatedBlock": null,
+        "scripts": [
+          "Latin"
+        ],
+        "primaryScript": "Latin",
+        "containsUnderscore": true,
+        "underscoreCount": 1,
+        "digitCount": 0,
+        "digitRatio": 0,
+        "vowelRatio": 0.4444444444444444,
+        "pronounceability": "not-applicable",
+        "leadingZero": false,
+        "roundNumber": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-29T14:07:58.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:801f99fbcf0bf9be0d1722642f88b412f3521fdd1adb10eb1fc3d5854932ed84",
+      "normalizedName": "nigga_fucking",
+      "displayName": "@nigga_fucking",
+      "primaryRoute": "pattern",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "13M",
+      "feature": {
+        "classifierVersion": "username-structural-v2",
+        "normalizedUsername": "nigga_fucking",
+        "displayUsername": "@nigga_fucking",
+        "characterLength": 13,
+        "byteLength": 13,
+        "characterClass": "alphanumeric",
+        "primaryRoute": "pattern",
+        "routes": [
+          "pattern"
+        ],
+        "scarcityClass": "13M",
+        "patternSignature": "ABCCDEFGHIBAC",
+        "shapeSignature": "LLLLL_LLLLLLL",
+        "uniqueCharacterCount": 9,
+        "maxRunLength": 2,
+        "palindrome": false,
+        "sequence": null,
+        "repeatedBlock": null,
+        "scripts": [
+          "Latin"
+        ],
+        "primaryScript": "Latin",
+        "containsUnderscore": true,
+        "underscoreCount": 1,
+        "digitCount": 0,
+        "digitRatio": 0,
+        "vowelRatio": 0.3333333333333333,
+        "pronounceability": "not-applicable",
+        "leadingZero": false,
+        "roundNumber": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-29T14:26:24.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-secondary:75cae3d247ae67ca603f9599625b0b63851317fe4851bd07a83bae5ab96cf702",
+      "assetKind": "username",
+      "assetKey": "0:d63f231fb2f1f0f3cc4aca57876b470815971e1db042a4bb27b6c41d27301d53",
+      "normalizedName": "mini_oscar",
+      "soldAt": "2026-09-29T14:07:58.000Z",
+      "priceGram": 33.34,
+      "historicalUsdRate": 1.5503595035003308,
+      "priceUsd": 51.68898584670104,
+      "marketplace": "Getgems",
+      "source": "toncenter-indexed-secondary-sale",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-completed-sale-contract",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "transactionHash": "1RoJGZu8qtrJ4s2cBuocQ9CC7NBGbtOmMb7n3dCR6oA=",
+        "saleContract": "0:88fd293d1a342fad653623b52dd3141ab2bac641d8b3e1f0a667cd8b5bd66e21"
+      },
+      "primaryRoute": "residual",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "10M"
+    },
+    {
+      "saleId": "toncenter-username-secondary:031d396339c567132e37c3375f21da1971ee99439f784f88c16bff876e941352",
+      "assetKind": "username",
+      "assetKey": "0:801f99fbcf0bf9be0d1722642f88b412f3521fdd1adb10eb1fc3d5854932ed84",
+      "normalizedName": "nigga_fucking",
+      "soldAt": "2026-09-29T14:26:24.000Z",
+      "priceGram": 5.65,
+      "historicalUsdRate": 1.5483891499083717,
+      "priceUsd": 8.748398696982301,
+      "marketplace": "Getgems",
+      "source": "toncenter-indexed-secondary-sale",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-completed-sale-contract",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "transactionHash": "NoRMOEoCoicNTw9GbmUSnjafs021lK2jwDxPJxFMCXQ=",
+        "saleContract": "0:eae1369e08986476db0374df2931737763b7c6775dd5125e1623a5cf12e2b328"
+      },
+      "primaryRoute": "pattern",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "13M"
+    }
+  ]
+}

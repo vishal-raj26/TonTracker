@@ -1,0 +1,125 @@
+{
+  "schemaVersion": "username-local-collection-v1",
+  "from": "2026-09-20T13:45:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "collectedAt": "2026-09-26T22:40:57.178Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 70345,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 80,
+    "candidates": 7,
+    "verifiedItems": 2,
+    "wrongCollection": 5,
+    "assets": 2,
+    "sales": 2,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-26T22:40:57.178Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:be51481af707195e099356b958e714b940333c2043846ddb26c295093bb944eb",
+      "normalizedName": "z88iz",
+      "displayName": "@z88iz",
+      "primaryRoute": "pattern",
+      "lengthBucket": "4-5",
+      "script": "Latin",
+      "scarcityClass": "5M",
+      "feature": {
+        "characterLength": 5,
+        "characterClass": "alphanumeric",
+        "routes": [
+          "pattern"
+        ],
+        "patternSignature": "ABBCA",
+        "uniqueCharacterCount": 3,
+        "maxRunLength": 2,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-24T02:46:38.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:5cc5e301de8c54dea9549bd61f01bebe230135787c6507ff09157f1afcf82176",
+      "normalizedName": "vegaswine",
+      "displayName": "@vegaswine",
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "9L",
+      "feature": {
+        "characterLength": 9,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCDEFGHB",
+        "uniqueCharacterCount": 8,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-24T02:46:51.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:6ae64612612197e29fa10b03df49aea176189603ee800694a21908700340b9ef",
+      "assetKind": "username",
+      "assetKey": "0:be51481af707195e099356b958e714b940333c2043846ddb26c295093bb944eb",
+      "normalizedName": "z88iz",
+      "soldAt": "2026-09-24T02:46:38.000Z",
+      "priceGram": 7,
+      "historicalUsdRate": 1.4177252137123644,
+      "priceUsd": 9.92407649598655,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "caIMGvMuqPexF9vG3EAanEjOCKDeMpIpKvJC53QiKGo=",
+        "messageHash": "1w4cKYTH+WtVU0jLLrXGWHgSz1/EhN+LpjnDJrDJ3tw=",
+        "bidAt": "2026-09-24T02:46:38.000Z"
+      },
+      "primaryRoute": "pattern",
+      "lengthBucket": "4-5",
+      "script": "Latin",
+      "scarcityClass": "5M"
+    },
+    {
+      "saleId": "toncenter-username-sale:c156a91fb81db445f3f81b606ce554d10f10e91f0b04437871e5be4ada16c4c0",
+      "assetKind": "username",
+      "assetKey": "0:5cc5e301de8c54dea9549bd61f01bebe230135787c6507ff09157f1afcf82176",
+      "normalizedName": "vegaswine",
+      "soldAt": "2026-09-24T02:46:51.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.4177224620852564,
+      "priceUsd": 14.177224620852565,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "UYX+ULpQynOV8aDQM5nlTOmlxF3mvbEXiJgICbR6RdI=",
+        "messageHash": "jue4BZpMTdUQaCh/72OAYSFGvUSHpUhzhyqU9w9CHlw=",
+        "bidAt": "2026-09-17T02:46:29.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "9L"
+    }
+  ]
+}

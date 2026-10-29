@@ -1,0 +1,160 @@
+{
+  "schemaVersion": "username-secondary-own-anchor-gate-development-v1",
+  "qualification": false,
+  "developmentOnly": true,
+  "productionChanged": false,
+  "reserved2026OutcomesOpened": false,
+  "createdAt": "2026-09-25T14:30:27.830Z",
+  "inputs": [
+    {
+      "name": "username-secondary-full-context-development-2025-Q1-2026-09-25.json",
+      "sha256": "318f5bc90ec527cba402acdd7a614b1f29a136ba317b635fd73513fa4a6121fb",
+      "attempts": 266
+    },
+    {
+      "name": "username-secondary-full-context-development-2025-Q2-2026-09-25.json",
+      "sha256": "e8fce3d1d3f199ac9a9da2f02b3d9fd60409c8cf2de0e0d201ebd612a5faf36a",
+      "attempts": 314
+    }
+  ],
+  "rule": "Choose full-context candidate only when strictly-prior exact-name ownSaleCount exceeds frozen baseline; otherwise baseline. No target price, cohort or outcome is used in routing.",
+  "cohorts": {
+    "overall": {
+      "attempts": 580,
+      "paired": 580,
+      "selected": 53,
+      "baselineAbstentions": 0,
+      "gatedAbstentions": 0,
+      "baseline": {
+        "samples": 580,
+        "intervalSamples": 580,
+        "medianFactorError": 2.798699229216267,
+        "medianPredictionRatio": 0.4330443582391635,
+        "coverage": 0.44482758620689655,
+        "meanAbsoluteLogError": 1.3593709431136434,
+        "medianRelativeError": 0.8158343872728483,
+        "meanLogIntervalWidth": 2.5469359637114524,
+        "meanLogIntervalScore80": 7.294531568118297
+      },
+      "gated": {
+        "samples": 580,
+        "intervalSamples": 580,
+        "medianFactorError": 2.7730826796036334,
+        "medianPredictionRatio": 0.43671060355408503,
+        "coverage": 0.4862068965517241,
+        "meanAbsoluteLogError": 1.327159263508388,
+        "medianRelativeError": 0.797814018504959,
+        "meanLogIntervalWidth": 2.5796876784384075,
+        "meanLogIntervalScore80": 7.234137401559933
+      },
+      "maleImprovement": 0.023696018933194528,
+      "intervalScoreImprovement": 0.008279375583529536
+    },
+    "ordinary": {
+      "attempts": 200,
+      "paired": 200,
+      "selected": 32,
+      "baselineAbstentions": 0,
+      "gatedAbstentions": 0,
+      "baseline": {
+        "samples": 200,
+        "intervalSamples": 200,
+        "medianFactorError": 2.01210081189208,
+        "medianPredictionRatio": 1.9907398282589919,
+        "coverage": 0.35,
+        "meanAbsoluteLogError": 0.6615441313634985,
+        "medianRelativeError": 0.9907398282589919,
+        "meanLogIntervalWidth": 2.466584598613685,
+        "meanLogIntervalScore80": 4.119637452176948
+      },
+      "gated": {
+        "samples": 200,
+        "intervalSamples": 200,
+        "medianFactorError": 1.8718350864443967,
+        "medianPredictionRatio": 1.7914645267189495,
+        "coverage": 0.445,
+        "meanAbsoluteLogError": 0.6094268618783251,
+        "medianRelativeError": 0.7914645267189495,
+        "meanLogIntervalWidth": 2.5140256135686103,
+        "meanLogIntervalScore80": 3.9422941992028218
+      },
+      "maleImprovement": 0.07878124378150762,
+      "intervalScoreImprovement": 0.043048266997478796
+    },
+    "intermediate": {
+      "attempts": 223,
+      "paired": 223,
+      "selected": 11,
+      "baselineAbstentions": 0,
+      "gatedAbstentions": 0,
+      "baseline": {
+        "samples": 223,
+        "intervalSamples": 223,
+        "medianFactorError": 3.264361450295373,
+        "medianPredictionRatio": 0.3086976740640223,
+        "coverage": 0.7892376681614349,
+        "meanAbsoluteLogError": 1.156731093457839,
+        "medianRelativeError": 0.709908736771246,
+        "meanLogIntervalWidth": 2.4516405815808096,
+        "meanLogIntervalScore80": 2.839656769548039
+      },
+      "gated": {
+        "samples": 223,
+        "intervalSamples": 223,
+        "medianFactorError": 3.2394154022443495,
+        "medianPredictionRatio": 0.3129013864277719,
+        "coverage": 0.8026905829596412,
+        "meanAbsoluteLogError": 1.157153877423705,
+        "medianRelativeError": 0.7077215408533426,
+        "meanLogIntervalWidth": 2.4680467724677526,
+        "meanLogIntervalScore80": 2.924123088945761
+      },
+      "maleImprovement": -0.00036549892041207996,
+      "intervalScoreImprovement": -0.02974525664633958
+    },
+    "premium": {
+      "attempts": 157,
+      "paired": 157,
+      "selected": 10,
+      "baselineAbstentions": 0,
+      "gatedAbstentions": 0,
+      "baseline": {
+        "samples": 157,
+        "intervalSamples": 157,
+        "medianFactorError": 13.328095679802116,
+        "medianPredictionRatio": 0.07502947337896415,
+        "coverage": 0.07643312101910828,
+        "meanAbsoluteLogError": 2.5361483241536,
+        "medianRelativeError": 0.9249705266210358,
+        "meanLogIntervalWidth": 2.784650251830476,
+        "meanLogIntervalScore80": 17.666607385121107
+      },
+      "gated": {
+        "samples": 157,
+        "intervalSamples": 157,
+        "medianFactorError": 11.95774694581199,
+        "medianPredictionRatio": 0.08362779414312944,
+        "coverage": 0.08917197452229299,
+        "meanAbsoluteLogError": 2.482940673845309,
+        "medianRelativeError": 0.9163722058568705,
+        "meanLogIntervalWidth": 2.8219063727404183,
+        "meanLogIntervalScore80": 17.549435695728008
+      },
+      "maleImprovement": 0.020979707614714533,
+      "intervalScoreImprovement": 0.006632382032318348
+    }
+  },
+  "bootstrapPremiumMaleImprovement": {
+    "identities": 149,
+    "iterations": 2000,
+    "lower95": 0.00028237737494479494,
+    "median": 0.018641357368233663,
+    "upper95": 0.054034470204105456
+  },
+  "limitations": [
+    "The route was proposed after looking at exposed Q1 results; this is not independent validation.",
+    "Q4 lacks saved per-case predictions and is not included; Q2 is exposed test data, not prospective qualification.",
+    "The augmented branch includes all prior secondary comparables and a refreshed model, not only own sales.",
+    "A passing development score cannot modify the frozen 2026 candidate or authorize production promotion."
+  ]
+}

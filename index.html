@@ -7,18 +7,25 @@
     <title>TonTrack</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="./styles.css?v=sticker-art-surface-20260724-1" />
-  <link rel="stylesheet" href="./styles-product-v2.css?v=icon-clarity-20260814-1" />
-  <link rel="stylesheet" href="./styles-terminal-system.css?v=goal-resume-20260829-2" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="./styles.css?v=ui-system-20261007-2" />
+  <link rel="stylesheet" href="./styles-product-v2.css?v=reference-20261007-2" />
+  <link rel="stylesheet" href="./styles-terminal-system.css?v=pre-fomo-reference-20261007-2" />
+    <link rel="stylesheet" href="./styles-ui-restoration.css?v=pre-fomo-20261005-2" />
+    <link rel="stylesheet" href="./styles-reference-ui.css?v=reference-20261007-13" />
     <script src="https://telegram.org/js/telegram-web-app.js?63"></script>
   </head>
-  <body class="product-v2">
+  <body class="product-v2 reference-ui">
     <div class="app-frame">
       <section class="wallet-gate" id="walletGate" aria-labelledby="walletGateTitle">
-        <video class="welcome-bg-video" autoplay muted loop playsinline preload="auto" aria-hidden="true">
-          <source src="./assets/branding/welcome-background-20260722.mp4" type="video/mp4" />
-        </video>
+        <img
+          class="welcome-bg-image"
+          src="./assets/branding/welcome-background-static-20260830.jpg"
+          alt=""
+          aria-hidden="true"
+          decoding="async"
+          fetchpriority="high"
+        />
         <div class="welcome-ambient" aria-hidden="true">
           <span class="welcome-ambient-blue"></span>
           <span class="welcome-ambient-violet"></span>
@@ -52,7 +59,7 @@
         </div>
       </section>
 
-      <main class="screen is-active" data-screen="home">
+      <main class="screen is-active" data-screen="home" data-ref-owned>
         <header class="app-header">
           <button class="identity" type="button" data-screen-target="settings">
             <span class="identity-mark" aria-hidden="true">
@@ -69,44 +76,52 @@
               <small id="homeProfileMeta">Portfolio overview</small>
             </span>
           </button>
-          <button class="wallet-chip js-connect-wallet" type="button">
+          <button class="reference-header-wallet js-connect-wallet" type="button" aria-label="Connect or manage wallet">
             <i data-lucide="wallet"></i>
             <span>Connect</span>
           </button>
         </header>
 
-        <section class="graph-card">
-          <div class="portfolio-kicker">
-            <span>Live portfolio</span>
-            <span class="portfolio-source"><i data-lucide="radio"></i><span id="portfolioSourceLabel">Connected assets</span></span>
-          </div>
-          <div class="graph-head">
-            <div>
-              <p>Total value</p>
-              <h1>$0.00</h1>
+        <section class="graph-card" id="homePortfolio" data-ref-owned>
+          <div class="reference-balance-card">
+            <div class="reference-balance-fold" aria-hidden="true"><img src="./assets/branding/reference-sheet-04-original.png" alt="" decoding="async" /></div>
+            <div class="reference-balance-copy">
+              <p class="reference-balance-label">Total portfolio balance</p>
+              <div class="reference-balance-line">
+                <h1 id="homePortfolioValue" data-reference-value>—</h1>
+                <button class="reference-value-visibility" type="button" data-settings-privacy aria-label="Toggle balance privacy" aria-pressed="false"><i data-lucide="eye-off"></i></button>
+              </div>
+            </div>
+            <div class="reference-balance-actions">
+              <button class="reference-glass-button" type="button" data-screen-target="wallets"><span class="reference-button-well" aria-hidden="true"><i data-lucide="wallet"></i></span><span>Wallets</span></button>
+              <button class="reference-glass-button refresh-button" data-ref-owned type="button" aria-label="Refresh prices"><span class="reference-button-well" aria-hidden="true"><i data-lucide="refresh-cw"></i></span><span>Refresh</span></button>
             </div>
           </div>
-          <div class="portfolio-actions-row">
-            <span>+$0.00 | +0.00%</span>
-            <button class="refresh-button" type="button" aria-label="Refresh prices"><i data-lucide="refresh-cw"></i></button>
-          </div>
-          <div class="value-graph" aria-label="Portfolio value graph">
-            <canvas role="img" aria-label="Portfolio value over time"></canvas>
-          </div>
-          <div class="portfolio-chart-footer">
-            <div class="range-selector" aria-label="Portfolio time range">
+          <div class="reference-history">
+            <div class="range-selector" data-ref-owned aria-label="Portfolio time range">
               <button class="is-active" type="button" data-range="1D">1D</button>
               <button type="button" data-range="7D">7D</button>
               <button type="button" data-range="1M">1M</button>
             </div>
-            <small class="graph-updated" id="portfolioUpdatedAt">Waiting for first snapshot</small>
+            <div class="reference-history-head">
+              <div class="portfolio-history-readout" hidden><small id="portfolioChartLabel">Recorded value</small><strong id="portfolioChartValue" data-reference-value>—</strong></div>
+              <div class="portfolio-actions-row"><span>Movement unavailable</span></div>
+            </div>
+            <div class="value-graph" data-ref-owned aria-label="Portfolio value graph">
+              <canvas role="img" aria-label="Portfolio value over time"></canvas>
+            </div>
+            <div id="homeHistoryEmpty" class="reference-history-empty" role="status" hidden><span class="reference-status-well" aria-hidden="true"><i data-lucide="chart-no-axes-combined"></i></span><div><b>History starts here</b><p>Your portfolio history appears once enough snapshots are available.</p></div></div>
+            <small id="portfolioHistoryContext" data-ref-owned hidden></small>
+            <div class="portfolio-chart-footer">
+              <small class="graph-updated" id="portfolioUpdatedAt">Waiting for first snapshot</small>
+              <span class="reference-source-note" id="portfolioSourceLabel">Connected assets</span>
+            </div>
           </div>
         </section>
 
-        <section class="featured-collectibles" aria-labelledby="featuredCollectiblesTitle" hidden>
+        <section class="featured-collectibles" data-ref-component="asset-carousel" aria-labelledby="featuredCollectiblesTitle" hidden>
           <div class="featured-collectibles-heading">
             <div>
-              <p class="section-eyebrow">Portfolio highlights</p>
               <h2 id="featuredCollectiblesTitle">Featured assets</h2>
             </div>
             <span class="ui-icon-cue is-live" role="img" aria-label="Live portfolio ranking" title="Live portfolio ranking"><i data-lucide="activity"></i></span>
@@ -116,15 +131,15 @@
           </div>
         </section>
 
-        <section class="allocation-card">
+        <section class="allocation-card" id="homeAllocation" data-ref-owned data-ref-component="portfolio-metric">
           <div class="section-heading">
             <div>
-              <p class="section-eyebrow">Portfolio mix</p>
               <h2>Allocation</h2>
             </div>
-            <span class="ui-icon-cue" role="img" aria-label="Tap a segment to isolate it" title="Tap a segment to isolate it"><i data-lucide="focus"></i></span>
+            <span class="ui-icon-cue" role="img" aria-label="Tap a category to inspect its allocation" title="Tap a category to inspect its allocation"><i data-lucide="info"></i></span>
           </div>
           <div class="donut-layout">
+            <small class="reference-allocation-caption">Valued holdings</small>
             <div class="donut-chart" role="button" tabindex="0" aria-label="Select portfolio allocation segment"><span>$0.00</span></div>
             <div class="allocation-list">
               <article role="button" tabindex="0" aria-pressed="false"><span class="legend-pill gift-dot"></span><div><b>Gifts</b><small>0%</small></div><strong>$0.00</strong></article>
@@ -137,10 +152,9 @@
           </div>
         </section>
 
-        <section class="home-section movement-panel">
+        <section class="home-section movement-panel" data-ref-component="metric-pair">
           <div class="section-heading">
             <div>
-              <p class="section-eyebrow">Token movement</p>
               <h2>Today</h2>
             </div>
             <span class="ui-scope-cue" aria-label="24 hour change" title="24 hour change"><i data-lucide="clock-3"></i><span>24H</span></span>
@@ -151,13 +165,12 @@
           </div>
         </section>
 
-        <section class="panel activity-panel bottom-pad">
+        <section class="panel activity-panel bottom-pad" data-ref-component="asset-list">
           <div class="section-heading">
             <div>
-              <p class="section-eyebrow">On-chain activity</p>
               <h2>Recent activity</h2>
             </div>
-            <button class="text-action ui-icon-action" type="button" data-screen-target="activity" aria-label="Open all activity" title="Open all activity"><i data-lucide="arrow-up-right"></i></button>
+            <button class="text-action reference-section-action" type="button" data-screen-target="activity" aria-label="Open all activity" title="Open all activity"><span>View more</span><i data-lucide="chevron-right"></i></button>
           </div>
           <article class="activity-row"><span class="activity-dot token-bg skeleton"></span><div><b>Loading activity</b><small>Tokens and collectibles will appear together.</small></div><aside><strong></strong></aside></article>
         </section>
@@ -165,30 +178,30 @@
 
       <main class="screen" data-screen="assets">
         <header class="page-header assets-header">
-          <h1>ASSETS</h1>
+          <h1>Assets</h1>
         </header>
         <section class="portfolio-strip">
-          <article><small>Portfolio value</small><b>$0.00</b><strong class="positive">+0.00% <em>24H</em></strong></article>
-          <article><small>Total assets</small><b>148</b><span>Items</span></article>
-          <article><small>Wallet</small><b>Connected</b></article>
+          <article><small>Portfolio value</small><b>—</b><strong class="movement-unavailable">Movement unavailable</strong></article>
+          <article><small>Total assets</small><b>—</b><span>Items</span></article>
+          <article><small>Wallet</small><b>—</b></article>
           <article aria-label="Portfolio details"><small class="visually-hidden">Portfolio details</small><b class="assets-view-arrow" aria-hidden="true"><i data-lucide="arrow-up-right"></i></b></article>
         </section>
         <section class="category-stack" aria-label="Asset categories">
-          <article data-screen-target="tokens" data-market-url="https://ston.fi/swap"><span class="asset-icon token-bg"><i data-lucide="coins"></i></span><div><b>GRAM &amp; Jettons</b><small>TON network tokens</small></div><strong>Get yours</strong></article>
-          <article data-screen-target="gifts" data-market-url="https://getgems.io"><span class="asset-icon gift-bg"><i data-lucide="gift"></i></span><div><b>Telegram Gifts</b><small>Traits &amp; floors</small></div><strong>Get yours</strong></article>
-          <article data-screen-target="stickers" data-market-url="https://getgems.io"><span class="asset-icon sticker-bg"><i data-lucide="sticker"></i></span><div><b>Sticker Packs</b><small>Packs &amp; floors</small></div><strong>Get yours</strong></article>
-          <article data-screen-target="dns" data-market-url="https://getgems.io"><span class="asset-icon dns-bg"><i data-lucide="globe-2"></i></span><div><b>TON DNS</b><small>.ton domains</small></div><strong>Get yours</strong></article>
-          <article data-screen-target="anonymous-numbers" data-market-url="https://fragment.com/numbers"><span class="asset-icon number-bg"><i data-lucide="phone"></i></span><div><b>Anonymous Numbers</b><small>Fragment numbers</small></div><strong>Get yours</strong></article>
-          <article data-screen-target="usernames" data-market-url="https://fragment.com"><span class="asset-icon username-bg"><i data-lucide="at-sign"></i></span><div><b>Telegram Usernames</b><small>Fragment identities</small></div><strong>Get yours</strong></article>
+          <article role="button" tabindex="0" data-screen-target="tokens" data-market-url="https://ston.fi/swap"><span class="asset-icon token-bg"><i data-lucide="coins"></i></span><div><b>GRAM &amp; Jettons</b><small>TON network tokens</small></div><strong>Get yours</strong></article>
+          <article role="button" tabindex="0" data-screen-target="gifts" data-market-url="https://getgems.io"><span class="asset-icon gift-bg"><i data-lucide="gift"></i></span><div><b>Telegram Gifts</b><small>Traits &amp; floors</small></div><strong>Get yours</strong></article>
+          <article role="button" tabindex="0" data-screen-target="stickers" data-market-url="https://getgems.io"><span class="asset-icon sticker-bg"><i data-lucide="sticker"></i></span><div><b>Sticker Packs</b><small>Packs &amp; floors</small></div><strong>Get yours</strong></article>
+          <article role="button" tabindex="0" data-screen-target="dns" data-market-url="https://getgems.io"><span class="asset-icon dns-bg"><i data-lucide="globe-2"></i></span><div><b>TON DNS</b><small>.ton domains</small></div><strong>Get yours</strong></article>
+          <article role="button" tabindex="0" data-screen-target="anonymous-numbers" data-market-url="https://fragment.com/numbers"><span class="asset-icon number-bg"><i data-lucide="phone"></i></span><div><b>Anonymous Numbers</b><small>Fragment numbers</small></div><strong>Get yours</strong></article>
+          <article role="button" tabindex="0" data-screen-target="usernames" data-market-url="https://fragment.com"><span class="asset-icon username-bg"><i data-lucide="at-sign"></i></span><div><b>Telegram Usernames</b><small>Fragment identities</small></div><strong>Get yours</strong></article>
         </section>
-        <section class="mini-detail-card bottom-pad" data-screen-target="detail" data-asset="diamond-ring">
+        <section class="mini-detail-card bottom-pad" hidden>
           <div class="section-heading"><h2>Top Asset</h2><button class="text-action ui-icon-action" type="button" aria-label="Open top asset" title="Open top asset"><i data-lucide="arrow-up-right"></i></button></div>
-          <article class="feature-asset"><span class="asset-icon gift-bg"><i data-lucide="gem"></i></span><div><b>Diamond Ring</b><small>#4821 · +$840 PnL</small></div><strong>$2,840</strong></article>
+          <article class="feature-asset"><span class="asset-icon gift-bg"><i data-lucide="gem"></i></span><div><b>Top holding</b><small>Waiting for holdings</small></div><strong>—</strong></article>
         </section>
       </main>
 
       <main class="screen" data-screen="tokens">
-        <header class="page-header"><button class="icon-button" type="button" data-screen-target="assets"><i data-lucide="arrow-left"></i></button><h1>GRAM &amp; Jettons</h1><span class="header-actions"><button class="icon-button" type="button" data-refresh-portfolio aria-label="Refresh tokens"><i data-lucide="refresh-cw"></i></button><button class="icon-button" type="button" data-token-sort-open aria-label="Sort tokens" aria-haspopup="true" aria-controls="tokenSortSheet"><i data-lucide="list-filter"></i></button></span></header>
+        <header class="page-header"><button class="icon-button" type="button" data-screen-target="assets" aria-label="Back to assets"><i data-lucide="arrow-left"></i></button><h1>GRAM &amp; Jettons</h1><span class="header-actions"><button class="icon-button" type="button" data-refresh-portfolio aria-label="Refresh tokens"><i data-lucide="refresh-cw"></i></button><button class="icon-button" type="button" data-token-sort-open aria-label="Sort tokens" aria-haspopup="true" aria-controls="tokenSortSheet" aria-expanded="false"><i data-lucide="list-filter"></i></button></span></header>
         <section class="summary-card"><small>Total token value</small><h2><span class="metric-skeleton metric-skeleton-large"></span></h2><p><span class="metric-skeleton metric-skeleton-line"></span></p></section>
         <section class="holdings-list bottom-pad">
           <article><span class="asset-icon token-bg skeleton"></span><div><b class="skeleton">&nbsp;</b><small class="skeleton">&nbsp;</small></div><aside><b class="skeleton">&nbsp;</b><small class="skeleton">&nbsp;</small></aside></article>
@@ -197,7 +210,7 @@
       </main>
 
       <main class="screen" data-screen="gifts">
-        <header class="page-header"><button class="icon-button" type="button" data-screen-target="assets"><i data-lucide="arrow-left"></i></button><h1>Gifts</h1><button class="icon-button" type="button" data-refresh-portfolio aria-label="Refresh gifts"><i data-lucide="refresh-cw"></i></button></header>
+        <header class="page-header"><button class="icon-button" type="button" data-screen-target="assets" aria-label="Back to assets"><i data-lucide="arrow-left"></i></button><h1>Gifts</h1><button class="icon-button" type="button" data-refresh-portfolio aria-label="Refresh gifts"><i data-lucide="refresh-cw"></i></button></header>
         <section class="asset-total-banner">
           <small>Total Gifts Value</small>
           <div><h2><span class="metric-skeleton metric-skeleton-large"></span></h2><span><span class="metric-skeleton metric-skeleton-small"></span></span></div>
@@ -228,12 +241,13 @@
             </select>
           </label>
         </section>
-        <section class="search-card"><i data-lucide="search"></i><input id="giftSearch" type="search" placeholder="Search gifts" autocomplete="off" /><small id="giftCountLabel">0 gifts</small><small id="giftPriceCoverage" class="price-coverage-pill">0 fetched · 0 valued</small></section>
+        <section class="search-card"><i data-lucide="search"></i><input id="giftSearch" type="search" placeholder="Search gifts" autocomplete="off" /></section>
+        <div class="holding-list-status" aria-live="polite"><small id="giftCountLabel">0 gifts</small><small id="giftPriceCoverage">0/0 priced</small></div>
         <section class="collectible-grid bottom-pad" id="giftGrid"></section>
       </main>
 
       <main class="screen" data-screen="gift-brand">
-        <header class="page-header"><button class="icon-button" type="button" data-screen-target="gifts"><i data-lucide="arrow-left"></i></button><h1 id="giftBrandTitle">Gift Collection</h1><button class="icon-button" type="button" data-refresh-portfolio aria-label="Refresh gift collection"><i data-lucide="refresh-cw"></i></button></header>
+        <header class="page-header"><button class="icon-button" type="button" data-screen-target="gifts" aria-label="Back to gifts"><i data-lucide="arrow-left"></i></button><h1 id="giftBrandTitle">Gift Collection</h1><button class="icon-button" type="button" data-refresh-portfolio aria-label="Refresh gift collection"><i data-lucide="refresh-cw"></i></button></header>
         <section class="asset-total-banner" id="giftBrandSummary">
           <small>Collection gifts</small>
           <div><h2>$0.00</h2><span>0 gifts</span></div>
@@ -243,7 +257,7 @@
       </main>
 
       <main class="screen" data-screen="stickers">
-        <header class="page-header"><button class="icon-button" type="button" data-screen-target="assets"><i data-lucide="arrow-left"></i></button><h1>Stickers</h1><button class="icon-button" type="button" data-refresh-portfolio aria-label="Refresh stickers"><i data-lucide="refresh-cw"></i></button></header>
+        <header class="page-header"><button class="icon-button" type="button" data-screen-target="assets" aria-label="Back to assets"><i data-lucide="arrow-left"></i></button><h1>Stickers</h1><button class="icon-button" type="button" data-refresh-portfolio aria-label="Refresh stickers"><i data-lucide="refresh-cw"></i></button></header>
         <section class="asset-total-banner">
           <small>Total Stickers Value</small>
           <div><h2><span class="metric-skeleton metric-skeleton-large"></span></h2><span><span class="metric-skeleton metric-skeleton-small"></span></span></div>
@@ -274,12 +288,13 @@
             </select>
           </label>
         </section>
-        <section class="search-card sticker-search-card"><i data-lucide="search"></i><input id="stickerSearch" type="search" placeholder="Search sticker packs" autocomplete="off" /><small id="stickerCountLabel">0 stickers</small></section>
+        <section class="search-card sticker-search-card"><i data-lucide="search"></i><input id="stickerSearch" type="search" placeholder="Search sticker packs" autocomplete="off" /></section>
+        <div class="holding-list-status" aria-live="polite"><small id="stickerCountLabel">0 stickers</small></div>
         <section class="collectible-grid bottom-pad" id="stickerGrid"></section>
       </main>
 
       <main class="screen identity-assets-screen" data-screen="dns">
-        <header class="page-header"><button class="icon-button" type="button" data-screen-target="assets"><i data-lucide="arrow-left"></i></button><h1>TON DNS</h1><button class="icon-button" type="button" data-refresh-portfolio aria-label="Refresh domains"><i data-lucide="refresh-cw"></i></button></header>
+        <header class="page-header"><button class="icon-button" type="button" data-screen-target="assets" aria-label="Back to assets"><i data-lucide="arrow-left"></i></button><h1>TON DNS</h1><button class="icon-button" type="button" data-refresh-portfolio aria-label="Refresh domains"><i data-lucide="refresh-cw"></i></button></header>
         <section class="identity-summary-card">
           <span class="identity-summary-icon dns-bg"><i data-lucide="globe-2"></i></span>
           <div><small>Verified portfolio value</small><h2 id="dnsTotalValue">$0.00</h2><p id="dnsSummaryText">No domains imported</p></div>
@@ -289,7 +304,7 @@
       </main>
 
       <main class="screen identity-assets-screen" data-screen="anonymous-numbers">
-        <header class="page-header"><button class="icon-button" type="button" data-screen-target="assets"><i data-lucide="arrow-left"></i></button><h1>Anonymous Numbers</h1><button class="icon-button" type="button" data-refresh-portfolio aria-label="Refresh anonymous numbers"><i data-lucide="refresh-cw"></i></button></header>
+        <header class="page-header"><button class="icon-button" type="button" data-screen-target="assets" aria-label="Back to assets"><i data-lucide="arrow-left"></i></button><h1>Anonymous Numbers</h1><button class="icon-button" type="button" data-refresh-portfolio aria-label="Refresh anonymous numbers"><i data-lucide="refresh-cw"></i></button></header>
         <section class="identity-summary-card">
           <span class="identity-summary-icon number-bg"><i data-lucide="phone"></i></span>
           <div><small>Verified portfolio value</small><h2 id="anonymousNumbersTotalValue">$0.00</h2><p id="anonymousNumbersSummaryText">No numbers imported</p></div>
@@ -299,7 +314,7 @@
       </main>
 
       <main class="screen identity-assets-screen" data-screen="usernames">
-        <header class="page-header"><button class="icon-button" type="button" data-screen-target="assets"><i data-lucide="arrow-left"></i></button><h1>Telegram Usernames</h1><button class="icon-button" type="button" data-refresh-portfolio aria-label="Refresh usernames"><i data-lucide="refresh-cw"></i></button></header>
+        <header class="page-header"><button class="icon-button" type="button" data-screen-target="assets" aria-label="Back to assets"><i data-lucide="arrow-left"></i></button><h1>Telegram Usernames</h1><button class="icon-button" type="button" data-refresh-portfolio aria-label="Refresh usernames"><i data-lucide="refresh-cw"></i></button></header>
         <section class="identity-summary-card">
           <span class="identity-summary-icon username-bg"><i data-lucide="at-sign"></i></span>
           <div><small>Portfolio value</small><h2 id="usernamesTotalValue">$0.00</h2><p id="usernamesSummaryText">No usernames imported</p></div>
@@ -309,7 +324,7 @@
       </main>
 
       <main class="screen" data-screen="sticker-brand">
-        <header class="page-header"><button class="icon-button" type="button" data-screen-target="stickers"><i data-lucide="arrow-left"></i></button><h1 id="stickerBrandTitle">Sticker Brand</h1><button class="icon-button" type="button" data-refresh-portfolio aria-label="Refresh sticker collection"><i data-lucide="refresh-cw"></i></button></header>
+        <header class="page-header"><button class="icon-button" type="button" data-screen-target="stickers" aria-label="Back to stickers"><i data-lucide="arrow-left"></i></button><h1 id="stickerBrandTitle">Sticker Brand</h1><button class="icon-button" type="button" data-refresh-portfolio aria-label="Refresh sticker collection"><i data-lucide="refresh-cw"></i></button></header>
         <section class="asset-total-banner" id="stickerBrandSummary">
           <small>Brand stickers</small>
           <div><h2>$0.00</h2><span>0 stickers</span></div>
@@ -318,10 +333,10 @@
         <section class="collectible-grid bottom-pad" id="stickerBrandGrid"></section>
       </main>
 
-      <main class="screen" data-screen="analytics">
+      <main class="screen" data-screen="analytics" data-ref-owned>
         <header class="page-header"><h1>Analytics</h1><button class="icon-button" type="button" data-refresh-portfolio aria-label="Refresh analytics"><i data-lucide="refresh-cw"></i></button></header>
         <section class="utility-hero analytics-hero"><div><small>Portfolio intelligence</small><h2 id="analyticsPortfolioValue"><span class="metric-skeleton metric-skeleton-large"></span></h2><p id="analyticsPortfolioMeta">Connect a wallet to calculate your portfolio mix.</p></div><span class="utility-hero-icon"><i data-lucide="chart-no-axes-combined"></i></span></section>
-        <section class="graph-card compact"><div class="graph-head"><div><p>Portfolio value</p><h1><span class="metric-skeleton metric-skeleton-large"></span></h1></div><span id="analyticsRangeLabel">Available history</span></div><div class="value-graph"><canvas role="img" aria-label="Portfolio value history"></canvas></div><p class="data-state-note" id="analyticsHistoryState">Connect a wallet to build portfolio history.</p></section>
+        <section class="graph-card compact reference-analytics-chart" data-ref-owned><div class="graph-head" data-ref-owned><div><p>Portfolio value</p><h1><span class="metric-skeleton metric-skeleton-large"></span></h1></div><span id="analyticsRangeLabel">Available history</span></div><div class="value-graph" data-ref-owned><canvas role="img" aria-label="Portfolio value history"></canvas></div><p class="data-state-note" id="analyticsHistoryState">Connect a wallet to build portfolio history.</p></section>
         <section class="insight-grid">
           <article><small>Best performer</small><b>Unavailable</b><strong>—</strong></article>
           <article><small>Weakest performer</small><b>Unavailable</b><strong>—</strong></article>
@@ -333,12 +348,12 @@
 
       <main class="screen" data-screen="watchlist">
         <header class="page-header"><h1>Watchlist</h1><button class="icon-button" type="button" data-refresh-portfolio aria-label="Refresh watchlist"><i data-lucide="refresh-cw"></i></button></header>
-        <section class="utility-hero watchlist-summary"><div><small>Market watch</small><h2 id="watchlistCount">0 assets</h2><p>Follow owned assets without inventing market data.</p></div><span class="utility-hero-icon"><i data-lucide="radar"></i></span></section>
+        <section class="utility-hero watchlist-summary"><div><small>Market watch</small><h2 id="watchlistCount">0 assets</h2><p>Keep the assets you follow in one place.</p></div><span class="utility-hero-icon"><i data-lucide="radar"></i></span></section>
         <section class="holdings-list bottom-pad" id="watchlistRows"><article class="portfolio-empty-state"><span class="asset-icon"><i data-lucide="radar"></i></span><div><b>Your watchlist is empty</b><small>Open an asset and add it here when you want to follow it.</small></div></article></section>
       </main>
 
       <main class="screen" data-screen="activity">
-        <header class="page-header"><button class="icon-button" type="button" data-screen-target="home"><i data-lucide="arrow-left"></i></button><h1>Activity</h1><button class="icon-button" type="button" data-refresh-activity aria-label="Refresh activity"><i data-lucide="refresh-cw"></i></button></header>
+        <header class="page-header"><button class="icon-button" type="button" data-screen-target="home" aria-label="Back to home"><i data-lucide="arrow-left"></i></button><h1>Activity</h1><button class="icon-button" type="button" data-refresh-activity aria-label="Refresh activity"><i data-lucide="refresh-cw"></i></button></header>
         <section class="activity-overview" aria-label="Activity summary"><article><small>Transactions</small><b id="activityTotalCount">—</b></article><article><small>Received</small><b id="activityReceivedCount">—</b></article><article><small>Sent</small><b id="activitySentCount">—</b></article></section>
         <section class="search-card"><i data-lucide="search"></i><input id="activitySearch" type="search" placeholder="Search asset or wallet address" autocomplete="off" /></section>
         <section class="activity-filter-row">
@@ -351,7 +366,7 @@
       </main>
 
       <main class="screen" data-screen="detail">
-        <header class="page-header"><button class="icon-button" type="button" data-screen-target="assets"><i data-lucide="arrow-left"></i></button><h1>Asset Detail</h1><span class="header-actions"><button class="icon-button" type="button" data-watchlist-toggle aria-label="Add asset to watchlist" title="Add to watchlist"><i data-lucide="bookmark"></i></button><button class="icon-button" type="button" data-refresh-detail aria-label="Refresh asset detail"><i data-lucide="refresh-cw"></i></button><button class="icon-button" type="button" aria-label="Open market listing" title="Open market listing"><i data-lucide="external-link"></i></button></span></header>
+        <header class="page-header"><button class="icon-button" type="button" data-screen-target="assets" aria-label="Back to assets"><i data-lucide="arrow-left"></i></button><h1>Asset Detail</h1><span class="header-actions"><button class="icon-button" type="button" data-watchlist-toggle aria-label="Add asset to watchlist" title="Add to watchlist"><i data-lucide="bookmark"></i></button><button class="icon-button" type="button" data-refresh-detail aria-label="Refresh asset detail"><i data-lucide="refresh-cw"></i></button><button class="icon-button" type="button" aria-label="Open market listing" title="Open market listing" hidden><i data-lucide="external-link"></i></button></span></header>
         <section id="giftDetailMount" class="bottom-pad" style="display:none"></section>
         <section class="detail-hero enhanced-detail-hero" id="detailHero">
           <span class="detail-ghost" id="detailGhost"><i data-lucide="gem"></i></span>
@@ -376,30 +391,30 @@
           <div class="chart-tooltip" id="chartTooltip">May 15 · $2,000</div>
         </section>
         <section class="sales-panel">
-          <div class="section-heading"><h2>Recent Sales</h2><button class="text-action" type="button">Exact Variant</button></div>
+          <div class="section-heading"><h2>Recent Sales</h2><span class="text-action" role="status">Exact Variant</span></div>
           <div class="sales-table" id="detailSalesTable"></div>
         </section>
         <section class="market-intel bottom-pad">
-          <div class="section-heading"><h2>Market Intel</h2><button class="text-action" type="button">Live</button></div>
+          <div class="section-heading"><h2>Market Intel</h2><span class="text-action" role="status">Live</span></div>
           <div id="detailMarketIntel"></div>
         </section>
       </main>
 
       <main class="screen" data-screen="wallets">
-        <header class="page-header"><button class="icon-button" type="button" data-screen-target="settings"><i data-lucide="arrow-left"></i></button><h1>Wallets</h1><button class="icon-button" type="button" data-refresh-portfolio aria-label="Refresh connected sources"><i data-lucide="refresh-cw"></i></button></header>
+        <header class="page-header"><button class="icon-button" type="button" data-screen-target="settings" aria-label="Back to settings"><i data-lucide="arrow-left"></i></button><h1>Wallets</h1><button class="icon-button" type="button" data-refresh-portfolio aria-label="Refresh connected sources"><i data-lucide="refresh-cw"></i></button></header>
         <section class="connect-panel small"><span class="wallet-glyph"><i data-lucide="wallet-cards"></i></span><h2>Connect TON wallet.</h2><p>Support for Tonkeeper, MyWallet, QR scan, and address input.</p><button class="js-connect-wallet" type="button">Connect TON Wallet</button></section>
         <section class="holdings-list bottom-pad"><article class="portfolio-empty-state"><span class="asset-icon token-bg"><i data-lucide="wallet"></i></span><div><b>No portfolio source connected</b><small>Connect Telegram or a TON wallet to see imported sources here.</small></div></article></section>
       </main>
 
       <main class="screen" data-screen="settings">
-        <header class="page-header"><h1>Settings</h1><button class="icon-button" type="button" data-screen-target="wallets"><i data-lucide="wallet"></i></button></header>
+        <header class="page-header"><h1>Settings</h1><button class="icon-button" type="button" data-screen-target="wallets" aria-label="Manage wallets"><i data-lucide="wallet"></i></button></header>
         <section class="utility-hero settings-hero"><div><small>Portfolio preferences</small><h2 id="settingsWalletName">No wallet connected</h2><p id="settingsWalletAddress">Connect a wallet to manage its portfolio.</p></div><span class="utility-hero-icon"><i data-lucide="sliders-horizontal"></i></span></section>
         <section class="profile-actions bottom-pad">
-          <button class="currency-setting" type="button"><i data-lucide="badge-dollar-sign"></i><span id="currencySettingLabel">Currency: USD</span><span class="currency-options"><b data-currency-option="USD" class="is-active">USD</b><b data-currency-option="GRAM">GRAM</b></span></button>
+          <div class="currency-setting" role="group" aria-label="Preferred currency"><i data-lucide="badge-dollar-sign"></i><span id="currencySettingLabel">Currency: USD</span><span class="currency-options"><button type="button" data-currency-option="USD" class="is-active" aria-pressed="true">USD</button><button type="button" data-currency-option="GRAM" aria-pressed="false">GRAM</button></span></div>
           <button type="button" data-settings-alerts><i data-lucide="bell-ring"></i><span>Price alerts</span><i data-lucide="chevron-right"></i></button>
-          <button type="button" data-settings-privacy><i data-lucide="eye-off"></i><span>Privacy mode</span><i data-lucide="chevron-right"></i></button>
-          <button type="button" data-settings-refresh><i data-lucide="refresh-cw"></i><span>Refresh frequency</span><i data-lucide="chevron-right"></i></button>
-          <button type="button" data-settings-theme><i data-lucide="sun-moon"></i><span>Theme: System</span><i data-lucide="chevron-right"></i></button>
+          <button type="button" data-settings-privacy aria-pressed="false"><i data-lucide="eye-off"></i><span>Privacy mode: Off</span><i data-lucide="chevron-right"></i></button>
+          <button type="button" data-settings-refresh><i data-lucide="refresh-cw"></i><span>Refresh frequency: Off</span><i data-lucide="chevron-right"></i></button>
+          <div class="settings-status" role="status"><i data-lucide="moon"></i><span>Theme: TonTrack dark</span></div>
           <a class="settings-credit" href="https://t.me/GiftChanges" target="_blank" rel="noopener noreferrer"><i data-lucide="sparkles"></i><span>Thanks to @GiftChanges for the gift media API</span><i data-lucide="external-link"></i></a>
           <button type="button" data-wallet-logout><i data-lucide="log-out"></i><span>Disconnect wallet</span><i data-lucide="chevron-right"></i></button>
         </section>
@@ -408,13 +423,20 @@
       <nav class="dock five" aria-label="Main navigation">
         <span class="dock-indicator" aria-hidden="true"></span>
         <button class="is-active" type="button" data-screen-target="home" aria-label="Home" aria-current="page"><i data-lucide="house"></i><span>Home</span></button>
-        <button type="button" data-screen-target="assets" aria-label="Assets"><i data-lucide="layers-3"></i><span>Assets</span></button>
-        <button type="button" data-screen-target="analytics" aria-label="Analytics"><i data-lucide="chart-no-axes-combined"></i><span>Analytics</span></button>
-        <button type="button" data-screen-target="watchlist" aria-label="Watchlist"><i data-lucide="radar"></i><span>Watchlist</span></button>
+        <button type="button" data-screen-target="assets" aria-label="Assets"><i data-lucide="layers-2"></i><span>Assets</span></button>
+        <button type="button" data-screen-target="analytics" aria-label="Analytics" title="Analytics"><i data-lucide="chart-no-axes-combined"></i><span>Analytics</span></button>
+        <button type="button" data-screen-target="watchlist" aria-label="Watchlist"><i data-lucide="bookmark"></i><span>Watchlist</span></button>
         <button type="button" data-screen-target="settings" aria-label="Settings"><i data-lucide="settings-2"></i><span>Settings</span></button>
       </nav>
       <button class="scroll-top-button" id="scrollTopButton" type="button" aria-label="Back to top"><i data-lucide="arrow-up"></i></button>
 
+      <dialog class="product-filter-sheet" id="collectibleFilterDialog" aria-labelledby="collectibleFilterTitle">
+        <header><h2 id="collectibleFilterTitle">Filter collections</h2><button type="button" data-collectible-filter-close aria-label="Close filters"><i data-lucide="x"></i></button></header>
+        <p>Find collections containing a matching asset.</p>
+        <input id="collectibleFilterSearch" type="search" placeholder="Search filter choices" aria-label="Search filter choices" autocomplete="off" />
+        <div class="product-filter-groups" aria-label="Filter categories"></div>
+        <div class="product-filter-options" aria-label="Filter choices"></div>
+      </dialog>
       <div class="wallet-sheet" id="walletSheet" aria-hidden="true">
         <button class="wallet-sheet-backdrop" type="button" aria-label="Close wallet sheet"></button>
         <section class="wallet-sheet-panel" role="dialog" aria-modal="true" aria-labelledby="walletSheetTitle">
@@ -462,7 +484,7 @@
       </div>
       <div class="wallet-action-sheet" id="walletActionSheet" aria-hidden="true">
         <button class="wallet-action-backdrop" type="button" aria-label="Close wallet actions"></button>
-        <section class="wallet-action-panel">
+        <section class="wallet-action-panel" role="dialog" aria-modal="true" aria-labelledby="walletActionTitle">
           <span class="sheet-handle"></span>
           <div class="wallet-action-meta" id="walletActionMeta">
             <small>TON wallet</small>
@@ -477,7 +499,7 @@
       </div>
       <div class="tx-sheet" id="txSheet" aria-hidden="true">
         <button class="tx-sheet-backdrop" type="button" aria-label="Close transaction details"></button>
-        <section class="tx-sheet-panel" role="dialog" aria-modal="true">
+        <section class="tx-sheet-panel" role="dialog" aria-modal="true" aria-labelledby="txAmountTitle">
           <span class="tx-sheet-handle"></span>
           <button class="tx-sheet-close" type="button" aria-label="Close"><i data-lucide="x"></i></button>
           <div class="tx-logo-stack" id="txLogoStack"></div>
@@ -488,13 +510,12 @@
           <button class="primary-button" type="button" id="txTonscanButton">View on TONScan</button>
         </section>
       </div>
-      <div class="import-loader" id="importLoader" aria-hidden="true">
-        <div class="import-loader-ambient" aria-hidden="true">
-          <span class="import-loader-glow import-loader-glow-blue"></span>
-          <span class="import-loader-glow import-loader-glow-violet"></span>
-          <span class="import-loader-glow import-loader-glow-coral"></span>
-        </div>
-        <div class="import-loader-shell" role="status" aria-live="polite">
+      <div class="import-loader" id="importLoader" role="status" aria-label="Importing wallet" aria-hidden="true">
+        <video class="import-loader-video" id="importLoaderVideo" muted loop playsinline preload="none" aria-hidden="true">
+          <source src="./assets/branding/import-background-20260830.mp4" type="video/mp4" />
+        </video>
+        <span class="import-loader-ambient" aria-hidden="true"></span>
+        <div class="import-loader-shell">
           <div class="import-loader-brand" aria-label="TonTrack">
             <svg class="tontrack-brand-mark" viewBox="0 0 48 48" aria-hidden="true">
               <rect class="tontrack-brand-card tontrack-brand-card-back" x="11" y="5" width="27" height="22" rx="5"></rect>
@@ -505,32 +526,17 @@
             </svg>
             <span>TonTrack</span>
           </div>
-          <div class="import-loader-scene" aria-hidden="true">
-            <div class="import-loader-card import-loader-card-token">
-              <span><i data-lucide="coins"></i></span>
-              <b>Tokens</b>
-              <small>Balances</small>
-            </div>
-            <div class="import-loader-card import-loader-card-gift">
-              <span><i data-lucide="gift"></i></span>
-              <b>Gifts</b>
-              <small>Collections</small>
-            </div>
-            <div class="import-loader-card import-loader-card-sticker">
-              <span><i data-lucide="sticker"></i></span>
-              <b>Stickers</b>
-              <small>NFT packs</small>
-            </div>
-            <div class="import-loader-ready"><i data-lucide="check"></i></div>
-          </div>
-          <div class="import-loader-copy">
+          <span class="import-loader-visual-spacer" aria-hidden="true"></span>
+          <div class="import-loader-copy" aria-live="polite">
             <small id="importLoaderStage">Step 1 of 5</small>
             <h2 id="importLoaderText">Meeting your wallet</h2>
             <p id="importLoaderNote">Opening a secure, read-only view.</p>
           </div>
           <div class="import-loader-progress">
-            <div><span>Building your portfolio</span><b id="importLoaderPercent">8%</b></div>
-            <span class="import-loader-progress-track"><b id="importLoaderBar"></b></span>
+            <div><span>Portfolio import</span><b id="importLoaderPercent">8%</b></div>
+            <span class="import-loader-progress-track" role="progressbar" aria-label="Wallet import progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="8">
+              <b id="importLoaderBar"></b>
+            </span>
           </div>
         </div>
       </div>
@@ -539,8 +545,8 @@
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
     <script src="https://unpkg.com/@tonconnect/ui@2.4.4/dist/tonconnect-ui.min.js"></script>
     <script src="./node_modules/chart.js/dist/chart.umd.js"></script>
-    <script src="./chart-platform.js?v=3"></script>
-  <script src="./app.js?v=goal-resume-20260829-2"></script>
-  <script src="./terminal-system.js?v=identity-assets-20260730-2"></script>
+    <script src="./chart-platform.js?v=reference-20261007-2"></script>
+  <script src="./app.js?v=p0-hardening-20261029-1"></script>
+  <script src="./terminal-system.js?v=reference-20261007-2"></script>
   </body>
 </html>

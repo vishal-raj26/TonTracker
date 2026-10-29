@@ -1,0 +1,91 @@
+{
+  "schemaVersion": "username-secondary-local-v1",
+  "from": "2026-09-20T14:00:00Z",
+  "pipeline": "username-toncenter-secondary-sales-v1",
+  "collectedAt": "2026-09-30T10:10:04.878Z",
+  "cursor": {
+    "absoluteOffset": 54058,
+    "caughtUp": false
+  },
+  "metadata": {
+    "transfers": 100,
+    "saleContracts": 11,
+    "verifiedSales": 1,
+    "assets": 1,
+    "sales": 1,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-30T10:10:04.878Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:f5e2c7d7982b08bf8d6298a44c1b8c59b4095c154b220406e4a7d14a2d13d8fa",
+      "normalizedName": "rich_zero",
+      "displayName": "@rich_zero",
+      "primaryRoute": "residual",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "9M",
+      "feature": {
+        "classifierVersion": "username-structural-v2",
+        "normalizedUsername": "rich_zero",
+        "displayUsername": "@rich_zero",
+        "characterLength": 9,
+        "byteLength": 9,
+        "characterClass": "alphanumeric",
+        "primaryRoute": "residual",
+        "routes": [
+          "residual"
+        ],
+        "scarcityClass": "9M",
+        "patternSignature": "ABCDEFGAH",
+        "shapeSignature": "LLLL_LLLL",
+        "uniqueCharacterCount": 8,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "repeatedBlock": null,
+        "scripts": [
+          "Latin"
+        ],
+        "primaryScript": "Latin",
+        "containsUnderscore": true,
+        "underscoreCount": 1,
+        "digitCount": 0,
+        "digitRatio": 0,
+        "vowelRatio": 0.375,
+        "pronounceability": "not-applicable",
+        "leadingZero": false,
+        "roundNumber": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-29T17:19:24.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-secondary:35316e8fdb99a130b2d14103cfce8733577c359009ac80081655e7a44c707890",
+      "assetKind": "username",
+      "assetKey": "0:f5e2c7d7982b08bf8d6298a44c1b8c59b4095c154b220406e4a7d14a2d13d8fa",
+      "normalizedName": "rich_zero",
+      "soldAt": "2026-09-29T17:19:24.000Z",
+      "priceGram": 16,
+      "historicalUsdRate": 1.5020919916226427,
+      "priceUsd": 24.033471865962284,
+      "marketplace": "Getgems",
+      "source": "toncenter-indexed-secondary-sale",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-completed-sale-contract",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "transactionHash": "QC399PjW73hOOqXE66opNzYpp938EkyJdGYJbJyGGVM=",
+        "saleContract": "0:684732e949925f12b8e084c937e176ed1341dfed0ecd3a68dfa9f908cebe1b7a"
+      },
+      "primaryRoute": "residual",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "9M"
+    }
+  ]
+}

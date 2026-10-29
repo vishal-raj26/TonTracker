@@ -1,0 +1,51 @@
+{
+  "version": "secondary-own-market-index-diagnostic-v1",
+  "frozenBeforeEvaluation": true,
+  "purpose": "Test whether observable market movement since a strictly-prior sale of the exact NFT improves the own-sale anchor, before fitting another estimator",
+  "sources": {
+    "historicalSales": {
+      "path": "research/telegram-usernames/data/dune_username_sales.part",
+      "sha256": "6d724b74f727a797d553190cb72e408d3c70d6069202636a60f7ea2b2850682f"
+    },
+    "historicalInventory": {
+      "path": "research/telegram-usernames/data/tonapi_username_universe.csv",
+      "sha256": "5bd5216ddfe76d5c18e490814b968fa6ca9ffc42a65cdf2224c6b9b8a90f9f6b"
+    },
+    "pairedV25Report": {
+      "path": "research/telegram-usernames/data/username-secondary-own-history-v25-comparison-2026-09-27.json",
+      "sha256": "be022970b33b8662b266496e652da60299d4e677be4020920148173ee3c32186",
+      "cases": 30995
+    },
+    "ownHistoryReport": {
+      "path": "research/telegram-usernames/data/username-secondary-own-history-development-2026-09-27.json",
+      "sha256": "209077a97ece045bf4c9acd6d3184fdcdfa6b3777fd83fa7b940e186ed45de12",
+      "cases": 30995
+    }
+  },
+  "sourceCodeSha256": "157ace40e59e537b2117d015ef4dfadaa6bd007466905bc76b8b284d2586bf4a",
+  "windows": [
+    ["2024-10-01T00:00:00Z", "2025-01-01T00:00:00Z"],
+    ["2025-01-01T00:00:00Z", "2025-02-01T00:00:00Z"]
+  ],
+  "marketIndex": {
+    "observations": "Every verified historical sale in the frozen Dune plus inventory join; no target price or realized target venue is an index routing feature",
+    "window": "The 28 complete UTC days before each reference day, excluding the reference day and all later sales",
+    "distribution": "90th percentile of historical log USD sale price; use global and exact username length buckets 1-4, 5-7, 8-32",
+    "minimumBucketSales": 100,
+    "minimumGlobalSales": 300,
+    "histogram": "Deterministic log-USD bins width 0.025 from -10 inclusive to 20 exclusive, reporting clipped observation count",
+    "priorOwnTimestamp": "target event time minus the audited prior-own age in days, rounded to the nearest millisecond",
+    "adjustedAnchor": "prior-own USD price times exp(target trailing-log-quantile minus prior-own trailing-log-quantile); no floor or live quote",
+    "missingIndex": "Abstain from adjusted-anchor diagnostic; retain the case in full-attempt denominators"
+  },
+  "reporting": {
+    "allCasesRetained": true,
+    "cohorts": ["all", "secondary", "secondary/ordinary", "secondary/intermediate", "secondary/premium", "primary/premium"],
+    "comparators": ["raw last-own-sale anchor", "global-p90-adjusted anchor", "length-p90-adjusted anchor", "same-case v25", "frozen own-history HGB"],
+    "metrics": ["attempts", "available", "abstentions", "mean absolute log error", "median factor error", "p95 factor error"],
+    "uncertainty": "2000 deterministic exact-NFT-cluster bootstrap resamples for adjusted versus raw own-sale secondary-premium MALE on common cases",
+    "intervals": "No interval is fitted in this signal diagnostic; a qualifying estimator must later report interval coverage and score separately"
+  },
+  "decision": "This exposed-history signal diagnostic cannot qualify production. If neither adjusted anchor improves secondary-premium point error and its lower clustered improvement bound is positive while limiting ordinary deterioration to 5%, reject market indexing as the next feature path. If promising, predeclare and evaluate a separate full estimator with intervals and same-case v25 before any integration.",
+  "reservedCurrentMarketOutcomes": "Remain sealed and unused"
+}

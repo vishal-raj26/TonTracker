@@ -1,0 +1,62 @@
+{
+  "schemaVersion": "username-secondary-qualification-protocol-supplement-v2",
+  "sealedBeforeOutcomeLabelsOpened": true,
+  "createdAt": "2026-09-25T09:12:24.883Z",
+  "supersedes": {
+    "file": "username-secondary-qualification-protocol-supplement-2026-09-22.json",
+    "sha256": "bd2b8611caee2ebbaa9e72c3f64e6d837c94d321bc591fcc2f949011e78b1eae",
+    "reason": "The v1 evaluator repeatedly rebuilt and retained large historical model keys, making the full prospective run impractical. No reserved outcome was opened. The v2 evaluator fits the historical baseline once and refreshes the candidate global model every 50 targets while retaining strictly prior target evidence."
+  },
+  "reservation": {
+    "file": "username-secondary-forward-reservation-manifest-2026-09-20.json",
+    "sha256": "7d0fa6468539febb565919dadad4a3eff3412a8a4d907f42316acad92f156c94"
+  },
+  "priceBlindStateAtSeal": {
+    "audit": "username-secondary-integrity-2026-09-25-batch1.json",
+    "sha256": "0df99b035f37d5430df32a17955424eff927dde15801b2a316d9f98a0098b27b",
+    "pricesOpened": false,
+    "uniqueEvents": 798,
+    "uniqueAssets": 745,
+    "cursor": {
+      "absoluteOffset": 15770,
+      "caughtUp": false
+    }
+  },
+  "frozenFiles": {
+    "scripts/evaluate-username-secondary-qualification.js": "f11f907e03595d089473c288d27288ba53bfd6cbf1f50c904b0183fce66eb94a",
+    "scripts/seal-username-secondary-qualification.js": "2213d82ed9446484284dae8ed83e0358d0c7ce847ad0606a8d78901a21c350bf"
+  },
+  "gates": {
+    "minimumPremiumUniqueIdentities": 100,
+    "minimumPremiumWeeklyBlocks": 2,
+    "premiumThresholdUsd": 500,
+    "premiumMedianFactorErrorMaximum": 3,
+    "premiumMaleImprovementVsV25Minimum": 0.25,
+    "ordinaryAndIntermediateMaleRegressionMaximum": 0.05,
+    "overallIntervalCoverageMinimum": 0.75,
+    "overallIntervalCoverageMaximum": 0.85,
+    "premiumIntervalCoverageMinimum": 0.7,
+    "premiumImprovementBootstrapLower95Minimum": 0,
+    "overallIntervalScoreRegressionMaximum": 0,
+    "candidateAvailabilityRegressionMaximum": 0
+  },
+  "evaluation": {
+    "baseline": "v25 with historical export only; reserved outcomes never enter baseline evidence",
+    "candidate": "same v25 plus only strictly earlier reserved secondary sales",
+    "simultaneousEventsExcluded": true,
+    "everyReservedEventAttempted": true,
+    "pairedCohortComparison": true,
+    "baselineGlobalModel": "fit once on the latest 30000 historical sales before the first reserved target",
+    "candidateGlobalModel": "fit on prior-only rolling 30000 sales at the first target and every 50 targets thereafter",
+    "ownHistory": "include every strictly prior same-username sale even when outside the rolling market history",
+    "bootstrap": {
+      "clusteredBy": "nftAddress",
+      "iterations": 2000,
+      "seed": 25092026,
+      "confidence": 0.95
+    },
+    "terminalCondition": "first of exact 4000 unique events or 2026-10-20T00:00:00Z with caught-up cursor",
+    "oneTimeOutput": "username-secondary-qualification-result.json"
+  },
+  "rationale": "The original pre-window reservation froze candidate behavior and gates but omitted the mechanical final evaluator. This replacement supplement corrects the evaluator's scaling failure while all reserved prices and premium counts remain unopened; it does not select events or change the original accuracy gates."
+}

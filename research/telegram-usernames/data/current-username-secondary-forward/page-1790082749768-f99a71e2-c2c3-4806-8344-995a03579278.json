@@ -1,0 +1,91 @@
+{
+  "schemaVersion": "username-secondary-local-v1",
+  "from": "2026-09-20T14:00:00Z",
+  "pipeline": "username-toncenter-secondary-sales-v1",
+  "collectedAt": "2026-09-22T13:12:29.768Z",
+  "cursor": {
+    "absoluteOffset": 9900,
+    "caughtUp": false
+  },
+  "metadata": {
+    "transfers": 100,
+    "saleContracts": 10,
+    "verifiedSales": 1,
+    "assets": 1,
+    "sales": 1,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-22T13:12:29.768Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:d874e339206390d29d91d3c015f22b94e98062765bf9da96dd5371d4db7836a9",
+      "normalizedName": "zicnu",
+      "displayName": "@zicnu",
+      "primaryRoute": "word",
+      "lengthBucket": "4-5",
+      "script": "Latin",
+      "scarcityClass": "5L",
+      "feature": {
+        "classifierVersion": "username-structural-v2",
+        "normalizedUsername": "zicnu",
+        "displayUsername": "@zicnu",
+        "characterLength": 5,
+        "byteLength": 5,
+        "characterClass": "letters",
+        "primaryRoute": "word",
+        "routes": [
+          "word"
+        ],
+        "scarcityClass": "5L",
+        "patternSignature": "ABCDE",
+        "shapeSignature": "LLLLL",
+        "uniqueCharacterCount": 5,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "repeatedBlock": null,
+        "scripts": [
+          "Latin"
+        ],
+        "primaryScript": "Latin",
+        "containsUnderscore": false,
+        "underscoreCount": 0,
+        "digitCount": 0,
+        "digitRatio": 0,
+        "vowelRatio": 0.4,
+        "pronounceability": "balanced",
+        "leadingZero": false,
+        "roundNumber": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-22T02:46:41.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-secondary:7c63e0d0e6330f3bb162262e8eecb0a9a883b68b703306c7ea56926530d4d318",
+      "assetKind": "username",
+      "assetKey": "0:d874e339206390d29d91d3c015f22b94e98062765bf9da96dd5371d4db7836a9",
+      "normalizedName": "zicnu",
+      "soldAt": "2026-09-22T02:46:41.000Z",
+      "priceGram": 5.77,
+      "historicalUsdRate": 1.4486633491178338,
+      "priceUsd": 8.3587875244099,
+      "marketplace": "Getgems",
+      "source": "toncenter-indexed-secondary-sale",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-completed-sale-contract",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "transactionHash": "lJOUXnwA7BPB3B383Dov3eHSdmKlmLcMW13jCZ/bQ34=",
+        "saleContract": "0:df08303c9dffa3164ce28121e32a9d3b3c164f95de3ba079b9c4174c8f94d4fa"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "4-5",
+      "script": "Latin",
+      "scarcityClass": "5L"
+    }
+  ]
+}

@@ -1,0 +1,175 @@
+{
+  "schemaVersion": "username-local-collection-v1",
+  "from": "2026-09-01T00:00:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "collectedAt": "2026-09-19T16:10:12.013Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 9920,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 80,
+    "candidates": 10,
+    "verifiedItems": 3,
+    "wrongCollection": 7,
+    "assets": 3,
+    "sales": 3,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-19T16:10:12.013Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:e6dac2d9f306da220e30962e196f2c7ff38d7a6e6713fe6d7eb787bbf615c720",
+      "normalizedName": "spatlova",
+      "displayName": "@spatlova",
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "8L",
+      "feature": {
+        "characterLength": 8,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCDEFGC",
+        "uniqueCharacterCount": 7,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-01T15:00:54.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:e47e4702c478a5a6e9c2838ce0cb750a47f0d93cbdf14b4ef72d65dd6a3e73e3",
+      "normalizedName": "llllyy",
+      "displayName": "@llllyy",
+      "primaryRoute": "pattern",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "6L",
+      "feature": {
+        "characterLength": 6,
+        "characterClass": "letters",
+        "routes": [
+          "pattern"
+        ],
+        "patternSignature": "AAAABB",
+        "uniqueCharacterCount": 2,
+        "maxRunLength": 4,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-01T15:02:09.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:f516ac20a783a4bce14bb3d3ccc10686b9df2fe5753e2b7d697b67baf1fbb71f",
+      "normalizedName": "vpnshang",
+      "displayName": "@vpnshang",
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "8L",
+      "feature": {
+        "characterLength": 8,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCDEFCG",
+        "uniqueCharacterCount": 7,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-01T15:02:13.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:8ccb793344d403bd5385e6971b0420e09474f95eadabbc8f7c919be49914be1a",
+      "assetKind": "username",
+      "assetKey": "0:e6dac2d9f306da220e30962e196f2c7ff38d7a6e6713fe6d7eb787bbf615c720",
+      "normalizedName": "spatlova",
+      "soldAt": "2026-09-01T15:00:54.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.3387732448014975,
+      "priceUsd": 13.387732448014976,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "qT5hhPoJGdE8gwuII10EkwGwOBZMpnaEpOdc7PAsJp8=",
+        "messageHash": "Az1F50bTwvZKauVp1i8VYb/c/87URCz5azLCLdQsA2Y=",
+        "bidAt": "2026-08-25T15:00:36.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "8L"
+    },
+    {
+      "saleId": "toncenter-username-sale:cc6535363bf8eefe5a139e6d36117fa30ec7111f2d9050ae48f4138c43f2a2ed",
+      "assetKind": "username",
+      "assetKey": "0:e47e4702c478a5a6e9c2838ce0cb750a47f0d93cbdf14b4ef72d65dd6a3e73e3",
+      "normalizedName": "llllyy",
+      "soldAt": "2026-09-01T15:02:09.000Z",
+      "priceGram": 23,
+      "historicalUsdRate": 1.3387106456026967,
+      "priceUsd": 30.790344848862023,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "GIrFGLNJZyzoUhQ5Z1rnnxK7xA4KN3P64W1typGtNSc=",
+        "messageHash": "VvELHPkkEkukRnVPqWo/3v7N1HcMH5k5tz2Eu3nvinI=",
+        "bidAt": "2026-09-01T14:01:51.000Z"
+      },
+      "primaryRoute": "pattern",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "6L"
+    },
+    {
+      "saleId": "toncenter-username-sale:cd6f874ba3e72d05849f69806ee9f0ef703b96e47bf91d48706d9465bb5bb09b",
+      "assetKind": "username",
+      "assetKey": "0:f516ac20a783a4bce14bb3d3ccc10686b9df2fe5753e2b7d697b67baf1fbb71f",
+      "normalizedName": "vpnshang",
+      "soldAt": "2026-09-01T15:02:13.000Z",
+      "priceGram": 15,
+      "historicalUsdRate": 1.338707807665969,
+      "priceUsd": 20.080617114989536,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "1EdkLKzFDVyHdfmkXA9W85iHRpVej1ykcdN5PHMS8Bo=",
+        "messageHash": "S0L/6LIr6X3jfxpos5yKiVIA8LkhIdwDXd6Li4HZGfc=",
+        "bidAt": "2026-08-25T15:01:57.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "8L"
+    }
+  ]
+}

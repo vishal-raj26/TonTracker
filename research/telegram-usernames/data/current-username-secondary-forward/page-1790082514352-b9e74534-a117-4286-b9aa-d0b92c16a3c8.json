@@ -1,0 +1,91 @@
+{
+  "schemaVersion": "username-secondary-local-v1",
+  "from": "2026-09-20T14:00:00Z",
+  "pipeline": "username-toncenter-secondary-sales-v1",
+  "collectedAt": "2026-09-22T13:08:34.352Z",
+  "cursor": {
+    "absoluteOffset": 1900,
+    "caughtUp": false
+  },
+  "metadata": {
+    "transfers": 100,
+    "saleContracts": 3,
+    "verifiedSales": 1,
+    "assets": 1,
+    "sales": 1,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-22T13:08:34.352Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:e130bca682cdc2bf6be49c71d741c95a15168e30f54c02cb3700c8b8ae48db45",
+      "normalizedName": "whola",
+      "displayName": "@whola",
+      "primaryRoute": "word",
+      "lengthBucket": "4-5",
+      "script": "Latin",
+      "scarcityClass": "5L",
+      "feature": {
+        "classifierVersion": "username-structural-v2",
+        "normalizedUsername": "whola",
+        "displayUsername": "@whola",
+        "characterLength": 5,
+        "byteLength": 5,
+        "characterClass": "letters",
+        "primaryRoute": "word",
+        "routes": [
+          "word"
+        ],
+        "scarcityClass": "5L",
+        "patternSignature": "ABCDE",
+        "shapeSignature": "LLLLL",
+        "uniqueCharacterCount": 5,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "repeatedBlock": null,
+        "scripts": [
+          "Latin"
+        ],
+        "primaryScript": "Latin",
+        "containsUnderscore": false,
+        "underscoreCount": 0,
+        "digitCount": 0,
+        "digitRatio": 0,
+        "vowelRatio": 0.4,
+        "pronounceability": "balanced",
+        "leadingZero": false,
+        "roundNumber": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-20T18:22:56.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-secondary:40ffd5b8fbd0e6a5a6e8513bb0ebc01d5425af8928b8a5961d9ba91e08c91a6d",
+      "assetKind": "username",
+      "assetKey": "0:e130bca682cdc2bf6be49c71d741c95a15168e30f54c02cb3700c8b8ae48db45",
+      "normalizedName": "whola",
+      "soldAt": "2026-09-20T18:22:56.000Z",
+      "priceGram": 27,
+      "historicalUsdRate": 1.3909065559737512,
+      "priceUsd": 37.55447701129128,
+      "marketplace": "Getgems",
+      "source": "toncenter-indexed-secondary-sale",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-completed-sale-contract",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "transactionHash": "Qn2lFzyG0U9dGZ4ieL2mY1x5nca+BMpqnBJ4kvw+smg=",
+        "saleContract": "0:8f38909af6bc8626dd992c3d0f9d3d865f739dc1923c1efbdbdcb0f965a71c3c"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "4-5",
+      "script": "Latin",
+      "scarcityClass": "5L"
+    }
+  ]
+}

@@ -1,0 +1,91 @@
+{
+  "schemaVersion": "username-secondary-local-v1",
+  "from": "2026-09-20T14:00:00Z",
+  "pipeline": "username-toncenter-secondary-sales-v1",
+  "collectedAt": "2026-09-27T19:59:21.230Z",
+  "cursor": {
+    "absoluteOffset": 41740,
+    "caughtUp": false
+  },
+  "metadata": {
+    "transfers": 100,
+    "saleContracts": 2,
+    "verifiedSales": 1,
+    "assets": 1,
+    "sales": 1,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-27T19:59:21.230Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:260f643e43201333c6880b396e9db38e52c0ea69862eae008f9230e98fff198b",
+      "normalizedName": "st00yak",
+      "displayName": "@st00yak",
+      "primaryRoute": "pattern",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "7M",
+      "feature": {
+        "classifierVersion": "username-structural-v2",
+        "normalizedUsername": "st00yak",
+        "displayUsername": "@st00yak",
+        "characterLength": 7,
+        "byteLength": 7,
+        "characterClass": "alphanumeric",
+        "primaryRoute": "pattern",
+        "routes": [
+          "pattern"
+        ],
+        "scarcityClass": "7M",
+        "patternSignature": "ABCCDEF",
+        "shapeSignature": "LLNNLLL",
+        "uniqueCharacterCount": 6,
+        "maxRunLength": 2,
+        "palindrome": false,
+        "sequence": null,
+        "repeatedBlock": null,
+        "scripts": [
+          "Latin"
+        ],
+        "primaryScript": "Latin",
+        "containsUnderscore": false,
+        "underscoreCount": 0,
+        "digitCount": 2,
+        "digitRatio": 0.2857142857142857,
+        "vowelRatio": 0.4,
+        "pronounceability": "not-applicable",
+        "leadingZero": false,
+        "roundNumber": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-27T17:06:55.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-secondary:181b130f380e2782ea3adf6283ff3ef350c56042a383ffd6b31f79fef82ddfc9",
+      "assetKind": "username",
+      "assetKey": "0:260f643e43201333c6880b396e9db38e52c0ea69862eae008f9230e98fff198b",
+      "normalizedName": "st00yak",
+      "soldAt": "2026-09-27T17:06:55.000Z",
+      "priceGram": 5.9,
+      "historicalUsdRate": 1.6899198637526505,
+      "priceUsd": 9.970527196140639,
+      "marketplace": "Getgems",
+      "source": "toncenter-indexed-secondary-sale",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-completed-sale-contract",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "nearest-observation",
+        "transactionHash": "iw2GjV1CyW690OzrCT6J6ZaQZQDPANmnI/7+m8dqCww=",
+        "saleContract": "0:4c0f3126e1813d35f2885810e843b55b1edabf81678dd8bcda4654aa4e844aec"
+      },
+      "primaryRoute": "pattern",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "7M"
+    }
+  ]
+}

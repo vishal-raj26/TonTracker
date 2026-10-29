@@ -1,0 +1,91 @@
+{
+  "schemaVersion": "username-secondary-local-v1",
+  "from": "2026-09-20T14:00:00Z",
+  "pipeline": "username-toncenter-secondary-sales-v1",
+  "collectedAt": "2026-09-27T19:59:31.733Z",
+  "cursor": {
+    "absoluteOffset": 42240,
+    "caughtUp": false
+  },
+  "metadata": {
+    "transfers": 100,
+    "saleContracts": 2,
+    "verifiedSales": 1,
+    "assets": 1,
+    "sales": 1,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-27T19:59:31.733Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:9f482296cc1bc2d41d66561729e35994d5b05383e333a8420fdba0509d6d9dc6",
+      "normalizedName": "jwira",
+      "displayName": "@jwira",
+      "primaryRoute": "word",
+      "lengthBucket": "4-5",
+      "script": "Latin",
+      "scarcityClass": "5L",
+      "feature": {
+        "classifierVersion": "username-structural-v2",
+        "normalizedUsername": "jwira",
+        "displayUsername": "@jwira",
+        "characterLength": 5,
+        "byteLength": 5,
+        "characterClass": "letters",
+        "primaryRoute": "word",
+        "routes": [
+          "word"
+        ],
+        "scarcityClass": "5L",
+        "patternSignature": "ABCDE",
+        "shapeSignature": "LLLLL",
+        "uniqueCharacterCount": 5,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "repeatedBlock": null,
+        "scripts": [
+          "Latin"
+        ],
+        "primaryScript": "Latin",
+        "containsUnderscore": false,
+        "underscoreCount": 0,
+        "digitCount": 0,
+        "digitRatio": 0,
+        "vowelRatio": 0.4,
+        "pronounceability": "balanced",
+        "leadingZero": false,
+        "roundNumber": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-27T17:21:10.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-secondary:c7157c942749a44dccc4add1ad872db074d73dd6a278898056ba8a172371a0c5",
+      "assetKind": "username",
+      "assetKey": "0:9f482296cc1bc2d41d66561729e35994d5b05383e333a8420fdba0509d6d9dc6",
+      "normalizedName": "jwira",
+      "soldAt": "2026-09-27T17:21:10.000Z",
+      "priceGram": 5.869999,
+      "historicalUsdRate": 1.6880894623212999,
+      "priceUsd": 9.909083455736567,
+      "marketplace": "Getgems",
+      "source": "toncenter-indexed-secondary-sale",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-completed-sale-contract",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "nearest-observation",
+        "transactionHash": "1IucotZBiY+JWaucijC0/LDao/tqdxNqgTM7UT9jYEY=",
+        "saleContract": "0:770d2c69f83d7c6e6955d00c2d76484e3d6cabcc7348e6b5e9ed705a32aa2c06"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "4-5",
+      "script": "Latin",
+      "scarcityClass": "5L"
+    }
+  ]
+}

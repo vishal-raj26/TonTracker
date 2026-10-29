@@ -1,0 +1,91 @@
+{
+  "schemaVersion": "username-secondary-local-v1",
+  "from": "2026-09-20T14:00:00Z",
+  "pipeline": "username-toncenter-secondary-sales-v1",
+  "collectedAt": "2026-09-22T13:10:16.901Z",
+  "cursor": {
+    "absoluteOffset": 5500,
+    "caughtUp": false
+  },
+  "metadata": {
+    "transfers": 100,
+    "saleContracts": 1,
+    "verifiedSales": 1,
+    "assets": 1,
+    "sales": 1,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-22T13:10:16.901Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:994cc3c92d104070a3e51a4b6cdb1a2da64301ed155ad2dca80d2e4588fa84e8",
+      "normalizedName": "thugflexer",
+      "displayName": "@thugflexer",
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "10L",
+      "feature": {
+        "classifierVersion": "username-structural-v2",
+        "normalizedUsername": "thugflexer",
+        "displayUsername": "@thugflexer",
+        "characterLength": 10,
+        "byteLength": 10,
+        "characterClass": "letters",
+        "primaryRoute": "word",
+        "routes": [
+          "word"
+        ],
+        "scarcityClass": "10L",
+        "patternSignature": "ABCDEFGHGI",
+        "shapeSignature": "LLLLLLLLLL",
+        "uniqueCharacterCount": 9,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "repeatedBlock": null,
+        "scripts": [
+          "Latin"
+        ],
+        "primaryScript": "Latin",
+        "containsUnderscore": false,
+        "underscoreCount": 0,
+        "digitCount": 0,
+        "digitRatio": 0,
+        "vowelRatio": 0.3,
+        "pronounceability": "balanced",
+        "leadingZero": false,
+        "roundNumber": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-21T10:57:51.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-secondary:da2364ab04009a45659157204bcab0e02888c004dbfaf33a4b0084e5d0abaabc",
+      "assetKind": "username",
+      "assetKey": "0:994cc3c92d104070a3e51a4b6cdb1a2da64301ed155ad2dca80d2e4588fa84e8",
+      "normalizedName": "thugflexer",
+      "soldAt": "2026-09-21T10:57:51.000Z",
+      "priceGram": 15,
+      "historicalUsdRate": 1.4258275610302604,
+      "priceUsd": 21.387413415453906,
+      "marketplace": "Getgems",
+      "source": "toncenter-indexed-secondary-sale",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-completed-sale-contract",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "transactionHash": "dXxbzJa1K83nApVxhQkrAFWIJrWXj6dOcjJYRqoi4rY=",
+        "saleContract": "0:e463bc4c41044f208047218865e8d738880f8b6e08c931b71bf266238ad83ede"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "10L"
+    }
+  ]
+}

@@ -1,0 +1,75 @@
+{
+  "schemaVersion": "username-local-collection-v1",
+  "from": "2026-09-20T13:45:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "collectedAt": "2026-09-22T13:03:26.859Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 28809,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 80,
+    "candidates": 23,
+    "verifiedItems": 1,
+    "wrongCollection": 22,
+    "assets": 1,
+    "sales": 1,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-22T13:03:26.859Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:f17dab5cfbbb0ace5135bd208e01e90b3303410362a542a768c94cd7c31b07b5",
+      "normalizedName": "swwwwwwwwwwwwwwwwwwwwwwwwwwwwaag",
+      "displayName": "@swwwwwwwwwwwwwwwwwwwwwwwwwwwwaag",
+      "primaryRoute": "pattern",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "32L",
+      "feature": {
+        "characterLength": 32,
+        "characterClass": "letters",
+        "routes": [
+          "pattern"
+        ],
+        "patternSignature": "ABBBBBBBBBBBBBBBBBBBBBBBBBBBBCCD",
+        "uniqueCharacterCount": 4,
+        "maxRunLength": 28,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-21T20:13:34.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:77d47251336c3d4e54928ab191658157295152efd65fb2e3d26e6c4b52b7df64",
+      "assetKind": "username",
+      "assetKey": "0:f17dab5cfbbb0ace5135bd208e01e90b3303410362a542a768c94cd7c31b07b5",
+      "normalizedName": "swwwwwwwwwwwwwwwwwwwwwwwwwwwwaag",
+      "soldAt": "2026-09-21T20:13:34.000Z",
+      "priceGram": 7,
+      "historicalUsdRate": 1.468586145572386,
+      "priceUsd": 10.280103019006702,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "2Jtpg14j8ntdmlO1a6c1jE27FP50ZBeB78FRRyUIUxY=",
+        "messageHash": "JPSS0fpjFQLGkT6eTvzDVbUyrCJRFchi/S+VTHZXUAA=",
+        "bidAt": "2026-09-21T20:13:34.000Z"
+      },
+      "primaryRoute": "pattern",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "32L"
+    }
+  ]
+}

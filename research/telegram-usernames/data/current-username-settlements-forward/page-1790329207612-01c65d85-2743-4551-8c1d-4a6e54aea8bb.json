@@ -1,0 +1,75 @@
+{
+  "schemaVersion": "username-local-collection-v1",
+  "from": "2026-09-20T13:45:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "collectedAt": "2026-09-25T09:40:07.612Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 49545,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 80,
+    "candidates": 12,
+    "verifiedItems": 1,
+    "wrongCollection": 11,
+    "assets": 1,
+    "sales": 1,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-25T09:40:07.612Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:bef7830ad5fb172d505a047b54c7fb13f96311d3ee440de3a77a18ba113d48b5",
+      "normalizedName": "bowenia",
+      "displayName": "@bowenia",
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "7L",
+      "feature": {
+        "characterLength": 7,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCDEFG",
+        "uniqueCharacterCount": 7,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-22T20:23:06.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:227209ca3eb43af3c0e45d116053e4cbd8885a9748d0f6ca910c707a7327f8c3",
+      "assetKind": "username",
+      "assetKey": "0:bef7830ad5fb172d505a047b54c7fb13f96311d3ee440de3a77a18ba113d48b5",
+      "normalizedName": "bowenia",
+      "soldAt": "2026-09-22T20:23:06.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.449307487842844,
+      "priceUsd": 14.493074878428441,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "MSz3ehlxigyS58+WuJi9tDEO7YfFlJbpBGkNgo7PFh0=",
+        "messageHash": "T7H9K9OXKCdq6BdH2WV1uHoBsONlm7EifHUCgFfIHRs=",
+        "bidAt": "2026-09-15T20:22:50.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "7L"
+    }
+  ]
+}

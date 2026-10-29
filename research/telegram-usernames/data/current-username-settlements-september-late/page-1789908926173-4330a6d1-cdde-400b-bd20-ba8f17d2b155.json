@@ -1,0 +1,75 @@
+{
+  "schemaVersion": "username-local-collection-v1",
+  "from": "2026-09-10T00:00:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "collectedAt": "2026-09-20T12:55:26.173Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 15820,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 20,
+    "candidates": 3,
+    "verifiedItems": 1,
+    "wrongCollection": 2,
+    "assets": 1,
+    "sales": 1,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-20T12:55:26.172Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:b7f6aa62227ea167d140e678c6905c1ed7aae91120ba6129485223e024d761de",
+      "normalizedName": "seroj",
+      "displayName": "@seroj",
+      "primaryRoute": "word",
+      "lengthBucket": "4-5",
+      "script": "Latin",
+      "scarcityClass": "5L",
+      "feature": {
+        "characterLength": 5,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCDE",
+        "uniqueCharacterCount": 5,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-10T20:38:02.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:910a1f3dd04f91804e3fcd8f7e9169568c5f7844e10cb9fbf15c522db3ed621d",
+      "assetKind": "username",
+      "assetKey": "0:b7f6aa62227ea167d140e678c6905c1ed7aae91120ba6129485223e024d761de",
+      "normalizedName": "seroj",
+      "soldAt": "2026-09-10T20:38:02.000Z",
+      "priceGram": 19,
+      "historicalUsdRate": 1.3560199665545083,
+      "priceUsd": 25.764379364535657,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "d+zJraLMjr084PjEMCVvTK81Mfz3vECOVDOe9L79rGg=",
+        "messageHash": "05BdxMlN63gVGZCw/zADjcgpgis/RsEQNphwUj/veWQ=",
+        "bidAt": "2026-09-10T20:38:02.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "4-5",
+      "script": "Latin",
+      "scarcityClass": "5L"
+    }
+  ]
+}

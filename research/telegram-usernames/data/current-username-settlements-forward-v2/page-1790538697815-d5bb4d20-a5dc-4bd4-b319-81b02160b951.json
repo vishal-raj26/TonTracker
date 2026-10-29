@@ -1,0 +1,126 @@
+{
+  "schemaVersion": "username-forward-v2-local-v1",
+  "from": "2026-09-27T00:00:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "requestedEndUtime": 1790537700,
+  "collectedAt": "2026-09-27T19:51:37.815Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 9071,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 80,
+    "candidates": 6,
+    "verifiedItems": 2,
+    "wrongCollection": 4,
+    "assets": 2,
+    "sales": 2,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-27T19:51:37.814Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:4f52b822cc5f23a017bf456ce1afa3a3216dd5219ee5cde7a4e577f982d6c04a",
+      "normalizedName": "antivirals",
+      "displayName": "@antivirals",
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "10L",
+      "feature": {
+        "characterLength": 10,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCDEDFAGH",
+        "uniqueCharacterCount": 8,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-27T13:39:56.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:f5fbcce5fb51213951c2a999864399c32c9e1118951401c913c734369a9da82a",
+      "normalizedName": "vokxo",
+      "displayName": "@vokxo",
+      "primaryRoute": "word",
+      "lengthBucket": "4-5",
+      "script": "Latin",
+      "scarcityClass": "5L",
+      "feature": {
+        "characterLength": 5,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCDB",
+        "uniqueCharacterCount": 4,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-27T13:40:59.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:6e379c7810e2253d168b91947dfa34b17a3d07533bc124c721068024e4c3f9f7",
+      "assetKind": "username",
+      "assetKey": "0:4f52b822cc5f23a017bf456ce1afa3a3216dd5219ee5cde7a4e577f982d6c04a",
+      "normalizedName": "antivirals",
+      "soldAt": "2026-09-27T13:39:56.000Z",
+      "priceGram": 20,
+      "historicalUsdRate": 1.5992736883342196,
+      "priceUsd": 31.985473766684393,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "cNLnYHbcucZdQvbMW+IB2wXPLUY30yWSg0BQFrAw/Cw=",
+        "messageHash": "x50/Dsv9j0MRhuKHzEXUEp8lWPmG7eqG+x/xigIS2gM=",
+        "bidAt": "2026-09-20T13:44:31.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "10L"
+    },
+    {
+      "saleId": "toncenter-username-sale:53482bb1049a730e55bcfd2eafd1147678a1787c29b84091bc250f3470e0a409",
+      "assetKind": "username",
+      "assetKey": "0:f5fbcce5fb51213951c2a999864399c32c9e1118951401c913c734369a9da82a",
+      "normalizedName": "vokxo",
+      "soldAt": "2026-09-27T13:40:59.000Z",
+      "priceGram": 7,
+      "historicalUsdRate": 1.5994291995723964,
+      "priceUsd": 11.196004397006774,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "I+Rxhx9UT/JRJzXE4n/6EXyhTZPTVnOJ/mfgRsR9nT8=",
+        "messageHash": "FNhwiMdZoOO4va9t26UIof2XrKHF66jNlfEML0WLe9M=",
+        "bidAt": "2026-09-27T13:40:59.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "4-5",
+      "script": "Latin",
+      "scarcityClass": "5L"
+    }
+  ]
+}

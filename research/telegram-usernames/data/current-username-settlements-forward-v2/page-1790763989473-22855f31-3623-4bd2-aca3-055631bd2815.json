@@ -1,0 +1,176 @@
+{
+  "schemaVersion": "username-forward-v2-local-v1",
+  "from": "2026-09-27T00:00:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "requestedEndUtime": 1790761800,
+  "collectedAt": "2026-09-30T10:26:29.473Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 43965,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 80,
+    "candidates": 10,
+    "verifiedItems": 3,
+    "wrongCollection": 7,
+    "assets": 3,
+    "sales": 3,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-30T10:26:29.473Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:f17388e2a0dacbfa03373e9d04c89e81b896b37c5307b1aaa58965b47ed467f7",
+      "normalizedName": "orramir",
+      "displayName": "@orramir",
+      "primaryRoute": "pattern",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "7L",
+      "feature": {
+        "characterLength": 7,
+        "characterClass": "letters",
+        "routes": [
+          "pattern"
+        ],
+        "patternSignature": "ABBCDEB",
+        "uniqueCharacterCount": 5,
+        "maxRunLength": 2,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-29T13:17:07.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:f64df0d3044c5aa90cbf276239061707a04c85ea358e19df5e18322f9c10cd5d",
+      "normalizedName": "bcz_toxic",
+      "displayName": "@bcz_toxic",
+      "primaryRoute": "residual",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "9M",
+      "feature": {
+        "characterLength": 9,
+        "characterClass": "alphanumeric",
+        "routes": [
+          "residual"
+        ],
+        "patternSignature": "ABCDEFGHB",
+        "uniqueCharacterCount": 8,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": true,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-29T13:17:26.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:0af69f09f30f49d136700c4360657bf658284f878cde5ad95b087c88b4e85788",
+      "normalizedName": "rapedbaby",
+      "displayName": "@rapedbaby",
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "9L",
+      "feature": {
+        "characterLength": 9,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCDEFBFG",
+        "uniqueCharacterCount": 7,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-29T13:18:28.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:1904240084846c0275bb9eae45477de1f9bd4dc94acaf25050f0940c740d521e",
+      "assetKind": "username",
+      "assetKey": "0:f17388e2a0dacbfa03373e9d04c89e81b896b37c5307b1aaa58965b47ed467f7",
+      "normalizedName": "orramir",
+      "soldAt": "2026-09-29T13:17:07.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.5462818595820902,
+      "priceUsd": 15.462818595820902,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "3FZ2Poj/ikVWJHbKw7N7KjsTmwcW6MmBG0Ou6Hc2rvE=",
+        "messageHash": "utyMzQ+DDvQSp3piOhy4QTQFmjKPe/O/ZoxdJMBTyts=",
+        "bidAt": "2026-09-22T13:15:28.000Z"
+      },
+      "primaryRoute": "pattern",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "7L"
+    },
+    {
+      "saleId": "toncenter-username-sale:2e0db13d00606dc226c06ae397f44ad2081f1b565c660602c3e9db17d7debf20",
+      "assetKind": "username",
+      "assetKey": "0:f64df0d3044c5aa90cbf276239061707a04c85ea358e19df5e18322f9c10cd5d",
+      "normalizedName": "bcz_toxic",
+      "soldAt": "2026-09-29T13:17:26.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.5462538195338005,
+      "priceUsd": 15.462538195338006,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "244Mm7/kwyD8sblYrU241XzDbcyFJmF2lRvVdHTJsyM=",
+        "messageHash": "bFKSidXZl+IiV8GpfPNcTmL2bb3g3wHomCzb/5sNEDs=",
+        "bidAt": "2026-09-22T13:13:14.000Z"
+      },
+      "primaryRoute": "residual",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "9M"
+    },
+    {
+      "saleId": "toncenter-username-sale:f13a37db05f280893e47d8b990f496ca9f230c35ad2847ead9fc201a059be145",
+      "assetKind": "username",
+      "assetKey": "0:0af69f09f30f49d136700c4360657bf658284f878cde5ad95b087c88b4e85788",
+      "normalizedName": "rapedbaby",
+      "soldAt": "2026-09-29T13:18:28.000Z",
+      "priceGram": 12,
+      "historicalUsdRate": 1.5461623204288548,
+      "priceUsd": 18.553947845146258,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "vBBRQh0mL+BSdZMoNI3hMsoj0E0QL2pYBR+Fy900nds=",
+        "messageHash": "d20XN3VYYmbwVIKfeV9sy2t8+pjG/5eAils7Zg/U8HU=",
+        "bidAt": "2026-09-29T13:18:28.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "9L"
+    }
+  ]
+}

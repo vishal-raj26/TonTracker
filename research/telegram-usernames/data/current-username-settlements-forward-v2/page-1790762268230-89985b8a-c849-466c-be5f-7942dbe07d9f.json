@@ -1,0 +1,276 @@
+{
+  "schemaVersion": "username-forward-v2-local-v1",
+  "from": "2026-09-27T00:00:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "requestedEndUtime": 1790761800,
+  "collectedAt": "2026-09-30T09:57:48.229Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 18045,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 80,
+    "candidates": 14,
+    "verifiedItems": 5,
+    "wrongCollection": 9,
+    "assets": 5,
+    "sales": 5,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-30T09:57:48.229Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:aa34bf76ea6359271193973a8b7bf36eee5875562f58d21eeb8bf3eb33288248",
+      "normalizedName": "quotefreight",
+      "displayName": "@quotefreight",
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "12L",
+      "feature": {
+        "characterLength": 12,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCDEFGEHIJD",
+        "uniqueCharacterCount": 10,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-27T22:05:39.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:d18475b75fc75bc3492a4bc013f42978ed8d4a710c08a6402849486f427b3aff",
+      "normalizedName": "hoteluk",
+      "displayName": "@hoteluk",
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "7L",
+      "feature": {
+        "characterLength": 7,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCDEFG",
+        "uniqueCharacterCount": 7,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-27T22:07:07.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:9e02dcd816c55de7dfaeecc148d5ff9619d555d1462d78f2f0441517ec5d898a",
+      "normalizedName": "hotelalert",
+      "displayName": "@hotelalert",
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "10L",
+      "feature": {
+        "characterLength": 10,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCDEFEDGC",
+        "uniqueCharacterCount": 7,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-27T22:07:07.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:868bbb1d1527285d36a660a58d7955f5c026d31f898db4f425eacccb550108f7",
+      "normalizedName": "hotelcn",
+      "displayName": "@hotelcn",
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "7L",
+      "feature": {
+        "characterLength": 7,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCDEFG",
+        "uniqueCharacterCount": 7,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-27T22:07:08.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:48eaee22514d498c4ead7404ad230282294f4ed3875a2244f37400e75107409f",
+      "normalizedName": "freightpay",
+      "displayName": "@freightpay",
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "10L",
+      "feature": {
+        "characterLength": 10,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCDEFGHIJ",
+        "uniqueCharacterCount": 10,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-27T22:08:33.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:80561cefc526ce800e7e25f3a5c5740f1a361e333c9c848f57306898308ba2d0",
+      "assetKind": "username",
+      "assetKey": "0:aa34bf76ea6359271193973a8b7bf36eee5875562f58d21eeb8bf3eb33288248",
+      "normalizedName": "quotefreight",
+      "soldAt": "2026-09-27T22:05:39.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.624669179476378,
+      "priceUsd": 16.24669179476378,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "9DtdY/kpjzRWvcc+wkB/CQls19TGGWMKzk4wjHoNC5g=",
+        "messageHash": "z98+UtMgLjFPNzZjMaFNbt/Ta/oNHSonIIvC77ysXUI=",
+        "bidAt": "2026-09-20T22:04:42.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "12L"
+    },
+    {
+      "saleId": "toncenter-username-sale:8af33429176c611754675e83e3ad46d036646ec548db86fd1cabb31fbd265be8",
+      "assetKind": "username",
+      "assetKey": "0:d18475b75fc75bc3492a4bc013f42978ed8d4a710c08a6402849486f427b3aff",
+      "normalizedName": "hoteluk",
+      "soldAt": "2026-09-27T22:07:07.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.6245723958615994,
+      "priceUsd": 16.245723958615994,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "UP0Gjwa4htZIb69/MjnpLnR5POwJix967i5bQoCmAQI=",
+        "messageHash": "Ljz0CWWRpi33yq6Gt9JUYz12FA7YdaY2SucAUbHNIrI=",
+        "bidAt": "2026-09-20T22:05:42.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "7L"
+    },
+    {
+      "saleId": "toncenter-username-sale:510db8a09e5e934dac14a4fed9f40cb13589961e52730082ef638159d4de1d4d",
+      "assetKind": "username",
+      "assetKey": "0:9e02dcd816c55de7dfaeecc148d5ff9619d555d1462d78f2f0441517ec5d898a",
+      "normalizedName": "hotelalert",
+      "soldAt": "2026-09-27T22:07:07.000Z",
+      "priceGram": 15,
+      "historicalUsdRate": 1.6245723958615994,
+      "priceUsd": 24.368585937923992,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "0tKvGNx6hmkYL4iLS3hMp0MJ+MmIOhXLVQQtDXL/52A=",
+        "messageHash": "VYtVdtLoZCM9rc2BLm0/SHQuXpTL/tFVSEWrDu/vGv8=",
+        "bidAt": "2026-09-25T23:49:31.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "10L"
+    },
+    {
+      "saleId": "toncenter-username-sale:4ff21d44383c9f7dacf2c319b83e1274376539c20cb3bbb98b4894fd46c734d9",
+      "assetKind": "username",
+      "assetKey": "0:868bbb1d1527285d36a660a58d7955f5c026d31f898db4f425eacccb550108f7",
+      "normalizedName": "hotelcn",
+      "soldAt": "2026-09-27T22:07:08.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.624571481916787,
+      "priceUsd": 16.24571481916787,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "3+Cwl1y32wEeC8jSL3uuD7XnHdDvTW0pWefnLb8YvbY=",
+        "messageHash": "w+9rIUbQqvrXrb6vYEWaWbIpc5Bt9dfApiEoZmcmu/4=",
+        "bidAt": "2026-09-20T22:06:07.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "7L"
+    },
+    {
+      "saleId": "toncenter-username-sale:24a6e4bd4ef9c2edbe7b48f44fd7fb8e614935b12e85e07402ff519087cbd49a",
+      "assetKind": "username",
+      "assetKey": "0:48eaee22514d498c4ead7404ad230282294f4ed3875a2244f37400e75107409f",
+      "normalizedName": "freightpay",
+      "soldAt": "2026-09-27T22:08:33.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.6244937966077226,
+      "priceUsd": 16.244937966077227,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "gKY24oN1renoXyHI9BWAUzUk+i3s5D1sM2/ZBCH1eMc=",
+        "messageHash": "Gd0Nn5HvlfVtUfNFTx6NLieaF/4yTG0S1gR2K439fZk=",
+        "bidAt": "2026-09-20T22:07:50.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "10L"
+    }
+  ]
+}

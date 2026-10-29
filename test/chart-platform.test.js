@@ -48,6 +48,27 @@ test("renders doughnut data and deterministic hit testing", () => {
   assert.equal(Charts.donutHitIndex([1, 1], 0, 0, 160), -1);
 });
 
+test("Home selection updates an inline readout and clears on touch release without changing other charts", () => {
+  const selections = [];
+  Charts.renderConfigured("portfolio", [{ timestamp: 10, value: 2 }, { timestamp: 20, value: 4 }], {
+    element: canvas(), showValueAxis: false, onPointChange: point => selections.push(point),
+  });
+  assert.equal(lastConfig.options.scales.y.display, false);
+  assert.equal(lastConfig.options.scales.x.display, true);
+  assert.equal(lastConfig.options.plugins.tooltip.enabled, false);
+  lastConfig.options.onHover({ type: "mousemove" }, [{ index: 0 }]);
+  assert.equal(selections[0].value, 2);
+  let cleared = false;
+  lastConfig.options.onHover({ type: "touchend" }, [{ index: 0 }], { setActiveElements: () => { cleared = true; } });
+  assert.equal(selections[1], null);
+  assert.equal(cleared, true);
+  assert.equal(lastConfig.plugins[0].id, "portfolioSelection");
+  Charts.renderConfigured("tokenPrice", [{ value: 4 }], { element: canvas() });
+  assert.equal(lastConfig.options.plugins.tooltip.enabled, true);
+  assert.equal(lastConfig.options.onHover, undefined);
+  assert.equal(lastConfig.options.scales.y.display, true);
+});
+
 test("computes the canonical series metric set", () => {
   assert.deepEqual(Charts.seriesStats([10, 20, 15]), { first: 10, latest: 15, low: 10, high: 20, average: 15, changePct: 50, swingPct: 100 });
 });

@@ -1,0 +1,76 @@
+{
+  "schemaVersion": "username-forward-v2-local-v1",
+  "from": "2026-09-27T00:00:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "requestedEndUtime": 1790761800,
+  "collectedAt": "2026-09-30T10:31:27.200Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 49085,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 80,
+    "candidates": 13,
+    "verifiedItems": 1,
+    "wrongCollection": 12,
+    "assets": 1,
+    "sales": 1,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-30T10:31:27.200Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:8988c43ffd35ffce246129803ad3faa289e6ac97ee4e56a6f581fd8863692183",
+      "normalizedName": "cannabis_growers",
+      "displayName": "@cannabis_growers",
+      "primaryRoute": "pattern",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "16M",
+      "feature": {
+        "characterLength": 16,
+        "characterClass": "alphanumeric",
+        "routes": [
+          "pattern"
+        ],
+        "patternSignature": "ABCCBDEFGHIJKLIF",
+        "uniqueCharacterCount": 12,
+        "maxRunLength": 2,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": true,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-29T18:56:07.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:c59129104305266a99c49cadd863ab6884268dc641691e0a893f3fffb6e0059e",
+      "assetKind": "username",
+      "assetKey": "0:8988c43ffd35ffce246129803ad3faa289e6ac97ee4e56a6f581fd8863692183",
+      "normalizedName": "cannabis_growers",
+      "soldAt": "2026-09-29T18:56:07.000Z",
+      "priceGram": 7,
+      "historicalUsdRate": 1.5146490254048972,
+      "priceUsd": 10.602543177834281,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "mjWZCN4c7Fr81M12TyevlVFchL3M6HO39g+vrgtpDRU=",
+        "messageHash": "HltZMXUnsmGjkNAKQ/qLGLj5lRVaFvxFAIEMe5W0jik=",
+        "bidAt": "2026-09-29T18:56:07.000Z"
+      },
+      "primaryRoute": "pattern",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "16M"
+    }
+  ]
+}

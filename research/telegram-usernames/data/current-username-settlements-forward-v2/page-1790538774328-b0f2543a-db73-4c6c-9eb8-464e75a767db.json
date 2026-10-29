@@ -1,0 +1,176 @@
+{
+  "schemaVersion": "username-forward-v2-local-v1",
+  "from": "2026-09-27T00:00:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "requestedEndUtime": 1790537700,
+  "collectedAt": "2026-09-27T19:52:54.328Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 11151,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 80,
+    "candidates": 8,
+    "verifiedItems": 3,
+    "wrongCollection": 5,
+    "assets": 3,
+    "sales": 3,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-27T19:52:54.328Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:bf9ca3865f6f103a6b5ee33716812d95f788fb87ffcd5c55cb6aee43cff1ec52",
+      "normalizedName": "enfantsrichersdepression",
+      "displayName": "@enfantsrichersdepression",
+      "primaryRoute": "pattern",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "24L",
+      "feature": {
+        "characterLength": 24,
+        "characterClass": "letters",
+        "routes": [
+          "pattern"
+        ],
+        "patternSignature": "ABCDBEFGHIJAGFKALGAFFHMB",
+        "uniqueCharacterCount": 13,
+        "maxRunLength": 2,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-27T15:44:25.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:ea789b0a442cabc4c62b5fb0d8e3fe9b4d528ec14e90dde092b1ec2cb111b80b",
+      "normalizedName": "llii_arr",
+      "displayName": "@llii_arr",
+      "primaryRoute": "pattern",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "8M",
+      "feature": {
+        "characterLength": 8,
+        "characterClass": "alphanumeric",
+        "routes": [
+          "pattern"
+        ],
+        "patternSignature": "AABBCDEE",
+        "uniqueCharacterCount": 5,
+        "maxRunLength": 2,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": true,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-27T15:45:43.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:3cfc1b9525e564a2939d0d9c205eb5b2c37441f1634cd4f07b1aba62a968eef6",
+      "normalizedName": "lamb00rg1n1",
+      "displayName": "@lamb00rg1n1",
+      "primaryRoute": "pattern",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "11M",
+      "feature": {
+        "characterLength": 11,
+        "characterClass": "alphanumeric",
+        "routes": [
+          "pattern"
+        ],
+        "patternSignature": "ABCDEEFGHIH",
+        "uniqueCharacterCount": 9,
+        "maxRunLength": 2,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-27T15:47:25.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:0ed18682fdb9c57d6211f964c152097362f2542d659fa9e6b701e4c99795141f",
+      "assetKind": "username",
+      "assetKey": "0:bf9ca3865f6f103a6b5ee33716812d95f788fb87ffcd5c55cb6aee43cff1ec52",
+      "normalizedName": "enfantsrichersdepression",
+      "soldAt": "2026-09-27T15:44:25.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.6262293019422327,
+      "priceUsd": 16.262293019422327,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "0iZa8ZTXEocdg3KMzDUpHr3+nrbglrk3fKeqEbdF7x8=",
+        "messageHash": "VQW0LE2Q9oSWX0zmrdcMT3+nPNZT/t+KOluLbe1h7wg=",
+        "bidAt": "2026-09-20T15:43:52.000Z"
+      },
+      "primaryRoute": "pattern",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "24L"
+    },
+    {
+      "saleId": "toncenter-username-sale:e422474659a62b7cee17aadc0b5e989206101163841cb1ecaf64c29e478d342e",
+      "assetKind": "username",
+      "assetKey": "0:ea789b0a442cabc4c62b5fb0d8e3fe9b4d528ec14e90dde092b1ec2cb111b80b",
+      "normalizedName": "llii_arr",
+      "soldAt": "2026-09-27T15:45:43.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.6262435948595824,
+      "priceUsd": 16.262435948595822,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "nearest-observation",
+        "txHash": "G8bksnUqhb99/ABphPCj0HHNFOkfk/2aJvSL+4XwViQ=",
+        "messageHash": "YFi8v9WwSHZ6ru3TXqt8ZKgddu/onyNjW4thnw6jlyA=",
+        "bidAt": "2026-09-20T15:45:26.000Z"
+      },
+      "primaryRoute": "pattern",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "8M"
+    },
+    {
+      "saleId": "toncenter-username-sale:4ece1d7abc623aa8c06b6d60299530a386355dd0d1602f55a7d46174439d8050",
+      "assetKind": "username",
+      "assetKey": "0:3cfc1b9525e564a2939d0d9c205eb5b2c37441f1634cd4f07b1aba62a968eef6",
+      "normalizedName": "lamb00rg1n1",
+      "soldAt": "2026-09-27T15:47:25.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.6262435948595824,
+      "priceUsd": 16.262435948595822,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "nearest-observation",
+        "txHash": "mGT+S1w26jbhCJ+mbyT4baMJPUgkJq6yuZsviAOYu5U=",
+        "messageHash": "OFV+TqvWDA8mNZYwrSNqvcmZrF6lGAIFy3EGQHCgQbI=",
+        "bidAt": "2026-09-20T15:47:01.000Z"
+      },
+      "primaryRoute": "pattern",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "11M"
+    }
+  ]
+}

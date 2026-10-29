@@ -1,0 +1,126 @@
+{
+  "schemaVersion": "username-forward-v2-local-v1",
+  "from": "2026-09-27T00:00:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "requestedEndUtime": 1790761800,
+  "collectedAt": "2026-09-30T09:57:23.001Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 17565,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 80,
+    "candidates": 12,
+    "verifiedItems": 2,
+    "wrongCollection": 10,
+    "assets": 2,
+    "sales": 2,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-30T09:57:23.001Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:dd3614b1d4199339a41b7d820236c494df33d53e6f7f13b32ed0bffa45143f19",
+      "normalizedName": "kviant",
+      "displayName": "@kviant",
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "6L",
+      "feature": {
+        "characterLength": 6,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCDEF",
+        "uniqueCharacterCount": 6,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-27T21:24:19.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:b536a836931f8ad8e4b9bd1275c13bf343cab241c1cf75b35533822da634a146",
+      "normalizedName": "airmen",
+      "displayName": "@airmen",
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "6L",
+      "feature": {
+        "characterLength": 6,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCDEF",
+        "uniqueCharacterCount": 6,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-27T21:26:18.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:16921a16b6744b61daffee754e9d531f16c7a8a233bb61bc73c2ec9efe074ec5",
+      "assetKind": "username",
+      "assetKey": "0:dd3614b1d4199339a41b7d820236c494df33d53e6f7f13b32ed0bffa45143f19",
+      "normalizedName": "kviant",
+      "soldAt": "2026-09-27T21:24:19.000Z",
+      "priceGram": 6.000000001,
+      "historicalUsdRate": 1.6385437886930583,
+      "priceUsd": 9.831262733796894,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "uQGYIL2mnfqa6dL/Syf4ZfqYdGEgfFIxkgWzi8xbrIs=",
+        "messageHash": "+hIj2dGkwBe0yPJTVf6ZwAechqk9t9dJpAmQHkABFMg=",
+        "bidAt": "2026-09-27T21:24:19.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "6L"
+    },
+    {
+      "saleId": "toncenter-username-sale:7c4d2b44d3146f96301d48c62e302493c472854b7331257afa3db67f8067f093",
+      "assetKind": "username",
+      "assetKey": "0:b536a836931f8ad8e4b9bd1275c13bf343cab241c1cf75b35533822da634a146",
+      "normalizedName": "airmen",
+      "soldAt": "2026-09-27T21:26:18.000Z",
+      "priceGram": 32,
+      "historicalUsdRate": 1.6384819111340574,
+      "priceUsd": 52.43142115628984,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "hWi43RC8IZzeWN7/qcgXFrZu1UqgXS/lMlzNIqZ/WJk=",
+        "messageHash": "FODloHMjTeoRVq2FLUGVrHMzZC/yQdsFqNR3wFdr5dU=",
+        "bidAt": "2026-09-27T19:06:07.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "6L"
+    }
+  ]
+}

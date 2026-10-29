@@ -1,0 +1,91 @@
+{
+  "schemaVersion": "username-secondary-local-v1",
+  "from": "2026-09-20T14:00:00Z",
+  "pipeline": "username-toncenter-secondary-sales-v1",
+  "collectedAt": "2026-09-27T19:59:34.325Z",
+  "cursor": {
+    "absoluteOffset": 42340,
+    "caughtUp": false
+  },
+  "metadata": {
+    "transfers": 100,
+    "saleContracts": 2,
+    "verifiedSales": 1,
+    "assets": 1,
+    "sales": 1,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-27T19:59:34.325Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:5623ec17345b1f67c4d8564fbc30607d5c9fe6aab12cdd211aa855c515dfd30d",
+      "normalizedName": "gpt44",
+      "displayName": "@gpt44",
+      "primaryRoute": "pattern",
+      "lengthBucket": "4-5",
+      "script": "Latin",
+      "scarcityClass": "5M",
+      "feature": {
+        "classifierVersion": "username-structural-v2",
+        "normalizedUsername": "gpt44",
+        "displayUsername": "@gpt44",
+        "characterLength": 5,
+        "byteLength": 5,
+        "characterClass": "alphanumeric",
+        "primaryRoute": "pattern",
+        "routes": [
+          "pattern"
+        ],
+        "scarcityClass": "5M",
+        "patternSignature": "ABCDD",
+        "shapeSignature": "LLLNN",
+        "uniqueCharacterCount": 4,
+        "maxRunLength": 2,
+        "palindrome": false,
+        "sequence": null,
+        "repeatedBlock": null,
+        "scripts": [
+          "Latin"
+        ],
+        "primaryScript": "Latin",
+        "containsUnderscore": false,
+        "underscoreCount": 0,
+        "digitCount": 2,
+        "digitRatio": 0.4,
+        "vowelRatio": 0,
+        "pronounceability": "not-applicable",
+        "leadingZero": false,
+        "roundNumber": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-27T17:24:08.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-secondary:d2bd09952fb0757e67da4734e8277ba495ddf65a3e21b662c7056196d5dabc84",
+      "assetKind": "username",
+      "assetKey": "0:5623ec17345b1f67c4d8564fbc30607d5c9fe6aab12cdd211aa855c515dfd30d",
+      "normalizedName": "gpt44",
+      "soldAt": "2026-09-27T17:24:08.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.6812507929050382,
+      "priceUsd": 16.812507929050383,
+      "marketplace": "Getgems",
+      "source": "toncenter-indexed-secondary-sale",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-completed-sale-contract",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "nearest-observation",
+        "transactionHash": "1GZmLlzzzWHf+S6aF0sETYexPVwlVclZadWVcHaUPUQ=",
+        "saleContract": "0:b83a5a0e01e769954b997afbbe21a7dbf50fd8e253f91074a5f6eebf61cf7ec5"
+      },
+      "primaryRoute": "pattern",
+      "lengthBucket": "4-5",
+      "script": "Latin",
+      "scarcityClass": "5M"
+    }
+  ]
+}

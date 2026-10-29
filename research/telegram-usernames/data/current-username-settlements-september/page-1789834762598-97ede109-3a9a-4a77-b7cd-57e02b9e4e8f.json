@@ -1,0 +1,75 @@
+{
+  "schemaVersion": "username-local-collection-v1",
+  "from": "2026-09-01T00:00:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "collectedAt": "2026-09-19T16:19:22.598Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 16650,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 10,
+    "candidates": 6,
+    "verifiedItems": 1,
+    "wrongCollection": 5,
+    "assets": 1,
+    "sales": 1,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-19T16:19:22.598Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:199fa0021362d4e9caed3c561ac8f23f301ea5695a773812d4f522baff23a547",
+      "normalizedName": "axilese",
+      "displayName": "@axilese",
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "7L",
+      "feature": {
+        "characterLength": 7,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCDEFE",
+        "uniqueCharacterCount": 6,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-01T22:13:10.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:70dfc4cf275d72c55a0f4e78251446862dbbf77bb4ac222f2cd0c76651ebb138",
+      "assetKind": "username",
+      "assetKey": "0:199fa0021362d4e9caed3c561ac8f23f301ea5695a773812d4f522baff23a547",
+      "normalizedName": "axilese",
+      "soldAt": "2026-09-01T22:13:10.000Z",
+      "priceGram": 14,
+      "historicalUsdRate": 1.3152328065243013,
+      "priceUsd": 18.413259291340218,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "UNu6b5HqVEi5HgTOTQixiAEcek1DWxDQ8uyQT17XvLE=",
+        "messageHash": "6Bz0HpMnSj2UbZwJqkmbMwzt3llv2qRwHlQxQoTaaJM=",
+        "bidAt": "2026-09-01T20:12:52.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "7L"
+    }
+  ]
+}

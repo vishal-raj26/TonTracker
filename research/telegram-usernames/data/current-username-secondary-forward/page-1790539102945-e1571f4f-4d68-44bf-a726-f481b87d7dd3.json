@@ -1,0 +1,91 @@
+{
+  "schemaVersion": "username-secondary-local-v1",
+  "from": "2026-09-20T14:00:00Z",
+  "pipeline": "username-toncenter-secondary-sales-v1",
+  "collectedAt": "2026-09-27T19:58:22.945Z",
+  "cursor": {
+    "absoluteOffset": 40240,
+    "caughtUp": false
+  },
+  "metadata": {
+    "transfers": 100,
+    "saleContracts": 8,
+    "verifiedSales": 1,
+    "assets": 1,
+    "sales": 1,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-27T19:58:22.945Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:82df0ffc3464d0ff399a6e0e516838a93ed6c980f7b7f1d272ba4eaa13be98fa",
+      "normalizedName": "glape",
+      "displayName": "@glape",
+      "primaryRoute": "word",
+      "lengthBucket": "4-5",
+      "script": "Latin",
+      "scarcityClass": "5L",
+      "feature": {
+        "classifierVersion": "username-structural-v2",
+        "normalizedUsername": "glape",
+        "displayUsername": "@glape",
+        "characterLength": 5,
+        "byteLength": 5,
+        "characterClass": "letters",
+        "primaryRoute": "word",
+        "routes": [
+          "word"
+        ],
+        "scarcityClass": "5L",
+        "patternSignature": "ABCDE",
+        "shapeSignature": "LLLLL",
+        "uniqueCharacterCount": 5,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "repeatedBlock": null,
+        "scripts": [
+          "Latin"
+        ],
+        "primaryScript": "Latin",
+        "containsUnderscore": false,
+        "underscoreCount": 0,
+        "digitCount": 0,
+        "digitRatio": 0,
+        "vowelRatio": 0.4,
+        "pronounceability": "balanced",
+        "leadingZero": false,
+        "roundNumber": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-27T15:49:44.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-secondary:bdc576b57b32a0af90394780e607d6d04cc53700c9f0f002336754a063b4fbdc",
+      "assetKind": "username",
+      "assetKey": "0:82df0ffc3464d0ff399a6e0e516838a93ed6c980f7b7f1d272ba4eaa13be98fa",
+      "normalizedName": "glape",
+      "soldAt": "2026-09-27T15:49:44.000Z",
+      "priceGram": 19,
+      "historicalUsdRate": 1.6393059132175776,
+      "priceUsd": 31.146812351133974,
+      "marketplace": "Getgems",
+      "source": "toncenter-indexed-secondary-sale",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-completed-sale-contract",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "nearest-observation",
+        "transactionHash": "nHmCo+Y7Q+WceFX/Gj4v1HMFpJXeyw35wmr4tBMWC6Y=",
+        "saleContract": "0:b8fb00ecd8cd54e92ec9cfd68acb5b3cff70c9b9cccb2df4c700be9284ccc4eb"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "4-5",
+      "script": "Latin",
+      "scarcityClass": "5L"
+    }
+  ]
+}

@@ -1,0 +1,75 @@
+{
+  "schemaVersion": "username-local-collection-v1",
+  "from": "2026-09-01T00:00:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "collectedAt": "2026-09-19T16:16:54.913Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 16360,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 10,
+    "candidates": 2,
+    "verifiedItems": 1,
+    "wrongCollection": 1,
+    "assets": 1,
+    "sales": 1,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-19T16:16:54.913Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:bf01d62d5e30437ee09934f8a7ae3ea1abe31aebca32548c998c2930e76b9561",
+      "normalizedName": "hanmdsome",
+      "displayName": "@hanmdsome",
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "9L",
+      "feature": {
+        "characterLength": 9,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCDEFGDH",
+        "uniqueCharacterCount": 8,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-01T21:49:30.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:abba2cdb4a982d43fc173b2c30ac5805975a812e21d9b2d5cbeb3df53b241f6e",
+      "assetKind": "username",
+      "assetKey": "0:bf01d62d5e30437ee09934f8a7ae3ea1abe31aebca32548c998c2930e76b9561",
+      "normalizedName": "hanmdsome",
+      "soldAt": "2026-09-01T21:49:30.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.3186743786103576,
+      "priceUsd": 13.186743786103577,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "5bYqisEsOFAtuCDM7PhvOnYcoHNsbVKn4JKqnakcgQ0=",
+        "messageHash": "Q9n3Lj+jETt8hjv8Rq5gJKKZysHRBwfWRPNeibPNrHY=",
+        "bidAt": "2026-08-25T21:49:13.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "9L"
+    }
+  ]
+}

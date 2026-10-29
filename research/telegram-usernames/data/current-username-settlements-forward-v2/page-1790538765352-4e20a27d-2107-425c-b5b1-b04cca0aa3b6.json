@@ -1,0 +1,126 @@
+{
+  "schemaVersion": "username-forward-v2-local-v1",
+  "from": "2026-09-27T00:00:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "requestedEndUtime": 1790537700,
+  "collectedAt": "2026-09-27T19:52:45.352Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 10911,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 80,
+    "candidates": 15,
+    "verifiedItems": 2,
+    "wrongCollection": 13,
+    "assets": 2,
+    "sales": 2,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-27T19:52:45.352Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:77c76c2aa533183199b808c0621dd15cdf79aa6a249f4836d803f632232edc2c",
+      "normalizedName": "baron_drugs",
+      "displayName": "@baron_drugs",
+      "primaryRoute": "residual",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "11M",
+      "feature": {
+        "characterLength": 11,
+        "characterClass": "alphanumeric",
+        "routes": [
+          "residual"
+        ],
+        "patternSignature": "ABCDEFGCHIJ",
+        "uniqueCharacterCount": 10,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": true,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-27T15:33:01.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:53d77b5358d21b6de7f259e5d3e3ac4ebd3a3616840665b5c5fc2aa225437383",
+      "normalizedName": "fjqfq",
+      "displayName": "@fjqfq",
+      "primaryRoute": "word",
+      "lengthBucket": "4-5",
+      "script": "Latin",
+      "scarcityClass": "5L",
+      "feature": {
+        "characterLength": 5,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCAC",
+        "uniqueCharacterCount": 3,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-27T15:34:00.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:ccd08250992482ff9a1cb528d6b7c8ad76e72631b254b6bdd1e986e88edcf4cb",
+      "assetKind": "username",
+      "assetKey": "0:77c76c2aa533183199b808c0621dd15cdf79aa6a249f4836d803f632232edc2c",
+      "normalizedName": "baron_drugs",
+      "soldAt": "2026-09-27T15:33:01.000Z",
+      "priceGram": 19,
+      "historicalUsdRate": 1.6140170390864637,
+      "priceUsd": 30.66632374264281,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "nearest-observation",
+        "txHash": "oc4R1F4Y53Y0g+0LRfDLf1R6sXfpsRaHPjHB8q8YkZs=",
+        "messageHash": "uDLSMSwCFNedLMl4Jo/e7M2ZtNSWY9lARCp2NwoOJv8=",
+        "bidAt": "2026-09-27T15:33:01.000Z"
+      },
+      "primaryRoute": "residual",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "11M"
+    },
+    {
+      "saleId": "toncenter-username-sale:a6a1fbe5a7d0d37c061aa37995286412cf8b42d7b1b1e8387fc503b22c69a28b",
+      "assetKind": "username",
+      "assetKey": "0:53d77b5358d21b6de7f259e5d3e3ac4ebd3a3616840665b5c5fc2aa225437383",
+      "normalizedName": "fjqfq",
+      "soldAt": "2026-09-27T15:34:00.000Z",
+      "priceGram": 6,
+      "historicalUsdRate": 1.6140170390864637,
+      "priceUsd": 9.684102234518782,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "nearest-observation",
+        "txHash": "29UriCNNIThe64qF7eKEREBDb3VXVYJ/hER040hwJzo=",
+        "messageHash": "35vKyheYx7yuc0ijSzVPyDA4zOxel/pUEyhYKwThLbE=",
+        "bidAt": "2026-09-27T15:34:00.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "4-5",
+      "script": "Latin",
+      "scarcityClass": "5L"
+    }
+  ]
+}

@@ -1,0 +1,176 @@
+{
+  "schemaVersion": "username-forward-v2-local-v1",
+  "from": "2026-09-27T00:00:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "requestedEndUtime": 1790761800,
+  "collectedAt": "2026-09-30T10:18:02.863Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 34925,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 80,
+    "candidates": 13,
+    "verifiedItems": 3,
+    "wrongCollection": 10,
+    "assets": 3,
+    "sales": 3,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-30T10:18:02.863Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:1235b82235d1deae71f97a54f5027b6233c3b70e7f5f5c76fe70c523a949a2c0",
+      "normalizedName": "healthsource",
+      "displayName": "@healthsource",
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "12L",
+      "feature": {
+        "characterLength": 12,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCDEAFGHIJB",
+        "uniqueCharacterCount": 10,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-28T21:34:17.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:8984a21d6cd32dda249cadacdfdd9c617f2fb54bfab5781727350fc3ed8266f8",
+      "normalizedName": "data_research",
+      "displayName": "@data_research",
+      "primaryRoute": "residual",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "13M",
+      "feature": {
+        "characterLength": 13,
+        "characterClass": "alphanumeric",
+        "routes": [
+          "residual"
+        ],
+        "patternSignature": "ABCBDEFGFBEHI",
+        "uniqueCharacterCount": 9,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": true,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-28T21:34:23.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:b3fde3fd7f15a81f3b05087bd85fb9842fa3cbd8e811b0aa8666b10b50f2f4b9",
+      "normalizedName": "yountville",
+      "displayName": "@yountville",
+      "primaryRoute": "pattern",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "10L",
+      "feature": {
+        "characterLength": 10,
+        "characterClass": "letters",
+        "routes": [
+          "pattern"
+        ],
+        "patternSignature": "ABCDEFGHHI",
+        "uniqueCharacterCount": 9,
+        "maxRunLength": 2,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-28T21:34:29.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:8793023ed88276094daee923474d8b31bf509da7d98a2e9b84246c5e6216fee8",
+      "assetKind": "username",
+      "assetKey": "0:1235b82235d1deae71f97a54f5027b6233c3b70e7f5f5c76fe70c523a949a2c0",
+      "normalizedName": "healthsource",
+      "soldAt": "2026-09-28T21:34:17.000Z",
+      "priceGram": 20,
+      "historicalUsdRate": 1.583279565626306,
+      "priceUsd": 31.665591312526118,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "KaLGHkm/gECs2eszqPY1pW3pjGpVe7Yyj0Z3wbGWPwA=",
+        "messageHash": "Dl/3EkW1DPt/mT96Uaav+IOBEXPzmYmNa8kMijjjntc=",
+        "bidAt": "2026-09-21T21:21:57.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "12L"
+    },
+    {
+      "saleId": "toncenter-username-sale:bde14e441ca6f5e2990456289a8df467f2ca82104e6c6b0555302b1bc54f0abe",
+      "assetKind": "username",
+      "assetKey": "0:8984a21d6cd32dda249cadacdfdd9c617f2fb54bfab5781727350fc3ed8266f8",
+      "normalizedName": "data_research",
+      "soldAt": "2026-09-28T21:34:23.000Z",
+      "priceGram": 15,
+      "historicalUsdRate": 1.5832751048987572,
+      "priceUsd": 23.74912657348136,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "6UwfiTYkRk1RwgG2NskkPjx35agjjHgHQD9CWA1DchQ=",
+        "messageHash": "Qi2KkBD0aDWLLI7tRnUHESrQ3DcIvoeaiJmr9Ie07HY=",
+        "bidAt": "2026-09-28T20:28:35.000Z"
+      },
+      "primaryRoute": "residual",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "13M"
+    },
+    {
+      "saleId": "toncenter-username-sale:fc174c5f80251b640a33bca091439125a4e50138fd8c3c2ccf4883e8e985e4dd",
+      "assetKind": "username",
+      "assetKey": "0:b3fde3fd7f15a81f3b05087bd85fb9842fa3cbd8e811b0aa8666b10b50f2f4b9",
+      "normalizedName": "yountville",
+      "soldAt": "2026-09-28T21:34:29.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.5832706441712088,
+      "priceUsd": 15.832706441712087,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "UTDdd6EBniIeJnPRuW5FUY4fuUhbqNqdM4F886SpnWM=",
+        "messageHash": "0f7m6szwIb0ECki4q7hygZh9n0nuR07PSVWIlgqqbTA=",
+        "bidAt": "2026-09-21T21:20:04.000Z"
+      },
+      "primaryRoute": "pattern",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "10L"
+    }
+  ]
+}

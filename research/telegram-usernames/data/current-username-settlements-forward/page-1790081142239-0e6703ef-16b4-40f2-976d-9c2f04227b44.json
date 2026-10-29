@@ -1,0 +1,175 @@
+{
+  "schemaVersion": "username-local-collection-v1",
+  "from": "2026-09-20T13:45:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "collectedAt": "2026-09-22T12:45:42.239Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 249,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 80,
+    "candidates": 6,
+    "verifiedItems": 3,
+    "wrongCollection": 3,
+    "assets": 3,
+    "sales": 3,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-22T12:45:42.239Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:c49e1812073eede53d292b08ff264aaaf79e86b4c073fa12a09a12215b2d229e",
+      "normalizedName": "uzbekies",
+      "displayName": "@uzbekies",
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "8L",
+      "feature": {
+        "characterLength": 8,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCDEFDG",
+        "uniqueCharacterCount": 7,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-20T13:55:25.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:90cbd46083af3ea6df5cfef89655138a52f07a96c727eff6a93b5d070f82d4d2",
+      "normalizedName": "gracelessly",
+      "displayName": "@gracelessly",
+      "primaryRoute": "pattern",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "11L",
+      "feature": {
+        "characterLength": 11,
+        "characterClass": "letters",
+        "routes": [
+          "pattern"
+        ],
+        "patternSignature": "ABCDEFEGGFH",
+        "uniqueCharacterCount": 8,
+        "maxRunLength": 2,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-20T13:56:00.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:9f52b98331dc3f3efe123c5d30d31891d396c35fd09e8a215bd538025a78e1ee",
+      "normalizedName": "ishqdil",
+      "displayName": "@ishqdil",
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "7L",
+      "feature": {
+        "characterLength": 7,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCDEAF",
+        "uniqueCharacterCount": 6,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-20T13:56:22.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:b068b57720b53a5d858e4dd7fdcd0621a4bf4ed442cfa823d94fc8ca215be820",
+      "assetKind": "username",
+      "assetKey": "0:c49e1812073eede53d292b08ff264aaaf79e86b4c073fa12a09a12215b2d229e",
+      "normalizedName": "uzbekies",
+      "soldAt": "2026-09-20T13:55:25.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.3722259735927367,
+      "priceUsd": 13.722259735927366,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "1CmbvlzsGplO8aCMdDN/3lxhPQxFSK35xSl/6SLXytc=",
+        "messageHash": "v9/v94o2Xy2KrTq+2FvjpEUqrD5nt/rQaf4MxgDhq2o=",
+        "bidAt": "2026-09-13T13:55:06.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "8L"
+    },
+    {
+      "saleId": "toncenter-username-sale:65d3325701f32b43c7a4deab24b3040253c64e492e47dcefac377722a49791d9",
+      "assetKind": "username",
+      "assetKey": "0:90cbd46083af3ea6df5cfef89655138a52f07a96c727eff6a93b5d070f82d4d2",
+      "normalizedName": "gracelessly",
+      "soldAt": "2026-09-20T13:56:00.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.3722089659575851,
+      "priceUsd": 13.72208965957585,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "FNqQT7/Q1xOu9dEJm4wFLgVn0vuv4XPQQRijFXfJ+tw=",
+        "messageHash": "66rmIV0n3AopfaUuG0UOklNbgl3WGUl1f0khdIGK41E=",
+        "bidAt": "2026-09-13T13:55:42.000Z"
+      },
+      "primaryRoute": "pattern",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "11L"
+    },
+    {
+      "saleId": "toncenter-username-sale:39b0e1f3723141b457835600270c81947b75530b0407ce381ae87351c71c29bc",
+      "assetKind": "username",
+      "assetKey": "0:9f52b98331dc3f3efe123c5d30d31891d396c35fd09e8a215bd538025a78e1ee",
+      "normalizedName": "ishqdil",
+      "soldAt": "2026-09-20T13:56:22.000Z",
+      "priceGram": 20,
+      "historicalUsdRate": 1.3721982754440614,
+      "priceUsd": 27.443965508881227,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "2CmE7THPGx9NBCkuGSUqAaKpf/IzIylHtbYkyq3v17s=",
+        "messageHash": "B3YkeAkwFOtrClM9/jClLm3zqg0JtYq+dQCLBWW2Jmo=",
+        "bidAt": "2026-09-13T13:56:04.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "7L"
+    }
+  ]
+}

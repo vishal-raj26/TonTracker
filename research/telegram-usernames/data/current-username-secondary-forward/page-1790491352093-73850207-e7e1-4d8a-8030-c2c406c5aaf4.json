@@ -1,0 +1,91 @@
+{
+  "schemaVersion": "username-secondary-local-v1",
+  "from": "2026-09-20T14:00:00Z",
+  "pipeline": "username-toncenter-secondary-sales-v1",
+  "collectedAt": "2026-09-27T06:42:32.092Z",
+  "cursor": {
+    "absoluteOffset": 36742,
+    "caughtUp": true
+  },
+  "metadata": {
+    "transfers": 33,
+    "saleContracts": 3,
+    "verifiedSales": 1,
+    "assets": 1,
+    "sales": 1,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-27T06:42:32.092Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:de38c1d4b0486cbe237d3dde4caf2bb3e1f227cde6ec39bc64b601917c5b4fc3",
+      "normalizedName": "holdedit",
+      "displayName": "@holdedit",
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "8L",
+      "feature": {
+        "classifierVersion": "username-structural-v2",
+        "normalizedUsername": "holdedit",
+        "displayUsername": "@holdedit",
+        "characterLength": 8,
+        "byteLength": 8,
+        "characterClass": "letters",
+        "primaryRoute": "word",
+        "routes": [
+          "word"
+        ],
+        "scarcityClass": "8L",
+        "patternSignature": "ABCDEDFG",
+        "shapeSignature": "LLLLLLLL",
+        "uniqueCharacterCount": 7,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "repeatedBlock": null,
+        "scripts": [
+          "Latin"
+        ],
+        "primaryScript": "Latin",
+        "containsUnderscore": false,
+        "underscoreCount": 0,
+        "digitCount": 0,
+        "digitRatio": 0,
+        "vowelRatio": 0.375,
+        "pronounceability": "balanced",
+        "leadingZero": false,
+        "roundNumber": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-27T06:24:06.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-secondary:f286e1e92de2186fce374b00829990d0c0a0cf4fcb7ecf8d67903b7523e81b49",
+      "assetKind": "username",
+      "assetKey": "0:de38c1d4b0486cbe237d3dde4caf2bb3e1f227cde6ec39bc64b601917c5b4fc3",
+      "normalizedName": "holdedit",
+      "soldAt": "2026-09-27T06:24:06.000Z",
+      "priceGram": 100,
+      "historicalUsdRate": 1.5881455222085985,
+      "priceUsd": 158.81455222085984,
+      "marketplace": "Getgems",
+      "source": "toncenter-indexed-secondary-sale",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-completed-sale-contract",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "nearest-observation",
+        "transactionHash": "eWxlN496ecUYC/3trsBFMI7dLYCD3eK+h+JmNGEVano=",
+        "saleContract": "0:e46643cf7c82d8e386084e4b8aeb0eb9e37a0f50f4c515618aa533e9709cbecd"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "8L"
+    }
+  ]
+}

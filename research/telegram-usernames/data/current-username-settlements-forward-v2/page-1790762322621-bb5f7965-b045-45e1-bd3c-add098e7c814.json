@@ -1,0 +1,176 @@
+{
+  "schemaVersion": "username-forward-v2-local-v1",
+  "from": "2026-09-27T00:00:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "requestedEndUtime": 1790761800,
+  "collectedAt": "2026-09-30T09:58:42.621Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 19005,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 80,
+    "candidates": 10,
+    "verifiedItems": 3,
+    "wrongCollection": 7,
+    "assets": 3,
+    "sales": 3,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-30T09:58:42.621Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:711793aa1d4188aa31c1baa04fdf676f5998c6457eae54879001e482e586dcd0",
+      "normalizedName": "wolf_of_uzbekistan",
+      "displayName": "@wolf_of_uzbekistan",
+      "primaryRoute": "residual",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "18M",
+      "feature": {
+        "characterLength": 18,
+        "characterClass": "alphanumeric",
+        "routes": [
+          "residual"
+        ],
+        "patternSignature": "ABCDEBDEFGHIJKLMNO",
+        "uniqueCharacterCount": 15,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": true,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-27T23:58:20.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:616cbc4049d393cfd0f60b1e7d4f1d95d51df2aff98baf9eb4643e4ea03392a8",
+      "normalizedName": "gucciphantom",
+      "displayName": "@gucciphantom",
+      "primaryRoute": "pattern",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "12L",
+      "feature": {
+        "characterLength": 12,
+        "characterClass": "letters",
+        "routes": [
+          "pattern"
+        ],
+        "patternSignature": "ABCCDEFGHIJK",
+        "uniqueCharacterCount": 11,
+        "maxRunLength": 2,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-28T00:03:56.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:33e23354429ab46ed4d86029c641eda10048330e7a34e4c2345a2aacdab79c0d",
+      "normalizedName": "hk66k",
+      "displayName": "@hk66k",
+      "primaryRoute": "pattern",
+      "lengthBucket": "4-5",
+      "script": "Latin",
+      "scarcityClass": "5M",
+      "feature": {
+        "characterLength": 5,
+        "characterClass": "alphanumeric",
+        "routes": [
+          "pattern"
+        ],
+        "patternSignature": "ABCCB",
+        "uniqueCharacterCount": 3,
+        "maxRunLength": 2,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-28T00:05:32.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:17c5085026b40e6c158a196a4b018ec011bb2c904f34780d468c6cd8642c5ae5",
+      "assetKind": "username",
+      "assetKey": "0:711793aa1d4188aa31c1baa04fdf676f5998c6457eae54879001e482e586dcd0",
+      "normalizedName": "wolf_of_uzbekistan",
+      "soldAt": "2026-09-27T23:58:20.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.6332796323980552,
+      "priceUsd": 16.332796323980553,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "0IygoJ6eZVAtmk2Z5U8b9Epi1I21dejvppxIOhg7OjM=",
+        "messageHash": "OMCX/9auLWo8O9uaZKz257CEtazsKU/kOeTEcnBKwco=",
+        "bidAt": "2026-09-20T23:57:23.000Z"
+      },
+      "primaryRoute": "residual",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "18M"
+    },
+    {
+      "saleId": "toncenter-username-sale:c1a23a1665d9813b000948540eb57be33809e1d485f3189afb87a002bd72828a",
+      "assetKind": "username",
+      "assetKey": "0:616cbc4049d393cfd0f60b1e7d4f1d95d51df2aff98baf9eb4643e4ea03392a8",
+      "normalizedName": "gucciphantom",
+      "soldAt": "2026-09-28T00:03:56.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.6331611545097608,
+      "priceUsd": 16.33161154509761,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "pE+7/IZY4rDxH95JoQ5N5Qnnykse47qkYWV+etLOQbQ=",
+        "messageHash": "39KOaJ6jWmXdt6TrXg8mzfQvwN5c/zE0XSeNHhYq/rI=",
+        "bidAt": "2026-09-28T00:03:56.000Z"
+      },
+      "primaryRoute": "pattern",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "12L"
+    },
+    {
+      "saleId": "toncenter-username-sale:81c79a9db6f20b6969652b88beba134479e568836d4271fea7414d8ca9bda8c7",
+      "assetKind": "username",
+      "assetKey": "0:33e23354429ab46ed4d86029c641eda10048330e7a34e4c2345a2aacdab79c0d",
+      "normalizedName": "hk66k",
+      "soldAt": "2026-09-28T00:05:32.000Z",
+      "priceGram": 13,
+      "historicalUsdRate": 1.6331273036845337,
+      "priceUsd": 21.230654947898937,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "lOh4Sxf7Uz/rMLwUNPzNmVg/3BKBS1l/iFoBRBKXPdA=",
+        "messageHash": "8m5wFKDB+TvuRyv2aEndJzJ4JPq9QeF8NmheWVFmyQQ=",
+        "bidAt": "2026-09-28T00:05:32.000Z"
+      },
+      "primaryRoute": "pattern",
+      "lengthBucket": "4-5",
+      "script": "Latin",
+      "scarcityClass": "5M"
+    }
+  ]
+}

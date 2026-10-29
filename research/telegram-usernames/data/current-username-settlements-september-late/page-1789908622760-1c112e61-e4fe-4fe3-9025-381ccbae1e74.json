@@ -1,0 +1,175 @@
+{
+  "schemaVersion": "username-local-collection-v1",
+  "from": "2026-09-10T00:00:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "collectedAt": "2026-09-20T12:50:22.760Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 11840,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 80,
+    "candidates": 20,
+    "verifiedItems": 3,
+    "wrongCollection": 17,
+    "assets": 3,
+    "sales": 3,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-20T12:50:22.760Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:24ecd743abf58c5c5b2c596bf30e9727fa15c5c34f8e57b1b14959eb7eeb7134",
+      "normalizedName": "ghazall",
+      "displayName": "@ghazall",
+      "primaryRoute": "pattern",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "7L",
+      "feature": {
+        "characterLength": 7,
+        "characterClass": "letters",
+        "routes": [
+          "pattern"
+        ],
+        "patternSignature": "ABCDCEE",
+        "uniqueCharacterCount": 5,
+        "maxRunLength": 2,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-10T16:16:53.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:d4c12dd7715788f6e701014ecea1af5a4f749d2f86de6eb4431cf2364c73ddb8",
+      "normalizedName": "emiratica",
+      "displayName": "@emiratica",
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "9L",
+      "feature": {
+        "characterLength": 9,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCDEFCGE",
+        "uniqueCharacterCount": 7,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-10T16:17:30.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:fa91095f8c55da29c6852f902684e27e29c4fa18480ec4238be4418ca3f58c22",
+      "normalizedName": "cremationist",
+      "displayName": "@cremationist",
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "12L",
+      "feature": {
+        "characterLength": 12,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCDEFGHIGJF",
+        "uniqueCharacterCount": 10,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-10T16:18:48.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:d37b11bf70f5f5037429e0606bb3dffda21b36b1c0b4d12056edd4fd808bc07d",
+      "assetKind": "username",
+      "assetKey": "0:24ecd743abf58c5c5b2c596bf30e9727fa15c5c34f8e57b1b14959eb7eeb7134",
+      "normalizedName": "ghazall",
+      "soldAt": "2026-09-10T16:16:53.000Z",
+      "priceGram": 118,
+      "historicalUsdRate": 1.346293708085465,
+      "priceUsd": 158.86265755408485,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "6Z4fcT8BCc8isEItlRVSWblfYxArXO/jSOP9cvirkhU=",
+        "messageHash": "XO/UEvbRsxA330yY/+BsbCt8R/4P7gvWXkXGjULfXbs=",
+        "bidAt": "2026-09-03T16:16:32.000Z"
+      },
+      "primaryRoute": "pattern",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "7L"
+    },
+    {
+      "saleId": "toncenter-username-sale:53a2c5ca91f03db5b8435c3d1d073d8abeb0b864525c9c42d4047a44c66b54c8",
+      "assetKind": "username",
+      "assetKey": "0:d4c12dd7715788f6e701014ecea1af5a4f749d2f86de6eb4431cf2364c73ddb8",
+      "normalizedName": "emiratica",
+      "soldAt": "2026-09-10T16:17:30.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.3463104897076645,
+      "priceUsd": 13.463104897076645,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "lcnRcZuSV27iFeQi6E/F4HE63AIwqFq8pML3qC4a+jE=",
+        "messageHash": "K/s4GXhBR3lNzq5pUjqL/kHr+YQ3K3lVc5E4j7lY18E=",
+        "bidAt": "2026-09-10T15:17:13.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "9L"
+    },
+    {
+      "saleId": "toncenter-username-sale:5469eedc4b985588aaa8ad01cb746b8e75f57c182e5cc93a49b9fdbdc9a4c2b7",
+      "assetKind": "username",
+      "assetKey": "0:fa91095f8c55da29c6852f902684e27e29c4fa18480ec4238be4418ca3f58c22",
+      "normalizedName": "cremationist",
+      "soldAt": "2026-09-10T16:18:48.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.346345867181491,
+      "priceUsd": 13.463458671814909,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "DN5Vla8UNYEq9yUiaN0X7THWFKa3HGwMILd2FXmZLes=",
+        "messageHash": "bXNq1Cbv7IotDIr6fSPlYAXe4Iurfj+UOXjeONQz0Ns=",
+        "bidAt": "2026-09-03T16:18:29.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "12L"
+    }
+  ]
+}

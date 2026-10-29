@@ -1,0 +1,126 @@
+{
+  "schemaVersion": "username-forward-v2-local-v1",
+  "from": "2026-09-27T00:00:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "requestedEndUtime": 1790761800,
+  "collectedAt": "2026-09-30T10:23:05.149Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 40525,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 80,
+    "candidates": 16,
+    "verifiedItems": 2,
+    "wrongCollection": 14,
+    "assets": 2,
+    "sales": 2,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-30T10:23:05.149Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:84314fd174ae01ce0532e3d859985ff385f1fae100cb87eece329b8280fedccc",
+      "normalizedName": "xkk55",
+      "displayName": "@xkk55",
+      "primaryRoute": "pattern",
+      "lengthBucket": "4-5",
+      "script": "Latin",
+      "scarcityClass": "5M",
+      "feature": {
+        "characterLength": 5,
+        "characterClass": "alphanumeric",
+        "routes": [
+          "pattern"
+        ],
+        "patternSignature": "ABBCC",
+        "uniqueCharacterCount": 3,
+        "maxRunLength": 2,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-29T09:12:33.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:3eee4f3710cd336c8200c7e7a21d2f81e6b9682c0f9bbd8d4463a21bca1ac7ee",
+      "normalizedName": "divine_regalia",
+      "displayName": "@divine_regalia",
+      "primaryRoute": "residual",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "14M",
+      "feature": {
+        "characterLength": 14,
+        "characterClass": "alphanumeric",
+        "routes": [
+          "residual"
+        ],
+        "patternSignature": "ABCBDEFGEHIJBI",
+        "uniqueCharacterCount": 10,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": true,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-29T09:13:54.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:8fa11239a0f222406dc2df2ae1d5c6abce574a7dc3bb4bbdbe9a692f21bbdc08",
+      "assetKind": "username",
+      "assetKey": "0:84314fd174ae01ce0532e3d859985ff385f1fae100cb87eece329b8280fedccc",
+      "normalizedName": "xkk55",
+      "soldAt": "2026-09-29T09:12:33.000Z",
+      "priceGram": 19,
+      "historicalUsdRate": 1.5778474860848468,
+      "priceUsd": 29.97910223561209,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "WZ1TVBa4W5gzNRwe91k18AaybGMBKtVh9ny3ixxA6o0=",
+        "messageHash": "oT6SDg461cjPwiEjEVdLoVXbhc7eRYM6d+yaYIRDgdM=",
+        "bidAt": "2026-09-29T09:12:33.000Z"
+      },
+      "primaryRoute": "pattern",
+      "lengthBucket": "4-5",
+      "script": "Latin",
+      "scarcityClass": "5M"
+    },
+    {
+      "saleId": "toncenter-username-sale:9d223d35ce09cd02aa24d5fa008e57d2d2d590fdf38a478779e2602023224823",
+      "assetKind": "username",
+      "assetKey": "0:3eee4f3710cd336c8200c7e7a21d2f81e6b9682c0f9bbd8d4463a21bca1ac7ee",
+      "normalizedName": "divine_regalia",
+      "soldAt": "2026-09-29T09:13:54.000Z",
+      "priceGram": 15,
+      "historicalUsdRate": 1.577741188554319,
+      "priceUsd": 23.666117828314785,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "vtl3trvThFbJhzM2j0N7i5mmTwNttrvzKEp/9T9awjM=",
+        "messageHash": "8ZBe5gj6CThiA4yEwq1mhhr5JdyRlaqhXTVuo/vldeQ=",
+        "bidAt": "2026-09-22T09:13:07.000Z"
+      },
+      "primaryRoute": "residual",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "14M"
+    }
+  ]
+}

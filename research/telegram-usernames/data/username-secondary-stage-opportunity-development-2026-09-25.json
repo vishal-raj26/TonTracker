@@ -1,0 +1,324 @@
+{
+  "qualification": false,
+  "reservedLabelsOpened": false,
+  "sourceSha256": "6d724b74f727a797d553190cb72e408d3c70d6069202636a60f7ea2b2850682f",
+  "predictionsSha256": "96a5712520ec002cb2f54b0c8836a9036b4741f73213ca14e84fa1a97d9abab4",
+  "sourceRows": 340000,
+  "matchedDevelopmentAttempts": 3261,
+  "limitation": "Realized venue is outcome metadata, not a permissible target feature. Historical Dune export ends July 2025; transaction-hash absence is not itself a disproof of an indexed sale. This is an exposed-sample diagnostic, not a current-market or production qualification.",
+  "fullHistoricalCounts": {
+    "primary/auction/intermediate": {
+      "sales": 48732,
+      "uniqueIdentities": 48732,
+      "withTransactionHash": 0
+    },
+    "primary/auction/ordinary": {
+      "sales": 208837,
+      "uniqueIdentities": 208837,
+      "withTransactionHash": 0
+    },
+    "primary/auction/premium": {
+      "sales": 21014,
+      "uniqueIdentities": 21014,
+      "withTransactionHash": 0
+    },
+    "secondary/auction/intermediate": {
+      "sales": 4160,
+      "uniqueIdentities": 3872,
+      "withTransactionHash": 152
+    },
+    "secondary/auction/ordinary": {
+      "sales": 41573,
+      "uniqueIdentities": 33116,
+      "withTransactionHash": 4277
+    },
+    "secondary/auction/premium": {
+      "sales": 2020,
+      "uniqueIdentities": 1847,
+      "withTransactionHash": 58
+    },
+    "secondary/sale/intermediate": {
+      "sales": 500,
+      "uniqueIdentities": 426,
+      "withTransactionHash": 500
+    },
+    "secondary/sale/ordinary": {
+      "sales": 12879,
+      "uniqueIdentities": 10418,
+      "withTransactionHash": 12879
+    },
+    "secondary/sale/premium": {
+      "sales": 285,
+      "uniqueIdentities": 269,
+      "withTransactionHash": 285
+    }
+  },
+  "secondaryPremiumByQuarter": {
+    "2022Q4": {
+      "sales": 82,
+      "uniqueIdentities": 79
+    },
+    "2023Q1": {
+      "sales": 94,
+      "uniqueIdentities": 87
+    },
+    "2023Q2": {
+      "sales": 43,
+      "uniqueIdentities": 42
+    },
+    "2023Q3": {
+      "sales": 83,
+      "uniqueIdentities": 79
+    },
+    "2023Q4": {
+      "sales": 80,
+      "uniqueIdentities": 75
+    },
+    "2024Q1": {
+      "sales": 176,
+      "uniqueIdentities": 166
+    },
+    "2024Q2": {
+      "sales": 252,
+      "uniqueIdentities": 246
+    },
+    "2024Q3": {
+      "sales": 272,
+      "uniqueIdentities": 257
+    },
+    "2024Q4": {
+      "sales": 287,
+      "uniqueIdentities": 272
+    },
+    "2025Q1": {
+      "sales": 270,
+      "uniqueIdentities": 255
+    },
+    "2025Q2": {
+      "sales": 565,
+      "uniqueIdentities": 540
+    },
+    "2025Q3": {
+      "sales": 101,
+      "uniqueIdentities": 98
+    }
+  },
+  "savedCandidateErrorsByVenue": {
+    "primary/auction/intermediate": {
+      "attempts": 330,
+      "uniqueIdentities": 330,
+      "baseline": {
+        "samples": 330,
+        "meanAbsoluteLogError": 1.7068948526423418,
+        "medianFactorError": 7.952789449112978
+      },
+      "globalFusion": {
+        "samples": 330,
+        "meanAbsoluteLogError": 1.6155268616190315,
+        "medianFactorError": 6.231100506657241
+      },
+      "dense": {
+        "samples": 330,
+        "meanAbsoluteLogError": 1.4015092026607299,
+        "medianFactorError": 4.944760608229291,
+        "interval": {
+          "samples": 330,
+          "coverage": 0.9121212121212121,
+          "meanLogIntervalScore": 3.4281717713777184
+        }
+      }
+    },
+    "primary/auction/ordinary": {
+      "attempts": 1903,
+      "uniqueIdentities": 1903,
+      "baseline": {
+        "samples": 1903,
+        "meanAbsoluteLogError": 0.1586644939419123,
+        "medianFactorError": 1.1132925716988142
+      },
+      "globalFusion": {
+        "samples": 1903,
+        "meanAbsoluteLogError": 0.17252134677323858,
+        "medianFactorError": 1.1139129786546729
+      },
+      "dense": {
+        "samples": 1903,
+        "meanAbsoluteLogError": 0.5150941212928429,
+        "medianFactorError": 1.70145248299122,
+        "interval": {
+          "samples": 1903,
+          "coverage": 0.7992643194955333,
+          "meanLogIntervalScore": 3.1169875201964174
+        }
+      }
+    },
+    "primary/auction/premium": {
+      "attempts": 177,
+      "uniqueIdentities": 177,
+      "baseline": {
+        "samples": 177,
+        "meanAbsoluteLogError": 2.739312723366482,
+        "medianFactorError": 9.806479400749062
+      },
+      "globalFusion": {
+        "samples": 177,
+        "meanAbsoluteLogError": 2.3955520750465342,
+        "medianFactorError": 9.116708532194593
+      },
+      "dense": {
+        "samples": 177,
+        "meanAbsoluteLogError": 2.5138321338642546,
+        "medianFactorError": 15.244446726377248,
+        "interval": {
+          "samples": 177,
+          "coverage": 0.3728813559322034,
+          "meanLogIntervalScore": 7.863711114673655
+        }
+      }
+    },
+    "secondary/auction/intermediate": {
+      "attempts": 63,
+      "uniqueIdentities": 63,
+      "baseline": {
+        "samples": 63,
+        "meanAbsoluteLogError": 1.2415333696726607,
+        "medianFactorError": 4.042947106505234
+      },
+      "globalFusion": {
+        "samples": 63,
+        "meanAbsoluteLogError": 1.206067486140452,
+        "medianFactorError": 3.156053279861223
+      },
+      "dense": {
+        "samples": 63,
+        "meanAbsoluteLogError": 1.305063383944962,
+        "medianFactorError": 3.6385596838286305,
+        "interval": {
+          "samples": 63,
+          "coverage": 0.9047619047619048,
+          "meanLogIntervalScore": 3.597670802686014
+        }
+      }
+    },
+    "secondary/auction/ordinary": {
+      "attempts": 548,
+      "uniqueIdentities": 546,
+      "baseline": {
+        "samples": 548,
+        "meanAbsoluteLogError": 0.3905964080525836,
+        "medianFactorError": 1.3193251923933091
+      },
+      "globalFusion": {
+        "samples": 548,
+        "meanAbsoluteLogError": 0.42952582297002423,
+        "medianFactorError": 1.3375322072716862
+      },
+      "dense": {
+        "samples": 548,
+        "meanAbsoluteLogError": 0.75029042098342,
+        "medianFactorError": 2.253778917210585,
+        "interval": {
+          "samples": 548,
+          "coverage": 0.39963503649635035,
+          "meanLogIntervalScore": 4.863747285860475
+        }
+      }
+    },
+    "secondary/auction/premium": {
+      "attempts": 34,
+      "uniqueIdentities": 34,
+      "baseline": {
+        "samples": 34,
+        "meanAbsoluteLogError": 2.1246803529136957,
+        "medianFactorError": 8.522422277578334
+      },
+      "globalFusion": {
+        "samples": 34,
+        "meanAbsoluteLogError": 2.091579195016887,
+        "medianFactorError": 7.2263525690077755
+      },
+      "dense": {
+        "samples": 34,
+        "meanAbsoluteLogError": 2.783848916974731,
+        "medianFactorError": 16.9482131799487,
+        "interval": {
+          "samples": 34,
+          "coverage": 0.20588235294117646,
+          "meanLogIntervalScore": 10.473998388506997
+        }
+      }
+    },
+    "secondary/sale/intermediate": {
+      "attempts": 6,
+      "uniqueIdentities": 6,
+      "baseline": {
+        "samples": 6,
+        "meanAbsoluteLogError": 0.8124619345670555,
+        "medianFactorError": 2.5885049019607846
+      },
+      "globalFusion": {
+        "samples": 6,
+        "meanAbsoluteLogError": 0.7946756072286071,
+        "medianFactorError": 2.5885049019607846
+      },
+      "dense": {
+        "samples": 6,
+        "meanAbsoluteLogError": 1.0245848148338816,
+        "medianFactorError": 2.418446503573506,
+        "interval": {
+          "samples": 6,
+          "coverage": 1,
+          "meanLogIntervalScore": 3.0495243763609463
+        }
+      }
+    },
+    "secondary/sale/ordinary": {
+      "attempts": 196,
+      "uniqueIdentities": 195,
+      "baseline": {
+        "samples": 196,
+        "meanAbsoluteLogError": 0.43110996557457254,
+        "medianFactorError": 1.5623882937629001
+      },
+      "globalFusion": {
+        "samples": 196,
+        "meanAbsoluteLogError": 0.44735367973626267,
+        "medianFactorError": 1.5741322892150034
+      },
+      "dense": {
+        "samples": 196,
+        "meanAbsoluteLogError": 0.7969055115037634,
+        "medianFactorError": 2.6147972763092144,
+        "interval": {
+          "samples": 196,
+          "coverage": 0.34183673469387754,
+          "meanLogIntervalScore": 5.373659280229626
+        }
+      }
+    },
+    "secondary/sale/premium": {
+      "attempts": 4,
+      "uniqueIdentities": 4,
+      "baseline": {
+        "samples": 4,
+        "meanAbsoluteLogError": 2.695176604643117,
+        "medianFactorError": 19.5425391868724
+      },
+      "globalFusion": {
+        "samples": 4,
+        "meanAbsoluteLogError": 1.8771108443268025,
+        "medianFactorError": 12.203528894302341
+      },
+      "dense": {
+        "samples": 4,
+        "meanAbsoluteLogError": 2.3115544836042057,
+        "medianFactorError": 13.732292781130809,
+        "interval": {
+          "samples": 4,
+          "coverage": 0.25,
+          "meanLogIntervalScore": 6.34734265484293
+        }
+      }
+    }
+  }
+}

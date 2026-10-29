@@ -1,0 +1,91 @@
+{
+  "schemaVersion": "username-secondary-local-v1",
+  "from": "2026-09-20T14:00:00Z",
+  "pipeline": "username-toncenter-secondary-sales-v1",
+  "collectedAt": "2026-09-30T10:07:13.893Z",
+  "cursor": {
+    "absoluteOffset": 50458,
+    "caughtUp": false
+  },
+  "metadata": {
+    "transfers": 100,
+    "saleContracts": 3,
+    "verifiedSales": 1,
+    "assets": 1,
+    "sales": 1,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-30T10:07:13.893Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:0e1ebaf9a24cfab53257e8ee7ea47b13f579642ea2d22405069db0a736cc3c6a",
+      "normalizedName": "pedoras",
+      "displayName": "@pedoras",
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "7L",
+      "feature": {
+        "classifierVersion": "username-structural-v2",
+        "normalizedUsername": "pedoras",
+        "displayUsername": "@pedoras",
+        "characterLength": 7,
+        "byteLength": 7,
+        "characterClass": "letters",
+        "primaryRoute": "word",
+        "routes": [
+          "word"
+        ],
+        "scarcityClass": "7L",
+        "patternSignature": "ABCDEFG",
+        "shapeSignature": "LLLLLLL",
+        "uniqueCharacterCount": 7,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "repeatedBlock": null,
+        "scripts": [
+          "Latin"
+        ],
+        "primaryScript": "Latin",
+        "containsUnderscore": false,
+        "underscoreCount": 0,
+        "digitCount": 0,
+        "digitRatio": 0,
+        "vowelRatio": 0.42857142857142855,
+        "pronounceability": "balanced",
+        "leadingZero": false,
+        "roundNumber": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-28T23:21:24.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-secondary:1b71f380c3d856585c964f5f0bb5c3d099528f06208d5711e22b8279fa1824d9",
+      "assetKind": "username",
+      "assetKey": "0:0e1ebaf9a24cfab53257e8ee7ea47b13f579642ea2d22405069db0a736cc3c6a",
+      "normalizedName": "pedoras",
+      "soldAt": "2026-09-28T23:21:24.000Z",
+      "priceGram": 40.99,
+      "historicalUsdRate": 1.5723993112476986,
+      "priceUsd": 64.45264776804316,
+      "marketplace": "Getgems",
+      "source": "toncenter-indexed-secondary-sale",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-completed-sale-contract",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "transactionHash": "0Qzr4vlTRr7/1C1Xv32POHcQemowpP1WFWtQ/Br/nco=",
+        "saleContract": "0:1cea269c7a381ea57a6d86e14b48f1b1df44e9eb7a12ba5477229157818e59e2"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "7L"
+    }
+  ]
+}

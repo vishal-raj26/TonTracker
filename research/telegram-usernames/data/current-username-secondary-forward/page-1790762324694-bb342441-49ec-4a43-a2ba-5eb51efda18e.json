@@ -1,0 +1,159 @@
+{
+  "schemaVersion": "username-secondary-local-v1",
+  "from": "2026-09-20T14:00:00Z",
+  "pipeline": "username-toncenter-secondary-sales-v1",
+  "collectedAt": "2026-09-30T09:58:44.694Z",
+  "cursor": {
+    "absoluteOffset": 45158,
+    "caughtUp": false
+  },
+  "metadata": {
+    "transfers": 100,
+    "saleContracts": 2,
+    "verifiedSales": 2,
+    "assets": 2,
+    "sales": 2,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-30T09:58:44.694Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:19eee195184feac611c15a97759f2fbcf494e10023303b3809bd439363d4b4e4",
+      "normalizedName": "sandrini",
+      "displayName": "@sandrini",
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "8L",
+      "feature": {
+        "classifierVersion": "username-structural-v2",
+        "normalizedUsername": "sandrini",
+        "displayUsername": "@sandrini",
+        "characterLength": 8,
+        "byteLength": 8,
+        "characterClass": "letters",
+        "primaryRoute": "word",
+        "routes": [
+          "word"
+        ],
+        "scarcityClass": "8L",
+        "patternSignature": "ABCDEFCF",
+        "shapeSignature": "LLLLLLLL",
+        "uniqueCharacterCount": 6,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "repeatedBlock": null,
+        "scripts": [
+          "Latin"
+        ],
+        "primaryScript": "Latin",
+        "containsUnderscore": false,
+        "underscoreCount": 0,
+        "digitCount": 0,
+        "digitRatio": 0,
+        "vowelRatio": 0.375,
+        "pronounceability": "balanced",
+        "leadingZero": false,
+        "roundNumber": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-28T08:13:04.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:c7c35fceaecc0697bc836a475f6a47d0ef148f96aa5b22bccdbc94772a2552de",
+      "normalizedName": "tropicaldelights",
+      "displayName": "@tropicaldelights",
+      "primaryRoute": "residual",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "16L",
+      "feature": {
+        "classifierVersion": "username-structural-v2",
+        "normalizedUsername": "tropicaldelights",
+        "displayUsername": "@tropicaldelights",
+        "characterLength": 16,
+        "byteLength": 16,
+        "characterClass": "letters",
+        "primaryRoute": "residual",
+        "routes": [
+          "residual"
+        ],
+        "scarcityClass": "16L",
+        "patternSignature": "ABCDEFGHIJHEKLAM",
+        "shapeSignature": "LLLLLLLLLLLLLLLL",
+        "uniqueCharacterCount": 13,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "repeatedBlock": null,
+        "scripts": [
+          "Latin"
+        ],
+        "primaryScript": "Latin",
+        "containsUnderscore": false,
+        "underscoreCount": 0,
+        "digitCount": 0,
+        "digitRatio": 0,
+        "vowelRatio": 0.3125,
+        "pronounceability": "balanced",
+        "leadingZero": false,
+        "roundNumber": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-28T08:13:07.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-secondary:77c8b34cef4e48fb9780359525c05b2ae586e3e0d103e6ed66259cae4841c00f",
+      "assetKind": "username",
+      "assetKey": "0:19eee195184feac611c15a97759f2fbcf494e10023303b3809bd439363d4b4e4",
+      "normalizedName": "sandrini",
+      "soldAt": "2026-09-28T08:13:04.000Z",
+      "priceGram": 5.97,
+      "historicalUsdRate": 1.6394939421132666,
+      "priceUsd": 9.787778834416201,
+      "marketplace": "Getgems",
+      "source": "toncenter-indexed-secondary-sale",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-completed-sale-contract",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "transactionHash": "G1tE3A+BGKDTHK3v7csddOVBY5itRBNDrsoeA6FPHjU=",
+        "saleContract": "0:1c5ac12051fbad6da768c8224d8517b5eeab6f6ecfea0b443181c76b59fc0b70"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "8L"
+    },
+    {
+      "saleId": "toncenter-username-secondary:2cd4bc2aae7e5e1a362a18d1297979aa09c7cfe50e184f40b2aae9b9da9784d6",
+      "assetKind": "username",
+      "assetKey": "0:c7c35fceaecc0697bc836a475f6a47d0ef148f96aa5b22bccdbc94772a2552de",
+      "normalizedName": "tropicaldelights",
+      "soldAt": "2026-09-28T08:13:07.000Z",
+      "priceGram": 5.97,
+      "historicalUsdRate": 1.6394975477545728,
+      "priceUsd": 9.7878003600948,
+      "marketplace": "Getgems",
+      "source": "toncenter-indexed-secondary-sale",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-completed-sale-contract",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "transactionHash": "OfEIYefEofyugIeUMSoHR5uo/xk97DQ6rfPJSnV51C4=",
+        "saleContract": "0:90df5ba45f029de6665b4e8f56d29c6ac1d83f1d5635719b0e4fe7568d556253"
+      },
+      "primaryRoute": "residual",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "16L"
+    }
+  ]
+}

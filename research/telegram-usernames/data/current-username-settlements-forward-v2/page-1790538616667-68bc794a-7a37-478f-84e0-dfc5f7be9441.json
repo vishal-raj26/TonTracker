@@ -1,0 +1,76 @@
+{
+  "schemaVersion": "username-forward-v2-local-v1",
+  "from": "2026-09-27T00:00:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "requestedEndUtime": 1790537700,
+  "collectedAt": "2026-09-27T19:50:16.667Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 7391,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 80,
+    "candidates": 10,
+    "verifiedItems": 1,
+    "wrongCollection": 9,
+    "assets": 1,
+    "sales": 1,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-27T19:50:16.667Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:3d31748aae227bf89bbcd2e7b640489f9cf13eac31a33226e98a638572fe59b0",
+      "normalizedName": "caparica",
+      "displayName": "@caparica",
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "8L",
+      "feature": {
+        "characterLength": 8,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCBDEAB",
+        "uniqueCharacterCount": 5,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-27T11:51:23.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:ea74b77dd98e12dbbcb8ed0baebca82a1626c678ace76a660d892404eebb560b",
+      "assetKind": "username",
+      "assetKey": "0:3d31748aae227bf89bbcd2e7b640489f9cf13eac31a33226e98a638572fe59b0",
+      "normalizedName": "caparica",
+      "soldAt": "2026-09-27T11:51:23.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.6158955796413936,
+      "priceUsd": 16.158955796413935,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "WvCg5oGg5PIcLDMknebE2k48wMXXKW1oJBTPHGNVrbg=",
+        "messageHash": "QnEuoOU7rBE2qniNRUHd21yUoaM32wzpInC8PQ59UnM=",
+        "bidAt": "2026-09-20T11:51:01.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "8L"
+    }
+  ]
+}

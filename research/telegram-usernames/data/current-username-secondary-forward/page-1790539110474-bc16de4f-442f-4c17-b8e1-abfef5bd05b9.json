@@ -1,0 +1,91 @@
+{
+  "schemaVersion": "username-secondary-local-v1",
+  "from": "2026-09-20T14:00:00Z",
+  "pipeline": "username-toncenter-secondary-sales-v1",
+  "collectedAt": "2026-09-27T19:58:30.474Z",
+  "cursor": {
+    "absoluteOffset": 40540,
+    "caughtUp": false
+  },
+  "metadata": {
+    "transfers": 100,
+    "saleContracts": 1,
+    "verifiedSales": 1,
+    "assets": 1,
+    "sales": 1,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-27T19:58:30.474Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:5d75e9a3dc7df9842a52caea5130514294f5fe63b2066fb519753dfc929c0bd6",
+      "normalizedName": "hatescreams",
+      "displayName": "@hatescreams",
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "11L",
+      "feature": {
+        "classifierVersion": "username-structural-v2",
+        "normalizedUsername": "hatescreams",
+        "displayUsername": "@hatescreams",
+        "characterLength": 11,
+        "byteLength": 11,
+        "characterClass": "letters",
+        "primaryRoute": "word",
+        "routes": [
+          "word"
+        ],
+        "scarcityClass": "11L",
+        "patternSignature": "ABCDEFGDBHE",
+        "shapeSignature": "LLLLLLLLLLL",
+        "uniqueCharacterCount": 8,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "repeatedBlock": null,
+        "scripts": [
+          "Latin"
+        ],
+        "primaryScript": "Latin",
+        "containsUnderscore": false,
+        "underscoreCount": 0,
+        "digitCount": 0,
+        "digitRatio": 0,
+        "vowelRatio": 0.36363636363636365,
+        "pronounceability": "balanced",
+        "leadingZero": false,
+        "roundNumber": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-27T15:59:55.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-secondary:8fad9a73275c8ec76f8605241dde71bf8b565ac048ce128921bc00fd98cbb312",
+      "assetKind": "username",
+      "assetKey": "0:5d75e9a3dc7df9842a52caea5130514294f5fe63b2066fb519753dfc929c0bd6",
+      "normalizedName": "hatescreams",
+      "soldAt": "2026-09-27T15:59:55.000Z",
+      "priceGram": 5.69,
+      "historicalUsdRate": 1.6523873867787966,
+      "priceUsd": 9.402084230771353,
+      "marketplace": "Getgems",
+      "source": "toncenter-indexed-secondary-sale",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-completed-sale-contract",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "nearest-observation",
+        "transactionHash": "QeWE43yzxD6R1Zb2g8xo6LvDv8hRIUM7XHgjGhK4/fM=",
+        "saleContract": "0:7ebfe16619cbefeaed75d2e09e5ea7f53ee560289044bac769955a80fbfa8658"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "11L"
+    }
+  ]
+}

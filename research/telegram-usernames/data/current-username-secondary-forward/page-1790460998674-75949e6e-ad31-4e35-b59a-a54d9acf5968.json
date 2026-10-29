@@ -1,0 +1,91 @@
+{
+  "schemaVersion": "username-secondary-local-v1",
+  "from": "2026-09-20T14:00:00Z",
+  "pipeline": "username-toncenter-secondary-sales-v1",
+  "collectedAt": "2026-09-26T22:16:38.674Z",
+  "cursor": {
+    "absoluteOffset": 32938,
+    "caughtUp": false
+  },
+  "metadata": {
+    "transfers": 100,
+    "saleContracts": 1,
+    "verifiedSales": 1,
+    "assets": 1,
+    "sales": 1,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-26T22:16:38.674Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:6d076995f44bdefa53934b65f4b901061a7afb81e76eff57ca7220eba3f762dc",
+      "normalizedName": "blade6688",
+      "displayName": "@blade6688",
+      "primaryRoute": "pattern",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "9M",
+      "feature": {
+        "classifierVersion": "username-structural-v2",
+        "normalizedUsername": "blade6688",
+        "displayUsername": "@blade6688",
+        "characterLength": 9,
+        "byteLength": 9,
+        "characterClass": "alphanumeric",
+        "primaryRoute": "pattern",
+        "routes": [
+          "pattern"
+        ],
+        "scarcityClass": "9M",
+        "patternSignature": "ABCDEFFGG",
+        "shapeSignature": "LLLLLNNNN",
+        "uniqueCharacterCount": 7,
+        "maxRunLength": 2,
+        "palindrome": false,
+        "sequence": null,
+        "repeatedBlock": null,
+        "scripts": [
+          "Latin"
+        ],
+        "primaryScript": "Latin",
+        "containsUnderscore": false,
+        "underscoreCount": 0,
+        "digitCount": 4,
+        "digitRatio": 0.4444444444444444,
+        "vowelRatio": 0.4,
+        "pronounceability": "not-applicable",
+        "leadingZero": false,
+        "roundNumber": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-26T12:23:56.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-secondary:aa091d285370e32100d69d404e04f2c228723410024b6871f10abe3dbc0d7c41",
+      "assetKind": "username",
+      "assetKey": "0:6d076995f44bdefa53934b65f4b901061a7afb81e76eff57ca7220eba3f762dc",
+      "normalizedName": "blade6688",
+      "soldAt": "2026-09-26T12:23:56.000Z",
+      "priceGram": 6,
+      "historicalUsdRate": 1.4681160595399538,
+      "priceUsd": 8.808696357239723,
+      "marketplace": "Getgems",
+      "source": "toncenter-indexed-secondary-sale",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-completed-sale-contract",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "transactionHash": "/U6TOtjVO1YDRhCbSCV62STlhhLzzkQz8BimIddQuOQ=",
+        "saleContract": "0:6e4d2cb445dcd77e1f45944fd5a82c9de6578715dde271dad584ca9d328bbbb5"
+      },
+      "primaryRoute": "pattern",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "9M"
+    }
+  ]
+}

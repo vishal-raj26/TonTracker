@@ -1,0 +1,91 @@
+{
+  "schemaVersion": "username-secondary-local-v1",
+  "from": "2026-09-20T14:00:00Z",
+  "pipeline": "username-toncenter-secondary-sales-v1",
+  "collectedAt": "2026-09-27T19:57:55.359Z",
+  "cursor": {
+    "absoluteOffset": 39240,
+    "caughtUp": false
+  },
+  "metadata": {
+    "transfers": 100,
+    "saleContracts": 1,
+    "verifiedSales": 1,
+    "assets": 1,
+    "sales": 1,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-27T19:57:55.359Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:6aeffe36f36355fe87607ab22f1684b16c22d71b5359429892c717c9cee9cf12",
+      "normalizedName": "asgardian",
+      "displayName": "@asgardian",
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "9L",
+      "feature": {
+        "classifierVersion": "username-structural-v2",
+        "normalizedUsername": "asgardian",
+        "displayUsername": "@asgardian",
+        "characterLength": 9,
+        "byteLength": 9,
+        "characterClass": "letters",
+        "primaryRoute": "word",
+        "routes": [
+          "word"
+        ],
+        "scarcityClass": "9L",
+        "patternSignature": "ABCADEFAG",
+        "shapeSignature": "LLLLLLLLL",
+        "uniqueCharacterCount": 7,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "repeatedBlock": null,
+        "scripts": [
+          "Latin"
+        ],
+        "primaryScript": "Latin",
+        "containsUnderscore": false,
+        "underscoreCount": 0,
+        "digitCount": 0,
+        "digitRatio": 0,
+        "vowelRatio": 0.4444444444444444,
+        "pronounceability": "balanced",
+        "leadingZero": false,
+        "roundNumber": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-27T14:46:54.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-secondary:f0d63432534fab49bd7e546dc366e96b91c0dc00bf8c725d09d052d68546fa2b",
+      "assetKind": "username",
+      "assetKey": "0:6aeffe36f36355fe87607ab22f1684b16c22d71b5359429892c717c9cee9cf12",
+      "normalizedName": "asgardian",
+      "soldAt": "2026-09-27T14:46:54.000Z",
+      "priceGram": 50,
+      "historicalUsdRate": 1.5810082458014423,
+      "priceUsd": 79.05041229007212,
+      "marketplace": "Getgems",
+      "source": "toncenter-indexed-secondary-sale",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-completed-sale-contract",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "nearest-observation",
+        "transactionHash": "F6V3rwVjxEdly8ORo/eaTCrNoDGjfo/7wzQOAAgnCTI=",
+        "saleContract": "0:b6855c01e5bf62a701988b11643c7091a6341f4991d6a0a8225e6d93beb40abf"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "9L"
+    }
+  ]
+}

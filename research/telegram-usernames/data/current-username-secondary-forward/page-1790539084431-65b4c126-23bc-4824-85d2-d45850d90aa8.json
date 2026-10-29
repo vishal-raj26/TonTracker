@@ -1,0 +1,91 @@
+{
+  "schemaVersion": "username-secondary-local-v1",
+  "from": "2026-09-20T14:00:00Z",
+  "pipeline": "username-toncenter-secondary-sales-v1",
+  "collectedAt": "2026-09-27T19:58:04.431Z",
+  "cursor": {
+    "absoluteOffset": 39640,
+    "caughtUp": false
+  },
+  "metadata": {
+    "transfers": 100,
+    "saleContracts": 6,
+    "verifiedSales": 1,
+    "assets": 1,
+    "sales": 1,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-27T19:58:04.431Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:62887eab7cb19f2907d137815ffe46018966c3d0f77d6d3ae071b315867f68f5",
+      "normalizedName": "naswauy",
+      "displayName": "@naswauy",
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "7L",
+      "feature": {
+        "classifierVersion": "username-structural-v2",
+        "normalizedUsername": "naswauy",
+        "displayUsername": "@naswauy",
+        "characterLength": 7,
+        "byteLength": 7,
+        "characterClass": "letters",
+        "primaryRoute": "word",
+        "routes": [
+          "word"
+        ],
+        "scarcityClass": "7L",
+        "patternSignature": "ABCDBEF",
+        "shapeSignature": "LLLLLLL",
+        "uniqueCharacterCount": 6,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "repeatedBlock": null,
+        "scripts": [
+          "Latin"
+        ],
+        "primaryScript": "Latin",
+        "containsUnderscore": false,
+        "underscoreCount": 0,
+        "digitCount": 0,
+        "digitRatio": 0,
+        "vowelRatio": 0.5714285714285714,
+        "pronounceability": "balanced",
+        "leadingZero": false,
+        "roundNumber": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-27T15:07:02.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-secondary:116bce852ede30344b09525235576148f2544326e59159c385ace301ddf1eb7c",
+      "assetKind": "username",
+      "assetKey": "0:62887eab7cb19f2907d137815ffe46018966c3d0f77d6d3ae071b315867f68f5",
+      "normalizedName": "naswauy",
+      "soldAt": "2026-09-27T15:07:02.000Z",
+      "priceGram": 6,
+      "historicalUsdRate": 1.5853464726757442,
+      "priceUsd": 9.512078836054465,
+      "marketplace": "Getgems",
+      "source": "toncenter-indexed-secondary-sale",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-completed-sale-contract",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "nearest-observation",
+        "transactionHash": "4qTL8NRxaIy3k4kxyVAl+Oaz0QMa7dAQ3kGHtA2Xx30=",
+        "saleContract": "0:e47a4730633f930a40daa0f97ce88fd479a6e3e274f1bb561a7d46ddb7b8da36"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "7L"
+    }
+  ]
+}

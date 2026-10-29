@@ -1,0 +1,175 @@
+{
+  "schemaVersion": "username-local-collection-v1",
+  "from": "2026-09-10T00:00:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "collectedAt": "2026-09-20T12:42:55.319Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 2720,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 80,
+    "candidates": 17,
+    "verifiedItems": 3,
+    "wrongCollection": 14,
+    "assets": 3,
+    "sales": 3,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-20T12:42:55.319Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:b4c03449dbc8d9cdca1b51ac3da0e212d02de8f8a6ce5d82d44478257b6ad981",
+      "normalizedName": "cupidbones",
+      "displayName": "@cupidbones",
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "10L",
+      "feature": {
+        "characterLength": 10,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCDEFGHIJ",
+        "uniqueCharacterCount": 10,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-10T04:52:09.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:d8d927583b8ffd844dd0db97af984359e3bae7266c2021eaa8c040dcb324f538",
+      "normalizedName": "kacmpam",
+      "displayName": "@kacmpam",
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "7L",
+      "feature": {
+        "characterLength": 7,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCDEBD",
+        "uniqueCharacterCount": 5,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-10T04:53:08.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:14186a5431c76c73d55d7e4ff9c1d6a5f377cb511039420d0aa825883d72fc8e",
+      "normalizedName": "vip888857",
+      "displayName": "@vip888857",
+      "primaryRoute": "pattern",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "9M",
+      "feature": {
+        "characterLength": 9,
+        "characterClass": "alphanumeric",
+        "routes": [
+          "pattern"
+        ],
+        "patternSignature": "ABCDDDDEF",
+        "uniqueCharacterCount": 6,
+        "maxRunLength": 4,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-10T04:59:51.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:f4dc2e88907ffd7f6302fc42982ccff3b2d95e1ecbd4ff80c95939ef29089e07",
+      "assetKind": "username",
+      "assetKey": "0:b4c03449dbc8d9cdca1b51ac3da0e212d02de8f8a6ce5d82d44478257b6ad981",
+      "normalizedName": "cupidbones",
+      "soldAt": "2026-09-10T04:52:09.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.3757607196322148,
+      "priceUsd": 13.757607196322148,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "D3k72cPZVHSggsDwf2jFOHJxMlMfjr6WFhiyYuFqBR4=",
+        "messageHash": "m3o9tBbVvZaQNwmapesS3MxjRiztVQH1GN8nhpVFYkA=",
+        "bidAt": "2026-09-03T04:51:53.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "10L"
+    },
+    {
+      "saleId": "toncenter-username-sale:a95e2e0ece6235ea3b7b12fa2f8b402383de6a2560925c692a0b57b176e7973f",
+      "assetKind": "username",
+      "assetKey": "0:d8d927583b8ffd844dd0db97af984359e3bae7266c2021eaa8c040dcb324f538",
+      "normalizedName": "kacmpam",
+      "soldAt": "2026-09-10T04:53:08.000Z",
+      "priceGram": 7,
+      "historicalUsdRate": 1.3757370840362335,
+      "priceUsd": 9.630159588253635,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "kjHAac0YhmpR5M5onWhJsIH81+1HmhgkzYsK8SGPXIQ=",
+        "messageHash": "qAq1Qonx7YWOC5p6sdUOjEKV1ivWXVgg2D5vf1Y5pLU=",
+        "bidAt": "2026-09-10T04:53:08.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "7L"
+    },
+    {
+      "saleId": "toncenter-username-sale:258c2b71a435644bbace9d4a99193de23d559af0730f7aec8fc4db3e8b87eb74",
+      "assetKind": "username",
+      "assetKey": "0:14186a5431c76c73d55d7e4ff9c1d6a5f377cb511039420d0aa825883d72fc8e",
+      "normalizedName": "vip888857",
+      "soldAt": "2026-09-10T04:59:51.000Z",
+      "priceGram": 7,
+      "historicalUsdRate": 1.3755756408975814,
+      "priceUsd": 9.62902948628307,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "WVKX6Go9BMduuBGFg8i5JuRjFT/Amrpd3o1aZ1gAY88=",
+        "messageHash": "cIi2F9tOh5E0/3sU8pQiuQhYLTiN9NlJmYFu7GhHnZ8=",
+        "bidAt": "2026-09-10T04:59:51.000Z"
+      },
+      "primaryRoute": "pattern",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "9M"
+    }
+  ]
+}

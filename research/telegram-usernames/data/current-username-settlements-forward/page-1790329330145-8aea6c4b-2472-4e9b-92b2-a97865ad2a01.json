@@ -1,0 +1,125 @@
+{
+  "schemaVersion": "username-local-collection-v1",
+  "from": "2026-09-20T13:45:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "collectedAt": "2026-09-25T09:42:10.145Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 50585,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 80,
+    "candidates": 12,
+    "verifiedItems": 2,
+    "wrongCollection": 10,
+    "assets": 2,
+    "sales": 2,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-25T09:42:10.145Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:24ed4dd24ece618ec8b1684a6dfe1ed5e055a476a3a27daf6478c69ccb842cf7",
+      "normalizedName": "m3z33",
+      "displayName": "@m3z33",
+      "primaryRoute": "pattern",
+      "lengthBucket": "4-5",
+      "script": "Latin",
+      "scarcityClass": "5M",
+      "feature": {
+        "characterLength": 5,
+        "characterClass": "alphanumeric",
+        "routes": [
+          "pattern"
+        ],
+        "patternSignature": "ABCBB",
+        "uniqueCharacterCount": 3,
+        "maxRunLength": 2,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-22T21:39:22.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:bdce7fca89932e2520967c1c8b75e37c2f30c08143a6d60ac5d1182a71deaf17",
+      "normalizedName": "osuzhdenny",
+      "displayName": "@osuzhdenny",
+      "primaryRoute": "pattern",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "10L",
+      "feature": {
+        "characterLength": 10,
+        "characterClass": "letters",
+        "routes": [
+          "pattern"
+        ],
+        "patternSignature": "ABCDEFGHHI",
+        "uniqueCharacterCount": 9,
+        "maxRunLength": 2,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-22T21:40:36.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:d8a7eeeda8dc712c045a6405dabcebd5d405b30d12e6a3f9107776887ff2b1cf",
+      "assetKind": "username",
+      "assetKey": "0:24ed4dd24ece618ec8b1684a6dfe1ed5e055a476a3a27daf6478c69ccb842cf7",
+      "normalizedName": "m3z33",
+      "soldAt": "2026-09-22T21:39:22.000Z",
+      "priceGram": 6.000000001,
+      "historicalUsdRate": 1.4528933671743103,
+      "priceUsd": 8.717360204498755,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "RgQftQTXS1WH4I3ubPz4oK56EqPkAUdeutSDGy4nl+I=",
+        "messageHash": "m1b3FHZRp2NyAmEHxBsIwg0XhILLWMwvQnM+MUrF3V0=",
+        "bidAt": "2026-09-22T21:39:22.000Z"
+      },
+      "primaryRoute": "pattern",
+      "lengthBucket": "4-5",
+      "script": "Latin",
+      "scarcityClass": "5M"
+    },
+    {
+      "saleId": "toncenter-username-sale:9ccd30b654725f83e16ef6ddc342eb31490d7916c19cb1134fef0e18b5c809b2",
+      "assetKind": "username",
+      "assetKey": "0:bdce7fca89932e2520967c1c8b75e37c2f30c08143a6d60ac5d1182a71deaf17",
+      "normalizedName": "osuzhdenny",
+      "soldAt": "2026-09-22T21:40:36.000Z",
+      "priceGram": 7,
+      "historicalUsdRate": 1.452920904452586,
+      "priceUsd": 10.170446331168101,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "iPL0s5mjAUlZSGtrFIiS8i1rtJb4aDavH6iYqS/VAIY=",
+        "messageHash": "VAK3vA5I4vLXoCZaZiJpEcLPDoV48zbI7MJS0VDrEzI=",
+        "bidAt": "2026-09-22T21:40:36.000Z"
+      },
+      "primaryRoute": "pattern",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "10L"
+    }
+  ]
+}

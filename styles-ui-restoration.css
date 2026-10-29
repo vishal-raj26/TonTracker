@@ -1,0 +1,16 @@
+/* Preserve the pre-Fomo presentation while retaining native modal safety fixes. */
+dialog.product-preview-sheet:not([open]), dialog.token-thumb-overlay:not([open]) { display: none; }
+dialog.product-preview-sheet[open], dialog.token-thumb-overlay[open] {
+  inset: 0; width: 100vw; height: 100dvh; max-width: none; max-height: none;
+  margin: 0; padding: 20px; border: 0; color: var(--ink); background: transparent;
+}
+dialog.product-preview-sheet::backdrop, dialog.token-thumb-overlay::backdrop { background: rgba(0,0,0,.52); }
+.product-preview-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.product-preview-head h2 { margin: 0; font: 700 16px/1.4 Manrope, sans-serif; }
+.product-preview-head button { width: 44px; height: 44px; display: grid; place-items: center; color: var(--ink); border: 0; background: transparent; }
+.product-preview-head svg { width: 20px; height: 20px; }
+.currency-options button { border: 0; color: inherit; font: inherit; background: transparent; }
+.currency-options button.is-active { color: var(--ink); }
+.settings-status { display: flex; align-items: center; gap: 12px; padding: 16px; color: var(--muted); }
+#portfolioHistoryContext { display: block; margin-top: 10px; color: var(--muted); font: 400 11px/1.5 Manrope, sans-serif; }
+#portfolioHistoryContext[hidden] { display: none; }

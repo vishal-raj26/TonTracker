@@ -1,0 +1,175 @@
+{
+  "schemaVersion": "username-local-collection-v1",
+  "from": "2026-09-20T13:45:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "collectedAt": "2026-09-22T12:56:50.932Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 18489,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 80,
+    "candidates": 9,
+    "verifiedItems": 3,
+    "wrongCollection": 6,
+    "assets": 3,
+    "sales": 3,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-22T12:56:50.932Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:f9398b88dfa3605e0c8773e47667a14a47664119e57ba9ec84e2e06257be7dd3",
+      "normalizedName": "h1lin",
+      "displayName": "@h1lin",
+      "primaryRoute": "alphanumeric",
+      "lengthBucket": "4-5",
+      "script": "Latin",
+      "scarcityClass": "5M",
+      "feature": {
+        "characterLength": 5,
+        "characterClass": "alphanumeric",
+        "routes": [
+          "alphanumeric"
+        ],
+        "patternSignature": "ABCDE",
+        "uniqueCharacterCount": 5,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-21T11:42:37.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:ce305b1caacc57831af123f10b04041c6f1d2e16633bdaaf3bd1b76f4d878986",
+      "normalizedName": "nordwindairlines",
+      "displayName": "@nordwindairlines",
+      "primaryRoute": "residual",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "16L",
+      "feature": {
+        "characterLength": 16,
+        "characterClass": "letters",
+        "routes": [
+          "residual"
+        ],
+        "patternSignature": "ABCDEFADGFCHFAIJ",
+        "uniqueCharacterCount": 10,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-21T11:43:53.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:66d4fb3f6933c8c14ff74d2cf82c9329b792cdef6a69a7f32a0555aac82c95c7",
+      "normalizedName": "lehly",
+      "displayName": "@lehly",
+      "primaryRoute": "word",
+      "lengthBucket": "4-5",
+      "script": "Latin",
+      "scarcityClass": "5L",
+      "feature": {
+        "characterLength": 5,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCAD",
+        "uniqueCharacterCount": 4,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-21T11:44:27.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:1ab30fabda2923a13505f3f66836d082c2962bc893c6c0a4c8886e9533362430",
+      "assetKind": "username",
+      "assetKey": "0:f9398b88dfa3605e0c8773e47667a14a47664119e57ba9ec84e2e06257be7dd3",
+      "normalizedName": "h1lin",
+      "soldAt": "2026-09-21T11:42:37.000Z",
+      "priceGram": 5.01,
+      "historicalUsdRate": 1.4300182303196638,
+      "priceUsd": 7.1643913339015155,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "M9p503MtRTPTJ6uNipumTe0qLZDzQ5hRlZd4hPSyh20=",
+        "messageHash": "SmUMpeQxfXPxVSXxEcDwlDKpxM1F6yz1BQv3WwMC5JM=",
+        "bidAt": "2026-09-21T10:42:21.000Z"
+      },
+      "primaryRoute": "alphanumeric",
+      "lengthBucket": "4-5",
+      "script": "Latin",
+      "scarcityClass": "5M"
+    },
+    {
+      "saleId": "toncenter-username-sale:986f4dc9d065e6142a00185ea93ce8314af5594b9546dc6dd71ec7b1e56df992",
+      "assetKind": "username",
+      "assetKey": "0:ce305b1caacc57831af123f10b04041c6f1d2e16633bdaaf3bd1b76f4d878986",
+      "normalizedName": "nordwindairlines",
+      "soldAt": "2026-09-21T11:43:53.000Z",
+      "priceGram": 14.17,
+      "historicalUsdRate": 1.4301092001276232,
+      "priceUsd": 20.264647365808422,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "XyZf5eFmICw3lxFB+ooklH7jqs8VvL4AAstW2W4I0ks=",
+        "messageHash": "sHt3qWdNMe5vbxnQe7Uza8hFGAmOdVbGbHnrSrtxUZs=",
+        "bidAt": "2026-09-21T10:43:35.000Z"
+      },
+      "primaryRoute": "residual",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "16L"
+    },
+    {
+      "saleId": "toncenter-username-sale:63db0d72588634d488a373bf23e67e64f6f6b7941cd142d04b53fb34f9642890",
+      "assetKind": "username",
+      "assetKey": "0:66d4fb3f6933c8c14ff74d2cf82c9329b792cdef6a69a7f32a0555aac82c95c7",
+      "normalizedName": "lehly",
+      "soldAt": "2026-09-21T11:44:27.000Z",
+      "priceGram": 7,
+      "historicalUsdRate": 1.4301498971469733,
+      "priceUsd": 10.011049280028812,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "UB5xFypZ5Zt1w1nUWKwyAcPJrqMV8L+AQK2VrQzpaXk=",
+        "messageHash": "PqdBYKMM+RaQIsj0CX7sZb/YMTR9sUb8uPMT5TMGJWA=",
+        "bidAt": "2026-09-21T09:39:20.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "4-5",
+      "script": "Latin",
+      "scarcityClass": "5L"
+    }
+  ]
+}

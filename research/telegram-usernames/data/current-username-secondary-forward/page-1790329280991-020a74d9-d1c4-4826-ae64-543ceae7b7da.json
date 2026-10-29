@@ -1,0 +1,91 @@
+{
+  "schemaVersion": "username-secondary-local-v1",
+  "from": "2026-09-20T14:00:00Z",
+  "pipeline": "username-toncenter-secondary-sales-v1",
+  "collectedAt": "2026-09-25T09:41:20.991Z",
+  "cursor": {
+    "absoluteOffset": 26470,
+    "caughtUp": false
+  },
+  "metadata": {
+    "transfers": 100,
+    "saleContracts": 1,
+    "verifiedSales": 1,
+    "assets": 1,
+    "sales": 1,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-25T09:41:20.991Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:3e961bf1a2780fd0722cd32648e3ea48b84b5b30942236af6b1c846b95aaaab0",
+      "normalizedName": "lucy_xxx",
+      "displayName": "@lucy_xxx",
+      "primaryRoute": "pattern",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "8M",
+      "feature": {
+        "classifierVersion": "username-structural-v2",
+        "normalizedUsername": "lucy_xxx",
+        "displayUsername": "@lucy_xxx",
+        "characterLength": 8,
+        "byteLength": 8,
+        "characterClass": "alphanumeric",
+        "primaryRoute": "pattern",
+        "routes": [
+          "pattern"
+        ],
+        "scarcityClass": "8M",
+        "patternSignature": "ABCDEFFF",
+        "shapeSignature": "LLLL_LLL",
+        "uniqueCharacterCount": 6,
+        "maxRunLength": 3,
+        "palindrome": false,
+        "sequence": null,
+        "repeatedBlock": null,
+        "scripts": [
+          "Latin"
+        ],
+        "primaryScript": "Latin",
+        "containsUnderscore": true,
+        "underscoreCount": 1,
+        "digitCount": 0,
+        "digitRatio": 0,
+        "vowelRatio": 0.2857142857142857,
+        "pronounceability": "not-applicable",
+        "leadingZero": false,
+        "roundNumber": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-25T08:45:11.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-secondary:f07e2a4947e1d736b844adaf3495987921f87bd0718934e9ee4a16cd07e80b28",
+      "assetKind": "username",
+      "assetKey": "0:3e961bf1a2780fd0722cd32648e3ea48b84b5b30942236af6b1c846b95aaaab0",
+      "normalizedName": "lucy_xxx",
+      "soldAt": "2026-09-25T08:45:11.000Z",
+      "priceGram": 5.7949,
+      "historicalUsdRate": 1.4184989491359439,
+      "priceUsd": 8.220059560347881,
+      "marketplace": "Getgems",
+      "source": "toncenter-indexed-secondary-sale",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-completed-sale-contract",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "transactionHash": "wo2vKvr0CRSK4/2Ou6i3XLrgb9pHI0JMcCEFJlfYQ5o=",
+        "saleContract": "0:87e9a7f3363706d2b31c6159b934910a916f1e2cfb16dbdd637cf6ee3ad6db85"
+      },
+      "primaryRoute": "pattern",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "8M"
+    }
+  ]
+}

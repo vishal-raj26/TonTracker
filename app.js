@@ -1,4 +1,7 @@
 const screens = document.querySelectorAll("[data-screen]");
+const giftPreviewCacheSuffix = window.TONTRACK_GIFT_PRICE_PREVIEW === true
+  && ["localhost", "127.0.0.1", "[::1]", "::1"].includes(String(window.location?.hostname || "").toLowerCase())
+  ? ":mock-gift-preview-v3" : "";
 const Charts = window.TonTrackCharts;
 const navButtons = document.querySelectorAll(".dock button");
 const mainDock = document.querySelector(".dock");
@@ -29,8 +32,8 @@ function hasTonWalletPortfolio() {
 let priceMode = "USD";
 let displayCurrency = "USD";
 let selectedAllocation = null;
-let usdTonRate = 3.12;
-const HOME_ACTIVITY_LIMIT = 5;
+let usdTonRate = 0;
+const HOME_ACTIVITY_LIMIT = 3;
 const STICKER_SOURCE_IMAGES = {
   Fuse: "https://cdn.prod.website-files.com/68a3e520329c3b7c58f92c0e/68a4ff89b48cb4186a9fdafd_Fuse%20Logo%20Light.svg",
   Goodies: "https://www.goodies.tg/logo.svg",
@@ -65,6 +68,17 @@ let activityFilterMode = "All";
 let activitySearchTerm = "";
 let activitySearchTimer = 0;
 let txSheetUrl = "";
+let activeOverlayOpener = null;
+
+function rememberOverlayOpener() {
+  activeOverlayOpener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+}
+
+function restoreOverlayFocus() {
+  const opener = activeOverlayOpener;
+  activeOverlayOpener = null;
+  if (opener?.isConnected) opener.focus({ preventScroll: true });
+}
 let activityBackgroundLoading = false;
 let activityPreloadAddress = "";
 let activityInitialLoading = false;
@@ -80,10 +94,10 @@ const giftComboHistoryRequests = new Map();
 const giftModelStatsCache = new Map();
 const giftModelStatsRequests = new Map();
 const giftCollectionStatsCache = new Map();
-const giftDetailPayloadVersion = "exact-combo-detail-v5-resilient";
+const giftDetailPayloadVersion = "exact-combo-detail-v6-resilient";
 const GIFT_DETAIL_CACHE_FRESH_MS = 10 * 60 * 1000;
 const GIFT_DETAIL_CACHE_STALE_MS = 7 * 24 * 60 * 60 * 1000;
-const GIFT_DETAIL_CACHE_STORAGE_KEY = `tontrack:gift-detail:${giftDetailPayloadVersion}`;
+const GIFT_DETAIL_CACHE_STORAGE_KEY = `tontrack:gift-detail:${giftDetailPayloadVersion}${giftPreviewCacheSuffix}`;
 const GIFT_DETAIL_CACHE_MAX_ENTRIES = 400;
 const giftDetailPersistentCache = new Map();
 let giftDetailPersistentCacheLoaded = false;
@@ -103,6 +117,7 @@ let detailWarmupGeneration = 0;
 const DETAIL_WARMUP_CONCURRENCY = 5;
 let activeImportSessionId = 0;
 let importLoaderPulseTimer = 0;
+let importLoaderFailsafeTimer = 0;
 let allocationUiLocked = false;
 const sectionLoadState = new Map();
 let sectionToastTimer = 0;
@@ -544,7 +559,9 @@ const tokenDetails = {
 const assetDetails = Object.fromEntries([...giftAssets, ...stickerAssets, ...Object.values(tokenDetails)].map((asset) => [asset.id, asset]));
 
 function money(value) {
-  if (displayCurrency === "TON") return `${(value / usdTonRate).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} GRAM`;
+  if (displayCurrency === "TON") return usdTonRate > 0
+    ? `${(value / usdTonRate).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} GRAM`
+    : "Price n/a";
   const sign = value < 0 ? "-" : "";
   return `${sign}$${Math.abs(value).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
@@ -649,7 +666,9 @@ function escapeRegExp(value) {
 }
 
 function signedMoney(value) {
-  if (displayCurrency === "TON") return `${value >= 0 ? "+" : "-"}${(Math.abs(value) / usdTonRate).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} GRAM`;
+  if (displayCurrency === "TON") return usdTonRate > 0
+    ? `${value >= 0 ? "+" : "-"}${(Math.abs(value) / usdTonRate).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} GRAM`
+    : "Price n/a";
   return `${value >= 0 ? "+" : "-"}$${Math.abs(value).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
@@ -731,6 +750,8 @@ function showScreen(name) {
     screen.classList.toggle("is-active", screen.dataset.screen === name);
   });
   document.querySelector(".app-frame")?.classList.toggle("is-home-screen", name === "home");
+  document.querySelector(".app-frame")?.classList.toggle("is-deep-detail", ["detail", "gift-brand", "sticker-brand"].includes(name));
+  syncContextualBackLabel(name);
   const group = navGroup[name] || name;
   navButtons.forEach((button) => {
     const isCurrent = button.dataset.screenTarget === group;
@@ -746,9 +767,29 @@ function showScreen(name) {
   renderScreenHeaderDotMatrix(document.querySelector(`.screen[data-screen="${name}"]`));
   if (name === "activity") loadFullActivity();
   if (name === "analytics") updateAnalyticsFromWallet(homePortfolioValue);
+  if (name === "gifts") {
+    // Gift detail hydration can finish while the user is on another screen.
+    // Reconcile the collection aggregates before showing the list so a priced
+    // child is never hidden behind a stale collection-level skeleton.
+    giftAssets.forEach((asset) => {
+      if (asset?.children?.length) syncCollectibleGroupFromChildren(asset);
+    });
+    renderGiftGrid();
+    updateCollectibleSummaryBanner("gifts");
+  }
   if (name === "watchlist") renderWatchlist();
   if (name === "settings") renderSettingsSummary();
   if (name === "detail") syncWatchlistButton();
+}
+
+function syncContextualBackLabel(name) {
+  const button = document.querySelector(`[data-screen="${name}"] .page-header > .icon-button:first-child`);
+  if (!button?.dataset.screenTarget) return;
+  const previous = navigationStack.at(-1);
+  const target = previous?.screen || button.dataset.screenTarget;
+  const title = previous?.title || (target === "home" ? "Home"
+    : document.querySelector(`[data-screen="${target}"] .page-header h1`)?.textContent?.trim());
+  button.setAttribute("aria-label", title ? `Back to ${title}` : "Go back");
 }
 
 function navigationRouteKey(route = {}) {
@@ -758,6 +799,8 @@ function navigationRouteKey(route = {}) {
 function currentNavigationRoute() {
   const screen = document.querySelector(".screen.is-active")?.dataset.screen || "home";
   const route = { screen, scrollY: window.scrollY || document.documentElement.scrollTop || 0 };
+  route.title = screen === "home" ? "Home"
+    : document.querySelector(`[data-screen="${screen}"] .page-header h1`)?.textContent?.trim() || "";
   if (screen === "detail") {
     route.asset = currentDetailAssetId();
   } else if (screen === "gift-brand") {
@@ -947,20 +990,18 @@ function updateCollectibleSummaryBanner(kind) {
   const label = kind === "gifts" ? "Total Gifts Value" : "Total Stickers Value";
   if (!priced.length) {
     const pending = hasPendingCollectiblePrices(kind);
-    banner.innerHTML = `<small>${label}</small><div><h2>${pending ? "Price loading" : "Price unavailable"}</h2><span>${assets.length} item${assets.length === 1 ? "" : "s"}</span></div><strong class="summary-state-cue">${iconCueHtml(pending ? "refresh-cw" : "circle-slash-2", pending ? "Loading market prices" : "Market price unavailable", pending ? "is-loading" : "")}</strong><p></p>`;
+    banner.innerHTML = `<small>${label}</small><div><h2 class="is-value-unavailable">${pending ? "Price loading" : "Price unavailable"}</h2><span>${assets.length} item${assets.length === 1 ? "" : "s"}</span></div><strong class="summary-state-cue">${iconCueHtml(pending ? "refresh-cw" : "circle-slash-2", pending ? "Loading market prices" : "Market price unavailable", pending ? "is-loading" : "")}</strong><p></p>`;
     window.lucide?.createIcons();
     return;
   }
   const total = priced.reduce((sum, asset) => sum + Number(asset.floorUsd || 0), 0);
   const totalTon = usdTonRate > 0 ? total / usdTonRate : 0;
   const daily = priced.reduce((sum, asset) => sum + Number(asset.dailyUsd || 0), 0);
-  const pnl = priced.reduce((sum, asset) => sum + Number(asset.pnlUsd || 0), 0);
-  const pnlBase = priced.reduce((sum, asset) => sum + Math.max(0, Number(asset.floorUsd || 0) - Number(asset.pnlUsd || 0)), 0);
-  const dailyPct = total ? (daily / total) * 100 : 0;
-  const pnlPct = pnlBase ? (pnl / pnlBase) * 100 : 0;
-  const dailyClass = daily < 0 ? "negative" : "positive";
-  const pnlClass = pnl < 0 ? "negative" : "positive";
-  banner.innerHTML = `<small>${label}</small><div><h2>${money(total)}</h2><span>${compactNumber(totalTon)} GRAM</span></div><strong class="${dailyClass}">${signedMoney(daily)} · ${signedPct(dailyPct)} 24h</strong><p class="summary-inline-metric">${iconCueHtml("chart-no-axes-combined", "Unrealized PnL")}<b class="${pnlClass}">${signedMoney(pnl)} · ${signedPct(pnlPct)}</b></p>`;
+  const knownBasis = priced.every((asset) => Number(asset.initUsd || asset.costBasis) > 0 && asset.pnlUsd != null && asset.pnlUsd !== "" && Number.isFinite(Number(asset.pnlUsd)));
+  const performance = collectiblePerformanceHtml({ floorUsd: total, dailyUsd: daily,
+    initUsd: knownBasis ? priced.reduce((sum, asset) => sum + Number(asset.initUsd || asset.costBasis), 0) : 0,
+    pnlUsd: knownBasis ? priced.reduce((sum, asset) => sum + Number(asset.pnlUsd), 0) : null });
+  banner.innerHTML = `<small>${label}</small><div><h2>${money(total)}</h2><span>${usdTonRate > 0 ? `${compactNumber(totalTon)} GRAM` : "GRAM rate unavailable"}</span></div>${performance}`;
   renderCollectibleSummaryDotMatrix(banner);
   window.lucide?.createIcons();
 }
@@ -968,45 +1009,34 @@ function updateCollectibleSummaryBanner(kind) {
 function renderGiftGrid() {
   const grid = document.querySelector("#giftGrid");
   if (!grid) return;
+  giftAssets.forEach((asset) => {
+    if (asset?.children?.length) syncCollectibleGroupFromChildren(asset);
+  });
+  syncCollectibleFilterOptions("giftFilter", giftAssets, "gift");
   const sort = document.querySelector("#giftSort")?.value || "floor-desc";
   const filter = document.querySelector("#giftFilter")?.value || "all";
   const query = (document.querySelector("#giftSearch")?.value || "").trim().toLowerCase();
   const searched = query
-    ? giftAssets.filter((asset) => [
-      asset.name,
-      asset.collection,
-      asset.model,
-      asset.backdrop,
-      asset.symbol,
-      ...(asset.traits || []).flatMap((trait) => [trait.label, trait.value]),
-      ...(asset.children || []).flatMap((child) => [
-        child.name,
-        child.collection,
-        child.model,
-        child.backdrop,
-        child.symbol,
-        ...(child.traits || []).flatMap((trait) => [trait.label, trait.value]),
-      ]),
-    ].filter(Boolean).join(" ").toLowerCase().includes(query))
+    ? giftAssets.filter((asset) => collectibleSearchText(asset).includes(query))
     : giftAssets;
   const items = sortAssets(filterAssets(searched, filter), sort);
   const countLabel = document.querySelector("#giftCountLabel");
   if (countLabel) {
     const count = items.reduce((sum, asset) => sum + Number(asset.count || 1), 0);
-    countLabel.textContent = `${count} gift${count === 1 ? "" : "s"}`;
+    countLabel.textContent = `${count} gift${count === 1 ? "" : "s"}${query || filter !== "all" ? ` in ${items.length} matching collection${items.length === 1 ? "" : "s"}` : ""}`;
   }
   const coverageLabel = document.querySelector("#giftPriceCoverage");
   if (coverageLabel) {
     const holdings = giftAssets.flatMap((asset) => asset.children?.length ? asset.children : [asset]);
-    const fetched = holdings.filter((asset) => asset.floorSource === "backdrop" && Number(asset.floorUsd || 0) > 0).length;
-    const estimated = holdings.filter(isEstimatedAsset).length;
-    coverageLabel.textContent = `${fetched} fetched · ${estimated} valued`;
-    coverageLabel.classList.toggle("is-complete", Boolean(holdings.length) && fetched + estimated >= holdings.length);
+    const estimated = holdings.filter((asset) => Number(asset.floorUsd || 0) > 0 && isEstimatedAsset(asset)).length;
+    const priced = holdings.filter((asset) => Number(asset.floorUsd || 0) > 0).length;
+    coverageLabel.textContent = `${priced}/${holdings.length} priced${estimated ? ` · ${estimated} estimated` : ""}`;
+    coverageLabel.classList.toggle("is-complete", Boolean(holdings.length) && priced >= holdings.length);
   }
   const loading = isSectionLoading("gifts");
   grid.innerHTML = loading
     ? Array.from({ length: 4 }, () => `<article class="collectible-card collectible-skeleton-card"><span class="skeleton"></span><div class="value-stack"><strong class="skeleton">&nbsp;</strong><small class="skeleton">&nbsp;</small></div></article>`).join("")
-    : items.length ? items.map(renderGiftCard).join("") : `<article class="collectible-card"><div class="value-stack"><strong>No gifts found</strong><small>Try a different search.</small></div></article>`;
+    : items.length ? items.map(renderGiftCard).join("") : collectibleEmptyStateHtml("gifts", Boolean(query || filter !== "all"));
   window.lucide?.createIcons();
   initCollectibleAnimations(grid);
   applyCurrencyDisplay();
@@ -1015,51 +1045,187 @@ function renderGiftGrid() {
 function renderStickerGrid() {
   const grid = document.querySelector("#stickerGrid");
   if (!grid) return;
+  syncCollectibleFilterOptions("stickerFilter", stickerAssets, "sticker");
   const sort = document.querySelector("#stickerSort")?.value || "floor-desc";
   const filter = document.querySelector("#stickerFilter")?.value || "all";
   const query = (document.querySelector("#stickerSearch")?.value || "").trim().toLowerCase();
   const searched = query
-    ? stickerAssets.filter((asset) => [
-      asset.name,
-      asset.collection,
-      asset.creator,
-      asset.characterName,
-      asset.marketPlatform,
-      asset.source,
-      asset.format,
-      asset.edition,
-      ...(asset.children || []).flatMap((child) => [child.name, child.collection, child.characterName, child.source]),
-    ].filter(Boolean).join(" ").toLowerCase().includes(query))
+    ? stickerAssets.filter((asset) => collectibleSearchText(asset).includes(query))
     : stickerAssets;
   const items = sortAssets(filterAssets(searched, filter), sort);
   const countLabel = document.querySelector("#stickerCountLabel");
   if (countLabel) {
     const count = items.reduce((sum, asset) => sum + stickerOwnedCount(asset), 0);
-    countLabel.textContent = `${count} sticker${count === 1 ? "" : "s"}`;
+    countLabel.textContent = `${count} sticker${count === 1 ? "" : "s"}${query || filter !== "all" ? ` in ${items.length} matching brand${items.length === 1 ? "" : "s"}` : ""}`;
   }
   const loading = isSectionLoading("stickers");
   grid.innerHTML = loading
     ? Array.from({ length: 4 }, () => `<article class="collectible-card collectible-skeleton-card"><span class="skeleton"></span><div class="value-stack"><strong class="skeleton">&nbsp;</strong><small class="skeleton">&nbsp;</small></div></article>`).join("")
-    : items.length ? items.map(renderStickerCard).join("") : `<article class="collectible-card"><div class="value-stack"><strong>No stickers found</strong><small>Try a different search.</small></div></article>`;
+    : items.length ? items.map(renderStickerCard).join("") : collectibleEmptyStateHtml("stickers", Boolean(query || filter !== "all"));
   window.lucide?.createIcons();
   initCollectibleAnimations(grid);
   applyCurrencyDisplay();
 }
 
+function collectibleEmptyStateHtml(kind, filtered) {
+  return `<article class="portfolio-empty-state collectible-empty-state"><div><b>${filtered ? "No matching collections" : `No ${kind} to show`}</b><small>${filtered ? "Try another search or clear your filters." : "Your imported holdings will appear here."}</small></div>${filtered ? `<button class="text-button" type="button" data-clear-collectible-filters="${kind}">Clear search and filters</button>` : ""}</article>`;
+}
+
+function collectibleSearchText(asset) {
+  const fields = ["name", "collection", "creator", "characterName", "model", "backdrop", "symbol", "format", "edition", "tag", "source", "marketPlatform"];
+  return [asset, ...(asset.children || [])].flatMap((item) => [
+    ...fields.map((field) => typeof item[field] === "string" ? item[field] : ""),
+    ...(item.traits || item.attributes || []).flatMap((trait) => [trait.label || trait.trait_type, trait.value]),
+  ]).filter(Boolean).join(" ").toLowerCase();
+}
+
+function collectibleFilterValue(asset, field) {
+  const direct = asset[field];
+  if (typeof direct === "string" && direct.trim()) return direct.trim();
+  const trait = (asset.traits || asset.attributes || []).find((entry) => String(entry.label || entry.trait_type || "").toLowerCase() === field);
+  return String(trait?.value || "").trim();
+}
+
+function syncCollectibleFilterOptions(id, assets, kind) {
+  const select = document.getElementById(id);
+  if (!select) return;
+  const current = select.value || "all";
+  const fields = kind === "gift" ? ["collection", "model", "backdrop", "symbol"] : ["creator", "format", "edition"];
+  const groups = fields.map((field) => {
+    const values = [...new Set(assets.flatMap((asset) => [asset, ...(asset.children || [])]).map((asset) => collectibleFilterValue(asset, field)).filter(Boolean))].sort((a,b) => a.localeCompare(b));
+    return { field, values };
+  });
+  const options = [{ value: "all", label: kind === "gift" ? "All Gifts" : "All Brands" }, { value: "listed", label: "Listed" }, { value: "unlisted", label: "Unlisted" }];
+  groups.forEach(({ field, values }) => values.forEach((value) => options.push({ value: `${field}:${value}`, label: `${field[0].toUpperCase() + field.slice(1)}: ${value}` })));
+  const signature = JSON.stringify(options);
+  if (select.dataset.optionsSignature === signature) { syncCollectibleFilterButton(id); return; }
+  select.innerHTML = options.map((option) => `<option value="${escapeHtml(option.value)}">${escapeHtml(option.label)}</option>`).join("");
+  // Keep a selection while assets refresh or the selected item leaves the wallet.
+  // Its zero-match state is intentional; never silently broaden the result.
+  if (!options.some((option) => option.value === current)) {
+    select.insertAdjacentHTML("beforeend", `<option value="${escapeHtml(current)}">${escapeHtml(current.replace(":", ": "))}</option>`);
+  }
+  select.value = current;
+  select.dataset.optionsSignature = signature;
+  syncCollectibleFilterButton(id);
+  if (collectibleFilterSheetState?.id === id) renderCollectibleFilterSheet();
+}
+
+let collectibleFilterSheetState = null;
+function syncCollectibleFilterButton(id) {
+  const select = document.getElementById(id);
+  const button = document.querySelector?.(`[data-collectible-filter-open="${id}"]`);
+  if (!button || !select) return;
+  const label = select.selectedOptions?.[0]?.textContent || "All";
+  button.textContent = label;
+  button.setAttribute("aria-label", `Filter ${id === "giftFilter" ? "gifts" : "stickers"}: ${label}`);
+}
+
+function collectibleFilterChoices(options, field, query = "") {
+  const needle = query.trim().toLowerCase();
+  return options.filter((option) => (option.value === "all" || (field === "status" ? !option.value.includes(":") : option.value.startsWith(`${field}:`)))
+    && option.label.toLowerCase().includes(needle));
+}
+
+function renderCollectibleFilterSheet() {
+  const state = collectibleFilterSheetState;
+  if (!state) return;
+  const sheet = document.getElementById("collectibleFilterDialog");
+  const select = document.getElementById(state.id);
+  const query = sheet.querySelector("input").value;
+  const fields = state.id === "giftFilter" ? ["collection", "model", "backdrop", "symbol", "status"] : ["creator", "format", "edition", "status"];
+  sheet.querySelector(".product-filter-groups").innerHTML = fields.map((field) => `<button type="button" data-collectible-filter-group="${field}" aria-pressed="${field === state.field}">${field === "creator" ? "Brand" : field[0].toUpperCase() + field.slice(1)}</button>`).join("");
+  const options = [...select.options].map((option) => ({ value: option.value, label: option.textContent }));
+  const choices = collectibleFilterChoices(options, state.field, query);
+  sheet.querySelector(".product-filter-options").innerHTML = choices.length ? choices.map((option) => `<button type="button" data-collectible-filter-value="${escapeHtml(option.value)}" aria-pressed="${select.value === option.value}"><span>${escapeHtml(option.label.replace(/^[^:]+: /, ""))}</span><span aria-hidden="true">${select.value === option.value ? "✓" : ""}</span></button>`).join("") : '<p class="product-filter-empty" role="status">No matching choices. Try another search.</p>';
+}
+
+function finishCollectibleFilterClose() {
+  const state = collectibleFilterSheetState;
+  if (!state) return;
+  collectibleFilterSheetState = null;
+  document.body.style.overflow = state.overflow;
+  state.opener?.setAttribute("aria-expanded", "false");
+  if (state.opener?.isConnected) state.opener.focus({ preventScroll: true });
+}
+
+function closeCollectibleFilterSheet() {
+  document.getElementById("collectibleFilterDialog")?.close();
+  finishCollectibleFilterClose();
+}
+
+function containCollectibleFilterFocus(event) {
+  if (event.key !== "Tab") return;
+  const sheet = event.currentTarget;
+  const controls = [...sheet.querySelectorAll('button:not([disabled]), input:not([disabled]):not([type="hidden"]), a[href], select:not([disabled]), textarea:not([disabled]), [tabindex="0"]')]
+    .filter((control) => control.getClientRects().length > 0);
+  if (!controls.length) return;
+  const first = controls[0];
+  const last = controls[controls.length - 1];
+  if (event.shiftKey && document.activeElement === first) {
+    event.preventDefault();
+    last.focus();
+  } else if (!event.shiftKey && document.activeElement === last) {
+    event.preventDefault();
+    first.focus();
+  }
+}
+
+function openCollectibleFilterSheet(id, opener) {
+  const sheet = document.getElementById("collectibleFilterDialog");
+  const select = document.getElementById(id);
+  if (!sheet || !select || sheet.open) return;
+  const selectedField = select.value.split(":")[0];
+  collectibleFilterSheetState = { id, opener, overflow: document.body.style.overflow,
+    field: select.value.includes(":") ? selectedField : select.value !== "all" ? "status" : (id === "giftFilter" ? "collection" : "creator") };
+  sheet.querySelector("input").value = "";
+  sheet.querySelector("h2").textContent = id === "giftFilter" ? "Filter gifts" : "Filter stickers";
+  if (!sheet.dataset.bound) {
+    sheet.dataset.bound = "1";
+    sheet.addEventListener("keydown", containCollectibleFilterFocus);
+    sheet.addEventListener("close", () => { if (!sheet.open) finishCollectibleFilterClose(); });
+    sheet.querySelector("input").addEventListener("input", renderCollectibleFilterSheet);
+    sheet.addEventListener("click", (event) => {
+      if (event.target.closest("[data-collectible-filter-close]")) return closeCollectibleFilterSheet();
+      const group = event.target.closest("[data-collectible-filter-group]");
+      if (group) {
+        collectibleFilterSheetState.field = group.dataset.collectibleFilterGroup;
+        renderCollectibleFilterSheet();
+        sheet.querySelector(`[data-collectible-filter-group="${collectibleFilterSheetState.field}"]`)?.focus();
+        return;
+      }
+      const choice = event.target.closest("[data-collectible-filter-value]");
+      if (choice) {
+        const control = document.getElementById(collectibleFilterSheetState.id);
+        control.value = choice.dataset.collectibleFilterValue;
+        control.dispatchEvent(new Event("change", { bubbles: true }));
+        return closeCollectibleFilterSheet();
+      }
+      if (event.target === sheet) {
+        const rect = sheet.getBoundingClientRect();
+        if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) closeCollectibleFilterSheet();
+      }
+    });
+  }
+  renderCollectibleFilterSheet();
+  opener?.setAttribute("aria-expanded", "true");
+  document.body.style.overflow = "hidden";
+  sheet.showModal();
+  sheet.querySelector('[data-collectible-filter-value][aria-pressed="true"]')?.scrollIntoView({ block: "nearest" });
+  sheet.querySelector("input").focus();
+}
+
 function filterAssets(items, filter) {
   if (filter === "all") return [...items];
   const members = (item) => item.children?.length ? item.children : [item];
-  if (filter === "listed") return items.filter((item) => members(item).some((member) => member.status !== "Unlisted"));
-  if (filter === "unlisted") return items.filter((item) => members(item).every((member) => member.status === "Unlisted"));
-  const [field, value] = filter.split(":");
-  if (field === "collection") return items.filter((item) => item.collection === value);
-  if (field === "model" || field === "backdrop" || field === "symbol") {
-    const label = field[0].toUpperCase() + field.slice(1);
-    return items.filter((item) => item.traits?.some((trait) => trait.label === label && trait.value === value));
+  if (filter === "listed") return items.filter((item) => members(item).some((member) => String(member.status || "").toLowerCase() === "listed"));
+  if (filter === "unlisted") return items.filter((item) => members(item).every((member) => String(member.status || "").toLowerCase() === "unlisted"));
+  const separator = filter.indexOf(":");
+  const field = filter.slice(0, separator);
+  const value = filter.slice(separator + 1);
+  if (["collection", "model", "backdrop", "symbol", "format", "creator", "edition"].includes(field)) {
+    return items.filter((item) => [item, ...members(item)].some((member) => collectibleFilterValue(member, field) === value));
   }
-  if (field === "format") return items.filter((item) => members(item).some((member) => member.format === value));
-  if (field === "creator") return items.filter((item) => members(item).some((member) => item.creator === value || member.creator === value));
-  if (field === "edition") return items.filter((item) => members(item).some((member) => member.edition === value));
   return [...items];
 }
 
@@ -1088,11 +1254,11 @@ function sortAssets(items, sort) {
 function floorSourceLine(asset = {}) {
   if (Number(asset.estimatedCount || 0) > 0) {
     const base = Number(asset.floorTon || 0) > 0 ? `${Number(asset.floorTon).toFixed(2)} GRAM` : "";
-    return ["Floor", base].filter(Boolean).map((part) => escapeHtml(String(part))).join(" · ");
+    return ["Estimated", base].filter(Boolean).map((part) => escapeHtml(String(part))).join(" · ");
   }
   const isEstimate = asset.floorStatus === "estimated" || asset.floorSource === "estimate" || asset.source === "estimated-combo-value";
   const isLastSale = asset.floorSource === "last-sale" || asset.source === "last-sale-exact" || /last sale/i.test(String(asset.marketPlatform || ""));
-  const parts = [isLastSale ? "Last sale" : "Floor"];
+  const parts = [isEstimate ? "Estimated" : isLastSale ? "Last sale" : "Floor"];
   if (asset.floorSource === "model") parts.push("Model");
   if (Number(asset.floorTon || 0) > 0) parts.push(`${Number(asset.floorTon).toFixed(2)} GRAM`);
   const platform = marketSourceLabel(asset.marketPlatform);
@@ -1100,6 +1266,16 @@ function floorSourceLine(asset = {}) {
   if (Number(asset.initTon || 0) > 0) parts.push(`Init ${Number(asset.initTon).toFixed(2)} GRAM`);
   else if (Number(asset.initUsd || 0) > 0) parts.push(`Init ${money(asset.initUsd)}`);
   return parts.map((part) => escapeHtml(String(part))).join(" · ");
+}
+
+function collectibleHoldingNote(asset = {}) {
+  const children = asset.children || [];
+  if (children.length <= 1 && Number(asset.count || 1) <= 1) return floorSourceLine(asset);
+  const priced = children.filter((item) => Number(item.floorUsd || 0) > 0).length;
+  const parts = ["Holding value"];
+  if (children.length && priced < children.length) parts.push(`${priced}/${children.length} priced`);
+  if (isEstimatedAsset(asset) || children.some(isEstimatedAsset)) parts.push("Includes estimates");
+  return parts.join(" · ");
 }
 
 function isEstimatedAsset(asset = {}) {
@@ -1110,36 +1286,70 @@ function estimatedPillHtml(asset = {}) {
   return isEstimatedAsset(asset) ? `<span class="status-badge is-estimated">Estimated</span>` : "";
 }
 
+function giftListPriceNote(asset = {}) {
+  if ((asset.children?.length || 0) > 1 || Number(asset.count || 1) > 1) return collectibleHoldingNote(asset);
+  if (!(Number(asset.floorUsd) > 0)) return "Price unavailable";
+  const basis = isEstimatedAsset(asset) ? "Estimated"
+    : asset.floorSource === "last-sale" || asset.source === "last-sale-exact" || /last sale/i.test(String(asset.marketPlatform || "")) ? "Last sale" : "Floor";
+  const gram = Number(asset.floorTon) > 0 ? `${Number(asset.floorTon).toFixed(2)} GRAM` : "";
+  return [basis, gram].filter(Boolean).join(" · ");
+}
+
+function collectiblePerformanceHtml(asset = {}) {
+  if (!(Number(asset.floorUsd) > 0)) return "";
+  const metrics = [];
+  if (Number.isFinite(Number(asset.dailyUsd)) && Number(asset.dailyUsd) !== 0) {
+    metrics.push(["24h change", Number(asset.dailyUsd)]);
+  }
+  if (Number(asset.initUsd || asset.costBasis) > 0 && asset.pnlUsd != null && asset.pnlUsd !== "" && Number.isFinite(Number(asset.pnlUsd))) {
+    metrics.push(["Unrealized P/L", Number(asset.pnlUsd)]);
+  }
+  return metrics.length ? `<div class="holding-performance">${metrics.map(([label, value]) => `<span><small>${label}</small><b class="${value < 0 ? "negative" : "positive"}">${signedMoney(value)}</b></span>`).join("")}</div>` : "";
+}
+
+
+// Sheet 03 compact row. Keep routes, verified artwork and financial-state text;
+// only the presentation changes, including at collection/model/individual depth.
+function renderReferenceCollectibleRow(asset, options) {
+  if (typeof document === "undefined" || !document.body?.classList?.contains("reference-ui")) return null;
+  const { target, title, secondary = "", count = "", art, value, note = "", loading = false, performance = "" } = options;
+  return `<article class="collectible-card reference-asset-row${loading ? " is-price-loading" : ""}" role="button" tabindex="0" data-screen-target="${escapeHtml(target)}" data-asset="${escapeHtml(asset.id || "")}">
+    ${art}
+    <div class="reference-row-copy"><h3>${escapeHtml(title)}</h3>${count || secondary ? `<small>${escapeHtml([count, secondary].filter(Boolean).join(" · "))}</small>` : ""}</div>
+    <aside class="reference-row-value value-stack"><strong${loading ? ' aria-label="Price loading"' : Number(asset.floorUsd || 0) > 0 ? "" : ' class="is-value-unavailable"'}>${loading ? '<span class="metric-skeleton metric-skeleton-line"></span>' : escapeHtml(value)}</strong><small>${loading ? '<span class="metric-skeleton metric-skeleton-line"></span>' : escapeHtml(note)}</small></aside>
+    ${performance}
+  </article>`;
+}
 
 function renderGiftCard(asset) {
   if (asset.priceLoading && !(Number(asset.floorUsd || 0) > 0)) return renderCollectiblePriceSkeletonCard(asset, "gift");
-  const dailyClass = asset.dailyUsd >= 0 ? "positive" : "negative";
-  const pnlClass = asset.pnlUsd >= 0 ? "positive" : "negative";
-  const listed = asset.status && asset.status !== "Unlisted";
   const title = asset.name || asset.collection || "Gift";
   const model = giftModelTrait(asset);
   const backdrop = giftBackdropTrait(asset);
-  const subtitle = [model, backdrop].filter(Boolean).join(" · ")
+  const isGroup = Number(asset.count || 1) > 1;
+  const modelCount = new Set((asset.children || []).map(giftModelTrait).filter(Boolean)).size;
+  const subtitle = isGroup ? (modelCount ? `${modelCount} model${modelCount === 1 ? "" : "s"}` : "Gift collection") : [model, backdrop].filter(Boolean).join(" · ")
     || [asset.creator, asset.collection].find((value) => value && collectibleKey(value) !== collectibleKey(title)) || "";
-  const provenance = asset.provenance && collectibleKey(asset.provenance) !== collectibleKey(title)
-    && collectibleKey(asset.provenance) !== collectibleKey(subtitle) ? asset.provenance : "";
   const hasPrice = Number(asset.floorUsd) > 0;
   const floorNote = hasPrice
-    ? floorSourceLine(asset)
+    ? giftListPriceNote(asset)
     : "No market price available";
+  const referenceRow = renderReferenceCollectibleRow(asset, {
+    target: "gift-brand", title, secondary: subtitle,
+    count: `${Number(asset.count || 1)} gift${Number(asset.count || 1) === 1 ? "" : "s"}`,
+    art: collectibleArtHtml(asset, "gift"), value: hasPrice ? money(asset.floorUsd) : "Price unavailable",
+    note: floorNote, performance: collectiblePerformanceHtml(asset),
+  });
+  if (referenceRow) return referenceRow;
   return `
-    <article class="collectible-card is-gift-card" data-screen-target="gift-brand" data-asset="${asset.id}">
+    <article class="collectible-card is-gift-card" role="button" tabindex="0" data-screen-target="gift-brand" data-asset="${asset.id}">
       <div class="collectible-top">
         ${collectibleArtHtml(asset, "gift")}
         <div><h3>${escapeHtml(title)}</h3>${subtitle ? `<small>${escapeHtml(subtitle)}</small>` : ""}</div>
-        <span class="tag-number">${Number(asset.count || 1)} gift${Number(asset.count || 1) === 1 ? "" : "s"}</span>${estimatedPillHtml(asset)}
+        <span class="tag-number">${Number(asset.count || 1)} gift${Number(asset.count || 1) === 1 ? "" : "s"}</span>
       </div>
-      ${provenance || listed ? `<div class="card-meta-line ${provenance ? "" : "is-status-only"}">${provenance ? `<span>${escapeHtml(provenance)}</span>` : ""}${listed ? `<b class="status-badge is-listed">${escapeHtml(asset.status)}</b>` : ""}</div>` : ""}
-      <div class="value-stack"><strong>${hasPrice ? money(asset.floorUsd) : "Price unavailable"}</strong><small>${floorNote}</small></div>
-      <div class="pnl-row">
-        <span class="pnl-box"><small>Daily PnL</small><b class="${dailyClass}">${hasPrice ? `${signedMoney(asset.dailyUsd)} · ${signedPct(asset.dailyPct)}` : "—"}</b></span>
-        <span class="pnl-box"><small>Total PnL</small><b class="${pnlClass}">${hasPrice ? `${signedMoney(asset.pnlUsd)} · ${signedPct(asset.pnlPct)}` : "—"}</b></span>
-      </div>
+      <div class="value-stack"><strong>${hasPrice ? money(asset.floorUsd) : "Price unavailable"}</strong><small>${escapeHtml(floorNote)}</small></div>
+      ${collectiblePerformanceHtml(asset)}
     </article>`;
 }
 
@@ -1163,7 +1373,7 @@ function renderGiftBrand(assetId) {
     const pnl = init ? totalValue - init : 0;
     const valueLabel = totalValue > 0 ? money(totalValue) : "Price unavailable";
     const countLabel = `${count} gift${count === 1 ? "" : "s"}`;
-    summary.innerHTML = `<small>${escapeHtml(brand.creator || brand.collection || "Gift collection")}</small><div><h2>${valueLabel}</h2><span>${escapeHtml(countLabel)}</span></div><strong class="${init && totalValue > 0 ? (pnl < 0 ? "negative" : "positive") : "summary-open-cue"}">${init && totalValue > 0 ? `${signedMoney(pnl)} · ${signedPct((pnl / init) * 100)}` : iconCueHtml("arrow-up-right", "Open a gift")}</strong>`;
+    summary.innerHTML = `<small>Holding value</small><div><h2>${valueLabel}</h2><span>${escapeHtml(countLabel)}</span></div><strong class="${init && totalValue > 0 ? (pnl < 0 ? "negative" : "positive") : "summary-open-cue"}">${init && totalValue > 0 ? `${signedMoney(pnl)} · ${signedPct((pnl / init) * 100)}` : iconCueHtml("arrow-up-right", "Open a gift")}</strong>`;
     renderCollectibleSummaryDotMatrix(summary);
   }
   const grid = document.querySelector("#giftBrandGrid");
@@ -1272,24 +1482,30 @@ function groupGiftBrandChildren(children = []) {
 function renderGiftBrandItem(asset) {
   if (asset.priceLoading && !(Number(asset.floorUsd || 0) > 0)) return renderCollectiblePriceSkeletonCard(asset, "gift");
   const hasPrice = Number(asset.floorUsd) > 0;
-  const floorNote = hasPrice ? floorSourceLine(asset) : (asset.marketPlatform ? `Floor · ${escapeHtml(asset.marketPlatform)}` : iconCueHtml("arrow-up-right", "Open details"));
+  const floorNote = hasPrice ? giftListPriceNote(asset) : "No market price available";
   const count = Number(asset.count || asset.children?.length || 1);
   const imageStack = count > 1 ? giftBrandImageStack(asset) : "";
   const modelLabel = giftBrandModelLabel(asset);
-  const modelCount = giftBrandModelNumber(asset);
   const backdropLabel = giftBackdropTrait(asset);
-  const modelMeta = [modelLabel, backdropLabel].filter(Boolean).join(" · ") || modelLabel;
+  const backdrops = new Set((asset.children || []).map(giftBackdropTrait).filter(Boolean));
+  const modelMeta = count > 1 ? (backdrops.size ? `${backdrops.size} backdrop${backdrops.size === 1 ? "" : "s"}` : "Multiple gifts") : backdropLabel;
   const target = count > 1 ? "gift-model-group" : "detail";
+  const referenceRow = renderReferenceCollectibleRow(asset, {
+    target, title: modelLabel, secondary: modelMeta, count: `${count} gift${count === 1 ? "" : "s"}`,
+    art: imageStack || collectibleArtHtml(asset, "gift"),
+    value: hasPrice ? money(asset.floorUsd) : "Price unavailable", note: floorNote,
+  });
+  if (referenceRow) return referenceRow;
   return `
-    <article class="collectible-card is-gift-card ${imageStack ? "has-gift-stack" : ""} ${count > 1 ? "is-grouped-gift" : ""}" data-screen-target="${target}" data-asset="${asset.id}">
+    <article class="collectible-card is-gift-card ${imageStack ? "has-gift-stack" : ""} ${count > 1 ? "is-grouped-gift" : ""}" role="button" tabindex="0" data-screen-target="${target}" data-asset="${asset.id}">
       <div class="collectible-top">
         ${imageStack || collectibleArtHtml(asset, "gift")}
-        <div><h3>${escapeHtml(asset.collection || asset.name)}</h3><small>${escapeHtml(modelMeta)}</small></div>
+        <div><h3>${escapeHtml(modelLabel)}</h3><small>${escapeHtml(modelMeta)}</small></div>
         <span class="gift-model-badges">
           <b>${count} gift${count === 1 ? "" : "s"}</b>
-        </span>${estimatedPillHtml(asset)}
+        </span>
       </div>
-      <div class="value-stack"><strong>${hasPrice ? money(asset.floorUsd) : "Price unavailable"}</strong><small>${floorNote}</small></div>
+      <div class="value-stack"><strong>${hasPrice ? money(asset.floorUsd) : "Price unavailable"}</strong><small>${escapeHtml(floorNote)}</small></div>
     </article>`;
 }
 
@@ -1306,7 +1522,7 @@ function renderGiftModelGroup(assetId) {
   const summary = document.querySelector("#giftBrandSummary");
   if (summary) {
     const totalValue = children.reduce((sum, item) => sum + Number(item.floorUsd || 0), 0);
-    summary.innerHTML = `<small>${escapeHtml(giftBrandModelLabel(group))}</small><div><h2>${money(totalValue)}</h2><span>${children.length} gift${children.length === 1 ? "" : "s"}</span></div><strong class="summary-open-cue">${iconCueHtml("arrow-up-right", "Open a gift")}</strong>`;
+    summary.innerHTML = `<small>Holding value</small><div><h2${totalValue > 0 ? "" : ' class="is-value-unavailable"'}>${totalValue > 0 ? money(totalValue) : "Price unavailable"}</h2><span>${children.length} gift${children.length === 1 ? "" : "s"}</span></div><strong class="holding-summary-note">${escapeHtml(collectibleHoldingNote(group))}</strong>`;
     renderCollectibleSummaryDotMatrix(summary);
   }
   const grid = document.querySelector("#giftBrandGrid");
@@ -1321,17 +1537,23 @@ function renderGiftIndividualItem(asset) {
   const modelLabel = giftBrandModelLabel(asset);
   const backdropLabel = giftBackdropTrait(asset);
   const title = giftDetailTitle(asset);
+  const referenceRow = renderReferenceCollectibleRow(asset, {
+    target: "detail", title: `${title}${number ? ` ${number}` : ""}`,
+    secondary: [modelLabel, backdropLabel].filter(Boolean).join(" · "),
+    art: collectibleArtHtml(asset, "gift"), value: hasPrice ? money(asset.floorUsd) : "Price unavailable",
+    note: giftListPriceNote(asset),
+  });
+  if (referenceRow) return referenceRow;
   return `
-    <article class="collectible-card is-gift-card is-individual-gift" data-screen-target="detail" data-asset="${asset.id}">
+    <article class="collectible-card is-gift-card is-individual-gift" role="button" tabindex="0" data-screen-target="detail" data-asset="${asset.id}">
       <div class="collectible-top">
         ${collectibleArtHtml(asset, "gift")}
         <div>
-          <h3>${escapeHtml(title)}</h3>
+          <h3>${escapeHtml(title)}${number ? ` <span class="holding-mint-number">${escapeHtml(number)}</span>` : ""}</h3>
           <small>${escapeHtml([modelLabel, backdropLabel].filter(Boolean).join(" · "))}</small>
         </div>
-        ${number ? `<span class="tag-number">${escapeHtml(number)}</span>` : ""}${estimatedPillHtml(asset)}
       </div>
-      <div class="value-stack"><strong>${hasPrice ? money(asset.floorUsd) : "Price unavailable"}</strong><small>${hasPrice ? floorSourceLine(asset) : "Open details"}</small></div>
+      <div class="value-stack"><strong>${hasPrice ? money(asset.floorUsd) : "Price unavailable"}</strong><small>${escapeHtml(giftListPriceNote(asset))}</small></div>
     </article>`;
 }
 
@@ -1638,7 +1860,8 @@ function setCollectibleMediaVisibility(element, visible) {
 
 function collectibleMediaIsNearViewport(element) {
   const rect = element.getBoundingClientRect();
-  return rect.width > 0 && rect.height > 0 && rect.bottom >= -160 && rect.top <= window.innerHeight + 160;
+  return rect.width > 0 && rect.height > 0 && rect.bottom >= -160 && rect.top <= window.innerHeight + 160
+    && rect.right >= -160 && rect.left <= window.innerWidth + 160;
 }
 
 function syncCollectibleMediaViewport() {
@@ -1704,20 +1927,67 @@ function initCollectibleAnimations(scope = document) {
   });
 }
 
+const productPreviewSessions = new WeakMap();
+
+function finishProductPreview(dialog) {
+  const session = productPreviewSessions.get(dialog);
+  if (!session) return;
+  productPreviewSessions.delete(dialog);
+  dialog.classList.remove("is-open");
+  document.body.style.overflow = session.overflow;
+  session.opener?.setAttribute("aria-expanded", "false");
+  if (session.opener?.isConnected) session.opener.focus({ preventScroll: true });
+}
+
+function closeProductPreview(dialog) {
+  if (!dialog) return;
+  if (dialog.open) dialog.close();
+  finishProductPreview(dialog);
+}
+
+function openProductPreview(dialog, opener) {
+  if (dialog.open) return;
+  if (!dialog.dataset.modalBound) {
+    dialog.dataset.modalBound = "1";
+    dialog.addEventListener("keydown", containCollectibleFilterFocus);
+    dialog.addEventListener("cancel", (event) => {
+      event.preventDefault();
+      closeProductPreview(dialog);
+    });
+    dialog.addEventListener("close", () => { if (!dialog.open) finishProductPreview(dialog); });
+    dialog.addEventListener("click", (event) => {
+      if (event.target !== dialog) return;
+      const rect = dialog.getBoundingClientRect();
+      if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) closeProductPreview(dialog);
+    });
+  }
+  productPreviewSessions.set(dialog, { opener: opener || document.activeElement, overflow: document.body.style.overflow });
+  opener?.setAttribute("aria-expanded", "true");
+  document.body.style.overflow = "hidden";
+  dialog.classList.add("is-open");
+  dialog.showModal();
+  dialog.querySelector("button")?.focus({ preventScroll: true });
+}
+
 function openGiftPfpTray(assetId, trigger = null, kind = "gift") {
   const asset = assetDetails[assetId];
   if (!asset) return;
   closeGiftPfpTray();
+  closeStickerThumbOverlay();
   const children = asset.children?.length ? asset.children : [asset];
   const isSticker = kind === "sticker";
-  const tray = document.createElement("div");
-  tray.className = "gift-pfp-tray-backdrop";
+  const tray = document.createElement("dialog");
+  tray.className = "gift-pfp-tray-backdrop product-preview-sheet";
+  tray.setAttribute("aria-labelledby", "giftPfpTrayTitle");
+  tray.addEventListener("close", () => {
+    if (!tray.open) { tray.remove(); cleanupDetachedCollectibleAnimations(); }
+  });
   tray.innerHTML = `
-    <div class="gift-pfp-tray">
-      <span class="gift-pfp-tray-handle" aria-hidden="true"></span>
-      <div class="gift-pfp-tray-head">
-        <button type="button" data-close-gift-pfp-tray><i data-lucide="x"></i></button>
-      </div>
+    <section class="gift-pfp-tray">
+      <header class="gift-pfp-tray-head product-preview-head">
+        <div><h2 id="giftPfpTrayTitle">${isSticker ? "Sticker previews" : "Gift previews"}</h2><p>${children.length} ${children.length === 1 ? "item" : "items"} · Open to view details</p></div>
+        <button type="button" data-close-gift-pfp-tray aria-label="Close previews"><i data-lucide="x"></i></button>
+      </header>
       <div class="gift-pfp-tray-grid">
         ${children.map((item) => {
           const number = isSticker ? stickerEditionLabel(item) : giftBrandMintLabel(item);
@@ -1729,21 +1999,46 @@ function openGiftPfpTray(assetId, trigger = null, kind = "gift") {
           </button>`;
         }).join("")}
       </div>
-    </div>`;
-  const rect = trigger?.getBoundingClientRect();
-  tray.style.setProperty("--gift-tray-origin-x", `${rect ? rect.left + rect.width / 2 : window.innerWidth / 2}px`);
-  tray.style.setProperty("--gift-tray-origin-y", `${rect ? rect.top + rect.height / 2 : window.innerHeight / 2}px`);
+    </section>`;
   document.body.appendChild(tray);
   window.lucide?.createIcons();
-  requestAnimationFrame(() => tray.classList.add("is-open"));
+  openProductPreview(tray, trigger);
+  initCollectibleAnimations(tray);
 }
+
+/* Keep card routes and transaction rows usable from the keyboard, matching
+   the shared focus/press treatment used by the Home navigation. */
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") {
+    if (document.querySelector(".gift-pfp-tray-backdrop[open]")) return closeGiftPfpTray();
+    if (document.getElementById("stickerThumbOverlay")?.classList.contains("is-open")) return closeStickerThumbOverlay();
+    if (document.getElementById("txSheet")?.classList.contains("is-open")) return closeTxSheet();
+    if (document.getElementById("tokenSortSheet")?.classList.contains("is-open")) return closeTokenSortSheet();
+    if (document.getElementById("walletActionSheet")?.classList.contains("is-open")) return closeWalletActionSheet();
+    if (document.getElementById("walletSheet")?.classList.contains("is-open")) return closeWalletSheet();
+    return;
+  }
+  if (event.key !== "Enter" && event.key !== " ") return;
+  if (event.target instanceof HTMLElement && event.target.closest("button,a,input,select,textarea")) return;
+  const routeTarget = event.target.closest?.('[data-screen-target][role="button"][tabindex="0"]');
+  if (routeTarget) {
+    event.preventDefault();
+    routeTarget.click();
+    return;
+  }
+  const activityRow = event.target.closest?.('[data-tx-hash][role="button"][tabindex="0"]');
+  if (activityRow) {
+    event.preventDefault();
+    openTxSheet(activityRow.dataset.txHash);
+  }
+});
 
 function closeGiftPfpTray() {
   const tray = document.querySelector(".gift-pfp-tray-backdrop");
-  if (!tray || tray.classList.contains("is-closing")) return;
-  tray.classList.add("is-closing");
-  tray.classList.remove("is-open");
-  setTimeout(() => tray.remove(), 220);
+  if (!tray) return;
+  closeProductPreview(tray);
+  tray.remove();
+  cleanupDetachedCollectibleAnimations();
 }
 
 function collectibleKey(value) {
@@ -1760,6 +2055,70 @@ function giftBackdropTrait(asset = {}) {
 
 function giftTraitValue(asset = {}, label = "") {
   return (asset.traits || []).find((trait) => String(trait.label || "").toLowerCase() === label.toLowerCase())?.value || "";
+}
+
+function giftModelEstimatePair(asset = {}) {
+  return {
+    collection: String(asset.collection || asset.name || "").trim(),
+    model: String(giftModelTrait(asset) || asset.model || "").trim(),
+    backdrop: String(giftBackdropTrait(asset) || asset.backdrop || "").trim(),
+    symbol: String(giftTraitValue(asset, "Symbol") || asset.symbol || "").trim(),
+  };
+}
+
+function giftModelEstimatePairKey(pair = {}) {
+  return [pair.collection, pair.model, pair.backdrop, pair.symbol].map(collectibleKey).join(":");
+}
+
+function giftModelFloorFromAsset(asset = {}) {
+  const direct = asset.modelFloor || null;
+  if (direct && (Number(direct.floorTon || 0) > 0 || Number(direct.floorUsd || 0) > 0)) return direct;
+  const children = asset.children?.length ? asset.children : [asset];
+  const modelKey = collectibleKey(giftModelTrait(asset) || (children[0] && giftModelTrait(children[0])));
+  if (!modelKey) return direct;
+  if (children.some((child) => collectibleKey(giftModelTrait(child)) !== modelKey)) return direct;
+  return children.map((child) => child.modelFloor).find((floor) => (
+    Number(floor?.floorTon || 0) > 0 || Number(floor?.floorUsd || 0) > 0
+  )) || direct;
+}
+
+function applyGiftModelEstimate(asset = {}, model = {}) {
+  if (!asset || !model || typeof model !== "object") return false;
+  const metric = model.traitMetrics?.Model || model.traitMetrics?.model || {};
+  const previous = asset.modelFloor || {};
+  const floorTon = Number(model.modelFloorTon || metric.floorTon || previous.floorTon || 0);
+  const floorUsd = Number(model.modelFloorUsd || metric.floorUsd || previous.floorUsd || 0)
+    || (floorTon > 0 ? floorTon * Number(model.tonUsdRate || usdTonRate || 0) : 0);
+  const modelCount = Number(model.modelCount || metric.itemCount || metric.count || previous.modelCount || 0);
+  if (!(floorTon > 0 || floorUsd > 0 || modelCount > 0)) return false;
+  asset.modelFloor = {
+    ...previous,
+    model: model.model || metric.value || previous.model || giftModelTrait(asset),
+    floorTon,
+    floorUsd,
+    modelCount,
+    rarity: Number(model.rarity || metric.rarity || previous.rarity || 0),
+    listedCount: Number(model.modelListedCount || previous.listedCount || 0),
+    source: model.modelFloorSource || (floorTon > 0 || floorUsd > 0 ? "model-floor" : "model-stats"),
+    updatedAt: model.marketUpdatedAt || metric.updatedAt || previous.updatedAt || "",
+  };
+  return true;
+}
+
+function giftModelEstimateLabel(asset = {}) {
+  const floor = giftModelFloorFromAsset(asset);
+  if (!floor) return "";
+  const floorUsd = Number(floor.floorUsd || 0);
+  const floorTon = Number(floor.floorTon || 0);
+  const values = [];
+  if (floorUsd > 0) values.push(usdValueLabel(floorUsd));
+  if (floorTon > 0) values.push(`${floorTon.toFixed(2)} GRAM`);
+  return values.length ? `Model estimate · ${values.join(" · ")}` : "";
+}
+
+function giftModelEstimateHtml(asset = {}) {
+  const label = giftModelEstimateLabel(asset);
+  return label ? `<small class="gift-model-estimate">${escapeHtml(label)}</small>` : "";
 }
 
 function applyGiftTraitRarities(asset, model = {}) {
@@ -1780,8 +2139,14 @@ function renderStickerCard(asset) {
   const packCount = Number(asset.packCount || asset.children?.length || 1);
   const count = stickerOwnedCount(asset);
   const floorNote = hasPrice ? `Across ${packCount} pack${packCount === 1 ? "" : "s"}` : "No verified pack prices yet";
+  const referenceRow = renderReferenceCollectibleRow(asset, {
+    target: "sticker-brand", title: asset.name || "Sticker Brand", secondary: `${packCount} pack${packCount === 1 ? "" : "s"}`,
+    count: `${count} sticker${count === 1 ? "" : "s"}`, art: collectibleArtHtml(asset, "sticker"),
+    value: hasPrice ? money(asset.floorUsd) : "Price unavailable", note: floorNote,
+  });
+  if (referenceRow) return referenceRow;
   return `
-    <article class="collectible-card sticker-brand-card" data-screen-target="sticker-brand" data-asset="${asset.id}">
+    <article class="collectible-card sticker-brand-card" role="button" tabindex="0" data-screen-target="sticker-brand" data-asset="${asset.id}">
       <div class="collectible-top">
         ${collectibleArtHtml(asset, "sticker")}
         <div><h3>${escapeHtml(asset.name || "Sticker Brand")}</h3><small>${packCount} pack${packCount === 1 ? "" : "s"}</small></div>
@@ -1794,8 +2159,14 @@ function renderStickerCard(asset) {
 function renderCollectiblePriceSkeletonCard(asset, kind = "gift") {
   const count = kind === "sticker" ? stickerOwnedCount(asset) : Number(asset.count || 1);
   const target = kind === "sticker" ? "sticker-brand" : "gift-brand";
+  const referenceRow = renderReferenceCollectibleRow(asset, {
+    target, title: asset.name || (kind === "gift" ? "Gift" : "Sticker"),
+    secondary: asset.creator || asset.collection || "Loading market data",
+    count: `${count} ${kind}${count === 1 ? "" : "s"}`, art: collectibleArtHtml(asset, kind), loading: true,
+  });
+  if (referenceRow) return referenceRow;
   return `
-    <article class="collectible-card ${kind === "gift" ? "is-gift-card" : ""}" data-screen-target="${target}" data-asset="${escapeHtml(asset.id || "")}">
+    <article class="collectible-card ${kind === "gift" ? "is-gift-card" : ""}" role="button" tabindex="0" data-screen-target="${target}" data-asset="${escapeHtml(asset.id || "")}">
       <div class="collectible-top">
         ${collectibleArtHtml(asset, kind)}
         <div><h3>${escapeHtml(asset.name || (kind === "gift" ? "Gift" : "Sticker"))}</h3><small>${escapeHtml(asset.creator || asset.collection || "Loading market data")}</small></div>
@@ -1824,9 +2195,7 @@ function collectibleArtHtml(asset, fallback = "gift") {
     : `<span class="${artClass}"><i data-lucide="${icon}"></i></span>`;
 }
 
-const FEATURED_ASSET_LIMIT = 18;
-const FEATURED_ASSET_MIN_LOOP_SIZE = 6;
-
+const HOME_HOLDING_LIMIT = 12;
 function featuredAssetRarity(asset = {}) {
   const values = (asset.traits || [])
     .map((trait) => Number.parseFloat(String(trait.rarity || "")))
@@ -1914,13 +2283,7 @@ function featuredAssetCandidates() {
     return items;
   }).filter((items) => items.length);
 
-  const selected = [];
-  while (selected.length < FEATURED_ASSET_LIMIT && buckets.some((items) => items.length)) {
-    buckets.forEach((items) => {
-      if (items.length && selected.length < FEATURED_ASSET_LIMIT) selected.push(items.shift());
-    });
-  }
-  return selected;
+  return buckets.flat();
 }
 
 function featuredAssetArtHtml(candidate) {
@@ -1947,10 +2310,12 @@ function renderFeaturedAssetCard(candidate, interactive = true) {
   const route = interactive ? ` type="button" data-screen-target="detail" data-asset="${escapeHtml(candidate.assetId)}"` : ` aria-hidden="true"`;
   const rarity = Number.isFinite(candidate.rarityPct) ? `${candidate.rarityPct.toLocaleString(undefined, { maximumFractionDigits: 2 })}% rare` : "";
   const signal = rarity || (Number.isFinite(candidate.changePct) && candidate.changePct !== 0 ? `${signedPct(candidate.changePct)} 24h` : candidate.category);
-  return `<${tag} class="featured-asset-card is-${escapeHtml(candidate.type)}"${route}>
-    <span class="featured-asset-visual">${featuredAssetArtHtml(candidate)}${candidate.estimated ? '<small class="featured-estimated">Estimated</small>' : ""}</span>
-    <span class="featured-asset-copy"><small>${escapeHtml(candidate.category)}</small><b>${escapeHtml(candidate.title)}</b><em>${escapeHtml(candidate.subtitle || signal)}</em></span>
-    <span class="featured-asset-value"><strong>${money(candidate.valueUsd)}</strong><small>${escapeHtml(signal)}</small></span>
+  const signalTone = !rarity && !candidate.estimated && Number.isFinite(candidate.changePct)
+    ? candidate.changePct > 0 ? "positive" : candidate.changePct < 0 ? "negative" : "" : "";
+  return `<${tag} class="featured-asset-card is-${escapeHtml(candidate.type)}" data-ref-owned${route}>
+    <span class="featured-asset-visual">${featuredAssetArtHtml(candidate)}</span>
+    <span class="featured-asset-copy"><b>${escapeHtml(candidate.title)}</b><em>${escapeHtml(candidate.subtitle || candidate.category)}</em></span>
+    <span class="featured-asset-value"><strong>${money(candidate.valueUsd)}</strong><small class="${signalTone}">${escapeHtml(candidate.estimated ? "Estimated" : signal)}</small></span>
   </${tag}>`;
 }
 
@@ -1959,29 +2324,43 @@ function renderFeaturedCollectibles() {
   const viewport = section?.querySelector(".featured-collectibles-viewport");
   const track = section?.querySelector(".featured-collectibles-track");
   if (!section || !viewport || !track) return;
-  const candidates = featuredAssetCandidates();
-  section.hidden = !candidates.length;
+  if (!viewport.dataset.mediaScrollBound) {
+    viewport.dataset.mediaScrollBound = "1";
+    viewport.addEventListener("scroll", scheduleCollectibleMediaViewportSync, { passive: true });
+    bindHomeHoldingsAutoplay(viewport, section);
+  }
+  const candidates = featuredAssetCandidates()
+    .sort((a, b) => b.valueUsd - a.valueUsd || String(a.assetId).localeCompare(String(b.assetId)))
+    .slice(0, HOME_HOLDING_LIMIT);
+  section.hidden = !candidates.length && !(walletConnected || telegramConnected);
   if (!candidates.length) {
-    track.replaceChildren();
+    track.innerHTML = section.hidden ? "" : '<p class="home-holdings-empty" role="status">No priced highlights yet.</p>';
     return;
   }
-  const loopItems = [];
-  while (loopItems.length < Math.max(FEATURED_ASSET_MIN_LOOP_SIZE, candidates.length)) {
-    loopItems.push(...candidates);
-  }
-  loopItems.length = Math.max(FEATURED_ASSET_MIN_LOOP_SIZE, candidates.length);
-  const primary = loopItems.map((candidate) => renderFeaturedAssetCard(candidate, true)).join("");
-  const duplicate = loopItems.map((candidate) => renderFeaturedAssetCard(candidate, false)).join("");
-  track.style.setProperty("--featured-duration", `${Math.max(34, loopItems.length * 4)}s`);
-  track.innerHTML = `<div class="featured-collectibles-sequence">${primary}</div><div class="featured-collectibles-sequence" aria-hidden="true">${duplicate}</div>`;
-  if (!viewport.dataset.motionBound) {
-    viewport.dataset.motionBound = "1";
-    viewport.addEventListener("pointerdown", () => viewport.classList.add("is-paused"));
-    window.addEventListener("pointerup", () => viewport.classList.remove("is-paused"));
-    window.addEventListener("pointercancel", () => viewport.classList.remove("is-paused"));
-  }
+  track.innerHTML = candidates.map((candidate) => renderFeaturedAssetCard(candidate)).join("");
   window.lucide?.createIcons();
   initCollectibleAnimations(track);
+}
+
+function bindHomeHoldingsAutoplay(viewport, section) {
+  let pausedUntil = 0;
+  let direction = 1;
+  const pause = () => { pausedUntil = Date.now() + 8000; };
+  ["pointerdown", "wheel", "keydown"].forEach((event) => viewport.addEventListener(event, pause, { passive: true }));
+  // Native scrolling keeps every original holding reachable by touch and keyboard.
+  // One timer per viewport; no duplicated assets or background network requests.
+  window.setInterval(() => {
+    if (document.hidden || section.hidden || !section.closest(".screen.is-active")
+      || window.matchMedia("(prefers-reduced-motion: reduce)").matches
+      || viewport.matches(":hover, :focus-within, :active") || Date.now() < pausedUntil) return;
+    const cards = Array.from(viewport.querySelectorAll(".featured-asset-card"));
+    const maxScroll = viewport.scrollWidth - viewport.clientWidth;
+    if (cards.length < 2 || maxScroll <= 1) return;
+    if (viewport.scrollLeft >= maxScroll - 2) direction = -1;
+    else if (viewport.scrollLeft <= 2) direction = 1;
+    const step = cards[1].offsetLeft - cards[0].offsetLeft;
+    viewport.scrollTo({ left: Math.max(0, Math.min(maxScroll, viewport.scrollLeft + direction * step)), behavior: "smooth" });
+  }, 4000);
 }
 
 function openFeaturedAsset(target) {
@@ -2013,7 +2392,7 @@ function renderStickerBrand(assetId) {
     const count = children.reduce((sum, item) => sum + stickerOwnedCount(item), 0);
     const packCount = groupedChildren.length;
     const total = Number(brand.floorUsd || 0);
-    summary.innerHTML = `<small>Sticker brand</small><div><h2>${total > 0 ? money(total) : "Price unavailable"}</h2><span>${count} sticker${count === 1 ? "" : "s"}</span></div><strong>${packCount} pack${packCount === 1 ? "" : "s"} in this brand</strong>`;
+    summary.innerHTML = `<small>Sticker brand</small><div><h2${total > 0 ? "" : ' class="is-value-unavailable"'}>${total > 0 ? money(total) : "Price unavailable"}</h2><span>${count} sticker${count === 1 ? "" : "s"}</span></div><strong>${packCount} pack${packCount === 1 ? "" : "s"} in this brand</strong>`;
     renderCollectibleSummaryDotMatrix(summary);
   }
   const grid = document.querySelector("#stickerBrandGrid");
@@ -2026,11 +2405,17 @@ function renderStickerBrand(assetId) {
 
 function renderStickerBrandItem(asset) {
   const hasPrice = Number(asset.floorUsd) > 0;
-  const floorNote = hasPrice ? floorSourceLine(asset) : (asset.marketPlatform ? `Floor · ${escapeHtml(asset.marketPlatform)}` : "Open details");
+  const floorNote = hasPrice ? collectibleHoldingNote(asset) : "No verified pack price";
   const count = stickerOwnedCount(asset);
   const imageStack = count > 1 ? stickerPackImageStack(asset) : "";
+  const referenceRow = renderReferenceCollectibleRow(asset, {
+    target: "detail", title: stickerPackLabel(asset), secondary: stickerPackMeta(asset),
+    count: `${count} sticker${count === 1 ? "" : "s"}`, art: imageStack || collectibleArtHtml(asset, "sticker"),
+    value: hasPrice ? money(asset.floorUsd) : "Price unavailable", note: floorNote,
+  });
+  if (referenceRow) return referenceRow;
   return `
-    <article class="collectible-card sticker-pack-card ${imageStack ? "has-gift-stack" : ""}" data-screen-target="detail" data-asset="${asset.id}">
+    <article class="collectible-card sticker-pack-card ${imageStack ? "has-gift-stack" : ""}" role="button" tabindex="0" data-screen-target="detail" data-asset="${asset.id}">
       <div class="collectible-top">
         ${imageStack || collectibleArtHtml(asset, "sticker")}
         <div><h3>${escapeHtml(stickerPackLabel(asset))}</h3><small>${escapeHtml(stickerPackMeta(asset))}</small></div>
@@ -2042,6 +2427,7 @@ function renderStickerBrandItem(asset) {
 
 function marketSourceLabel(value = "") {
   const source = String(value || "").toLowerCase();
+  if (source.includes("mock") || source.includes("preview")) return "Reference";
   if (!source || source.includes("estimated")) return "";
   if (source.includes("stickers tools")) return "Stickers Tools";
   if (source.includes("getgems")) return "Getgems";
@@ -2073,13 +2459,19 @@ function normalizeIdentityAsset(item = {}, type = "ton_dns", index = 0) {
   const floorUsd = Number(item.floorUsd || 0);
   const valuationKind = String(item.valuationKind || "");
   const hasAcceptedValue = item.floorStatus === "priced"
-    && ((valuationKind === "active-listing" && floorTon > 0)
+    && ((!isUsername && valuationKind === "active-listing" && floorTon > 0)
       || (isDns && valuationKind === "dns-estimate" && floorTon > 0)
-      || (isUsername && valuationKind === "username-estimate" && floorUsd > 0));
+      || (isUsername && identityAssetValue({ ...item, type }) > 0));
   const hasDnsEstimate = isDns && Number(item.estimatedGram || 0) > 0;
-  const hasUsernameEstimate = isUsername && item.floorStatus === "priced" && valuationKind === "username-estimate" && Number(item.floorUsd || 0) > 0;
+  const hasUsernameEstimate = isUsername && ["priced", "indicative"].includes(item.floorStatus)
+    && ["username-estimate", "username-estimate-low"].includes(valuationKind)
+    && ["estimated", "indicative"].includes(item.usernameValuationStatus)
+    && usernameEstimateFresh(item)
+    && Number.isFinite(Number(item.estimatedUsd || item.floorUsd || 0))
+    && Number(item.estimatedUsd || item.floorUsd || 0) > 0;
   const hasEstimate = hasDnsEstimate || hasUsernameEstimate;
-  const listingGram = Number(item.currentListingGram || (valuationKind === "active-listing" ? floorTon : 0) || 0);
+  const marketFresh = !isUsername || usernameMarketFresh(item);
+  const listingGram = marketFresh ? Number(item.currentListingGram || (valuationKind === "active-listing" ? floorTon : 0) || 0) : 0;
   return {
     id,
     type,
@@ -2109,7 +2501,7 @@ function normalizeIdentityAsset(item = {}, type = "ton_dns", index = 0) {
     icon: meta.icon,
     tone: meta.tone,
     estimatedGram: Number(item.estimatedGram || 0),
-    estimatedUsd: Number(item.estimatedUsd || 0),
+    estimatedUsd: isUsername && !hasUsernameEstimate ? 0 : Number(item.estimatedUsd || 0),
     rangeLowGram: Number(item.rangeLowGram || 0),
     rangeHighGram: Number(item.rangeHighGram || 0),
     rangeLowUsd: Number(item.rangeLowUsd || 0),
@@ -2121,22 +2513,47 @@ function normalizeIdentityAsset(item = {}, type = "ton_dns", index = 0) {
     effectiveCompCount: Number(item.effectiveCompCount || 0),
     currentListingGram: listingGram,
     currentListingUsd: Number(item.currentListingUsd || listingGram * usdTonRate || 0),
-    currentBidGram: Number(item.currentBidGram || 0),
-    currentBidUsd: Number(item.currentBidUsd || 0),
+    currentBidGram: marketFresh ? Number(item.currentBidGram || 0) : 0,
+    currentBidUsd: marketFresh ? Number(item.currentBidUsd || 0) : 0,
+    currentMarket: item.currentMarket || null,
     dnsValuationStatus: String(item.dnsValuationStatus || ""),
     usernameValuationStatus: String(item.usernameValuationStatus || ""),
     estimatorVersion: String(item.estimatorVersion || ""),
     valuedAt: item.valuedAt || null,
+    staleAt: item.staleAt || null,
     valuationStale: Boolean(item.valuationStale),
     valuationExplanation: item.valuationExplanation || {},
   };
 }
 
 function identityAssetValue(asset = {}) {
+  if (asset.type === "telegram_username" || String(asset.valuationKind || "").startsWith("username-estimate")) {
+    const value = Number(asset.floorUsd || 0);
+    return asset.floorStatus === "priced" && asset.valuationKind === "username-estimate"
+      && asset.portfolioEligible === true && asset.usernameValuationStatus === "estimated"
+      && ["medium", "high"].includes(String(asset.confidenceBand || "").toLowerCase())
+      && usernameEstimateFresh(asset) && Number.isFinite(value) && value > 0 ? value : 0;
+  }
   return asset.floorStatus === "priced"
     && (asset.valuationKind === "active-listing" || asset.valuationKind === "dns-estimate" || asset.valuationKind === "username-estimate")
     ? Number(asset.floorUsd || 0)
     : 0;
+}
+
+function usernameEstimateFresh(asset = {}) {
+  const valuedAt = Date.parse(asset.valuedAt || "");
+  const staleAt = Date.parse(asset.staleAt || "");
+  const now = Date.now();
+  return !asset.valuationStale && Number.isFinite(valuedAt) && valuedAt <= now
+    && Number.isFinite(staleAt) && staleAt > now && staleAt > valuedAt;
+}
+
+function usernameMarketFresh(asset = {}) {
+  const market = asset.currentMarket;
+  const observedAt = Date.parse(market?.observedAt || ""), staleAt = Date.parse(market?.staleAt || "");
+  const now = Date.now();
+  return market?.verified === true && Number.isFinite(observedAt) && observedAt <= now
+    && Number.isFinite(staleAt) && staleAt > now && staleAt > observedAt;
 }
 
 function renderIdentityAssetRows(type, query = "") {
@@ -2162,12 +2579,14 @@ function renderIdentityAssetRows(type, query = "") {
   list.innerHTML = rows.map((asset) => {
     const value = identityAssetValue(asset);
     const estimate = Number(asset.estimatedUsd || 0);
-    const isEstimate = asset.valuationKind === "dns-estimate" || asset.valuationKind === "dns-estimate-low" || asset.valuationKind === "username-estimate" || asset.valuationKind === "username-estimate-low";
+    const isEstimate = asset.valuationKind === "dns-estimate" || asset.valuationKind === "dns-estimate-low"
+      || (isUsername && usernameEstimateFresh(asset) && ["estimated", "indicative"].includes(asset.usernameValuationStatus)
+        && ["username-estimate", "username-estimate-low"].includes(asset.valuationKind));
     const isIndicative = asset.dnsValuationStatus === "indicative"
       || asset.usernameValuationStatus === "indicative"
       || asset.valuationExplanation?.provenance === "broad-verified-sales-baseline"
       || asset.valuationExplanation?.provenance === "verified-sales-archetype-baseline";
-    const displayValue = value > 0 ? value : isUsername ? 0 : estimate;
+    const displayValue = value > 0 ? value : isUsername ? isEstimate && Number.isFinite(estimate) ? estimate : 0 : estimate;
     const valuationState = asset.usernameValuationStatus || asset.dnsValuationStatus;
     const meta = isEstimate
       ? isUsername
@@ -2181,10 +2600,10 @@ function renderIdentityAssetRows(type, query = "") {
     const art = asset.image
       ? `<span class="identity-asset-art ${asset.tone}"><img src="${escapeHtml(asset.image)}" alt="" loading="lazy"></span>`
       : `<span class="identity-asset-art ${asset.tone}"><i data-lucide="${asset.icon}"></i></span>`;
-    return `<article data-screen-target="detail" data-asset="${escapeHtml(asset.id)}">
+    return `<article role="button" tabindex="0" data-screen-target="detail" data-asset="${escapeHtml(asset.id)}">
       ${art}
       <div><b>${escapeHtml(asset.name)}</b><small>${asset.verified ? "Verified collection" : escapeHtml(asset.collection)}</small></div>
-      <aside><b>${displayValue > 0 ? money(displayValue) : isUsername || valuationState === "processing" ? "Evaluating" : "Unavailable"}</b><small>${escapeHtml(meta)}</small>${isEstimate && !isUsername ? `<em class="identity-estimate-pill">${isIndicative ? "Indicative" : "Estimated"}</em>` : ""}</aside>
+      <aside><b>${displayValue > 0 ? money(displayValue) : valuationState === "processing" ? "Evaluating" : "Unavailable"}</b><small>${escapeHtml(meta)}</small>${isEstimate ? `<em class="identity-estimate-pill">${isIndicative || (isUsername && !value) ? "Indicative" : "Estimated"}</em>` : ""}</aside>
     </article>`;
   }).join("");
   window.lucide?.createIcons();
@@ -2217,10 +2636,24 @@ function renderIdentityAssetScreens() {
   renderFeaturedCollectibles();
 }
 
+function walletCollectiblesArePending(data = {}) {
+  if (String(data?.assets?.collectibles?.source || "").toLowerCase() === "pending") return true;
+  return (data?.warnings || []).some((warning) => /collectibles are loading/i.test(String(warning)));
+}
+
+function setIdentityImportTerminal(message = "") {
+  ["dns", "anonymousNumbers", "usernames"].forEach((key) => {
+    const label = key === "dns" ? "Domains" : key === "anonymousNumbers" ? "Anonymous numbers" : "Usernames";
+    setSectionReady(key, message ? `${label} ${message}` : `${label} ready`, { toast: false });
+  });
+}
+
 function updateIdentityAssetsFromWallet(data = {}, options = {}) {
   const replaceAssets = (target, incoming, type) => {
     if (!Array.isArray(incoming)) return;
-    if (options.preserveExistingOnEmpty && !incoming.length && target.length) return;
+    const authoritativeUsername = type === "telegram_username" && options.terminal === true && !data?.assets?.stale;
+    if (options.preserveExistingOnEmpty && !incoming.length && target.length && !authoritativeUsername) return;
+    if (type === "telegram_username") target.forEach(asset => { delete assetDetails[asset.id]; });
     target.splice(0, target.length, ...incoming.map((item, index) => normalizeIdentityAsset(item, type, index)));
   };
   replaceAssets(dnsAssets, data?.assets?.dns, "ton_dns");
@@ -2229,7 +2662,12 @@ function updateIdentityAssetsFromWallet(data = {}, options = {}) {
   [...dnsAssets, ...anonymousNumberAssets, ...usernameAssets].forEach((asset) => {
     assetDetails[asset.id] = asset;
   });
-  ["dns", "anonymousNumbers", "usernames"].forEach((key) => setSectionReady(key, `${key === "dns" ? "Domains" : key === "anonymousNumbers" ? "Anonymous numbers" : "Usernames"} ready`, { toast: false }));
+  // /api/wallet deliberately returns a fast shell while collectible discovery is
+  // still running. Do not turn identity skeletons into empty states until the
+  // authoritative /api/collectibles response has settled.
+  if (options.terminal !== false && !walletCollectiblesArePending(data)) {
+    setIdentityImportTerminal();
+  }
   renderIdentityAssetScreens();
 }
 
@@ -2243,7 +2681,11 @@ function renderIdentityAssetDetail(detail) {
   setText('[data-screen="detail"] > .page-header h1', isDns ? "TON DNS" : isUsername ? "Telegram Username" : "Anonymous Number");
   const mount = document.getElementById("giftDetailMount");
   const hasValue = identityAssetValue(detail) > 0;
-  const hasEstimate = (isDns && Number(detail.estimatedGram || 0) > 0) || (isUsername && Number(detail.estimatedUsd || detail.floorUsd || 0) > 0);
+  const usernameEstimate = Number(detail.estimatedUsd || detail.floorUsd || 0);
+  const hasEstimate = (isDns && Number(detail.estimatedGram || 0) > 0)
+    || (isUsername && usernameEstimateFresh(detail) && ["estimated", "indicative"].includes(detail.usernameValuationStatus)
+      && ["username-estimate", "username-estimate-low"].includes(detail.valuationKind)
+      && Number.isFinite(usernameEstimate) && usernameEstimate > 0);
   const isEstimate = detail.valuationKind === "dns-estimate" || detail.valuationKind === "dns-estimate-low" || detail.valuationKind === "username-estimate" || detail.valuationKind === "username-estimate-low";
   const isIndicative = detail.dnsValuationStatus === "indicative"
     || detail.usernameValuationStatus === "indicative"
@@ -2262,19 +2704,29 @@ function renderIdentityAssetDetail(detail) {
         <small>${typeMeta.label}</small>
         <h2>${escapeHtml(detail.name)}</h2>
         <div class="identity-detail-value">
-          <span>${isUsername && isEstimate ? "Portfolio value" : isIndicative ? "Indicative market value" : isEstimate ? "Estimated value" : hasValue ? "Active GRAM listing" : "Portfolio value"}</span>
-          <b>${heroUsd > 0 ? money(heroUsd) : isUsername || valuationState === "processing" ? "Evaluating" : "Unavailable"}</b>
+          <span>${isUsername && isEstimate ? "Estimated market value" : isIndicative ? "Indicative market value" : isEstimate ? "Estimated value" : hasValue ? "Active GRAM listing" : "Portfolio value"}</span>
+          <b>${heroUsd > 0 ? money(heroUsd) : valuationState === "processing" ? "Evaluating" : "Unavailable"}</b>
           <small>${isUsername && isEstimate ? `${detail.evidenceCount.toLocaleString()} completed sales considered` : heroGram > 0 ? `${heroGram.toLocaleString(undefined, { maximumFractionDigits: 2 })} GRAM${isEstimate ? "" : ` &middot; ${escapeHtml(detail.marketPlatform)}`}` : "Verified market evidence is still being processed."}</small>
         </div>
       </article>
       ${hasEstimate ? `<article class="identity-detail-card identity-estimate-card">
-        <div class="section-heading"><h2>Valuation range</h2>${isUsername ? "" : `<span class="identity-estimate-pill">${isIndicative ? "Indicative" : "Estimated"}</span>`}</div>
+        <div class="section-heading"><h2>Valuation range</h2><span class="identity-estimate-pill">${isIndicative ? "Indicative" : "Estimated"}</span></div>
         <div class="identity-range"><b>${isUsername ? money(detail.rangeLowUsd) : `${detail.rangeLowGram.toLocaleString(undefined, { maximumFractionDigits: 2 })} GRAM`}</b><span>to</span><b>${isUsername ? money(detail.rangeHighUsd) : `${detail.rangeHighGram.toLocaleString(undefined, { maximumFractionDigits: 2 })} GRAM`}</b></div>
-        ${isUsername ? "" : `<div class="identity-detail-row"><span>Confidence</span><b>${escapeHtml((detail.confidenceBand || "low").replace(/^./, (letter) => letter.toUpperCase()))}</b></div>`}
+        <div class="identity-detail-row"><span>Confidence</span><b>${escapeHtml((detail.confidenceBand || "low").replace(/^./, (letter) => letter.toUpperCase()))}</b></div>
         <div class="identity-detail-row"><span>Comparable sales</span><b>${detail.evidenceCount.toLocaleString()}</b></div>
         <div class="identity-detail-row"><span>Last valued</span><b>${detail.valuedAt ? new Date(detail.valuedAt).toLocaleString([], { dateStyle: "medium", timeStyle: "short" }) : "Processing"}</b></div>
       </article>` : ""}
-      ${(isDns || isUsername) && (detail.currentListingGram > 0 || detail.currentBidGram > 0) ? `<article class="identity-detail-card">
+      ${isUsername && detail.valuationExplanation?.lastSaleAnchor ? `<article class="identity-detail-card">
+        <div class="section-heading"><h2>Historical sale evidence</h2></div>
+        <div class="identity-detail-row"><span>Last sale (historical USD)</span><b>${money(detail.valuationExplanation.lastSaleAnchor.priceUsd)}</b></div>
+        <div class="identity-detail-row"><span>Sale date</span><b>${escapeHtml(new Date(detail.valuationExplanation.lastSaleAnchor.soldAt).toLocaleDateString())}</b></div>
+        <p>A historical sale anchors this estimate. It is not a guaranteed current price or minimum value.</p>
+      </article>` : ""}
+      ${isUsername && detail.valuationExplanation?.comparables?.length ? `<article class="identity-detail-card">
+        <div class="section-heading"><h2>Market evidence</h2></div>
+        ${detail.valuationExplanation.comparables.slice(0, 5).map((row) => `<div class="identity-detail-row"><span>@${escapeHtml(row.username)}${row.exact ? " (own sale)" : ""}<small>${escapeHtml((row.reasons || []).join(" · "))}</small></span><b>${money(row.priceUsd)}</b></div>`).join("")}
+      </article>` : ""}
+      ${(isDns || (isUsername && usernameMarketFresh(detail))) && (detail.currentListingGram > 0 || detail.currentBidGram > 0) ? `<article class="identity-detail-card">
         <div class="section-heading"><h2>Current market</h2>${iconCueHtml("radio", "Live market signals", "is-live")}</div>
         ${detail.currentListingGram > 0 ? `<div class="identity-detail-row"><span>Verified ask</span><b>${detail.currentListingGram.toLocaleString(undefined, { maximumFractionDigits: 2 })} GRAM</b></div>` : ""}
         ${detail.currentBidGram > 0 ? `<div class="identity-detail-row"><span>Verified bid</span><b>${detail.currentBidGram.toLocaleString(undefined, { maximumFractionDigits: 2 })} GRAM</b></div>` : ""}
@@ -2288,7 +2740,7 @@ function renderIdentityAssetDetail(detail) {
       </article>
       <article class="identity-detail-note">
         <i data-lucide="shield-check"></i>
-        <div><b>Evidence-based valuation</b><small>${isUsername ? "Only finalized native-GRAM username sales with the historical GRAM/USD rate are comparable evidence. Asks and bids are shown separately and cannot set the estimate." : isDns ? "Completed native-GRAM sales set the estimate. Verified asks and bids are shown separately and cannot dictate the midpoint." : "Only a verified active listing denominated in native GRAM is counted. Jettons and ambiguous prices are excluded."}</small></div>
+        <div><b>Evidence-based valuation</b><small>${isUsername ? "Only finalized native-GRAM username sales with the historical GRAM/USD rate are comparable evidence. Asks and bids are shown separately and cannot set the estimate. This is a model estimate, not an executable quote. Sparse sales and premium names may be substantially mispriced; current-market accuracy has not been independently qualified." : isDns ? "Completed native-GRAM sales set the estimate. Verified asks and bids are shown separately and cannot dictate the midpoint." : "Only a verified active listing denominated in native GRAM is counted. Jettons and ambiguous prices are excluded."}</small></div>
       </article>
     </section>`;
   }
@@ -2332,7 +2784,7 @@ function renderAssetDetail(assetId) {
     const cachedEntry = giftDetailCacheEntry(detail);
     const cachedGift = cachedEntry?.value || null;
     if (cachedGift) {
-      applyGiftDetailPayload(detail, cachedGift, { applyFloor: false });
+      applyGiftDetailPayloadWithPriceFallback(detail, cachedGift);
       renderGiftDetailPage(detail, { loading: false });
       if (!detail.floorHistoryAvailable || Number(cachedEntry.expiresAt || 0) <= Date.now()) {
         detail.floorHistoryLoading = true;
@@ -2657,13 +3109,55 @@ function giftMarketLinks(detail) {
   };
 }
 
+const collectibleDisclosureState = new Map();
+
+function applyCollectibleDetailHierarchy(mount, assetId) {
+  // Keep the restored pre-Fomo detail composition; data and modal fixes stay active.
+  if (!document.body.classList.contains("portfolio-system")) return;
+  const layout = mount?.querySelector(".gift-detail-layout");
+  if (!layout) return;
+  const hero = layout.querySelector(":scope > .gift-detail-hero-card");
+  const chart = layout.querySelector(":scope > .gift-floor-card");
+  const sales = layout.querySelector(":scope > .gift-sales-card");
+  const title = hero?.querySelector(".gift-detail-title-block");
+  const price = hero?.querySelector(".gift-detail-price-lockup, .gift-detail-floor-row");
+  if (title && price) {
+    title.after(price);
+    if (price.classList.contains("gift-detail-floor-row")) {
+      const source = hero.querySelector(".gift-detail-floor-sub");
+      if (source) price.after(source);
+    }
+  }
+  if (hero && chart) hero.after(chart);
+  if (chart && sales) chart.after(sales);
+  Array.from(layout.children).forEach((section) => {
+    if (section === hero || section === chart || section === sales) return;
+    const heading = section.querySelector("h2");
+    if (!heading) return;
+    const key = `${assetId}:${heading.textContent}`;
+    const disclosure = document.createElement("details");
+    disclosure.className = "product-disclosure";
+    disclosure.open = collectibleDisclosureState.get(key) || false;
+    const summary = document.createElement("summary");
+    summary.textContent = heading.textContent;
+    heading.hidden = true;
+    disclosure.appendChild(summary);
+    section.before(disclosure);
+    disclosure.appendChild(section);
+    disclosure.addEventListener("toggle", () => collectibleDisclosureState.set(key, disclosure.open));
+  });
+}
+
 function renderGiftDetailPage(detail, { loading = false } = {}) {
   const mount = document.getElementById("giftDetailMount");
   if (!mount) return;
   const isListed = /listed/i.test(String(detail.status || "")) && !/unlisted/i.test(String(detail.status || ""));
   const glow = giftGlowFromBackdrop(detail);
   const detailMarketSource = isEstimatedAsset(detail) ? "" : marketSourceLabel(detail.marketPlatform);
-  const sourceLabel = detailMarketSource ? `Floor · ${escapeHtml(detailMarketSource)}` : "Price source unavailable";
+  const priceBasis = isEstimatedAsset(detail) ? "Estimated value"
+    : detail.floorSource === "last-sale" || detail.source === "last-sale-exact" ? "Last sale" : "Current floor";
+  const sourceLabel = isEstimatedAsset(detail) ? "Estimate"
+    : detailMarketSource ? escapeHtml(detailMarketSource) : "Price source unavailable";
   const upgradeState = giftUpgradeState(detail);
   const eligibility = giftEligibility(detail);
   const links = giftMarketLinks(detail);
@@ -2677,12 +3171,15 @@ function renderGiftDetailPage(detail, { loading = false } = {}) {
       : detail.floorHistorySource === "tontrack-combo-registry" ? "Exact floor history"
       : detail.floorHistorySource === "tontrack-estimate-history" ? "Estimated floor history"
       : detail.floorHistorySource === "tontrack-snapshots" ? "TonTrack snapshots"
+      : detail.floorHistorySource === "mock-ui-preview" ? "Floor history"
       : "Live floor history"
     : chartIsLoading ? "Loading floor history..." : "Floor history unavailable";
   const unavailableSources = Array.isArray(detail.partialSources) ? detail.partialSources : [];
+  const displayedHistorySource = isEstimatedAsset(detail) && detail.floorHistorySource === "mock-ui-preview"
+    ? "Estimated history" : chartBaseSourceLabel;
   const chartSourceLabel = unavailableSources.length
-    ? `${chartBaseSourceLabel} · Partial data: ${unavailableSources.join(", ")} unavailable`
-    : chartBaseSourceLabel;
+    ? `${displayedHistorySource} · Partial data: ${unavailableSources.join(", ")} unavailable`
+    : displayedHistorySource;
   const salesRows = loading
     ? `<div class="sales-row"><b class="skeleton">&nbsp;<span class="skeleton">&nbsp;</span></b><b class="skeleton">&nbsp;<span class="skeleton">&nbsp;</span></b><b class="skeleton">&nbsp;<span class="skeleton">&nbsp;</span></b></div>`
     : renderGiftSalesRows(detail);
@@ -2693,6 +3190,7 @@ function renderGiftDetailPage(detail, { loading = false } = {}) {
     <section class="gift-detail-layout">
       <article class="gift-detail-hero-card gift-detail-stage">
         ${isListed ? `<span class="status-badge is-listed">Listed</span>` : estimatedPillHtml(detail) ? `<span class="status-badge is-estimated">Estimated</span>` : ""}
+
         <div class="gift-detail-glow" style="background:radial-gradient(circle, ${glow} 0%, rgba(0,0,0,0) 68%);"></div>
         <div class="gift-detail-hero-inner">
           <div class="gift-detail-art-stage">
@@ -2704,12 +3202,13 @@ function renderGiftDetailPage(detail, { loading = false } = {}) {
           </div>
           <div class="gift-detail-pill-row">${giftTraitPills(detail)}</div>
           <div class="gift-detail-price-lockup">
-            <span>Current Floor</span>
+            <span>${priceBasis}</span>
             <div class="gift-detail-floor-row">
               <strong>${floorLabel}</strong>
-              <span class="status-badge ${priceChangeClass === "negative" ? "is-unlisted" : "is-listed"}">${signedPct(detail.dailyPct || 0)}</span>
+              ${Number(detail.floorUsd || 0) > 0 && !isEstimatedAsset(detail) && detail.dailyPct != null && Number.isFinite(Number(detail.dailyPct)) ? `<span class="status-badge ${priceChangeClass === "negative" ? "is-unlisted" : "is-listed"}">${signedPct(detail.dailyPct)}</span>` : ""}
             </div>
             <small class="gift-detail-floor-sub">${floorSubLabel} · ${sourceLabel}</small>
+            ${giftModelEstimateHtml(detail)}
           </div>
         </div>
       </article>
@@ -2722,7 +3221,7 @@ function renderGiftDetailPage(detail, { loading = false } = {}) {
         <div class="section-heading">
           <div class="gift-detail-heading-lockup">
             <span class="gift-detail-section-icon"><i data-lucide="chart-no-axes-combined"></i></span>
-            <div><h2>Floor Price</h2><small>${chartSourceLabel}</small></div>
+            <div><h2>Value history</h2><small>${chartSourceLabel}</small></div>
           </div>
           <div class="gift-detail-toggle-row">
             <button type="button" class="mini-button ${priceMode === "USD" ? "active" : ""}" data-gift-price-mode="USD">USD</button>
@@ -2738,7 +3237,7 @@ function renderGiftDetailPage(detail, { loading = false } = {}) {
           <span class="gift-chart-loader-dot is-one"></span>
           <span class="gift-chart-loader-dot is-two"></span>
           <span class="gift-chart-loader-dot is-three"></span>
-          <span class="gift-chart-loading-label">Fetching live floor history</span>
+          <span class="gift-chart-loading-label">Loading floor history</span>
         </div>` : `<canvas id="giftDetailPriceChart" role="img" aria-label="Gift floor price chart" class="gift-detail-chart"></canvas>
         <div id="giftDetailChartTooltip" class="chart-tooltip">${detail.floorHistoryAvailable ? `Latest: ${money(detail.floorUsd || 0)}` : "Floor history unavailable"}</div>`}
         <div class="gift-detail-chart-footer">
@@ -2779,7 +3278,9 @@ function renderGiftDetailPage(detail, { loading = false } = {}) {
         </div>
         <div class="gift-origin-list">${giftOriginRows(detail, upgradeState, eligibility)}</div>
       </article>
-    </section>`;  if (!chartIsLoading) {
+    </section>`;
+  applyCollectibleDetailHierarchy(mount, detail.id);
+  if (!chartIsLoading) {
     drawDetailPriceChart(detail, {
       svgSelector: "#giftDetailPriceChart",
       tooltipSelector: "#giftDetailChartTooltip",
@@ -2913,12 +3414,12 @@ function renderStickerDetailPage(detail, { loading = false } = {}) {
         </div>
       </article>
 
-      <article class="card gift-detail-card">
+      <article class="card gift-detail-card sticker-pack-details">
         <div class="section-heading"><h2>Pack Details</h2></div>
         ${stickerDetailPackRows(detail)}
       </article>
 
-      <article class="card gift-detail-card">
+      <article class="card gift-detail-card gift-floor-card">
         <div class="section-heading">
           <h2>Floor Price</h2>
           <div class="gift-detail-toggle-row">
@@ -2937,12 +3438,13 @@ function renderStickerDetailPage(detail, { loading = false } = {}) {
 
       ${stickerDetailIntelSections(detail)}
 
-      <article class="card gift-detail-card">
+      <article class="card gift-detail-card gift-sales-card">
         <div class="section-heading"><h2>Recent Sales</h2>${iconCueHtml("sticker", "This pack")}</div>
         ${renderStickerDetailSalesRows(detail, loading)}
       </article>
     </section>`;
 
+  applyCollectibleDetailHierarchy(mount, detail.id);
   if (!loading) {
     drawDetailPriceChart(detail, {
       svgSelector: "#giftDetailPriceChart",
@@ -3095,14 +3597,17 @@ function giftCollectionStatsRows(detail) {
 function renderGiftDemandBlock(detail) {
   const intel = detail.intel || {};
   const modelStats = detail.modelStats || {};
+  const modelEstimate = giftModelEstimateLabel(detail);
   const hasModelStats = [modelStats.modelCount, modelStats.supplyPct, modelStats.holderCount, modelStats.transferCount7d, modelStats.transferCount30d, modelStats.upgradedCount]
     .some((value) => Number(value || 0) > 0);
-  if (!hasModelStats && (!intel || [intel.sales24h, intel.volume24h, intel.listedCount, intel.totalSupply].every((value) => !value || value === "—" || value === 0))) {
+  const hasModelEstimate = Boolean(modelEstimate);
+  if (!hasModelStats && !hasModelEstimate && (!intel || [intel.sales24h, intel.volume24h, intel.listedCount, intel.totalSupply].every((value) => !value || value === "—" || value === 0))) {
     return `<p class="detail-empty-state" style="text-align:center;color:var(--text-2);">— Insufficient data</p>`;
   }
   const velocity = Number(intel.velocityHours || 0) > 0 ? `Avg 1 sale every ${Number(intel.velocityHours).toFixed(1)} hours` : "—";
   const activeListingsValue = Number(intel.listedCount || intel.listedSupply || 0) > 0 ? String(intel.listedCount || intel.listedSupply) : "—";
   const rows = [
+    ["Model estimate", modelEstimate || "—", "Model-level floor reference"],
     ["Model supply", formatMetricCount(modelStats.modelCount), modelStats.supplyPct ? `${Number(modelStats.supplyPct).toFixed(Number(modelStats.supplyPct) < 1 ? 2 : 1)}% of collection` : ""],
     ["Model holders", formatMetricCount(modelStats.holderCount), ""],
     ["Model activity", formatMetricCount(modelStats.transferCount30d || modelStats.transferCount7d), modelStats.transferCount30d ? "30D transfers" : (modelStats.transferCount7d ? "7D transfers" : "")],
@@ -3315,7 +3820,7 @@ function loadPersistentGiftDetailCache() {
   try {
     const stored = JSON.parse(localStorage.getItem(GIFT_DETAIL_CACHE_STORAGE_KEY) || "{}");
     Object.entries(stored).forEach(([key, entry]) => {
-      if (entry?.value && Number(entry.staleUntil || 0) > Date.now()) {
+      if (entry?.value && Number(entry.staleUntil || 0) > Date.now() && pricingPayloadAllowed(entry.value)) {
         giftDetailPersistentCache.set(key, entry);
       }
     });
@@ -3325,7 +3830,7 @@ function loadPersistentGiftDetailCache() {
 function flushPersistentGiftDetailCache() {
   giftDetailPersistentWriteTimer = 0;
   const entries = [...giftDetailPersistentCache.entries()]
-    .filter(([, entry]) => Number(entry?.staleUntil || 0) > Date.now())
+    .filter(([, entry]) => Number(entry?.staleUntil || 0) > Date.now() && pricingPayloadAllowed(entry.value))
     .sort((a, b) => Number(b[1]?.cachedAt || 0) - Number(a[1]?.cachedAt || 0))
     .slice(0, GIFT_DETAIL_CACHE_MAX_ENTRIES);
   giftDetailPersistentCache.clear();
@@ -3348,10 +3853,10 @@ function giftDetailCacheEntry(detail = {}) {
   const key = giftDetailCacheKey(detail);
   if (!key) return null;
   const memory = giftDetailCache.get(key);
-  if (memory?.value && Number(memory.staleUntil || memory.expiresAt || 0) > Date.now()) return memory;
+  if (memory?.value && Number(memory.staleUntil || memory.expiresAt || 0) > Date.now() && pricingPayloadAllowed(memory.value)) return memory;
   loadPersistentGiftDetailCache();
   const persistent = giftDetailPersistentCache.get(key);
-  if (!persistent?.value || Number(persistent.staleUntil || 0) <= Date.now()) return null;
+  if (!persistent?.value || Number(persistent.staleUntil || 0) <= Date.now() || !pricingPayloadAllowed(persistent.value)) return null;
   giftDetailCache.set(key, persistent);
   return persistent;
 }
@@ -3407,7 +3912,7 @@ async function fetchGiftDetailPayload(detail, { forceRefresh = false } = {}) {
   const key = giftDetailCacheKey(detail);
   if (!key) return { floor: {}, sales: [], origin: {}, rarity: {}, links: {} };
   const cached = giftDetailCacheEntry(detail);
-  if (!forceRefresh && cached?.expiresAt > Date.now()) return cached.value;
+  if (!forceRefresh && cached?.expiresAt > Date.now() && giftDetailPayloadHasDisplayPrice(cached.value)) return cached.value;
   if (giftDetailRequests.has(key)) return giftDetailRequests.get(key);
   const wallet = liveWalletAddress || liveWalletData?.account?.address || "";
   const nft = detail.tokenAddress || "";
@@ -3508,24 +4013,30 @@ async function hydrateGiftDetailTraitRarities(detail = {}, requestId = activeGif
   }, "Gift trait rarity lookup failed").catch(() => null);
   if (requestId !== activeGiftDetailRequest) return false;
   const modelPayload = (payload?.models || [])[0];
-  if (!modelPayload?.traitRarities || !Object.keys(modelPayload.traitRarities).length) return false;
-  applyGiftTraitRarities(detail, modelPayload);
+  if (!modelPayload) return false;
+  let applied = false;
+  if (modelPayload.traitRarities && Object.keys(modelPayload.traitRarities).length) {
+    applyGiftTraitRarities(detail, modelPayload);
+    applied = true;
+  }
+  applied = applyGiftModelEstimate(detail, modelPayload) || applied;
   const modelMetric = modelPayload?.traitMetrics?.Model || modelPayload?.traitMetrics?.model || {};
   if (Number(modelMetric.itemCount || 0) > 0 || Number(modelMetric.rarity || 0) > 0) {
-    applyGiftModelStats(detail, {
+    applied = applyGiftModelStats(detail, {
       ...(detail.modelStats || {}),
       modelCount: Number(detail.modelStats?.modelCount || modelMetric.itemCount || 0),
       supplyPct: Number(detail.modelStats?.supplyPct || modelMetric.rarity || 0),
       source: detail.modelStats?.source || "gift-attributes",
       updatedAt: detail.modelStats?.updatedAt || modelMetric.updatedAt || "",
-    });
+    }) || applied;
   }
   const stored = assetDetails[detail.id];
   if (stored && stored !== detail) {
-    applyGiftTraitRarities(stored, modelPayload);
+    if (modelPayload.traitRarities && Object.keys(modelPayload.traitRarities).length) applyGiftTraitRarities(stored, modelPayload);
+    applyGiftModelEstimate(stored, modelPayload);
     if (detail.modelStats) applyGiftModelStats(stored, detail.modelStats);
   }
-  return true;
+  return applied;
 }
 
 function giftModelStatsCacheKey(detail = {}) {
@@ -3694,6 +4205,11 @@ function isEstimatedGiftFloor(floor = {}) {
   const source = `${floor.source || ""} ${floor.marketPlatform || ""}`.toLowerCase();
   return /estimated|last-sale|last sale/.test(source)
     && (Number(floor.floorUsd || 0) > 0 || Number(floor.floorTon || 0) > 0);
+}
+
+function giftDetailPayloadHasDisplayPrice(payload = {}) {
+  const floor = payload?.floor || {};
+  return isVerifiedGiftFloor(floor) || isEstimatedGiftFloor(floor);
 }
 
 function giftFloorHistoryPointsFromPayload(detail, payload = {}) {
@@ -3885,17 +4401,20 @@ async function loadGiftDetail(detail, { forceRefresh = false } = {}) {
     const cachedEntry = giftDetailCacheEntry(detail);
     const cachedPayload = cachedEntry?.value || null;
     if (cachedPayload) {
-      applyGiftDetailPayload(detail, cachedPayload, { applyFloor: false });
+      applyGiftDetailPayloadWithPriceFallback(detail, cachedPayload);
       refreshGiftDetailChrome(detail, { loading: false });
     }
-    const needsRefresh = forceRefresh || !cachedPayload || Number(cachedEntry?.expiresAt || 0) <= Date.now();
+    const needsRefresh = forceRefresh
+      || !cachedPayload
+      || !giftDetailPayloadHasDisplayPrice(cachedPayload)
+      || Number(cachedEntry?.expiresAt || 0) <= Date.now();
     const payload = needsRefresh
       ? await fetchGiftDetailPayload(detail, { forceRefresh: true })
       : cachedPayload;
     if (requestId !== activeGiftDetailRequest) return;
     // Import hydration is the sole pricing authority. Detail data enriches the
     // cards and graph, but must never replace the resolved wallet/TG floor.
-    applyGiftDetailPayload(detail, payload, { applyFloor: false });
+    applyGiftDetailPayloadWithPriceFallback(detail, payload);
     if (fastSalesReady) clearPartialSource("sales");
     if (fastHistoryReady) clearPartialSource("history");
     detail.floorHistoryLoading = false;
@@ -3926,7 +4445,7 @@ function setDetailHeading(panelSelector, title, action = "") {
   const panel = document.querySelector(panelSelector);
   if (!panel) return;
   const heading = panel.querySelector(".section-heading h2");
-  const button = panel.querySelector(".section-heading button");
+  const button = panel.querySelector(".section-heading .text-action");
   if (heading) heading.textContent = title;
   if (button) {
     button.classList.remove("ui-icon-action", "is-live");
@@ -3994,7 +4513,7 @@ function renderTokenActivity(detail) {
         || rawValue.replace(/^Swapping\s+/i, "").replace(/\s+for\s+/i, " → ")
         || "On-chain";
       const hash = preview.transactionHash || event.id || "";
-      return `<article class="token-detail-activity" data-tx-hash="${escapeHtml(hash)}"><span class="activity-dot token-bg"><i data-lucide="${icon}"></i></span><div><b>${escapeHtml(direction)}</b><small>${event.date ? formatActivityDate(event.date) : "Recent"}</small></div><aside><strong>${escapeHtml(tokenAmount)}</strong>${preview.usdValue ? `<small>${escapeHtml(preview.usdValue)}</small>` : ""}</aside></article>`;
+      return `<article class="token-detail-activity" role="button" tabindex="0" data-tx-hash="${escapeHtml(hash)}"><span class="activity-dot token-bg"><i data-lucide="${icon}"></i></span><div><b>${escapeHtml(direction)}</b><small>${event.date ? formatActivityDate(event.date) : "Recent"}</small></div><aside><strong>${escapeHtml(tokenAmount)}</strong>${preview.usdValue ? `<small>${escapeHtml(preview.usdValue)}</small>` : ""}</aside></article>`;
     }).join("");
     return;
   }
@@ -4139,27 +4658,30 @@ function renderDetailLoadingMetrics() {
 function ensureStickerThumbOverlay() {
   let overlay = document.getElementById("stickerThumbOverlay");
   if (overlay) return overlay;
-  overlay = document.createElement("div");
+  overlay = document.createElement("dialog");
   overlay.id = "stickerThumbOverlay";
-  overlay.className = "sticker-thumb-overlay";
-  overlay.innerHTML = `<button class="sticker-thumb-backdrop" type="button" aria-label="Close"></button><section class="sticker-thumb-panel"><button class="sticker-thumb-close" type="button" aria-label="Close">×</button><img alt=""><h3></h3><p></p><small></small></section>`;
+  overlay.className = "sticker-thumb-overlay product-preview-sheet";
+  overlay.setAttribute("aria-labelledby", "stickerThumbTitle");
+  overlay.innerHTML = `<section class="sticker-thumb-panel"><header class="product-preview-head"><h2 id="stickerThumbTitle"></h2><button class="sticker-thumb-close" type="button" aria-label="Close sticker preview"><i data-lucide="x"></i></button></header><img alt=""><p></p><small></small></section>`;
   document.body.appendChild(overlay);
-  overlay.querySelector(".sticker-thumb-backdrop")?.addEventListener("click", closeStickerThumbOverlay);
   overlay.querySelector(".sticker-thumb-close")?.addEventListener("click", closeStickerThumbOverlay);
   return overlay;
 }
 
-function openStickerThumbOverlay(data = {}) {
+function openStickerThumbOverlay(data = {}, opener = null) {
+  closeGiftPfpTray();
   const overlay = ensureStickerThumbOverlay();
   overlay.querySelector("img").src = data.image || "";
-  overlay.querySelector("h3").textContent = data.name || "Sticker";
+  overlay.querySelector("h2").textContent = data.name || "Sticker";
+  overlay.querySelector("img").alt = data.name || "Sticker";
   overlay.querySelector("p").textContent = data.tag ? `#${data.tag}` : "";
   overlay.querySelector("small").textContent = data.traits || "—";
-  overlay.classList.add("is-open");
+  window.lucide?.createIcons();
+  openProductPreview(overlay, opener);
 }
 
 function closeStickerThumbOverlay() {
-  document.getElementById("stickerThumbOverlay")?.classList.remove("is-open");
+  closeProductPreview(document.getElementById("stickerThumbOverlay"));
 }
 
 function formatMetricMoney(value) {
@@ -4184,7 +4706,9 @@ function tokenApiAddress(detail = {}) {
 }
 
 function tokenDetailCacheKey(detail, range = tokenDetailRange) {
-  return `${detail.address || detail.symbol || "ton"}:${detail.priceUsd}:${range}`;
+  // A chart response can update priceUsd. Price is not the asset identity;
+  // including it here made revisiting the same period miss its own cache.
+  return `${detail.address || detail.id || detail.symbol || "ton"}:${range}`;
 }
 
 function tokenChartQuery(detail, range = tokenDetailRange) {
@@ -4224,6 +4748,7 @@ function normalizeTokenDetailChart(points = []) {
 
 function setTokenDetailChart(detail, points = []) {
   detail.historyChart = normalizeTokenDetailChart(points);
+  detail.historyChartRange = tokenDetailRange;
   if (detail.historyChart.length) {
     detail.entryPrice = detail.historyChart[0].price;
     detail.priceUsd = detail.historyChart.at(-1)?.price || detail.priceUsd;
@@ -4254,6 +4779,21 @@ function tokenChartRangeLabel(timestamp, compact = false) {
 }
 
 
+function requestTokenDetailPayload(detail, range = tokenDetailRange) {
+  const cacheKey = tokenDetailCacheKey(detail, range);
+  const cached = tokenDetailMetricsCache.get(cacheKey);
+  if (cached?.expiresAt > Date.now()) return Promise.resolve(cached.value);
+  if (tokenDetailPrefetchRequests.has(cacheKey)) return tokenDetailPrefetchRequests.get(cacheKey);
+  const request = fetchJsonFast(tokenChartQuery(detail, range), 6500)
+    .then((payload) => {
+      tokenDetailMetricsCache.set(cacheKey, { value: payload, expiresAt: Date.now() + 10 * 60 * 1000 });
+      return payload;
+    })
+    .finally(() => tokenDetailPrefetchRequests.delete(cacheKey));
+  tokenDetailPrefetchRequests.set(cacheKey, request);
+  return request;
+}
+
 async function loadTokenDetailMetrics(detail) {
   const cacheKey = tokenDetailCacheKey(detail);
   const requestId = ++activeTokenDetailRequest;
@@ -4263,13 +4803,16 @@ async function loadTokenDetailMetrics(detail) {
     return;
   }
   try {
-    const backendPayload = await fetchJsonFast(tokenChartQuery(detail), 6500);
+    const backendPayload = await requestTokenDetailPayload(detail);
     if (requestId !== activeTokenDetailRequest) return;
     tokenDetailMetricsCache.set(cacheKey, { value: backendPayload, expiresAt: Date.now() + 10 * 60 * 1000 });
     applyTokenDetailMetrics(detail, backendPayload);
   } catch (error) {
     console.warn("Token detail metrics failed", error);
     if (requestId !== activeTokenDetailRequest) return;
+    detail.chartLoading = false;
+    drawDetailPriceChart(detail);
+    if (detail.lastTokenMetrics) return;
     const pressure = document.querySelector("#tokenPressurePanel");
     if (pressure) {
       pressure.innerHTML = "";
@@ -4282,29 +4825,24 @@ async function loadTokenDetailMetrics(detail) {
 
 function prefetchTokenDetailMetrics(detail, range = "day") {
   if (!detail) return;
-  const cacheKey = tokenDetailCacheKey(detail, range);
-  const cached = tokenDetailMetricsCache.get(cacheKey);
-  if (cached && cached.expiresAt > Date.now()) return;
-  if (tokenDetailPrefetchRequests.has(cacheKey)) return;
-  const request = fetchJsonFast(tokenChartQuery(detail, range), 6500)
-    .then((payload) => {
-      tokenDetailMetricsCache.set(cacheKey, { value: payload, expiresAt: Date.now() + 10 * 60 * 1000 });
-    })
-    .catch(() => {})
-    .finally(() => tokenDetailPrefetchRequests.delete(cacheKey));
-  tokenDetailPrefetchRequests.set(cacheKey, request);
+  requestTokenDetailPayload(detail, range).catch(() => {});
 }
 
 function prefetchVisibleTokenDetails(tokens = latestVisibleTokens) {
-  const candidates = tokens.slice(0, 24).map((token) => tokenDetails[token.id] || token);
-  const chunkSize = 6;
-  for (let index = 0; index < candidates.length; index += chunkSize) {
-    const chunk = candidates.slice(index, index + chunkSize);
-    setTimeout(() => {
-      chunk.forEach((token) => prefetchTokenDetailMetrics(token, "day"));
-    }, Math.floor(index / chunkSize) * 180);
-  }
+  // Each detail fans out to several providers. Warm a small leading set rather
+  // than making the selected detail compete with 24 speculative requests.
+  tokens.slice(0, 2).forEach((token) => prefetchTokenDetailMetrics(tokenDetails[token.id] || token, tokenDetailRange));
 }
+
+function prefetchTokenFromIntent(event) {
+  const trigger = event.target.closest?.('[data-screen-target="detail"][data-asset]');
+  if (!trigger) return;
+  if (event.relatedTarget && trigger.contains(event.relatedTarget)) return;
+  const detail = tokenDetails[trigger.dataset.asset] || assetDetails[trigger.dataset.asset];
+  if (detail?.type === "token") prefetchTokenDetailMetrics(detail, tokenDetailRange);
+}
+document.addEventListener("pointerover", prefetchTokenFromIntent);
+document.addEventListener("focusin", prefetchTokenFromIntent);
 
 function pumpDetailWarmupQueue() {
   while (detailWarmupActive < DETAIL_WARMUP_CONCURRENCY && detailWarmupQueue.length) {
@@ -4443,6 +4981,8 @@ function syncCollectibleGroupFromChildren(group) {
 
 let giftDerivedUiRefreshTimer = 0;
 const giftPricePrefetchKeys = new Set();
+const giftModelEstimateCache = new Map();
+const giftModelEstimateRequests = new Map();
 
 async function prefetchGiftStats(assets = giftAssets) {
   const gifts = flattenCollectibleAssets(assets).filter((asset) => asset?.type === "gift");
@@ -4489,6 +5029,84 @@ async function prefetchGiftStats(assets = giftAssets) {
   }
 }
 
+function applyGiftModelEstimatePayload(gifts = [], pairs = [], payload = {}) {
+  const modelsByKey = new Map();
+  (payload?.models || []).forEach((model) => {
+    const responsePair = giftModelEstimatePair(model);
+    const fullKey = giftModelEstimatePairKey(responsePair);
+    const comboKey = [responsePair.collection, responsePair.model, responsePair.backdrop].map(collectibleKey).join(":");
+    if (fullKey) modelsByKey.set(fullKey, model);
+    if (comboKey) modelsByKey.set(comboKey, model);
+  });
+  let applied = false;
+  pairs.forEach((pair) => {
+    const fullKey = giftModelEstimatePairKey(pair);
+    const comboKey = [pair.collection, pair.model, pair.backdrop].map(collectibleKey).join(":");
+    const model = modelsByKey.get(fullKey) || modelsByKey.get(comboKey);
+    if (!model) return;
+    const cacheKey = fullKey || comboKey;
+    if (cacheKey) giftModelEstimateCache.set(cacheKey, { value: model, expiresAt: Date.now() + 15 * 60 * 1000 });
+    gifts.filter((asset) => {
+      const assetPair = giftModelEstimatePair(asset);
+      return giftModelEstimatePairKey(assetPair) === fullKey
+        || [assetPair.collection, assetPair.model, assetPair.backdrop].map(collectibleKey).join(":") === comboKey;
+    }).forEach((asset) => {
+      applyGiftTraitRarities(asset, model);
+      applied = applyGiftModelEstimate(asset, model) || applied;
+    });
+  });
+  return applied;
+}
+
+async function prefetchGiftModelEstimates(assets = giftAssets) {
+  const gifts = flattenCollectibleAssets(assets).filter((asset) => asset?.type === "gift");
+  const pairsByKey = new Map();
+  gifts.forEach((asset) => {
+    const pair = giftModelEstimatePair(asset);
+    if (!pair.collection || !pair.model) return;
+    const key = giftModelEstimatePairKey(pair);
+    if (!pairsByKey.has(key)) pairsByKey.set(key, pair);
+  });
+  const pairs = [...pairsByKey.values()];
+  if (!pairs.length) return false;
+  let applied = false;
+  const pending = [];
+  pairs.forEach((pair) => {
+    const key = giftModelEstimatePairKey(pair);
+    const cached = giftModelEstimateCache.get(key);
+    if (cached?.expiresAt > Date.now()) {
+      applied = applyGiftModelEstimatePayload(gifts, [pair], { models: [cached.value] }) || applied;
+    } else {
+      pending.push(pair);
+    }
+  });
+  for (let index = 0; index < pending.length; index += 200) {
+    const chunk = pending.slice(index, index + 200);
+    const requestKey = chunk.map(giftModelEstimatePairKey).sort().join("|");
+    let request = giftModelEstimateRequests.get(requestKey);
+    if (!request) {
+      request = requestJsonFast("/api/gift-model-floors/bulk", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ pairs: chunk }),
+      // The bulk endpoint may reconcile a cold D1/registry snapshot before it
+      // responds. Give that enrichment enough time to complete; aborting at the
+      // short card-prefetch deadline made model estimates disappear permanently
+      // until a detail page was opened.
+      }, 20000).finally(() => giftModelEstimateRequests.delete(requestKey));
+      giftModelEstimateRequests.set(requestKey, request);
+    }
+    try {
+      const payload = await request;
+      applied = applyGiftModelEstimatePayload(gifts, chunk, payload) || applied;
+    } catch (error) {
+      console.warn("Gift model estimate prefetch failed", error);
+    }
+  }
+  if (applied) scheduleGiftDerivedUiRefresh();
+  return applied;
+}
+
 function scheduleGiftDerivedUiRefresh() {
   if (giftDerivedUiRefreshTimer) return;
   giftDerivedUiRefreshTimer = window.setTimeout(() => {
@@ -4498,6 +5116,7 @@ function scheduleGiftDerivedUiRefresh() {
 }
 
 function prefetchGiftDetails(assets = giftAssets) {
+  prefetchGiftModelEstimates(assets).catch(() => {});
   prefetchGiftStats(assets).catch(() => {});
   const entries = [];
   const seenCombos = new Set();
@@ -4520,7 +5139,7 @@ function prefetchGiftDetails(assets = giftAssets) {
             // Telegram imports already receive their resolved D1 price in the
             // initial response. Detail prefetch is enrichment only; an empty
             // detail response must never erase that known value.
-            applyGiftDetailPayload(asset, payload, { applyFloor: false });
+            applyGiftDetailPayloadWithPriceFallback(asset, payload);
           } catch (error) {
             console.warn("Gift price prefetch failed", error);
           } finally {
@@ -4603,10 +5222,13 @@ function prefetchAllVisibleDetails() {
   prefetchStickerDetails(stickerAssets);
 }
 
-function applyTokenDetailMetrics(detail, payload = {}) {
-  detail.chartLoading = false;
-  if (payload.chart?.length) setTokenDetailChart(detail, payload.chart);
-  else drawDetailPriceChart(detail);
+function applyTokenDetailMetrics(detail, payload = {}, { applyChart = true } = {}) {
+  if (applyChart) {
+    detail.lastTokenMetrics = payload;
+    detail.chartLoading = false;
+    if (payload.chart?.length) setTokenDetailChart(detail, payload.chart);
+    else drawDetailPriceChart(detail);
+  }
   const apiMetrics = payload.metrics || {};
   const metrics = {
     marketCap: formatMetricMoney(apiMetrics.marketCap),
@@ -4645,8 +5267,9 @@ function renderTokenDetail(detail, tone) {
   const compactSymbol = tokenSymbolCompact(detail);
   const financialGrid = document.querySelector(".financial-grid");
   if (financialGrid) financialGrid.style.display = "none";
-  detail.chartLoading = false;
-  detail.historyChart = [];
+  const cachedMetrics = tokenDetailMetricsCache.get(tokenDetailCacheKey(detail));
+  if (detail.historyChartRange !== tokenDetailRange) detail.historyChart = [];
+  detail.chartLoading = !(cachedMetrics?.expiresAt > Date.now()) && !detail.historyChart?.length;
   renderTokenHero(detail, pnl, pnlClass);
   setText("#detailStatOneLabel", "Price");
   setText("#detailStatOne", tokenPriceLabel(detail.priceUsd));
@@ -4675,10 +5298,11 @@ function renderTokenDetail(detail, tone) {
     tonNetworkHost.style.display = "none";
   }
   renderTokenActivity(detail);
-  document.querySelector("#detailMarketIntel").innerHTML = renderDetailLoadingMetrics();
-  const cachedMetrics = tokenDetailMetricsCache.get(tokenDetailCacheKey(detail));
+  if (!detail.lastTokenMetrics) document.querySelector("#detailMarketIntel").innerHTML = renderDetailLoadingMetrics();
   if (cachedMetrics && cachedMetrics.expiresAt > Date.now()) {
     applyTokenDetailMetrics(detail, cachedMetrics.value);
+  } else if (detail.lastTokenMetrics) {
+    applyTokenDetailMetrics(detail, detail.lastTokenMetrics, { applyChart: false });
   }
   loadTokenDetailMetrics(detail);
   setIcon(document.querySelector("#detailHistoryIcon"), "clock", tone);
@@ -4729,13 +5353,13 @@ function drawDetailPriceChart(detail, options = {}) {
   const isToken = detail.type === "token";
   const sourcePoints = isToken ? (detail.historyChart || []) : (detail.floorHistoryPoints || []);
   const sourceValues = isToken ? sourcePoints.map((point) => point.price) : (detail.chart || []);
-  const values = priceMode === "TON" ? sourceValues.map((value) => value / usdTonRate) : sourceValues;
+  const values = priceMode === "TON" && usdTonRate > 0 ? sourceValues.map((value) => value / usdTonRate) : sourceValues;
   const rows = values.map((value, index) => ({ value, timestamp: Number(sourcePoints[index]?.timestamp) }))
     .filter((point) => Number.isFinite(point.timestamp));
   const sourceReference = isToken ? Number.NaN : (detail.costBasis || sourceValues[0]);
   const hasReference = !isToken && (Number(detail.costBasis || 0) > 0 || !options.hideReferenceWhenMissing);
-  const reference = priceMode === "TON" ? sourceReference / usdTonRate : sourceReference;
-  const label = (value) => priceMode === "TON"
+  const reference = priceMode === "TON" && usdTonRate > 0 ? sourceReference / usdTonRate : sourceReference;
+  const label = (value) => priceMode === "TON" && usdTonRate > 0
     ? `${value.toFixed(value >= 1 ? 2 : 4)} GRAM`
     : (isToken ? tokenPriceLabel(value) : usdValueLabel(value));
   const result = Charts.renderDetailSeries(isToken ? "tokenPrice" : "collectibleFloor", rows, {
@@ -4807,9 +5431,11 @@ function renderWalletState() {
 function openWalletSheet() {
   const sheet = document.getElementById("walletSheet");
   if (!sheet) return;
+  rememberOverlayOpener();
   sheet.classList.add("is-open");
   sheet.setAttribute("aria-hidden", "false");
   window.lucide?.createIcons();
+  requestAnimationFrame(() => sheet.querySelector(".wallet-sheet-close")?.focus({ preventScroll: true }));
 }
 
 function showConnectionRoute(route = "choice") {
@@ -4829,6 +5455,7 @@ function closeWalletSheet() {
   sheet.classList.remove("is-open");
   sheet.setAttribute("aria-hidden", "true");
   showConnectionRoute("choice");
+  restoreOverlayFocus();
 }
 
 function setTelegramLoginStatus(message, error = false) {
@@ -5006,10 +5633,12 @@ function syncWalletActionSheet() {
 function openWalletActionSheet() {
   const sheet = document.getElementById("walletActionSheet");
   if (!sheet) return;
+  rememberOverlayOpener();
   syncWalletActionSheet();
   sheet.classList.add("is-open");
   sheet.setAttribute("aria-hidden", "false");
   window.lucide?.createIcons();
+  requestAnimationFrame(() => sheet.querySelector(".wallet-action-panel button")?.focus({ preventScroll: true }));
 }
 
 function closeWalletActionSheet() {
@@ -5017,17 +5646,21 @@ function closeWalletActionSheet() {
   if (!sheet) return;
   sheet.classList.remove("is-open");
   sheet.setAttribute("aria-hidden", "true");
+  restoreOverlayFocus();
 }
 
 function openTokenSortSheet() {
   const sheet = document.getElementById("tokenSortSheet");
   if (!sheet) return;
+  rememberOverlayOpener();
   sheet.classList.add("is-open");
   sheet.setAttribute("aria-hidden", "false");
+  document.querySelector("[data-token-sort-open]")?.setAttribute("aria-expanded", "true");
   document.querySelectorAll("[data-token-sort]").forEach((button) => {
     button.classList.toggle("is-active", button.dataset.tokenSort === tokenSortMode);
   });
   window.lucide?.createIcons();
+  requestAnimationFrame(() => sheet.querySelector("[data-token-sort].is-active, [data-token-sort]")?.focus({ preventScroll: true }));
 }
 
 function closeTokenSortSheet() {
@@ -5035,6 +5668,8 @@ function closeTokenSortSheet() {
   if (!sheet) return;
   sheet.classList.remove("is-open");
   sheet.setAttribute("aria-hidden", "true");
+  document.querySelector("[data-token-sort-open]")?.setAttribute("aria-expanded", "false");
+  restoreOverlayFocus();
 }
 
 function setWalletImportStatus(message, isError = false) {
@@ -5140,6 +5775,27 @@ function tunnelSafeHeaders(extra = {}) {
   return headers;
 }
 
+function assertPricingMode(payload, response = null) {
+  if (giftPreviewCacheSuffix) return payload;
+  const pending = [payload];
+  const seen = new Set();
+  let fixture = Boolean(response?.headers?.get("x-tontrack-preview"));
+  while (!fixture && pending.length) {
+    const item = pending.pop();
+    if (typeof item === "string" && /^(?:mock-ui-preview|mock-gift-prices|estimated-preview-combo|preview-backdrop-floor)$/.test(item)) fixture = true;
+    if (!item || typeof item !== "object" || seen.has(item)) continue;
+    seen.add(item);
+    if (item.preview === true) fixture = true;
+    pending.push(...Object.values(item));
+  }
+  if (fixture) throw new Error("Preview fixture pricing cannot be loaded in live mode. Refresh from the live server.");
+  return payload;
+}
+
+function pricingPayloadAllowed(payload) {
+  try { assertPricingMode(payload); return true; } catch { return false; }
+}
+
 async function parseJsonResponse(response, fallbackMessage = "Request failed") {
   const contentType = String(response.headers.get("content-type") || "").toLowerCase();
   const raw = await response.text();
@@ -5147,7 +5803,7 @@ async function parseJsonResponse(response, fallbackMessage = "Request failed") {
     try {
       const payload = raw ? JSON.parse(raw) : {};
       if (!response.ok) throw new Error(payload?.error || `${fallbackMessage} (${response.status})`);
-      return payload;
+      return assertPricingMode(payload, response);
     } catch (error) {
       if (error instanceof SyntaxError) throw new Error("Received invalid JSON from server.");
       throw error;
@@ -5158,7 +5814,7 @@ async function parseJsonResponse(response, fallbackMessage = "Request failed") {
   }
   if (!response.ok) throw new Error(`${fallbackMessage} (${response.status})`);
   try {
-    return raw ? JSON.parse(raw) : {};
+    return assertPricingMode(raw ? JSON.parse(raw) : {}, response);
   } catch {
     throw new Error("Received an unexpected response from server.");
   }
@@ -5192,7 +5848,7 @@ function setLastUpdatedLabel(dateValue = Date.now()) {
   const date = new Date(dateValue);
   const month = date.toLocaleString("en-US", { month: "short" });
   const time = `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
-  updated.textContent = `Last updated on ${month} ${date.getDate()}, ${time}`;
+  updated.textContent = `Refreshed ${time}`;
 }
 
 function isCurrentImportSession(sessionId) {
@@ -5200,6 +5856,7 @@ function isCurrentImportSession(sessionId) {
 }
 
 function beginImportSession() {
+  clearImportLoaderFailsafe();
   activeImportSessionId += 1;
   allocationUiLocked = true;
   return activeImportSessionId;
@@ -5215,6 +5872,7 @@ function isGraphHistoryLoadingEnabled() {
 
 function setImportLoader(active, text = "Meeting your wallet", progress = 8) {
   const loader = document.getElementById("importLoader");
+  const loaderVideo = document.getElementById("importLoaderVideo");
   const loaderText = document.getElementById("importLoaderText");
   const loaderNote = document.getElementById("importLoaderNote");
   const loaderStage = document.getElementById("importLoaderStage");
@@ -5223,12 +5881,26 @@ function setImportLoader(active, text = "Meeting your wallet", progress = 8) {
   if (!loader) return;
   loader.classList.toggle("is-active", active);
   loader.setAttribute("aria-hidden", active ? "false" : "true");
+  const reduceMotion = Boolean(window.matchMedia?.("(prefers-reduced-motion: reduce)").matches);
+  if (loaderVideo && active && !reduceMotion && loaderVideo.paused) {
+    loaderVideo.preload = "auto";
+    const playback = loaderVideo.play();
+    if (playback && typeof playback.catch === "function") playback.catch(() => {});
+  } else if (loaderVideo && (!active || reduceMotion)) {
+    loaderVideo.pause();
+    if (!active) {
+      try {
+        loaderVideo.currentTime = 0;
+      } catch {}
+    }
+  }
   const clamped = Math.max(0, Math.min(100, progress));
   const stage = [...IMPORT_LOADER_STAGES].reverse().find((entry) => clamped >= entry.min) || IMPORT_LOADER_STAGES[0];
   loader.dataset.phase = stage.key;
   loader.dataset.step = String(stage.step);
   loader.classList.toggle("is-complete", stage.key === "complete");
   if (!active) {
+    clearImportLoaderFailsafe();
     loader.classList.remove("is-complete");
     loader.dataset.phase = "connect";
     loader.dataset.step = "1";
@@ -5238,6 +5910,137 @@ function setImportLoader(active, text = "Meeting your wallet", progress = 8) {
   if (loaderStage) loaderStage.textContent = `Step ${stage.step} of ${IMPORT_LOADER_STAGES.length}`;
   if (loaderPercent) loaderPercent.textContent = `${Math.round(clamped)}%`;
   if (loaderBar) loaderBar.style.width = `${clamped}%`;
+  loaderBar?.parentElement?.setAttribute("aria-valuenow", String(Math.round(clamped)));
+}
+
+const WALLET_ASSET_SNAPSHOT_KEY = `tontrack:wallet-assets:v1${giftPreviewCacheSuffix}`;
+const WALLET_ASSET_SNAPSHOT_TTL_MS = 12 * 60 * 60 * 1000;
+
+function cacheableWalletAsset(asset = {}) {
+  const { raw, content, ...safe } = asset || {};
+  return safe;
+}
+
+function loadWalletAssetSnapshot(address) {
+  const key = walletStateKey(address);
+  if (!key) return null;
+  try {
+    const snapshot = JSON.parse(localStorage.getItem(WALLET_ASSET_SNAPSHOT_KEY) || "null");
+    if (!snapshot || snapshot.walletKey !== key || Date.now() - Number(snapshot.savedAt || 0) > WALLET_ASSET_SNAPSHOT_TTL_MS) return null;
+    return pricingPayloadAllowed(snapshot.data) ? (snapshot.data || null) : null;
+  } catch {
+    return null;
+  }
+}
+
+function saveWalletAssetSnapshot(data = liveWalletData) {
+  if (!pricingPayloadAllowed(data)) return;
+  const address = data?.account?.address || liveWalletAddress;
+  const walletKey = walletStateKey(address);
+  if (!walletKey || !data?.assets) return;
+  const previous = loadWalletAssetSnapshot(address) || {};
+  const previousAssets = previous.assets || {};
+  const incomingAssets = data.assets || {};
+  const retain = (key) => Array.isArray(incomingAssets[key]) && (incomingAssets[key].length
+    || (key === "usernames" && incomingAssets.usernameInventoryStatus === "ready"))
+    ? incomingAssets[key].map(cacheableWalletAsset)
+    : (previousAssets[key] || []);
+  const compact = {
+    account: { address: data.account?.address || address, displayAddress: data.account?.displayAddress || "", tonName: data.account?.tonName || "" },
+    summary: { ...(previous.summary || {}), ...(data.summary || {}) },
+    assets: {
+      ton: incomingAssets.ton || previousAssets.ton,
+      jettons: retain("jettons"),
+      collectibles: retain("collectibles"),
+      dns: retain("dns"),
+      usernames: retain("usernames"),
+      usernameInventoryStatus: incomingAssets.usernameInventoryStatus || previousAssets.usernameInventoryStatus || "",
+      anonymousNumbers: retain("anonymousNumbers"),
+    },
+  };
+  try {
+    localStorage.setItem(WALLET_ASSET_SNAPSHOT_KEY, JSON.stringify({ walletKey, savedAt: Date.now(), data: compact }));
+  } catch {}
+}
+
+function mergeLastGoodWalletAssets(data = {}, address = "") {
+  const cached = loadWalletAssetSnapshot(data?.account?.address || address);
+  if (!cached?.assets) return data;
+  const assets = data.assets || {};
+  const cachedAssets = cached.assets || {};
+  const inventoryStatus = String(assets.jettonInventory?.status || "unavailable");
+  const collectiblesPending = (data.warnings || []).some((warning) => /collectibles are loading/i.test(String(warning)));
+  return {
+    ...data,
+    assets: {
+      ...assets,
+      ton: Number(assets.ton?.balance || 0) > 0 || Number(cachedAssets.ton?.balance || 0) <= 0 ? assets.ton : cachedAssets.ton,
+      jettons: ((Array.isArray(assets.jettons) && assets.jettons.length) || inventoryStatus === "ready") ? assets.jettons : (cachedAssets.jettons || []),
+      collectibles: ((Array.isArray(assets.collectibles) && assets.collectibles.length) || !collectiblesPending) ? assets.collectibles : (cachedAssets.collectibles || []),
+      dns: ((Array.isArray(assets.dns) && assets.dns.length) || !collectiblesPending) ? assets.dns : (cachedAssets.dns || []),
+      usernames: ((Array.isArray(assets.usernames) && assets.usernames.length) || !collectiblesPending) ? assets.usernames : (cachedAssets.usernames || []),
+      anonymousNumbers: ((Array.isArray(assets.anonymousNumbers) && assets.anonymousNumbers.length) || !collectiblesPending) ? assets.anonymousNumbers : (cachedAssets.anonymousNumbers || []),
+    },
+  };
+}
+
+function applyGiftDetailPayloadWithPriceFallback(detail, payload = {}) {
+  const floor = payload?.floor || {};
+  const hasKnownPrice = Number(detail.floorUsd || detail.floorTon || 0) > 0;
+  const hasVerifiedDetailPrice = isVerifiedGiftFloor(floor) || isEstimatedGiftFloor(floor);
+  applyGiftDetailPayload(detail, payload, {
+    // Import hydration remains authoritative when it already supplied a
+    // value. If the import was unpriced, an exact verified/estimated detail
+    // floor is the safe source needed to make the holding usable.
+    applyFloor: !hasKnownPrice && hasVerifiedDetailPrice,
+  });
+  return !hasKnownPrice && hasVerifiedDetailPrice;
+}
+
+function mergeCollectiblePayloadIntoWallet(payload = {}) {
+  if (!liveWalletData?.assets || !payload || payload.error) return;
+  const current = liveWalletData.assets;
+  const choose = (incoming, existing) => Array.isArray(incoming) ? incoming : (existing || []);
+  const gifts = choose(payload.gifts, (current.collectibles || []).filter((item) => item.type === "gift"));
+  const stickers = choose(payload.stickers, (current.collectibles || []).filter((item) => item.type === "sticker"));
+  const dns = choose(payload.dns, current.dns);
+  const usernames = choose(payload.usernames, current.usernames);
+  const anonymousNumbers = choose(payload.anonymousNumbers, current.anonymousNumbers);
+  liveWalletData = {
+    ...liveWalletData,
+    assets: { ...current, collectibles: [...gifts, ...stickers], dns, usernames, anonymousNumbers,
+      usernameInventoryStatus: Array.isArray(payload.usernames) ? payload.stale ? "stale" : "ready" : current.usernameInventoryStatus },
+    summary: {
+      ...(liveWalletData.summary || {}),
+      giftCount: gifts.length,
+      stickerCount: stickers.length,
+      nftCount: gifts.length + stickers.length,
+      dnsCount: dns.length,
+      usernameCount: usernames.length,
+      anonymousNumberCount: anonymousNumbers.length,
+    },
+  };
+  saveWalletAssetSnapshot(liveWalletData);
+  updateWalletScreen(liveWalletData, Number(liveWalletData.summary?.totalUsd || homePortfolioValue || 0));
+}
+
+function clearImportLoaderFailsafe() {
+  if (!importLoaderFailsafeTimer) return;
+  window.clearTimeout(importLoaderFailsafeTimer);
+  importLoaderFailsafeTimer = 0;
+}
+
+function scheduleImportLoaderFailsafe(importSessionId, delayMs = 2_500) {
+  clearImportLoaderFailsafe();
+  importLoaderFailsafeTimer = window.setTimeout(() => {
+    importLoaderFailsafeTimer = 0;
+    if (!isCurrentImportSession(importSessionId) || !walletConnected || !liveWalletData) return;
+    stopImportLoaderPulse();
+    allocationUiLocked = false;
+    updateAllocationUi(true);
+    syncAssetsSummary();
+    setImportLoader(false);
+  }, delayMs);
 }
 
 function stopImportLoaderPulse() {
@@ -5339,8 +6142,9 @@ async function importWallet(address, options = {}) {
   }
   await nextPaint();
   try {
-    const payload = await fetchWalletImport(cleanAddress);
+    let payload = await fetchWalletImport(cleanAddress);
     if (!isCurrentImportSession(importSessionId)) return;
+    payload = mergeLastGoodWalletAssets(payload, cleanAddress);
     if (!background) {
       stopImportLoaderPulse();
       setImportLoader(true, "Your assets are checking in", 42);
@@ -5367,6 +6171,7 @@ async function importWallet(address, options = {}) {
     if (initialHistory.length) setLiveHistoryRange("1D", initialHistory);
     applyHistoryStatus(payload.historyStatus || []);
     walletConnected = true;
+    saveWalletAssetSnapshot(liveWalletData);
     schedulePortfolioRefresh();
     if (!background) {
       setImportLoader(true, "Putting every number in place", 68);
@@ -5388,6 +6193,7 @@ async function importWallet(address, options = {}) {
     closeWalletSheet();
     await homeReadyPromise;
     if (!isCurrentImportSession(importSessionId)) return;
+    if (!background) scheduleImportLoaderFailsafe(importSessionId);
     if (!background) {
       stopImportLoaderPulse();
       setImportLoader(true, "Drawing the big picture", 92);
@@ -5403,7 +6209,7 @@ async function importWallet(address, options = {}) {
       renderPortfolioGraph(activePortfolioRange(), true);
       resetPortfolioHeader();
       setLastUpdatedLabel(currentWalletTimestamp(liveWalletData));
-      setSectionReady("graph", "Graph preview ready");
+      setSectionReady("graph", "Portfolio ready");
       if (!background) setImportLoader(false);
     }, 420);
   } catch (error) {
@@ -5432,8 +6238,9 @@ async function refreshConnectedWallet(triggerButton = null) {
   refreshButtons.forEach((button) => button.classList.add("is-loading"));
   updateHistoryStatus("Refreshing wallet...");
   try {
-    const payload = await fetchWalletImport(liveWalletAddress, { forceRefresh: true });
+    let payload = await fetchWalletImport(liveWalletAddress, { forceRefresh: true });
     if (!isCurrentImportSession(refreshSessionId)) return;
+    payload = mergeLastGoodWalletAssets(payload, liveWalletAddress);
     liveWalletData = payload;
     liveWalletAddress = payload.account?.address || liveWalletAddress;
     activeHistoryWalletKey = walletStateKey(liveWalletAddress);
@@ -5451,6 +6258,7 @@ async function refreshConnectedWallet(triggerButton = null) {
     renderPortfolioGraph(activePortfolioRange(), true);
     resetPortfolioHeader();
     setLastUpdatedLabel(currentWalletTimestamp(payload));
+    saveWalletAssetSnapshot(liveWalletData);
   } catch (error) {
     console.warn("Wallet refresh failed", error);
     updateHistoryStatus("Could not refresh wallet.");
@@ -5546,6 +6354,8 @@ async function refreshActivePortfolio({ triggerButton = null } = {}) {
 }
 
 function resetWalletSwitchState(nextAddress = "", options = {}) {
+  const previousWalletKey = walletStateKey(liveWalletAddress);
+  const nextWalletKey = walletStateKey(nextAddress);
   stopPortfolioRefresh();
   const preserveTelegram = Boolean(options.preserveTelegram && telegramConnected);
   stopHistoryStatusPolling();
@@ -5561,8 +6371,13 @@ function resetWalletSwitchState(nextAddress = "", options = {}) {
   resetDetailWarmCaches();
   resetActivityState();
   latestVisibleTokens = [];
-  collectiblePayloadCache.clear();
-  collectiblePayloadRequests.clear();
+  if (previousWalletKey !== nextWalletKey) {
+    collectiblePayloadCache.clear();
+    collectiblePayloadRequests.clear();
+    if (previousWalletKey) {
+      try { localStorage.removeItem(WALLET_ASSET_SNAPSHOT_KEY); } catch {}
+    }
+  }
   walletGiftGroups = [];
   walletStickerGroups = [];
   dnsAssets.splice(0, dnsAssets.length);
@@ -5592,16 +6407,11 @@ function resetWalletSwitchState(nextAddress = "", options = {}) {
 }
 
 function resetPerformerCards() {
-  const cards = document.querySelectorAll('[data-screen="home"] .performer-row article');
-  cards.forEach((card, index) => {
-    delete card.dataset.screenTarget;
-    delete card.dataset.asset;
-    const label = index === 0 ? "Top Performer" : "Worst Performer";
-    card.innerHTML = `<small>${label}</small><span class="performer-asset-line"><em>GRAM</em><b>Movement unavailable</b></span><strong>—</strong>`;
-  });
+  updateHomeTokenWidgets([]);
 }
 
 function resetWalletBoundUi() {
+  renderHomeAssetBrowser([0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0]);
   homePortfolioValue = 0;
   homePortfolioDelta = 0;
   homePortfolioChange = "+0.00%";
@@ -5645,6 +6455,8 @@ function resetWalletBoundUi() {
     topAsset.innerHTML = `<div class="section-heading"><h2>Top asset</h2></div><article class="feature-asset"><span class="asset-icon gift-bg"><i data-lucide="sparkles"></i></span><div><b>Nothing imported yet</b><small>Connect Telegram or a TON wallet to begin.</small></div></article>`;
     delete topAsset.dataset.screenTarget;
     delete topAsset.dataset.asset;
+    topAsset.removeAttribute("role");
+    topAsset.removeAttribute("tabindex");
   }
   const walletList = document.querySelector('[data-screen="wallets"] .holdings-list');
   if (walletList) walletList.innerHTML = `<article><span class="asset-icon token-bg"><i data-lucide="wallet"></i></span><div><b>No wallet connected</b><small>Connect or paste another wallet address.</small></div><aside><b>—</b><small>Ready</small></aside></article>`;
@@ -5672,6 +6484,7 @@ async function disconnectWallet() {
   renderIdentityAssetScreens();
   liveWalletData = null;
   liveWalletAddress = "";
+  try { localStorage.removeItem(WALLET_ASSET_SNAPSHOT_KEY); } catch {}
   activeHistoryWalletKey = "";
   lastTonConnectAddress = "";
   liveHistoryPoints = [];
@@ -5713,7 +6526,8 @@ async function disconnectWallet() {
 function normalizeWalletHistory(points = []) {
   return points
     .filter((point) => {
-      const keep = Number.isFinite(Number(point.valueUsd));
+      const keep = point.valueUsd != null && point.valueUsd !== ""
+        && Number.isFinite(Number(point.valueUsd)) && Number.isFinite(new Date(point.timestamp).getTime());
       if (!keep) console.warn("Dropped invalid wallet history point", point);
       return keep;
     })
@@ -5750,11 +6564,6 @@ function setLiveHistoryRange(range, points = [], options = {}) {
     console.warn(`Rejected suspicious ${range} history scale`, normalized);
     return [];
   }
-  normalized[normalized.length - 1] = {
-    ...normalized[normalized.length - 1],
-    timestamp: currentWalletTimestamp(),
-    value: homePortfolioValue,
-  };
   liveHistoryByRange.set(range, normalized);
   const source = options.source || "api";
   const status = options.status || "ready";
@@ -5771,12 +6580,8 @@ function hasFinalHistory(range) {
 }
 
 function pinCachedHistoryToCurrent(data = liveWalletData) {
-  const timestamp = currentWalletTimestamp(data);
-  liveHistoryByRange.forEach((points, range) => {
-    if (!points?.length) return;
-    points[points.length - 1] = { ...points[points.length - 1], timestamp, value: homePortfolioValue };
-    liveHistoryByRange.set(range, points);
-  });
+  // Preserve API observations. A later current-price enrichment is not a
+  // historical snapshot and must not be injected into a cached chart.
   const active = activePortfolioRange();
   liveHistoryPoints = liveHistoryByRange.get(active) || liveHistoryByRange.get("1D") || [];
 }
@@ -5957,6 +6762,12 @@ function hasPendingCollectiblePrices(kind) {
   return assets.some((asset) => asset.priceLoading || (asset.children || []).some((child) => child.priceLoading));
 }
 
+function allocationShareLabel(value, total) {
+  if (!(value > 0) || !(total > 0)) return "—";
+  const share = value / total * 100;
+  return share < 1 ? "<1%" : `${Math.round(share)}%`;
+}
+
 function updateAllocationUi(force = false) {
   const totals = collectibleTotals();
   allocationState.gifts = totals.gifts;
@@ -5980,6 +6791,13 @@ function updateAllocationUi(force = false) {
     anonymousNumberAssets.length,
     usernameAssets.length,
   ];
+  const values = [allocationState.gifts, allocationState.tokens, allocationState.stickers, allocationState.dns, allocationState.anonymousNumbers, allocationState.usernames];
+  renderHomeAssetBrowser(ownedCounts, values);
+  const valuedGroups = values.filter((value) => value > 0).length;
+  const unpricedGroups = values.filter((value, index) => value <= 0 && ownedCounts[index] > 0).length;
+  document.getElementById("homeMixMeta")?.replaceChildren(`${valuedGroups} priced${unpricedGroups ? ` · ${unpricedGroups} unpriced` : ""}`);
+  const discoveringHoldings = ["gifts", "tokens", "stickers", "dns", "anonymous-numbers", "usernames"].some(isSectionLoading);
+  document.getElementById("homeHoldingsCount")?.replaceChildren(discoveringHoldings ? "Discovering holdings…" : `${ownedCounts.reduce((sum, count) => sum + count, 0)} holdings total`);
   [
     [1, allocationState.gifts],
     [2, allocationState.tokens],
@@ -5996,14 +6814,49 @@ function updateAllocationUi(force = false) {
     const key = index === 1 ? "gifts" : index === 2 ? "tokens" : index === 3 ? "stickers" : index === 4 ? "dns" : index === 5 ? "anonymous-numbers" : "usernames";
     if (isSectionLoading(key) || (["gifts", "stickers"].includes(key) && value <= 0 && hasPendingCollectiblePrices(key))) {
       if (strong) strong.innerHTML = `<span class="metric-skeleton"></span>`;
-      if (small) small.innerHTML = `<span class="metric-skeleton metric-skeleton-small"></span>`;
+      if (small) small.innerHTML = isSectionLoading(key) ? `<span class="metric-skeleton metric-skeleton-small"></span>` : `${ownedCount} owned`;
       return;
     }
     if (strong) strong.textContent = value > 0 ? compactMoney(value) : "Unavailable";
-    if (small) small.textContent = value > 0 ? `${Math.round((value / safeTotal) * 100)}%` : `${ownedCount} owned`;
+    if (small) small.textContent = value > 0 ? `${ownedCount} owned · ${allocationShareLabel(value, safeTotal)}` : `${ownedCount} owned`;
   });
   renderDonut();
+  resetPortfolioHeader();
   return total;
+}
+
+function renderHomeAssetBrowser(counts, values) {
+  const pie = document.getElementById("homeAllocationPie");
+  const legend = document.getElementById("homeAllocationLegend");
+  if (!pie || !legend) return;
+  const routes = ["gifts", "tokens", "stickers", "dns", "anonymous-numbers", "usernames"];
+  const labels = ["Gifts", "Tokens", "Stickers", "TON DNS", "Numbers", "Usernames"];
+  const colors = ["#2e79ff", "#68d69d", "#d6bd68", "#8b7cff", "#ef8c73", "#64d6d2"];
+  const safeValues = routes.map((_, index) => {
+    const value = Number(values[index]);
+    return Number.isFinite(value) && value > 0 ? value : 0;
+  });
+  const total = safeValues.reduce((sum, value) => sum + value, 0);
+  let angle = 0;
+  const slices = safeValues.flatMap((value, index) => {
+    if (!value || !total) return [];
+    const start = angle;
+    angle += value / total * 360;
+    return [`${colors[index]} ${start}deg ${angle}deg`];
+  });
+  pie.style.background = total > 0 ? `conic-gradient(${slices.join(",")})` : "var(--product-line)";
+  pie.querySelector("span").textContent = total > 0 ? "Valued mix" : "No prices yet";
+  const entries = routes.map((route, index) => {
+    if (!(Number(counts[index]) > 0) && !isSectionLoading(route)) return "";
+    const share = safeValues[index] > 0 ? allocationShareLabel(safeValues[index], total)
+      : isSectionLoading(route) ? "Loading…" : "Unpriced";
+    return `<button type="button" data-screen-target="${route}" aria-label="${labels[index]} allocation: ${share}"><i style="background:${colors[index]}" aria-hidden="true"></i><span>${labels[index]}</span><small>${share}</small></button>`;
+  }).join("");
+  if (legend.innerHTML !== entries) legend.innerHTML = entries;
+  const description = labels.flatMap((label, index) => safeValues[index] > 0 ? [`${label} ${allocationShareLabel(safeValues[index], total)}`] : []).join(", ");
+  pie.setAttribute("aria-label", total > 0 ? `Allocation of valued holdings: ${description}` : "Portfolio allocation unavailable");
+  const unpriced = routes.some((_, index) => Number(counts[index]) > 0 && !safeValues[index]);
+  document.getElementById("homeAllocationNote")?.replaceChildren(unpriced ? "Unpriced holdings are excluded from this mix." : total > 0 ? "Share of valued holdings." : "Allocation appears when asset prices are available.");
 }
 
 function updateCategoryAndTopAsset(tokenValue = allocationState.tokens) {
@@ -6039,7 +6892,7 @@ function updateCategoryAndTopAsset(tokenValue = allocationState.tokens) {
   setEmptyState(numberCategory, anonymousNumberAssets.length, totals.anonymousNumbers > 0 ? money(totals.anonymousNumbers) : `${anonymousNumberAssets.length} number${anonymousNumberAssets.length === 1 ? "" : "s"}`);
   setEmptyState(usernameCategory, usernameAssets.length, totals.usernames > 0 ? money(totals.usernames) : `${usernameAssets.length} username${usernameAssets.length === 1 ? "" : "s"}`);
   const candidates = [
-    ...latestVisibleTokens.map((token) => ({ id: token.id, name: token.name, category: "GRAM Token", value: Number(token.valueUsd || 0), icon: token.image, symbol: token.symbol })),
+    ...latestVisibleTokens.map((token) => ({ id: token.id, name: token.name, category: "TON token", value: Number(token.valueUsd || 0), icon: token.image, symbol: token.symbol })),
     ...giftAssets.map((asset) => ({ id: asset.id, name: asset.name, category: "Gift", value: Number(asset.floorUsd || 0), icon: asset.image, symbol: "GFT" })),
     ...stickerAssets.map((asset) => ({ id: asset.id, name: asset.name, category: "Sticker", value: Number(asset.floorUsd || 0), icon: asset.image, symbol: "STK" })),
     ...dnsAssets.map((asset) => ({ id: asset.id, name: asset.name, category: "TON DNS", value: identityAssetValue(asset), icon: asset.image, symbol: "DNS" })),
@@ -6048,15 +6901,25 @@ function updateCategoryAndTopAsset(tokenValue = allocationState.tokens) {
   ].filter((asset) => asset.value > 0).sort((a, b) => b.value - a.value);
   const top = candidates[0];
   const card = document.querySelector('[data-screen="assets"] .mini-detail-card');
+  if (card) card.hidden = !top;
   if (card && top) {
     card.dataset.asset = top.id;
-    const isToken = top.category === "GRAM Token";
+    card.dataset.screenTarget = top.category === "Gift" ? "gift-brand"
+      : top.category === "Sticker" ? "sticker-brand" : "detail";
+    card.setAttribute("role", "button");
+    card.setAttribute("tabindex", "0");
+    const isToken = top.category === "TON token" || top.category === "GRAM Token";
     const topTone = isToken ? "token-bg" : top.category === "Gift" ? "gift-bg" : top.category === "Sticker" ? "sticker-bg" : top.category === "TON DNS" ? "dns-bg" : top.category === "Telegram Username" ? "username-bg" : "number-bg";
     const logo = top.icon
       ? `<span class="asset-icon ${topTone}"><img src="${escapeHtml(resolveTokenImage(top.icon))}" alt="${escapeHtml(top.symbol || top.name)}" onerror="this.parentElement.textContent='${escapeHtml((top.symbol || top.category).slice(0,3))}'"></span>`
       : `<span class="asset-icon ${topTone}">${escapeHtml((top.symbol || top.category).slice(0,3))}</span>`;
     const row = card.querySelector(".feature-asset");
     if (row) row.innerHTML = `${logo}<div><b>${escapeHtml(top.name)}</b><small>${escapeHtml(top.category)}</small></div><strong>${money(top.value)}</strong>`;
+  } else if (card) {
+    delete card.dataset.screenTarget;
+    delete card.dataset.asset;
+    card.removeAttribute("role");
+    card.removeAttribute("tabindex");
   }
 }
 
@@ -6130,6 +6993,13 @@ const ASSETS_DOT_GLYPHS = {
 
 function renderDotMatrixText(element, value, variant = "display") {
   if (!element || element.querySelector(".metric-skeleton")) return;
+  if (document.body.classList.contains("reference-ui")) {
+    element.classList.remove("dot-matrix-text", `dot-matrix-${variant}`);
+    delete element.dataset.dotText;
+    element.removeAttribute("aria-label");
+    element.textContent = String(value ?? "");
+    return;
+  }
   const text = String(value || "").toUpperCase();
   if (!text || (element.dataset.dotText === text && element.querySelector(".dot-matrix-character"))) return;
   element.dataset.dotText = text;
@@ -6143,20 +7013,34 @@ function renderDotMatrixText(element, value, variant = "display") {
   }).join("");
 }
 
+function walletHoldingCount(tokens = latestVisibleTokens) {
+  const giftCount = giftAssets.reduce((sum, asset) => sum + Math.max(0, Number(asset.count || 1)), 0);
+  const stickerCount = stickerAssets.reduce((sum, asset) => sum + stickerOwnedCount(asset), 0);
+  return {
+    tokens: tokens.length,
+    gifts: giftCount,
+    stickers: stickerCount,
+    dns: dnsAssets.length,
+    anonymousNumbers: anonymousNumberAssets.length,
+    usernames: usernameAssets.length,
+  };
+}
+
 function renderScreenHeaderDotMatrix(screen = document.querySelector(".screen.is-active")) {
   const heading = screen?.querySelector(":scope > .page-header h1");
   if (!heading) return;
   const title = heading.dataset.headerTitle || heading.dataset.dotText || heading.textContent.trim();
   setScreenHeaderTitle(heading, title);
-  if ([...title].length <= 18) renderDotMatrixText(heading, title, "title");
 }
 
 function renderCollectibleSummaryDotMatrix(container) {
   const value = container?.querySelector("h2");
   if (!value || value.querySelector(".metric-skeleton")) return;
-  const text = value.textContent.trim();
-  if (!/^\$[\d,.]+$/.test(text)) return;
-  renderDotMatrixText(value, text, "value");
+  const text = value.dataset.dotText || value.textContent.trim();
+  value.classList.remove("dot-matrix-text", "dot-matrix-title", "dot-matrix-value", "dot-matrix-compact");
+  delete value.dataset.dotText;
+  value.removeAttribute("aria-label");
+  if (value.querySelector(".dot-matrix-character")) value.textContent = text;
 }
 
 function renderAssetsDotMatrix() {
@@ -6172,10 +7056,7 @@ function syncAssetsSummary(data = liveWalletData, tokens = latestVisibleTokens, 
       ? 0
       : Number(data?.summary?.tonValueUsd || 0) + Number(data?.summary?.jettonsValueUsd || 0) || Number(fallbackUsd || 0));
   const tokenCount = tokens.length || Number(data?.summary?.tokenCount || 0);
-  const readyGiftCount = giftAssets.length;
-  const readyStickerCount = stickerAssets.length;
-  const readyDnsCount = dnsAssets.length;
-  const readyNumberCount = anonymousNumberAssets.length;
+  const holdings = walletHoldingCount(tokens);
   const address = truncateWalletAddress(data?.account?.displayAddress || liveWalletAddress);
   if (strip) {
     const totals = collectibleTotals();
@@ -6185,10 +7066,12 @@ function syncAssetsSummary(data = liveWalletData, tokens = latestVisibleTokens, 
       : money(knownTotal);
     const itemsHtml = isSectionLoading("tokens") && !tokens.length
       ? `<span class="metric-skeleton metric-skeleton-small"></span>`
-      : `${tokenCount + readyGiftCount + readyStickerCount + readyDnsCount + readyNumberCount}`;
-    const portfolioChange = String(homePortfolioChange || "+0.00%");
-    const portfolioChangeClass = portfolioChange.trim().startsWith("-") ? "negative" : "positive";
-    strip.innerHTML = `<article><small>Portfolio value</small><b>${totalHtml}</b><strong class="${portfolioChangeClass}">${escapeHtml(portfolioChange)} <em>24H</em></strong></article><article><small>Total assets</small><b>${itemsHtml}</b><span>Items</span></article><article><small>Wallet</small><b>${escapeHtml(address)}</b></article><article aria-label="Portfolio details"><small class="visually-hidden">Portfolio details</small><b class="assets-view-arrow" aria-hidden="true"><i data-lucide="arrow-up-right"></i></b></article>`;
+      : `${tokenCount + holdings.gifts + holdings.stickers + holdings.dns + holdings.anonymousNumbers + holdings.usernames}`;
+    const movement = rangePnl("1D");
+    const movementHtml = movement.available
+      ? `<strong class="${movement.delta < 0 ? "negative" : "positive"}">History ${signedPct(movement.pct)} <em>24H</em></strong>`
+      : '<strong class="movement-unavailable">Movement unavailable</strong>';
+    strip.innerHTML = `<article><small>Portfolio value</small><b>${totalHtml}</b>${movementHtml}</article><article><small>Total assets</small><b>${itemsHtml}</b></article><article><small>Wallet</small><b>${escapeHtml(address)}</b></article>`;
     renderAssetsDotMatrix();
     window.lucide?.createIcons();
   }
@@ -6205,14 +7088,15 @@ function updateAssetsPortfolioStrip() {
 }
 
 function updateAnalyticsFromWallet(totalUsd) {
+  const graphValue = document.querySelector('[data-screen="analytics"] .graph-head h1');
+  if (graphValue) graphValue.textContent = money(totalUsd);
   const heroValue = document.getElementById("analyticsPortfolioValue");
   const heroMeta = document.getElementById("analyticsPortfolioMeta");
   if (heroValue) heroValue.textContent = money(totalUsd);
+  const holdings = walletHoldingCount();
   if (heroMeta) heroMeta.textContent = liveWalletAddress
-    ? `${latestVisibleTokens.length + giftAssets.length + stickerAssets.length} tracked assets · verified wallet data`
+    ? `${Object.values(holdings).reduce((sum, count) => sum + count, 0)} tracked assets · verified wallet data`
     : "Connect a wallet to calculate your portfolio mix.";
-  const analyticsValue = document.querySelector('[data-screen="analytics"] .graph-head h1');
-  if (analyticsValue) analyticsValue.textContent = money(totalUsd);
   const rows = document.querySelectorAll('[data-screen="analytics"] .insight-grid article');
   const performers = [
     ...latestVisibleTokens.map((token) => ({ name: token.name, change: Number(token.change24h || 0), pnl: 0 })),
@@ -6258,12 +7142,18 @@ function renderAnalyticsBreakdown(totalUsd = homePortfolioValue) {
   }).join("");
 }
 
-const WATCHLIST_STORAGE_KEY = "tontrack:watchlist:v1";
+const WATCHLIST_STORAGE_KEY = `tontrack:watchlist:v1${giftPreviewCacheSuffix}`;
 function watchlistIds() {
   const store = watchlistStore(); return store.ids;
 }
 function watchlistStore() {
-  try { const stored = JSON.parse(localStorage.getItem(WATCHLIST_STORAGE_KEY) || "[]"); return Array.isArray(stored) ? { ids: stored.filter(Boolean), details: {} } : { ids: Array.isArray(stored?.ids) ? stored.ids.filter(Boolean) : [], details: stored?.details && typeof stored.details === "object" ? stored.details : {} }; } catch { return { ids: [], details: {} }; }
+  try {
+    const stored = JSON.parse(localStorage.getItem(WATCHLIST_STORAGE_KEY) || "[]");
+    if (Array.isArray(stored)) return { ids: stored.filter(Boolean), details: {} };
+    const details = stored?.details && typeof stored.details === "object" ? stored.details : {};
+    for (const [id, detail] of Object.entries(details)) if (!pricingPayloadAllowed(detail)) delete details[id];
+    return { ids: Array.isArray(stored?.ids) ? stored.ids.filter(Boolean) : [], details };
+  } catch { return { ids: [], details: {} }; }
 }
 function setWatchlistIds(ids) { const store = watchlistStore(); const clean = [...new Set(ids)].filter((id) => typeof id === "string" && id).slice(0, 100); localStorage.setItem(WATCHLIST_STORAGE_KEY, JSON.stringify({ ids: clean, details: Object.fromEntries(clean.map((id) => [id, store.details[id]]).filter(([, value]) => value)) })); }
 function watchlistAsset(id) {
@@ -6281,7 +7171,7 @@ function renderWatchlist() {
   if (!entries.length) {
     mount.innerHTML = `<article class="portfolio-empty-state"><span class="asset-icon"><i data-lucide="radar"></i></span><div><b>Your watchlist is empty</b><small>Open an asset and tap the bookmark to follow it.</small></div></article>`;
   } else {
-    mount.innerHTML = entries.map((item) => `<article class="watchlist-row" data-screen-target="detail" data-asset="${escapeHtml(item.id)}"><span class="asset-icon ${escapeHtml(item.type)}-bg">${item.image ? `<img src="${escapeHtml(resolveTokenImage(item.image))}" alt="" loading="lazy">` : `<i data-lucide="gem"></i>`}</span><div><b>${escapeHtml(item.name)}</b><small>${escapeHtml(item.type)}</small></div><aside><b>${Number.isFinite(Number(item.value)) ? money(Number(item.value)) : "Unavailable"}</b><button type="button" data-watchlist-remove="${escapeHtml(item.id)}" aria-label="Remove ${escapeHtml(item.name)} from watchlist"><i data-lucide="x"></i></button></aside></article>`).join("");
+    mount.innerHTML = entries.map((item) => `<article class="watchlist-row" role="button" tabindex="0" data-screen-target="detail" data-asset="${escapeHtml(item.id)}"><span class="asset-icon ${escapeHtml(item.type)}-bg">${item.image ? `<img src="${escapeHtml(resolveTokenImage(item.image))}" alt="" loading="lazy">` : `<i data-lucide="gem"></i>`}</span><div><b>${escapeHtml(item.name)}</b><small>${escapeHtml(item.type)}</small></div><aside><b>${Number.isFinite(Number(item.value)) ? money(Number(item.value)) : "Unavailable"}</b><button type="button" data-watchlist-remove="${escapeHtml(item.id)}" aria-label="Remove ${escapeHtml(item.name)} from watchlist"><i data-lucide="x"></i></button></aside></article>`).join("");
   }
   window.lucide?.createIcons();
 }
@@ -6307,6 +7197,37 @@ function resolveTokenImage(url) {
   if (!url) return "";
   const value = String(url);
   return value.startsWith("ipfs://") ? `https://ipfs.io/ipfs/${value.slice(7)}` : value;
+}
+
+const TOKEN_IPFS_GATEWAYS = [
+  "https://gateway.pinata.cloud/ipfs/",
+  "https://w3s.link/ipfs/",
+  "https://dweb.link/ipfs/",
+  "https://ipfs.io/ipfs/",
+];
+
+function tokenImageCandidates(token = {}) {
+  const urls = [token.image, ...(Array.isArray(token.imageFallbacks) ? token.imageFallbacks : [])]
+    .map((url) => String(url || "").trim())
+    .filter(Boolean)
+    .flatMap((url) => url.startsWith("ipfs://")
+      ? TOKEN_IPFS_GATEWAYS.map((gateway) => `${gateway}${url.slice(7)}`)
+      : [url]);
+  return [...new Set(urls)];
+}
+
+function retryTokenImage(image) {
+  let candidates = [];
+  try {
+    candidates = JSON.parse(decodeURIComponent(image.dataset.imageCandidates || "%5B%5D"));
+  } catch {}
+  const next = candidates.shift();
+  if (next) {
+    image.dataset.imageCandidates = encodeURIComponent(JSON.stringify(candidates));
+    image.src = next;
+    return;
+  }
+  image.parentElement.textContent = image.dataset.fallback || "?";
 }
 
 function resolveAnimationMediaUrl(url) {
@@ -6444,6 +7365,7 @@ function renderTokenRows(tokens) {
       symbol: token.symbol,
       address: token.address,
       image: token.image,
+      imageFallbacks: token.imageFallbacks,
       category: token.category,
       value: `${money(token.valueUsd)} · ${Number.isFinite(token.change24h) ? signedPct(token.change24h) : "24h n/a"}`,
       icon: "circle-dollar-sign",
@@ -6474,7 +7396,7 @@ function renderTokenRows(tokens) {
     const priceStatus = Number(token.priceUsd || 0) > 0
       ? tokenPriceLabel(token.priceUsd)
       : (String(token.verification || "").toLowerCase() === "whitelist" ? "Price unavailable" : "Unverified token");
-    return `<article data-screen-target="detail" data-asset="${escapeHtml(token.id)}">${renderTokenLogo(token)}<div><b>${escapeHtml(token.name)}</b><small class="token-price-line"><span>${escapeHtml(priceStatus)}</span><span class="${changeClass}">${changeText}</span></small></div><aside><b>${valueLabel}</b><small>${escapeHtml(tokenBalanceLabel(token))}</small></aside></article>`;
+    return `<article role="button" tabindex="0" data-screen-target="detail" data-asset="${escapeHtml(token.id)}">${renderTokenLogo(token)}<div><b>${escapeHtml(token.name)}</b><small class="token-price-line"><span>${escapeHtml(priceStatus)}</span><span class="${changeClass}">${changeText}</span></small></div><aside><b>${valueLabel}</b><small>${escapeHtml(tokenBalanceLabel(token))}</small></aside></article>`;
   }).join("");
   syncPortfolioFromDisplayedTokens(sortedTokens);
   syncAssetsSummary(liveWalletData, sortedTokens);
@@ -6486,38 +7408,53 @@ function renderTokenRows(tokens) {
 }
 
 function updateHomeTokenWidgets(tokens = latestVisibleTokens) {
-  const validTokens = [...tokens].filter((token) => Number(token.priceUsd || 0) > 0 && Number.isFinite(Number(token.change24h)));
-  const top = validTokens.length ? validTokens.reduce((best, token) => Number(token.change24h) > Number(best.change24h) ? token : best, validTokens[0]) : tokens[0];
-  const worst = validTokens.length ? validTokens.reduce((low, token) => Number(token.change24h) < Number(low.change24h) ? token : low, validTokens[0]) : tokens[0];
+  const validTokens = [...tokens].filter((token) => Number(token.priceUsd || 0) > 0
+    && (typeof token.change24h === "number" || (typeof token.change24h === "string" && token.change24h.trim() !== ""))
+    && Number.isFinite(Number(token.change24h)));
+  const top = validTokens.length ? validTokens.reduce((best, token) => Number(token.change24h) > Number(best.change24h) ? token : best, validTokens[0]) : null;
+  const worst = validTokens.length ? validTokens.reduce((low, token) => Number(token.change24h) < Number(low.change24h) ? token : low, validTokens[0]) : null;
   const cards = document.querySelectorAll('[data-screen="home"] .performer-row article');
   const apply = (card, token, label) => {
     if (!card || !token) return;
     const change = Number(token.change24h);
-    const tone = change < 0 ? "negative" : "positive";
+    const tone = change < 0 ? "negative" : change > 0 ? "positive" : "";
     const symbol = escapeHtml((token.symbol || "?").slice(0, 3).toUpperCase());
     const image = resolveTokenImage(token.image);
     card.dataset.screenTarget = "detail";
+    card.classList?.remove("is-unavailable");
     card.dataset.asset = token.id;
-    card.innerHTML = `<small>${label}</small><span class="performer-asset-line">${image ? `<img src="${escapeHtml(image)}" alt="${escapeHtml(token.symbol || token.name)}" onerror="this.replaceWith(document.createTextNode('${symbol}'));">` : `<em>${symbol}</em>`}<b>${escapeHtml(token.name || token.symbol || "Token")}</b></span><strong class="${Number.isFinite(change) ? tone : ""}">${Number.isFinite(change) ? signedPct(change) : "—"}</strong>`;
+    card.setAttribute("role", "button");
+    card.setAttribute("tabindex", "0");
+    card.setAttribute("aria-label", `${token.name || token.symbol || "Token"}, ${label}, ${signedPct(change)}`);
+    card.innerHTML = `<small class="mover-label">${label}</small><strong class="${tone}">${signedPct(change)}</strong><span class="performer-asset-line">${image ? `<img src="${escapeHtml(image)}" alt="" onerror="this.hidden=true;this.nextElementSibling.hidden=false;"><em hidden>${symbol}</em>` : `<em>${symbol}</em>`}<span><b title="${escapeHtml(token.name || token.symbol || "Token")}">${escapeHtml(token.name || token.symbol || "Token")}</b><small>${escapeHtml(token.symbol || "Token")}</small></span></span>`;
   };
   if (!top || !worst) {
     cards.forEach((card, index) => {
       if (!card) return;
       card.removeAttribute("data-screen-target");
       card.removeAttribute("data-asset");
-      card.innerHTML = `<small>${index === 0 ? "Top performer" : "Weakest performer"}</small><span class="performer-asset-line"><em>—</em><b>Movement unavailable</b></span><strong>—</strong>`;
+      card.removeAttribute("role");
+      card.removeAttribute("tabindex");
+      card.removeAttribute("aria-label");
+      card.removeAttribute("hidden");
+      card.classList?.add("is-unavailable");
+      card.innerHTML = `<span class="performer-asset-line"><em aria-hidden="true">—</em><span><b>Movement unavailable</b><small>No verified 24h changes</small></span></span><strong>—</strong>`;
     });
+    cards[1]?.setAttribute("hidden", "");
     return;
   }
-  apply(cards[0], top, "Top Performer");
-  apply(cards[1], worst, "Worst Performer");
+  apply(cards[0], top, "Best 24h");
+  apply(cards[1], worst, "Weakest 24h");
+  cards[1]?.toggleAttribute("hidden", validTokens.length === 1);
+  cards[0]?.removeAttribute("hidden");
 }
 
 function renderTokenLogo(token) {
   const symbol = escapeHtml((token.symbol || "?").slice(0, 3).toUpperCase());
-  const image = resolveTokenImage(token.image);
-  if (!image) return `<span class="asset-icon token-bg" style="border-radius:50%;">${symbol}</span>`;
-  return `<span class="asset-icon token-bg" style="border-radius:50%;overflow:hidden;"><img src="${escapeHtml(image)}" alt="${escapeHtml(token.symbol)}" data-fallback="${symbol}" style="width:100%;height:100%;object-fit:cover;display:block;border-radius:50%;" onerror="this.parentElement.textContent=this.dataset.fallback;"></span>`;
+  const candidates = tokenImageCandidates(token);
+  if (!candidates.length) return `<span class="asset-icon token-bg" style="border-radius:50%;">${symbol}</span>`;
+  const remaining = escapeHtml(encodeURIComponent(JSON.stringify(candidates.slice(1))));
+  return `<span class="asset-icon token-bg" style="border-radius:50%;overflow:hidden;"><img src="${escapeHtml(candidates[0])}" alt="${escapeHtml(token.symbol)}" data-fallback="${symbol}" data-image-candidates="${remaining}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover;display:block;border-radius:50%;" onerror="retryTokenImage(this);"></span>`;
 }
 
 function importedWalletTokenFallbacks(data = liveWalletData, tonPriceUsd = usdTonRate) {
@@ -6551,6 +7488,7 @@ function importedWalletTokenFallbacks(data = liveWalletData, tonPriceUsd = usdTo
       valueUsd: Number(jetton.valueUsd || balance * priceUsd),
       change24h: parsePct(jetton.diff24h),
       image: jetton.image,
+      imageFallbacks: Array.isArray(jetton.imageFallbacks) ? jetton.imageFallbacks : [],
       category: "TON Jetton",
       source: "imported",
       verification: jetton.verification || "none",
@@ -6562,6 +7500,40 @@ function importedWalletTokenFallbacks(data = liveWalletData, tonPriceUsd = usdTo
     });
   });
   return tokens;
+}
+
+function mergeTokenRefreshIntoWallet(current = {}, fresh = {}) {
+  const currentAssets = current?.assets || {};
+  const freshAssets = fresh?.assets || {};
+  const currentJettons = Array.isArray(currentAssets.jettons) ? currentAssets.jettons : [];
+  const freshJettons = Array.isArray(freshAssets.jettons) ? freshAssets.jettons : [];
+  const currentTonBalance = Number(currentAssets.ton?.balance || 0);
+  const freshTonBalance = Number(freshAssets.ton?.balance || 0);
+  const currentSummary = current?.summary || {};
+  const freshSummary = fresh?.summary || {};
+  return {
+    ...current,
+    ...fresh,
+    account: { ...(current?.account || {}), ...(fresh?.account || {}) },
+    summary: {
+      ...currentSummary,
+      ...freshSummary,
+      totalUsd: currentSummary.totalUsd ?? freshSummary.totalUsd,
+      giftCount: currentSummary.giftCount ?? freshSummary.giftCount,
+      stickerCount: currentSummary.stickerCount ?? freshSummary.stickerCount,
+      dnsCount: currentSummary.dnsCount ?? freshSummary.dnsCount,
+      usernameCount: currentSummary.usernameCount ?? freshSummary.usernameCount,
+      anonymousNumberCount: currentSummary.anonymousNumberCount ?? freshSummary.anonymousNumberCount,
+      nftCount: currentSummary.nftCount ?? freshSummary.nftCount,
+    },
+    assets: {
+      ...freshAssets,
+      ...currentAssets,
+      ton: freshTonBalance > 0 || currentTonBalance <= 0 ? freshAssets.ton : currentAssets.ton,
+      jettons: freshJettons.length || !currentJettons.length ? freshJettons : currentJettons,
+      jettonInventory: freshAssets.jettonInventory || currentAssets.jettonInventory,
+    },
+  };
 }
 
 function syncPortfolioFromDisplayedTokens(tokens = latestVisibleTokens) {
@@ -6627,16 +7599,17 @@ async function updateTokensFromWallet(data, options = {}) {
   const reportedTokenCount = Number(sourceData?.summary?.tokenCount || 0);
   const importedJettonCount = Array.isArray(sourceData?.assets?.jettons) ? sourceData.assets.jettons.length : 0;
   const visibleJettonCount = tokens.filter((token) => !isNativeGramToken(token)).length;
-  if (reportedTokenCount > tokens.length || importedJettonCount > visibleJettonCount) {
+  const inventoryUnavailable = inventory.status === "unavailable";
+  const inventoryPartial = inventory.status === "partial";
+  if (inventoryUnavailable || inventoryPartial || reportedTokenCount > tokens.length || importedJettonCount > visibleJettonCount) {
     try {
       const freshData = await fetchWalletImport(walletAddress, { forceRefresh: true });
       if (!isCurrentImportSession(importSessionId) || walletStateKey(liveWalletAddress) !== walletKey) return [];
-      sourceData = freshData;
-      liveWalletData = freshData;
-      liveWalletAddress = freshData.account?.address || walletAddress;
-      if (Number(freshData.summary?.tonUsdRate) > 0) usdTonRate = Number(freshData.summary.tonUsdRate);
-      homePortfolioValue = Number(freshData.summary?.totalUsd || homePortfolioValue || 0);
-      inventory = freshData?.assets?.jettonInventory || inventory;
+      sourceData = mergeTokenRefreshIntoWallet(liveWalletData || data, freshData);
+      liveWalletData = sourceData;
+      liveWalletAddress = sourceData.account?.address || walletAddress;
+      if (Number(sourceData.summary?.tonUsdRate) > 0) usdTonRate = Number(sourceData.summary.tonUsdRate);
+      inventory = sourceData?.assets?.jettonInventory || inventory;
       tokens = importedWalletTokenFallbacks(sourceData).filter(isDisplayableToken);
     } catch (error) {
       console.warn("Fresh token sync failed", error);
@@ -6647,12 +7620,16 @@ async function updateTokensFromWallet(data, options = {}) {
   else renderTokenEmptyState(inventory.status === "unavailable" ? "Jetton inventory unavailable — retry refresh" : "No token balances found");
   const jettonCount = Math.max(0, tokens.length - (tokens.some(isNativeGramToken) ? 1 : 0));
   const unavailableProviders = Object.values(inventory.providers || {}).filter((provider) => provider.status === "unavailable").map((provider) => provider.provider);
-  const inventoryMessage = inventory.status === "unavailable"
+  const inventoryFallback = inventory.fallback || {};
+  const inventoryMessage = inventoryFallback.used
+    ? `Showing last-known jetton balances${inventoryFallback.restoredCount ? ` · ${inventoryFallback.restoredCount} restored` : ""}. Provider refresh is ${inventory.status}.`
+    : inventory.status === "unavailable"
     ? "Jetton inventory unavailable — native GRAM only. Retry refresh."
     : inventory.status === "partial"
       ? `Jetton inventory partial${unavailableProviders.length ? ` · ${unavailableProviders.join(", ")} unavailable` : ""}. Retry refresh.`
       : (tokens.length ? `Tokens ready${jettonCount ? ` · ${jettonCount} jettons loaded` : ""}` : "Token screen is ready");
   setSectionReady("tokens", inventoryMessage);
+  saveWalletAssetSnapshot(liveWalletData);
   return tokens;
 }
 
@@ -6662,11 +7639,19 @@ const collectiblePayloadRequests = new Map();
 function fetchWalletCollectiblesPayload(walletAddress, options = {}) {
   const key = String(walletAddress || "").toLowerCase();
   if (!options.force && collectiblePayloadCache.has(key)) return Promise.resolve(collectiblePayloadCache.get(key));
-  if (!options.force && collectiblePayloadRequests.has(key)) return collectiblePayloadRequests.get(key);
-  const request = fetchJson(`/api/collectibles?address=${encodeURIComponent(walletAddress)}&t=${Date.now()}`)
+  if (collectiblePayloadRequests.has(key)) return collectiblePayloadRequests.get(key);
+  const request = fetchJsonFast(`/api/collectibles?address=${encodeURIComponent(walletAddress)}&t=${Date.now()}`, 30_000)
     .then((payload) => {
-      if (!payload?.error) collectiblePayloadCache.set(key, payload);
+      // Discovery failure is not proof of an empty wallet. Route it through
+      // the verified-cache fallback shared by gifts, stickers and identities.
+      if (payload?.error) throw new Error(payload.error);
+      collectiblePayloadCache.set(key, payload);
       return payload;
+    })
+    .catch((error) => {
+      const cached = collectiblePayloadCache.get(key);
+      if (cached) return { ...cached, stale: true, warning: error.message || "Collectible refresh unavailable" };
+      throw error;
     })
     .finally(() => collectiblePayloadRequests.delete(key));
   collectiblePayloadRequests.set(key, request);
@@ -6690,20 +7675,38 @@ function updateCollectiblesFromWallet(data, options = {}) {
   if (!hasTonWalletPortfolio()) return Promise.resolve([]);
   const walletAddress = liveWalletAddress || data?.account?.address;
   if (!walletAddress) return Promise.resolve([]);
+  const requestWalletKey = walletStateKey(walletAddress);
+  const currentRequest = () => isCurrentImportSession(options.importSessionId)
+    && walletStateKey(liveWalletAddress) === requestWalletKey;
   const hasSnapshot = renderImportedCollectiblesSnapshot(data?.assets?.collectibles);
-  const identityReady = fetchWalletCollectiblesPayload(walletAddress, { force: true }).then((payload) => {
-    if (!isCurrentImportSession(options.importSessionId)) return payload;
-    updateIdentityAssetsFromWallet({ assets: payload }, { preserveExistingOnEmpty: true });
-    syncAssetsSummary();
-    updateAllocationUi();
-    return payload;
-  });
+  const identityReady = fetchWalletCollectiblesPayload(walletAddress, { force: true })
+    .then((payload) => {
+      if (payload?.error) throw new Error(payload.error);
+      if (!currentRequest()) return { status: "superseded" };
+      mergeCollectiblePayloadIntoWallet(payload);
+      updateIdentityAssetsFromWallet({ assets: payload }, { preserveExistingOnEmpty: true, terminal: true });
+      syncAssetsSummary();
+      updateAllocationUi();
+      return { status: "ready", payload };
+    })
+    .catch((error) => {
+      if (!currentRequest()) return { status: "superseded" };
+      console.warn("Identity asset import failed", error);
+      // A failure is terminal for this import session, but it must be explicit:
+      // retain a verified snapshot when present and never pretend an empty fast
+      // shell was an authoritative result.
+      updateIdentityAssetsFromWallet({ assets: {} }, { preserveExistingOnEmpty: true, terminal: false });
+      setIdentityImportTerminal(dnsAssets.length || anonymousNumberAssets.length || usernameAssets.length
+        ? "retained from the last verified result · live refresh unavailable"
+        : "unavailable · retry refresh");
+      return { status: "unavailable", error };
+    });
   return Promise.allSettled([
     identityReady,
-    updateGiftsFromWallet(walletAddress, { loading: !hasSnapshot, importSessionId: options.importSessionId }),
-    updateStickersFromWallet(walletAddress, { loading: !hasSnapshot, importSessionId: options.importSessionId }),
+    updateGiftsFromWallet(walletAddress, { loading: !hasSnapshot, preserveExistingOnEmpty: hasSnapshot, importSessionId: options.importSessionId }),
+    updateStickersFromWallet(walletAddress, { loading: !hasSnapshot, preserveExistingOnEmpty: hasSnapshot, importSessionId: options.importSessionId }),
   ]).then(() => {
-    if (!isCurrentImportSession(options.importSessionId)) return [];
+    if (!currentRequest()) return [];
     updateAllocationUi();
     syncAssetsSummary();
     updateAnalyticsFromWallet(homePortfolioValue);
@@ -6712,42 +7715,7 @@ function updateCollectiblesFromWallet(data, options = {}) {
 }
 
 const updateGiftsFromWallet = (walletAddress, options) => updateCollectiblesFromGetgems(walletAddress, "gifts", options);
-async function updateStickersFromWallet(walletAddress, options = {}) {
-  if (!walletAddress) return [];
-  if (options.loading !== false) setSectionLoading("stickers", "Loading sticker packs...");
-  if (options.loading !== false) setCollectibleLoading("stickers", true);
-  try {
-    const payload = await fetchJson(`/api/nfts?address=${encodeURIComponent(walletAddress)}&t=${Date.now()}`);
-    if (!isCurrentImportSession(options.importSessionId)) return [];
-    const rows = payload?.stickers || [];
-    if (!rows.length) {
-      walletStickerGroups = [];
-      rebuildPortfolioCollectibleGroups();
-      setCollectiblesBanner("stickers", "No on-chain sticker packs found in this wallet.");
-      renderCollectibleGrids();
-      setSectionReady("stickers", "Sticker screen ready · no sticker packs found");
-      return [];
-    }
-    walletStickerGroups = groupStickerAssets(rows.map((item, index) => liveCollectibleAsset(item, "sticker", `wallet-${index}`)));
-    const { stickers: assets } = rebuildPortfolioCollectibleGroups();
-    setCollectiblesBanner("stickers", assets.some((asset) => Number(asset.floorUsd || 0) > 0) ? "" : "Fetching sticker prices...");
-    renderCollectibleGrids();
-    updateCollectibleSummaryBanner("stickers");
-    preloadStickerAnimatedMedia(assets);
-    prefetchStickerDetails(assets);
-    setSectionReady("stickers", `Stickers ready · ${assets.length} collection${assets.length === 1 ? "" : "s"} loaded`);
-    return assets;
-  } catch (error) {
-    console.warn("stickers live data failed", error);
-    if (!isCurrentImportSession(options.importSessionId)) return [];
-    walletStickerGroups = [];
-    rebuildPortfolioCollectibleGroups();
-    setCollectiblesBanner("stickers", "Sticker data is unavailable right now.");
-    renderCollectibleGrids();
-    setSectionReady("stickers", "Sticker screen ready · data unavailable");
-    return [];
-  }
-}
+const updateStickersFromWallet = (walletAddress, options) => updateCollectiblesFromGetgems(walletAddress, "stickers", options);
 
 async function updateCollectiblesFromGetgems(walletAddress, kind, options = {}) {
   if (!walletAddress) return [];
@@ -6758,6 +7726,13 @@ async function updateCollectiblesFromGetgems(walletAddress, kind, options = {}) 
     if (!isCurrentImportSession(options.importSessionId)) return [];
     const rows = payload?.[kind] || [];
     if (!rows.length) {
+      const existingGroups = kind === "gifts" ? walletGiftGroups : walletStickerGroups;
+      if (options.preserveExistingOnEmpty && existingGroups.length) {
+        const current = rebuildPortfolioCollectibleGroups();
+        const assets = kind === "gifts" ? current.gifts : current.stickers;
+        setSectionReady(kind, `${kind === "gifts" ? "Gifts" : "Stickers"} ready · keeping ${assets.length} verified collection${assets.length === 1 ? "" : "s"}`);
+        return assets;
+      }
       if (kind === "gifts") walletGiftGroups = [];
       else walletStickerGroups = [];
       rebuildPortfolioCollectibleGroups();
@@ -6793,6 +7768,15 @@ async function updateCollectiblesFromGetgems(walletAddress, kind, options = {}) 
   } catch (error) {
     console.warn(`${kind} live data failed`, error);
     if (!isCurrentImportSession(options.importSessionId)) return [];
+    const existingGroups = kind === "gifts" ? walletGiftGroups : walletStickerGroups;
+    if (existingGroups.length) {
+      const current = rebuildPortfolioCollectibleGroups();
+      const assets = kind === "gifts" ? current.gifts : current.stickers;
+      setCollectiblesBanner(kind, "Using the last verified wallet result while live data retries.");
+      renderCollectibleGrids();
+      setSectionReady(kind, `${kind === "gifts" ? "Gift" : "Sticker"} data retained · live refresh unavailable`);
+      return assets;
+    }
     if (kind === "gifts") walletGiftGroups = [];
     else walletStickerGroups = [];
     rebuildPortfolioCollectibleGroups();
@@ -7287,14 +8271,29 @@ function updateWalletScreen(data, tonUsd) {
   const list = document.querySelector('[data-screen="wallets"] .holdings-list');
   if (!list) return;
   const walletLabel = data.account?.tonName || "Main wallet";
-  list.innerHTML = `<article><span class="asset-icon token-bg"><i data-lucide="wallet"></i></span><div><b>${escapeHtml(walletLabel)}</b><small>${data.account.address} | ${data.summary.tokenCount + data.summary.nftCount} assets</small></div><aside><b>${money(tonUsd)}</b><small>${escapeHtml(truncateWalletAddress(data.account.address || liveWalletAddress))}</small></aside></article><article><span class="asset-icon gift-bg"><i data-lucide="message-circle"></i></span><div><b>TON collectibles</b><small>${data.summary.giftCount} gifts | ${data.summary.stickerCount} stickers | ${data.summary.nftCount} NFTs</small></div><aside><b>Imported</b><small>TonAPI</small></aside></article>`;
+  const summary = data.summary || {};
+  const tokenCount = Math.max(0, Number(summary.tokenCount || 0));
+  const giftCount = Math.max(0, Number(summary.giftCount || 0));
+  const stickerCount = Math.max(0, Number(summary.stickerCount || 0));
+  const nftCount = Math.max(giftCount + stickerCount, Number(summary.nftCount || 0));
+  const dnsCount = Math.max(0, Number(summary.dnsCount || data.assets?.dns?.length || 0));
+  const usernameCount = Math.max(0, Number(summary.usernameCount || data.assets?.usernames?.length || 0));
+  const anonymousNumberCount = Math.max(0, Number(summary.anonymousNumberCount || data.assets?.anonymousNumbers?.length || 0));
+  const totalAssets = tokenCount + nftCount + dnsCount + usernameCount + anonymousNumberCount;
+  const address = data.account?.address || liveWalletAddress || "";
+  const identitySummary = [
+    dnsCount ? `${dnsCount} ${dnsCount === 1 ? "domain" : "domains"}` : "",
+    anonymousNumberCount ? `${anonymousNumberCount} ${anonymousNumberCount === 1 ? "number" : "numbers"}` : "",
+    usernameCount ? `${usernameCount} ${usernameCount === 1 ? "username" : "usernames"}` : "",
+  ].filter(Boolean).join(" · ");
+  list.innerHTML = `<article><span class="asset-icon token-bg"><i data-lucide="wallet"></i></span><div><b>${escapeHtml(walletLabel)}</b><small>${escapeHtml(address)} · ${totalAssets} ${totalAssets === 1 ? "asset" : "assets"}</small></div><aside><b>${money(Number(tonUsd || 0))}</b><small>${escapeHtml(truncateWalletAddress(address))}</small></aside></article><article><span class="asset-icon gift-bg"><i data-lucide="message-circle"></i></span><div><b>TON collectibles</b><small>${giftCount} gifts · ${stickerCount} stickers · ${nftCount} NFTs${identitySummary ? ` · ${identitySummary}` : ""}</small></div><aside><b>Imported</b><small>Verified providers</small></aside></article>`;
 }
 
 function renderActivityRows(events = [], limit = HOME_ACTIVITY_LIMIT) {
   const panel = document.querySelector('[data-screen="home"] .activity-panel');
   if (!panel) return;
   panel.querySelectorAll(".activity-row").forEach((row) => row.remove());
-  const rows = activityRowsHtml(events, limit, "No TON activity found yet");
+  const rows = activityRowsHtml(events, limit, "No TON activity found yet", { compact: true });
   panel.insertAdjacentHTML("beforeend", rows);
   window.lucide?.createIcons();
 }
@@ -7357,6 +8356,9 @@ function activityRowsHtml(events = [], limit = 5, emptyText = "No TON activity f
     };
   }).filter(Boolean).slice(0, limit);
   if (!usableEvents.length) return [
+    options.compact
+      ? `<article class="activity-row home-ledger-empty"><span class="activity-dot token-bg"><i data-lucide="clock-3"></i></span><div><b>Wallet activity</b><small>${escapeHtml(emptyText)}</small></div></article>`
+      :
     `<article class="activity-row"><span class="activity-dot token-bg"><i data-lucide="clock-3"></i></span><div><b>Wallet history</b><small class="activity-direction">Synced</small><small>${escapeHtml(emptyText)}</small></div><aside><strong></strong></aside></article>`,
   ].join("");
   let lastGroup = "";
@@ -7365,8 +8367,11 @@ function activityRowsHtml(events = [], limit = 5, emptyText = "No TON activity f
       ? `<div class="activity-date-header micro">${escapeHtml(event.group)}</div>`
       : "";
     if (event.group) lastGroup = event.group;
-    const context = event.counterparty ? `${event.description} · ${truncateWalletAddress(event.counterparty)}` : event.description;
-    return `${group}<article class="activity-row" data-activity-direction="${escapeHtml(event.direction)}" data-tx-hash="${escapeHtml(event.hash)}"><span class="activity-dot token-bg"><i data-lucide="${event.icon}"></i></span><div><b>${escapeHtml(event.label)}</b><small>${escapeHtml(context)}</small><small>${escapeHtml(event.time)}</small></div><aside><strong class="${event.tone}">${event.valueHtml}</strong>${event.usdValue ? `<small class="activity-usd">${escapeHtml(event.usdValue)}</small>` : ""}</aside></article>`;
+    const context = event.counterparty && !options.compact ? `${event.description} · ${truncateWalletAddress(event.counterparty)}` : event.description;
+    const compactValue = options.compact && event.value.includes(" → ")
+      ? event.value.split(" → ").map((part, index) => `<span>${index ? "→ " : ""}${escapeHtml(part)}</span>`).join("")
+      : event.valueHtml;
+    return `${group}<article class="activity-row" role="button" tabindex="0" data-activity-direction="${escapeHtml(event.direction)}" data-tx-hash="${escapeHtml(event.hash)}"><span class="activity-dot token-bg"><i data-lucide="${event.icon}"></i></span><div><b>${escapeHtml(event.label)}</b><small title="${escapeHtml(context)}">${escapeHtml(context)}</small><small class="activity-time">${escapeHtml(event.time)}</small></div><aside><strong class="${event.tone}${options.compact && event.value.length > 15 ? " is-long-value" : ""}">${compactValue}</strong>${event.usdValue ? `<small class="activity-usd">${escapeHtml(event.usdValue)}</small>` : ""}</aside></article>`;
   }).join("");
 }
 
@@ -7463,6 +8468,7 @@ function closeTxSheet() {
   if (!sheet) return;
   sheet.classList.remove("is-open");
   sheet.setAttribute("aria-hidden", "true");
+  restoreOverlayFocus();
 }
 
 function txSeedFromHash(hash) {
@@ -7491,11 +8497,13 @@ async function openTxSheet(hash) {
   if (!hash) return;
   const sheet = document.getElementById("txSheet");
   if (!sheet) return;
+  rememberOverlayOpener();
   txSheetUrl = `https://tonscan.org/tx/${encodeURIComponent(hash)}`;
   const seed = txSeedFromHash(hash);
   renderTxSheet({ ...seed, gasFee: seed.gasFee || "$0.00" });
   sheet.classList.add("is-open");
   sheet.setAttribute("aria-hidden", "false");
+  requestAnimationFrame(() => sheet.querySelector(".tx-sheet-close")?.focus({ preventScroll: true }));
   if (seed.senderName || seed.recipientName) return;
   try {
     const detail = await requestJson(`/api/transaction-detail?hash=${encodeURIComponent(hash)}&t=${Date.now()}`, {}, "Could not load transaction");
@@ -7578,13 +8586,16 @@ function renderDonut(progress = 1) {
   const selectedValue = selectedAllocation === null ? total : values[selectedAllocation];
   const centerValue = host.querySelector("span");
   const hasPortfolioSource = walletConnected || telegramConnected;
-  const centerLabel = hasPortfolioSource || total > 0 ? compactMoney(selectedValue) : "—";
+  const centerLabel = selectedAllocation !== null && !(selectedValue > 0) ? "—"
+    : hasPortfolioSource || total > 0 ? compactMoney(selectedValue) : "—";
   if (centerValue) centerValue.textContent = centerLabel;
   host.setAttribute("aria-label", selectedAllocation === null
     ? `Portfolio allocation, total ${centerLabel}`
-    : `${labels[selectedAllocation]} allocation, ${centerLabel}`);
+    : `${labels[selectedAllocation]} allocation, ${selectedValue > 0 ? centerLabel : "Price unavailable"}`);
   const styles = getComputedStyle(document.documentElement);
-  Charts.renderDonut(host, values, {
+  const referenceBars = document.body.classList.contains("reference-ui") && !!host.closest('[data-screen="home"]');
+  host.dataset.referenceBars = String(referenceBars);
+  if (!referenceBars) Charts.renderDonut(host, values, {
     progress,
     selected: selectedAllocation,
     pixelRatio: window.devicePixelRatio || 1,
@@ -7604,6 +8615,9 @@ function renderDonut(progress = 1) {
     styles.getPropertyValue("--amber").trim() || "#d6bd68",
     "#8b7cff", "#ef8c73", "#64d6d2",
   ];
+  const preview = document.getElementById("homeMixPreview");
+  if (preview) preview.innerHTML = total > 0 ? values.map((value, index) => value > 0
+    ? `<span style="width:${(value / total * 100).toFixed(3)}%;background:${allocationColors[index]}"></span>` : "").join("") : "";
   const legendItems = document.querySelectorAll(".allocation-list article");
   document.querySelector(".allocation-list")?.classList.toggle("is-filtered", selectedAllocation !== null);
   legendItems.forEach((item, index) => {
@@ -7611,7 +8625,33 @@ function renderDonut(progress = 1) {
     const selected = selectedAllocation === index;
     item.classList.toggle("is-selected", selected);
     item.setAttribute("aria-pressed", String(selected));
+    if (referenceBars) {
+      let stack = item.querySelector(".reference-allocation-stack");
+      if (!stack) {
+        stack = document.createElement("span");
+        stack.className = "reference-allocation-stack";
+        stack.setAttribute("aria-hidden", "true");
+        stack.innerHTML = '<i class="reference-allocation-fill"></i>';
+        item.prepend(stack);
+      }
+      const share = total > 0 ? Math.max(0, Number(values[index] || 0)) / total * 100 : 0;
+      stack.style.setProperty("--allocation-share", String(share));
+      const owned = item.querySelector("small");
+      if (owned?.textContent.includes(" owned")) owned.textContent = owned.textContent.split(" owned")[0];
+      item.querySelector("b").textContent = ["Gifts", "Tokens", "Stickers", "DNS", "Nums", "Names"][index];
+      const ownedLabel = owned?.textContent && /^\d/.test(owned.textContent) ? `${owned.textContent} owned` : "Holdings loading";
+      item.setAttribute("aria-label", `${labels[index]}, ${ownedLabel}, ${values[index] > 0 ? item.querySelector("strong")?.textContent || "Price unavailable" : "Price unavailable"}, ${values[index] > 0 ? allocationShareLabel(values[index], total) : "unpriced"}`);
+      item.setAttribute("title", item.getAttribute("aria-label"));
+      const value = item.querySelector("strong");
+      if (value?.textContent === "Unavailable") value.textContent = "—";
+    }
   });
+  if (referenceBars) {
+    const canvas = host.querySelector("canvas");
+    if (canvas) canvas.hidden = true;
+    const caption = document.querySelector("#homeAllocation .reference-allocation-caption");
+    if (caption) caption.textContent = selectedAllocation === null ? "Valued holdings" : `${labels[selectedAllocation]} · ${values[selectedAllocation] > 0 ? allocationShareLabel(values[selectedAllocation], total) : "Price unavailable"}`;
+  }
 }
 
 function portfolioHistoryRows(range = "1D") {
@@ -7621,7 +8661,7 @@ function portfolioHistoryRows(range = "1D") {
 function portfolioTimeLabel(timestamp, range, detail = false) {
   const date = new Date(timestamp);
   const options = detail
-    ? { weekday: "short", month: "2-digit", day: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit", hour12: false }
+    ? { month: "short", day: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit", hour12: false }
     : range === "1D"
       ? { hour: "2-digit", minute: "2-digit", hour12: false }
       : range === "7D" ? { weekday: "short" } : { month: "short", day: "numeric" };
@@ -7646,21 +8686,44 @@ function renderPortfolioGraph(range = "1D", animate = false) {
   graph.classList.toggle("is-history-empty", !hasHistory && !isLoading && !hasFailed);
   graph.classList.toggle("is-history-failed", hasFailed);
   graph.dataset.historyState = hasHistory ? "ready" : isLoading ? "loading" : hasFailed ? "failed" : "empty";
+  updateHomeHistoryEmptyState(hasHistory, hasFailed);
   canvas.setAttribute("aria-hidden", String(!hasHistory));
-  Charts.renderConfigured("portfolio", hasHistory ? points : [], {
+  const showPoint = (point) => updatePortfolioChartReadout(point, range);
+  const rendered = Charts.renderConfigured("portfolio", hasHistory ? points : [], {
     element: canvas,
-    duration: animate ? 320 : 0,
+    duration: animate ? 220 : 0,
     color: "#F4F4F1",
     areaColor: "rgba(244,244,241,.11)",
     gridColor: "rgba(255,255,255,.055)",
     tickColor: "#73736E",
     lineWidth: 2.25,
+    showArea: true,
+    showValueAxis: true,
+    ...(document.body.classList.contains("reference-ui") ? {
+      showArea: false, showValueAxis: false, tickColor: "#A0A0A0", selectionDash: [3, 4],
+    } : {}),
+    onPointChange: showPoint,
     easing: "easeOutQuart",
     formatTick: (point) => portfolioTimeLabel(point.timestamp, range),
     formatDate: (point) => portfolioTimeLabel(point.timestamp, range, true),
-    formatValue: (point) => `${money(point.value)} portfolio`,
+    formatValue: (point) => displayCurrency === "TON" ? formatTonFromUsd(point.value) : money(point.value),
     formatAxis: compactMoney,
   });
+  canvas.tabIndex = hasHistory ? 0 : -1;
+  canvas.setAttribute("aria-label", "Recorded portfolio value over time. Use left and right arrow keys to inspect values.");
+  let selected = points.length - 1;
+  canvas.onkeydown = (event) => {
+    if (!["ArrowLeft", "ArrowRight", "Escape"].includes(event.key) || !hasHistory) return;
+    event.preventDefault();
+    if (event.key === "Escape") { rendered.chart?.setActiveElements([]); showPoint(null); }
+    else {
+      selected = Math.max(0, Math.min(points.length - 1, selected + (event.key === "ArrowLeft" ? -1 : 1)));
+      rendered.chart?.setActiveElements([{ datasetIndex: 0, index: selected }]);
+      showPoint(points[selected]);
+    }
+    rendered.chart?.draw();
+  };
+  canvas.onblur = () => { rendered.chart?.setActiveElements([]); rendered.chart?.draw(); showPoint(null); };
   graph.querySelectorAll("[data-range]").forEach((button) => {
     button.classList.toggle("is-active", button.dataset.range === range);
     button.classList.toggle("is-loading", isGraphHistoryLoadingEnabled() && loadingPortfolioRanges.has(button.dataset.range));
@@ -7668,28 +8731,78 @@ function renderPortfolioGraph(range = "1D", animate = false) {
   resetPortfolioHeader(range);
 }
 
+function updateHomeHistoryEmptyState(hasHistory, hasFailed = false) {
+  const notice = document.getElementById("homeHistoryEmpty");
+  if (!notice) return;
+  notice.hidden = hasHistory || !(walletConnected || telegramConnected);
+  notice.querySelector("b").textContent = hasFailed ? "History unavailable" : "History starts here";
+  notice.querySelector("p").textContent = hasFailed
+    ? "Your holdings are still available. Refresh to try again."
+    : "Your portfolio history appears once enough snapshots are available.";
+}
+
+function updatePortfolioChartReadout(point = null, range = activePortfolioRange()) {
+  const rows = portfolioHistoryRows(range);
+  const latest = rows.length >= 2 ? rows.at(-1) : null;
+  const value = point || latest;
+  const label = document.getElementById("portfolioChartLabel");
+  const output = document.getElementById("portfolioChartValue");
+  const readout = document.querySelector(".portfolio-history-readout");
+  if (readout) readout.hidden = !value || !Number.isFinite(value.value);
+  if (label) label.textContent = point ? portfolioTimeLabel(point.timestamp, range, true) : "Recorded value";
+  if (output) output.textContent = value && Number.isFinite(value.value)
+    ? (typeof displayCurrency !== "undefined" && displayCurrency === "TON" ? formatTonFromUsd(value.value) : money(value.value)) : "—";
+}
+
 function rangePnl(range) {
   const points = portfolioHistoryRows(range);
-  const first = points[0]?.value ?? homePortfolioValue;
-  const last = points.at(-1)?.value ?? homePortfolioValue;
+  const first = points[0]?.value;
+  const last = points.at(-1)?.value;
+  if (points.length < 2 || !Number.isFinite(first) || !Number.isFinite(last) || first <= 0) {
+    return { available: false, delta: null, pct: null };
+  }
   const delta = last - first;
-  const pct = first ? (delta / first) * 100 : 0;
-  return { delta, pct };
+  const pct = (delta / first) * 100;
+  return { available: true, delta, pct };
+}
+
+function renderReferenceFinancialValue(element, formatted) {
+  if (!element) return;
+  const text = String(formatted);
+  const match = text.match(/^(.*?)(\.\d+)(\s.*)?$/);
+  element.setAttribute("aria-label", text);
+  if (!match) { element.textContent = text; return; }
+  // Split only an already-formatted presentation string. Never change precision,
+  // units or value; currency conversion happens before this typography helper.
+  element.innerHTML = `<span class="reference-value-integer" aria-hidden="true">${escapeHtml(match[1])}</span><span class="reference-value-fraction" aria-hidden="true">${escapeHtml(match[2])}</span>${match[3] ? `<span class="reference-value-unit" aria-hidden="true">${escapeHtml(match[3])}</span>` : ""}`;
 }
 
 function resetPortfolioHeader(range = document.querySelector("[data-range].is-active")?.dataset.range || "1D") {
-  const title = document.querySelector('[data-screen="home"] .graph-head h1');
+  const title = document.getElementById("homePortfolioValue");
   const badge = document.querySelector('[data-screen="home"] .portfolio-actions-row span');
   const hasPortfolioSource = walletConnected || telegramConnected;
-  if (title) title.textContent = hasPortfolioSource || homePortfolioValue > 0 ? money(homePortfolioValue) : "—";
+  const context = document.getElementById("portfolioHistoryContext");
+  const latest = portfolioHistoryRows(range).at(-1);
+  updatePortfolioChartReadout(null, range);
+  if (context) {
+    context.hidden = portfolioHistoryRows(range).length < 2 || !latest || !Number.isFinite(latest.value);
+    context.textContent = context.hidden ? "" : `History through ${portfolioTimeLabel(latest.timestamp, range, true)}. Snapshot pricing coverage may differ from current holdings.`;
+  }
+  renderReferenceFinancialValue(title, hasPortfolioSource || homePortfolioValue > 0
+    ? (displayCurrency === "TON" ? formatTonFromUsd(homePortfolioValue) : money(homePortfolioValue)) : "—");
   if (badge) {
     if (!hasPortfolioSource && homePortfolioValue <= 0) {
       badge.textContent = "Movement unavailable";
       badge.classList.remove("negative");
       return;
     }
-    const { delta, pct } = rangePnl(range);
-    badge.textContent = `${signedMoney(delta)} | ${pct >= 0 ? "+" : ""}${pct.toFixed(2)}%`;
+    const { available, delta, pct } = rangePnl(range);
+    if (!available) {
+      badge.textContent = "Movement unavailable";
+      badge.classList.remove("negative");
+      return;
+    }
+    badge.textContent = `History ${signedMoney(delta)} | ${pct >= 0 ? "+" : ""}${pct.toFixed(2)}%`;
     badge.classList.toggle("negative", delta < 0);
   }
 }
@@ -7707,6 +8820,7 @@ function playHomeEntrance() {
 const originalText = new WeakMap();
 
 function formatTonFromUsd(usd, sign = "") {
+  if (!(usdTonRate > 0)) return "Price n/a";
   const ton = usd / usdTonRate;
   const label = ton >= 1000 ? `${(ton / 1000).toFixed(2)}K GRAM` : `${ton.toFixed(2)} GRAM`;
   return `${sign}${label}`;
@@ -7717,6 +8831,7 @@ function applyCurrencyDisplay() {
   if (!root) return;
   const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
     acceptNode(node) {
+      if (node.parentElement?.closest("[data-reference-value]")) return NodeFilter.FILTER_REJECT;
       if (!node.nodeValue.includes("$") && originalText.has(node)) return NodeFilter.FILTER_ACCEPT;
       return node.nodeValue.includes("$") ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
     },
@@ -7737,6 +8852,7 @@ function applyCurrencyDisplay() {
   document.querySelectorAll("[data-currency-option]").forEach((option) => {
     const internalCurrency = option.dataset.currencyOption === "GRAM" ? "TON" : option.dataset.currencyOption;
     option.classList.toggle("is-active", internalCurrency === displayCurrency);
+    option.setAttribute("aria-pressed", String(internalCurrency === displayCurrency));
   });
 }
 
@@ -7760,10 +8876,30 @@ function renderAnalyticsChart() {
   const graph = canvas.closest(".value-graph");
   if (graph) graph.hidden = activeHistory.length < 2;
   if (activeHistory.length < 2) return;
-  Charts.renderConfigured("analytics", activeHistory, { element: canvas });
+  Charts.renderConfigured("analytics", activeHistory, {
+    element: canvas,
+    showAxes: true,
+    formatTick: point => portfolioTimeLabel(point.timestamp, activePortfolioRange()),
+    formatDate: point => portfolioTimeLabel(point.timestamp, activePortfolioRange(), true),
+    formatValue: point => displayCurrency === "TON" ? formatTonFromUsd(point.value) : money(point.value),
+  });
 }
 
 document.addEventListener("click", (event) => {
+  const filterOpener = event.target.closest("[data-collectible-filter-open]");
+  if (filterOpener) return openCollectibleFilterSheet(filterOpener.dataset.collectibleFilterOpen, filterOpener);
+  const clearCollectibles = event.target.closest("[data-clear-collectible-filters]");
+  if (clearCollectibles) {
+    const gifts = clearCollectibles.dataset.clearCollectibleFilters === "gifts";
+    const prefix = gifts ? "gift" : "sticker";
+    const search = document.getElementById(`${prefix}Search`);
+    const filter = document.getElementById(`${prefix}Filter`);
+    if (search) search.value = "";
+    if (filter) filter.value = "all";
+    (gifts ? renderGiftGrid : renderStickerGrid)();
+    search?.focus();
+    return;
+  }
   const watchlistRemove = event.target.closest("[data-watchlist-remove]");
   if (watchlistRemove) {
     event.preventDefault();
@@ -7821,10 +8957,11 @@ document.addEventListener("click", (event) => {
     return;
   }
   const emptyCategory = event.target.closest('[data-screen="assets"] .category-stack article[data-empty-category="true"]');
-  if (emptyCategory?.dataset.marketUrl) {
+  const marketCta = event.target.closest('[data-market-cta]') || (emptyCategory && event.target.closest("strong") ? emptyCategory : null);
+  if (marketCta?.dataset.marketUrl) {
     event.preventDefault();
     event.stopPropagation();
-    window.open(emptyCategory.dataset.marketUrl, "_blank", "noopener,noreferrer");
+    window.open(marketCta.dataset.marketUrl, "_blank", "noopener,noreferrer");
     return;
   }
   const closeGiftTrayButton = event.target.closest("[data-close-gift-pfp-tray]");
@@ -7926,7 +9063,7 @@ document.addEventListener("click", (event) => {
   }
   const stickerThumb = event.target.closest("[data-sticker-thumb]");
   if (stickerThumb) {
-    openStickerThumbOverlay(JSON.parse(stickerThumb.dataset.stickerThumb));
+    openStickerThumbOverlay(JSON.parse(stickerThumb.dataset.stickerThumb), stickerThumb);
     return;
   }
   const tokenActivityButton = event.target.closest("[data-token-activity-see-all]");
@@ -7937,7 +9074,7 @@ document.addEventListener("click", (event) => {
     activityFilterMode = "All";
     document.querySelectorAll("[data-activity-filter]").forEach((item) => item.classList.toggle("active", item.dataset.activityFilter === "All"));
     renderFullActivity(fullActivityEvents);
-    showScreen("activity");
+    navigateToRoute({ screen: "activity" });
     return;
   }
   const target = event.target.closest("[data-screen-target]");
@@ -8044,17 +9181,18 @@ document.querySelector(".tx-sheet-close")?.addEventListener("click", closeTxShee
 document.getElementById("txTonscanButton")?.addEventListener("click", () => {
   if (txSheetUrl) window.open(txSheetUrl, "_blank", "noopener,noreferrer");
 });
-document.querySelector("[data-settings-privacy]")?.addEventListener("click", () => {
+function syncPrivacyControls(enabled) {
+  document.querySelectorAll("[data-settings-privacy]").forEach((button) => {
+    button.setAttribute("aria-pressed", enabled ? "true" : "false");
+    const label = button.querySelector("span");
+    if (label) label.textContent = `Privacy mode: ${enabled ? "On" : "Off"}`;
+  });
+}
+document.querySelectorAll("[data-settings-privacy]").forEach((button) => button.addEventListener("click", () => {
   const enabled = document.querySelector(".app-frame")?.classList.toggle("is-private");
   localStorage.setItem("tontrack:privacy", enabled ? "1" : "0");
-});
-document.querySelector("[data-settings-theme]")?.addEventListener("click", (event) => {
-  const root = document.documentElement;
-  const next = root.dataset.theme === "light" ? "dark" : "light";
-  root.dataset.theme = next;
-  localStorage.setItem("tontrack:theme", next);
-  event.currentTarget.querySelector("span").textContent = `Theme: ${next[0].toUpperCase()}${next.slice(1)}`;
-});
+  syncPrivacyControls(enabled);
+}));
 const REFRESH_FREQUENCY_KEY = "tontrack:refresh-frequency:v1";
 let refreshTimer = 0;
 const REFRESH_FREQUENCY_OPTIONS = [0, 5, 15, 30];
@@ -8084,13 +9222,9 @@ document.querySelector("[data-settings-refresh]")?.addEventListener("click", () 
 document.querySelector("[data-settings-alerts]")?.addEventListener("click", () => showScreen("watchlist"));
 
 try {
-  const storedTheme = localStorage.getItem("tontrack:theme");
-  if (storedTheme === "light" || storedTheme === "dark") {
-    document.documentElement.dataset.theme = storedTheme;
-    const themeLabel = document.querySelector("[data-settings-theme] span");
-    if (themeLabel) themeLabel.textContent = `Theme: ${storedTheme[0].toUpperCase()}${storedTheme.slice(1)}`;
-  }
-  if (localStorage.getItem("tontrack:privacy") === "1") document.querySelector(".app-frame")?.classList.add("is-private");
+  const privacyEnabled = localStorage.getItem("tontrack:privacy") === "1";
+  if (privacyEnabled) document.querySelector(".app-frame")?.classList.add("is-private");
+  syncPrivacyControls(privacyEnabled);
   const frequencyLabel = document.querySelector("[data-settings-refresh] span");
   if (frequencyLabel) { const minutes = refreshFrequency(); frequencyLabel.textContent = `Refresh frequency: ${minutes ? `${minutes} min` : "Off"}`; }
   schedulePortfolioRefresh();
@@ -8160,6 +9294,11 @@ function selectAllocation(index) {
 const allocationDonut = document.querySelector(".donut-chart");
 allocationDonut?.addEventListener("click", (event) => {
   event.stopPropagation();
+  if (event.currentTarget.dataset.referenceBars === "true") {
+    selectedAllocation = null;
+    renderDonut();
+    return;
+  }
   const rect = event.currentTarget.getBoundingClientRect();
   const x = event.clientX - rect.left - rect.width / 2;
   const y = event.clientY - rect.top - rect.height / 2;
@@ -8220,6 +9359,15 @@ document.querySelector("#priceToggle")?.addEventListener("click", () => {
 });
 
 document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") {
+    if (document.getElementById("txSheet")?.classList.contains("is-open")) closeTxSheet();
+    else if (document.getElementById("walletActionSheet")?.classList.contains("is-open")) closeWalletActionSheet();
+    else if (document.getElementById("walletSheet")?.classList.contains("is-open")) closeWalletSheet();
+    else if (document.getElementById("tokenSortSheet")?.classList.contains("is-open")) closeTokenSortSheet();
+    else return;
+    event.preventDefault();
+    return;
+  }
   const externalTarget = event.target.closest?.("[data-external-url]");
   if (externalTarget && (event.key === "Enter" || event.key === " ")) {
     event.preventDefault();
@@ -8256,3 +9404,4 @@ if (document.querySelector('[data-screen="home"].is-active')) {
   playHomeEntrance();
   homeEntrancePlayed = true;
 }
+restoreSavedWallet().catch((error) => console.warn("Saved wallet restore failed", error));

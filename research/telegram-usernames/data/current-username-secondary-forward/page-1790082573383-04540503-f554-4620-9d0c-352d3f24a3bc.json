@@ -1,0 +1,91 @@
+{
+  "schemaVersion": "username-secondary-local-v1",
+  "from": "2026-09-20T14:00:00Z",
+  "pipeline": "username-toncenter-secondary-sales-v1",
+  "collectedAt": "2026-09-22T13:09:33.382Z",
+  "cursor": {
+    "absoluteOffset": 4000,
+    "caughtUp": false
+  },
+  "metadata": {
+    "transfers": 100,
+    "saleContracts": 5,
+    "verifiedSales": 1,
+    "assets": 1,
+    "sales": 1,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-22T13:09:33.382Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:9c7280420c3b41fa5659b14172b6fc603b9d322bcb49506ee887e2544aa510d6",
+      "normalizedName": "qashqadaryoz",
+      "displayName": "@qashqadaryoz",
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "12L",
+      "feature": {
+        "classifierVersion": "username-structural-v2",
+        "normalizedUsername": "qashqadaryoz",
+        "displayUsername": "@qashqadaryoz",
+        "characterLength": 12,
+        "byteLength": 12,
+        "characterClass": "letters",
+        "primaryRoute": "word",
+        "routes": [
+          "word"
+        ],
+        "scarcityClass": "12L",
+        "patternSignature": "ABCDABEBFGHI",
+        "shapeSignature": "LLLLLLLLLLLL",
+        "uniqueCharacterCount": 9,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "repeatedBlock": null,
+        "scripts": [
+          "Latin"
+        ],
+        "primaryScript": "Latin",
+        "containsUnderscore": false,
+        "underscoreCount": 0,
+        "digitCount": 0,
+        "digitRatio": 0,
+        "vowelRatio": 0.4166666666666667,
+        "pronounceability": "balanced",
+        "leadingZero": false,
+        "roundNumber": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-21T06:36:31.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-secondary:ed111e00541fd083f174ded508e7b7163963eaa0dde6204787bf07bac8b8772b",
+      "assetKind": "username",
+      "assetKey": "0:9c7280420c3b41fa5659b14172b6fc603b9d322bcb49506ee887e2544aa510d6",
+      "normalizedName": "qashqadaryoz",
+      "soldAt": "2026-09-21T06:36:31.000Z",
+      "priceGram": 5.97,
+      "historicalUsdRate": 1.4046200451374053,
+      "priceUsd": 8.385581669470309,
+      "marketplace": "Getgems",
+      "source": "toncenter-indexed-secondary-sale",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-completed-sale-contract",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "transactionHash": "Y4tqnFQEp8KqgNtvhQf1MSPzics3nTJWiqkhBHnct40=",
+        "saleContract": "0:df94fc9cb1a65bd9b107e0d023efcb9b08928f7e86a2932486e8fc8b4d484109"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "12L"
+    }
+  ]
+}

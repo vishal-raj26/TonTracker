@@ -1,0 +1,1303 @@
+{
+  "qualification": false,
+  "developmentOnly": true,
+  "productionChanged": false,
+  "reserved2026OutcomesOpened": false,
+  "method": "Latest strictly-prior completed sale of the same NFT contract and unambiguous username; no sale-time, target-price, venue or outcome-based routing",
+  "inputs": {
+    "modelReportSha256": "bcf957d8ac3a1d6adf7800587a0b726b57128fe15012be92e02782022fffa82d",
+    "historicalSalesSha256": "6d724b74f727a797d553190cb72e408d3c70d6069202636a60f7ea2b2850682f",
+    "universeSha256": "5bd5216ddfe76d5c18e490814b968fa6ca9ffc42a65cdf2224c6b9b8a90f9f6b",
+    "historicalSalesLoaded": 340000,
+    "rejected": 0
+  },
+  "attempts": 30995,
+  "cohorts": {
+    "all/all": {
+      "attempts": 30995,
+      "uniqueIdentities": 28363,
+      "ownAvailable": 7108,
+      "ownAvailableIdentities": 5671,
+      "ownAbsent": 23887,
+      "ownAmbiguous": 0,
+      "allStageAll": {
+        "samples": 30995,
+        "meanAbsoluteLogError": 0.8021293396450437,
+        "medianFactorError": 1.6083011664818299
+      },
+      "allStageOwnCovered": {
+        "samples": 7108,
+        "meanAbsoluteLogError": 0.6814021861953691,
+        "medianFactorError": 1.6032599094555045
+      },
+      "lastOwnCovered": {
+        "samples": 7108,
+        "meanAbsoluteLogError": 0.617535493465352,
+        "medianFactorError": 1.5627748847872676
+      },
+      "byOwnAge": {
+        "under30": {
+          "samples": 2107,
+          "lastOwn": {
+            "samples": 2107,
+            "meanAbsoluteLogError": 0.47648933890446554,
+            "medianFactorError": 1.3848552283460673
+          },
+          "allStage": {
+            "samples": 2107,
+            "meanAbsoluteLogError": 0.5379733100550658,
+            "medianFactorError": 1.450687386049843
+          }
+        },
+        "days30to180": {
+          "samples": 2048,
+          "lastOwn": {
+            "samples": 2048,
+            "meanAbsoluteLogError": 0.6738186729003347,
+            "medianFactorError": 1.7533527976294234
+          },
+          "allStage": {
+            "samples": 2048,
+            "meanAbsoluteLogError": 0.7068162198753138,
+            "medianFactorError": 1.6417874249154933
+          }
+        },
+        "over180": {
+          "samples": 2953,
+          "lastOwn": {
+            "samples": 2953,
+            "meanAbsoluteLogError": 0.6791393865154544,
+            "medianFactorError": 1.6098224791528113
+          },
+          "allStage": {
+            "samples": 2953,
+            "meanAbsoluteLogError": 0.766114919365395,
+            "medianFactorError": 1.7719448391587393
+          }
+        }
+      }
+    },
+    "all/ordinary": {
+      "attempts": 23825,
+      "uniqueIdentities": 21581,
+      "ownAvailable": 6005,
+      "ownAvailableIdentities": 4724,
+      "ownAbsent": 17820,
+      "ownAmbiguous": 0,
+      "allStageAll": {
+        "samples": 23825,
+        "meanAbsoluteLogError": 0.42710614189100904,
+        "medianFactorError": 1.5013424440579823
+      },
+      "allStageOwnCovered": {
+        "samples": 6005,
+        "meanAbsoluteLogError": 0.48586670203393495,
+        "medianFactorError": 1.495171867179954
+      },
+      "lastOwnCovered": {
+        "samples": 6005,
+        "meanAbsoluteLogError": 0.5410500368693961,
+        "medianFactorError": 1.47435283204115
+      },
+      "byOwnAge": {
+        "under30": {
+          "samples": 1906,
+          "lastOwn": {
+            "samples": 1906,
+            "meanAbsoluteLogError": 0.4336600831953576,
+            "medianFactorError": 1.355833992789941
+          },
+          "allStage": {
+            "samples": 1906,
+            "meanAbsoluteLogError": 0.40834517795256786,
+            "medianFactorError": 1.4132872036904316
+          }
+        },
+        "days30to180": {
+          "samples": 1650,
+          "lastOwn": {
+            "samples": 1650,
+            "meanAbsoluteLogError": 0.6201106693377956,
+            "medianFactorError": 1.6460040023584488
+          },
+          "allStage": {
+            "samples": 1650,
+            "meanAbsoluteLogError": 0.4770859840394463,
+            "medianFactorError": 1.4828126613920078
+          }
+        },
+        "over180": {
+          "samples": 2449,
+          "lastOwn": {
+            "samples": 2449,
+            "meanAbsoluteLogError": 0.5713624942519475,
+            "medianFactorError": 1.474069069665779
+          },
+          "allStage": {
+            "samples": 2449,
+            "meanAbsoluteLogError": 0.5521158688734565,
+            "medianFactorError": 1.612762400758189
+          }
+        }
+      }
+    },
+    "all/intermediate": {
+      "attempts": 3308,
+      "uniqueIdentities": 3206,
+      "ownAvailable": 752,
+      "ownAvailableIdentities": 700,
+      "ownAbsent": 2556,
+      "ownAmbiguous": 0,
+      "allStageAll": {
+        "samples": 3308,
+        "meanAbsoluteLogError": 1.4179255161112283,
+        "medianFactorError": 4.008919656230683
+      },
+      "allStageOwnCovered": {
+        "samples": 752,
+        "meanAbsoluteLogError": 1.3314084283791077,
+        "medianFactorError": 3.7769526534765134
+      },
+      "lastOwnCovered": {
+        "samples": 752,
+        "meanAbsoluteLogError": 0.8738969139191987,
+        "medianFactorError": 2.1859476350551583
+      },
+      "byOwnAge": {
+        "under30": {
+          "samples": 135,
+          "lastOwn": {
+            "samples": 135,
+            "meanAbsoluteLogError": 0.6752506258147744,
+            "medianFactorError": 1.7246127853761979
+          },
+          "allStage": {
+            "samples": 135,
+            "meanAbsoluteLogError": 1.298816489686761,
+            "medianFactorError": 3.7658110740983948
+          }
+        },
+        "days30to180": {
+          "samples": 315,
+          "lastOwn": {
+            "samples": 315,
+            "meanAbsoluteLogError": 0.8326144369159606,
+            "medianFactorError": 2.1833994311581137
+          },
+          "allStage": {
+            "samples": 315,
+            "meanAbsoluteLogError": 1.35833260781657,
+            "medianFactorError": 3.907064844513807
+          }
+        },
+        "over180": {
+          "samples": 302,
+          "lastOwn": {
+            "samples": 302,
+            "meanAbsoluteLogError": 1.005755288588462,
+            "medianFactorError": 2.419478100272254
+          },
+          "allStage": {
+            "samples": 302,
+            "meanAbsoluteLogError": 1.3178945052025008,
+            "medianFactorError": 3.690210513570076
+          }
+        }
+      }
+    },
+    "all/premium": {
+      "attempts": 3862,
+      "uniqueIdentities": 3817,
+      "ownAvailable": 351,
+      "ownAvailableIdentities": 332,
+      "ownAbsent": 3511,
+      "ownAmbiguous": 0,
+      "allStageAll": {
+        "samples": 3862,
+        "meanAbsoluteLogError": 2.5882178778997638,
+        "medianFactorError": 15.030943229052854
+      },
+      "allStageOwnCovered": {
+        "samples": 351,
+        "meanAbsoluteLogError": 2.634068534535083,
+        "medianFactorError": 15.83790419175965
+      },
+      "lastOwnCovered": {
+        "samples": 351,
+        "meanAbsoluteLogError": 1.3768271706089994,
+        "medianFactorError": 3.252772158724947
+      },
+      "byOwnAge": {
+        "under30": {
+          "samples": 66,
+          "lastOwn": {
+            "samples": 66,
+            "meanAbsoluteLogError": 1.3067891517630617,
+            "medianFactorError": 2.578125185302748
+          },
+          "allStage": {
+            "samples": 66,
+            "meanAbsoluteLogError": 2.7252065000108625,
+            "medianFactorError": 16.536736696139286
+          }
+        },
+        "days30to180": {
+          "samples": 83,
+          "lastOwn": {
+            "samples": 83,
+            "meanAbsoluteLogError": 1.138849277879458,
+            "medianFactorError": 2.8581849375408
+          },
+          "allStage": {
+            "samples": 83,
+            "meanAbsoluteLogError": 2.801120158763107,
+            "medianFactorError": 17.127656320509008
+          }
+        },
+        "over180": {
+          "samples": 202,
+          "lastOwn": {
+            "samples": 202,
+            "meanAbsoluteLogError": 1.4974938752643652,
+            "medianFactorError": 3.817331351603896
+          },
+          "allStage": {
+            "samples": 202,
+            "meanAbsoluteLogError": 2.5356507596225715,
+            "medianFactorError": 14.979097405905385
+          }
+        }
+      }
+    },
+    "secondary/all": {
+      "attempts": 7203,
+      "uniqueIdentities": 5741,
+      "ownAvailable": 7108,
+      "ownAvailableIdentities": 5671,
+      "ownAbsent": 95,
+      "ownAmbiguous": 0,
+      "allStageAll": {
+        "samples": 7203,
+        "meanAbsoluteLogError": 0.6832073363206616,
+        "medianFactorError": 1.6045644500485974
+      },
+      "allStageOwnCovered": {
+        "samples": 7108,
+        "meanAbsoluteLogError": 0.6814021861953691,
+        "medianFactorError": 1.6032599094555045
+      },
+      "lastOwnCovered": {
+        "samples": 7108,
+        "meanAbsoluteLogError": 0.617535493465352,
+        "medianFactorError": 1.5627748847872676
+      },
+      "byOwnAge": {
+        "under30": {
+          "samples": 2107,
+          "lastOwn": {
+            "samples": 2107,
+            "meanAbsoluteLogError": 0.47648933890446554,
+            "medianFactorError": 1.3848552283460673
+          },
+          "allStage": {
+            "samples": 2107,
+            "meanAbsoluteLogError": 0.5379733100550658,
+            "medianFactorError": 1.450687386049843
+          }
+        },
+        "days30to180": {
+          "samples": 2048,
+          "lastOwn": {
+            "samples": 2048,
+            "meanAbsoluteLogError": 0.6738186729003347,
+            "medianFactorError": 1.7533527976294234
+          },
+          "allStage": {
+            "samples": 2048,
+            "meanAbsoluteLogError": 0.7068162198753138,
+            "medianFactorError": 1.6417874249154933
+          }
+        },
+        "over180": {
+          "samples": 2953,
+          "lastOwn": {
+            "samples": 2953,
+            "meanAbsoluteLogError": 0.6791393865154544,
+            "medianFactorError": 1.6098224791528113
+          },
+          "allStage": {
+            "samples": 2953,
+            "meanAbsoluteLogError": 0.766114919365395,
+            "medianFactorError": 1.7719448391587393
+          }
+        }
+      }
+    },
+    "secondary/ordinary": {
+      "attempts": 6082,
+      "uniqueIdentities": 4781,
+      "ownAvailable": 6005,
+      "ownAvailableIdentities": 4724,
+      "ownAbsent": 77,
+      "ownAmbiguous": 0,
+      "allStageAll": {
+        "samples": 6082,
+        "meanAbsoluteLogError": 0.4864097654433942,
+        "medianFactorError": 1.496023344188774
+      },
+      "allStageOwnCovered": {
+        "samples": 6005,
+        "meanAbsoluteLogError": 0.48586670203393495,
+        "medianFactorError": 1.495171867179954
+      },
+      "lastOwnCovered": {
+        "samples": 6005,
+        "meanAbsoluteLogError": 0.5410500368693961,
+        "medianFactorError": 1.47435283204115
+      },
+      "byOwnAge": {
+        "under30": {
+          "samples": 1906,
+          "lastOwn": {
+            "samples": 1906,
+            "meanAbsoluteLogError": 0.4336600831953576,
+            "medianFactorError": 1.355833992789941
+          },
+          "allStage": {
+            "samples": 1906,
+            "meanAbsoluteLogError": 0.40834517795256786,
+            "medianFactorError": 1.4132872036904316
+          }
+        },
+        "days30to180": {
+          "samples": 1650,
+          "lastOwn": {
+            "samples": 1650,
+            "meanAbsoluteLogError": 0.6201106693377956,
+            "medianFactorError": 1.6460040023584488
+          },
+          "allStage": {
+            "samples": 1650,
+            "meanAbsoluteLogError": 0.4770859840394463,
+            "medianFactorError": 1.4828126613920078
+          }
+        },
+        "over180": {
+          "samples": 2449,
+          "lastOwn": {
+            "samples": 2449,
+            "meanAbsoluteLogError": 0.5713624942519475,
+            "medianFactorError": 1.474069069665779
+          },
+          "allStage": {
+            "samples": 2449,
+            "meanAbsoluteLogError": 0.5521158688734565,
+            "medianFactorError": 1.612762400758189
+          }
+        }
+      }
+    },
+    "secondary/intermediate": {
+      "attempts": 762,
+      "uniqueIdentities": 709,
+      "ownAvailable": 752,
+      "ownAvailableIdentities": 700,
+      "ownAbsent": 10,
+      "ownAmbiguous": 0,
+      "allStageAll": {
+        "samples": 762,
+        "meanAbsoluteLogError": 1.3356668240790543,
+        "medianFactorError": 3.824900982806435
+      },
+      "allStageOwnCovered": {
+        "samples": 752,
+        "meanAbsoluteLogError": 1.3314084283791077,
+        "medianFactorError": 3.7769526534765134
+      },
+      "lastOwnCovered": {
+        "samples": 752,
+        "meanAbsoluteLogError": 0.8738969139191987,
+        "medianFactorError": 2.1859476350551583
+      },
+      "byOwnAge": {
+        "under30": {
+          "samples": 135,
+          "lastOwn": {
+            "samples": 135,
+            "meanAbsoluteLogError": 0.6752506258147744,
+            "medianFactorError": 1.7246127853761979
+          },
+          "allStage": {
+            "samples": 135,
+            "meanAbsoluteLogError": 1.298816489686761,
+            "medianFactorError": 3.7658110740983948
+          }
+        },
+        "days30to180": {
+          "samples": 315,
+          "lastOwn": {
+            "samples": 315,
+            "meanAbsoluteLogError": 0.8326144369159606,
+            "medianFactorError": 2.1833994311581137
+          },
+          "allStage": {
+            "samples": 315,
+            "meanAbsoluteLogError": 1.35833260781657,
+            "medianFactorError": 3.907064844513807
+          }
+        },
+        "over180": {
+          "samples": 302,
+          "lastOwn": {
+            "samples": 302,
+            "meanAbsoluteLogError": 1.005755288588462,
+            "medianFactorError": 2.419478100272254
+          },
+          "allStage": {
+            "samples": 302,
+            "meanAbsoluteLogError": 1.3178945052025008,
+            "medianFactorError": 3.690210513570076
+          }
+        }
+      }
+    },
+    "secondary/premium": {
+      "attempts": 359,
+      "uniqueIdentities": 338,
+      "ownAvailable": 351,
+      "ownAvailableIdentities": 332,
+      "ownAbsent": 8,
+      "ownAmbiguous": 0,
+      "allStageAll": {
+        "samples": 359,
+        "meanAbsoluteLogError": 2.632368050536936,
+        "medianFactorError": 15.852874393672302
+      },
+      "allStageOwnCovered": {
+        "samples": 351,
+        "meanAbsoluteLogError": 2.634068534535083,
+        "medianFactorError": 15.83790419175965
+      },
+      "lastOwnCovered": {
+        "samples": 351,
+        "meanAbsoluteLogError": 1.3768271706089994,
+        "medianFactorError": 3.252772158724947
+      },
+      "byOwnAge": {
+        "under30": {
+          "samples": 66,
+          "lastOwn": {
+            "samples": 66,
+            "meanAbsoluteLogError": 1.3067891517630617,
+            "medianFactorError": 2.578125185302748
+          },
+          "allStage": {
+            "samples": 66,
+            "meanAbsoluteLogError": 2.7252065000108625,
+            "medianFactorError": 16.536736696139286
+          }
+        },
+        "days30to180": {
+          "samples": 83,
+          "lastOwn": {
+            "samples": 83,
+            "meanAbsoluteLogError": 1.138849277879458,
+            "medianFactorError": 2.8581849375408
+          },
+          "allStage": {
+            "samples": 83,
+            "meanAbsoluteLogError": 2.801120158763107,
+            "medianFactorError": 17.127656320509008
+          }
+        },
+        "over180": {
+          "samples": 202,
+          "lastOwn": {
+            "samples": 202,
+            "meanAbsoluteLogError": 1.4974938752643652,
+            "medianFactorError": 3.817331351603896
+          },
+          "allStage": {
+            "samples": 202,
+            "meanAbsoluteLogError": 2.5356507596225715,
+            "medianFactorError": 14.979097405905385
+          }
+        }
+      }
+    },
+    "secondaryAuction/all": {
+      "attempts": 4883,
+      "uniqueIdentities": 4337,
+      "ownAvailable": 4810,
+      "ownAvailableIdentities": 4278,
+      "ownAbsent": 73,
+      "ownAmbiguous": 0,
+      "allStageAll": {
+        "samples": 4883,
+        "meanAbsoluteLogError": 0.7657339699896312,
+        "medianFactorError": 1.7314410109821254
+      },
+      "allStageOwnCovered": {
+        "samples": 4810,
+        "meanAbsoluteLogError": 0.76340341323725,
+        "medianFactorError": 1.7289403421822158
+      },
+      "lastOwnCovered": {
+        "samples": 4810,
+        "meanAbsoluteLogError": 0.6745751359563431,
+        "medianFactorError": 1.6672541389557094
+      },
+      "byOwnAge": {
+        "under30": {
+          "samples": 1214,
+          "lastOwn": {
+            "samples": 1214,
+            "meanAbsoluteLogError": 0.5522489174597638,
+            "medianFactorError": 1.5230342514779567
+          },
+          "allStage": {
+            "samples": 1214,
+            "meanAbsoluteLogError": 0.5835604461916343,
+            "medianFactorError": 1.4471419333716564
+          }
+        },
+        "days30to180": {
+          "samples": 1436,
+          "lastOwn": {
+            "samples": 1436,
+            "meanAbsoluteLogError": 0.7287959779874522,
+            "medianFactorError": 1.8347619627419942
+          },
+          "allStage": {
+            "samples": 1436,
+            "meanAbsoluteLogError": 0.816162019826955,
+            "medianFactorError": 1.87266679140479
+          }
+        },
+        "over180": {
+          "samples": 2160,
+          "lastOwn": {
+            "samples": 2160,
+            "meanAbsoluteLogError": 0.7072801822980931,
+            "medianFactorError": 1.6535853738641753
+          },
+          "allStage": {
+            "samples": 2160,
+            "meanAbsoluteLogError": 0.8294071182976948,
+            "medianFactorError": 1.8930783013783974
+          }
+        }
+      }
+    },
+    "secondaryAuction/ordinary": {
+      "attempts": 3903,
+      "uniqueIdentities": 3480,
+      "ownAvailable": 3847,
+      "ownAvailableIdentities": 3433,
+      "ownAbsent": 56,
+      "ownAmbiguous": 0,
+      "allStageAll": {
+        "samples": 3903,
+        "meanAbsoluteLogError": 0.5235254105809257,
+        "medianFactorError": 1.5514767324107865
+      },
+      "allStageOwnCovered": {
+        "samples": 3847,
+        "meanAbsoluteLogError": 0.5232719772073984,
+        "medianFactorError": 1.5507075347500172
+      },
+      "lastOwnCovered": {
+        "samples": 3847,
+        "meanAbsoluteLogError": 0.5915010021017608,
+        "medianFactorError": 1.5422062887444916
+      },
+      "byOwnAge": {
+        "under30": {
+          "samples": 1047,
+          "lastOwn": {
+            "samples": 1047,
+            "meanAbsoluteLogError": 0.5017980408645218,
+            "medianFactorError": 1.4951995836758263
+          },
+          "allStage": {
+            "samples": 1047,
+            "meanAbsoluteLogError": 0.40210624008824425,
+            "medianFactorError": 1.3926207540668147
+          }
+        },
+        "days30to180": {
+          "samples": 1072,
+          "lastOwn": {
+            "samples": 1072,
+            "meanAbsoluteLogError": 0.6707249310883512,
+            "medianFactorError": 1.6882249392928084
+          },
+          "allStage": {
+            "samples": 1072,
+            "meanAbsoluteLogError": 0.5378895747886875,
+            "medianFactorError": 1.5965135986265224
+          }
+        },
+        "over180": {
+          "samples": 1728,
+          "lastOwn": {
+            "samples": 1728,
+            "meanAbsoluteLogError": 0.5967040973226899,
+            "medianFactorError": 1.5029914607889647
+          },
+          "allStage": {
+            "samples": 1728,
+            "meanAbsoluteLogError": 0.5876183094739563,
+            "medianFactorError": 1.67679936285541
+          }
+        }
+      }
+    },
+    "secondaryAuction/intermediate": {
+      "attempts": 688,
+      "uniqueIdentities": 643,
+      "ownAvailable": 678,
+      "ownAvailableIdentities": 634,
+      "ownAbsent": 10,
+      "ownAmbiguous": 0,
+      "allStageAll": {
+        "samples": 688,
+        "meanAbsoluteLogError": 1.3432277711884668,
+        "medianFactorError": 3.8858851005034705
+      },
+      "allStageOwnCovered": {
+        "samples": 678,
+        "meanAbsoluteLogError": 1.3386161132308474,
+        "medianFactorError": 3.85369783483376
+      },
+      "lastOwnCovered": {
+        "samples": 678,
+        "meanAbsoluteLogError": 0.8638954591059289,
+        "medianFactorError": 2.1765187772172636
+      },
+      "byOwnAge": {
+        "under30": {
+          "samples": 116,
+          "lastOwn": {
+            "samples": 116,
+            "meanAbsoluteLogError": 0.655729517544781,
+            "medianFactorError": 1.7204308854275936
+          },
+          "allStage": {
+            "samples": 116,
+            "meanAbsoluteLogError": 1.3214782379296957,
+            "medianFactorError": 3.935046184537646
+          }
+        },
+        "days30to180": {
+          "samples": 295,
+          "lastOwn": {
+            "samples": 295,
+            "meanAbsoluteLogError": 0.8485934139210131,
+            "medianFactorError": 2.2222615493521283
+          },
+          "allStage": {
+            "samples": 295,
+            "meanAbsoluteLogError": 1.3723297066241962,
+            "medianFactorError": 4.031804666000094
+          }
+        },
+        "over180": {
+          "samples": 267,
+          "lastOwn": {
+            "samples": 267,
+            "meanAbsoluteLogError": 0.9712413488087138,
+            "medianFactorError": 2.3399787910922587
+          },
+          "allStage": {
+            "samples": 267,
+            "meanAbsoluteLogError": 1.308812680586259,
+            "medianFactorError": 3.7042449449686616
+          }
+        }
+      }
+    },
+    "secondaryAuction/premium": {
+      "attempts": 292,
+      "uniqueIdentities": 278,
+      "ownAvailable": 285,
+      "ownAvailableIdentities": 273,
+      "ownAbsent": 7,
+      "ownAmbiguous": 0,
+      "allStageAll": {
+        "samples": 292,
+        "meanAbsoluteLogError": 2.6425294225491487,
+        "medianFactorError": 16.226970855885366
+      },
+      "allStageOwnCovered": {
+        "samples": 285,
+        "meanAbsoluteLogError": 2.6363557774870032,
+        "medianFactorError": 15.985783118150081
+      },
+      "lastOwnCovered": {
+        "samples": 285,
+        "meanAbsoluteLogError": 1.345547114353404,
+        "medianFactorError": 3.155432605020973
+      },
+      "byOwnAge": {
+        "under30": {
+          "samples": 51,
+          "lastOwn": {
+            "samples": 51,
+            "meanAbsoluteLogError": 1.3526080975647794,
+            "medianFactorError": 2.578125185302748
+          },
+          "allStage": {
+            "samples": 51,
+            "meanAbsoluteLogError": 2.6303073079295727,
+            "medianFactorError": 16.151822558908293
+          }
+        },
+        "days30to180": {
+          "samples": 69,
+          "lastOwn": {
+            "samples": 69,
+            "meanAbsoluteLogError": 1.1188237848778262,
+            "medianFactorError": 2.8581849375408
+          },
+          "allStage": {
+            "samples": 69,
+            "meanAbsoluteLogError": 2.7616488817956046,
+            "medianFactorError": 17.343621335781137
+          }
+        },
+        "over180": {
+          "samples": 165,
+          "lastOwn": {
+            "samples": 165,
+            "meanAbsoluteLogError": 1.4381762027778566,
+            "medianFactorError": 3.4323569841642128
+          },
+          "allStage": {
+            "samples": 165,
+            "meanAbsoluteLogError": 2.585830006275704,
+            "medianFactorError": 15.519308186752236
+          }
+        }
+      }
+    },
+    "secondaryFixed/all": {
+      "attempts": 2320,
+      "uniqueIdentities": 1921,
+      "ownAvailable": 2298,
+      "ownAvailableIdentities": 1903,
+      "ownAbsent": 22,
+      "ownAmbiguous": 0,
+      "allStageAll": {
+        "samples": 2320,
+        "meanAbsoluteLogError": 0.5095101155423906,
+        "medianFactorError": 1.450997154019589
+      },
+      "allStageOwnCovered": {
+        "samples": 2298,
+        "meanAbsoluteLogError": 0.5097634124479998,
+        "medianFactorError": 1.450997154019589
+      },
+      "lastOwnCovered": {
+        "samples": 2298,
+        "meanAbsoluteLogError": 0.4981444228031829,
+        "medianFactorError": 1.412840938766948
+      },
+      "byOwnAge": {
+        "under30": {
+          "samples": 893,
+          "lastOwn": {
+            "samples": 893,
+            "meanAbsoluteLogError": 0.3734970339031979,
+            "medianFactorError": 1.254249957156883
+          },
+          "allStage": {
+            "samples": 893,
+            "meanAbsoluteLogError": 0.4759993086331233,
+            "medianFactorError": 1.458868187582874
+          }
+        },
+        "days30to180": {
+          "samples": 612,
+          "lastOwn": {
+            "samples": 612,
+            "meanAbsoluteLogError": 0.5448196367808884,
+            "medianFactorError": 1.6106758320391494
+          },
+          "allStage": {
+            "samples": 612,
+            "meanAbsoluteLogError": 0.45024666312604034,
+            "medianFactorError": 1.376204060077196
+          }
+        },
+        "over180": {
+          "samples": 793,
+          "lastOwn": {
+            "samples": 793,
+            "meanAbsoluteLogError": 0.6024885430217607,
+            "medianFactorError": 1.4914662093943813
+          },
+          "allStage": {
+            "samples": 793,
+            "meanAbsoluteLogError": 0.5937175048713611,
+            "medianFactorError": 1.5144132304978077
+          }
+        }
+      }
+    },
+    "secondaryFixed/ordinary": {
+      "attempts": 2179,
+      "uniqueIdentities": 1790,
+      "ownAvailable": 2158,
+      "ownAvailableIdentities": 1773,
+      "ownAbsent": 21,
+      "ownAmbiguous": 0,
+      "allStageAll": {
+        "samples": 2179,
+        "meanAbsoluteLogError": 0.4199286442998456,
+        "medianFactorError": 1.426160939061538
+      },
+      "allStageOwnCovered": {
+        "samples": 2158,
+        "meanAbsoluteLogError": 0.4191854723804041,
+        "medianFactorError": 1.425938493002339
+      },
+      "lastOwnCovered": {
+        "samples": 2158,
+        "meanAbsoluteLogError": 0.4511126581627702,
+        "medianFactorError": 1.3773562875416767
+      },
+      "byOwnAge": {
+        "under30": {
+          "samples": 859,
+          "lastOwn": {
+            "samples": 859,
+            "meanAbsoluteLogError": 0.35060951080931013,
+            "medianFactorError": 1.2427432728397079
+          },
+          "allStage": {
+            "samples": 859,
+            "meanAbsoluteLogError": 0.415949564383239,
+            "medianFactorError": 1.4467313773638475
+          }
+        },
+        "days30to180": {
+          "samples": 578,
+          "lastOwn": {
+            "samples": 578,
+            "meanAbsoluteLogError": 0.5262378516966262,
+            "medianFactorError": 1.6030152345977273
+          },
+          "allStage": {
+            "samples": 578,
+            "meanAbsoluteLogError": 0.36431531053912425,
+            "medianFactorError": 1.3474939350712112
+          }
+        },
+        "over180": {
+          "samples": 721,
+          "lastOwn": {
+            "samples": 721,
+            "meanAbsoluteLogError": 0.5106270017328872,
+            "medianFactorError": 1.4242221900396455
+          },
+          "allStage": {
+            "samples": 721,
+            "meanAbsoluteLogError": 0.4670281887657379,
+            "medianFactorError": 1.4582944454340603
+          }
+        }
+      }
+    },
+    "secondaryFixed/intermediate": {
+      "attempts": 74,
+      "uniqueIdentities": 74,
+      "ownAvailable": 74,
+      "ownAvailableIdentities": 74,
+      "ownAbsent": 0,
+      "ownAmbiguous": 0,
+      "allStageAll": {
+        "samples": 74,
+        "meanAbsoluteLogError": 1.265370450953703,
+        "medianFactorError": 3.412246476259888
+      },
+      "allStageOwnCovered": {
+        "samples": 74,
+        "meanAbsoluteLogError": 1.265370450953703,
+        "medianFactorError": 3.412246476259888
+      },
+      "lastOwnCovered": {
+        "samples": 74,
+        "meanAbsoluteLogError": 0.9655318647759132,
+        "medianFactorError": 2.329424548376873
+      },
+      "byOwnAge": {
+        "under30": {
+          "samples": 19,
+          "lastOwn": {
+            "samples": 19,
+            "meanAbsoluteLogError": 0.7944321289368407,
+            "medianFactorError": 2.2293513996340635
+          },
+          "allStage": {
+            "samples": 19,
+            "meanAbsoluteLogError": 1.1604605530456884,
+            "medianFactorError": 3.4783624385164114
+          }
+        },
+        "days30to180": {
+          "samples": 20,
+          "lastOwn": {
+            "samples": 20,
+            "meanAbsoluteLogError": 0.5969245260914373,
+            "medianFactorError": 1.6772003704918221
+          },
+          "allStage": {
+            "samples": 20,
+            "meanAbsoluteLogError": 1.1518754004040843,
+            "medianFactorError": 2.945544355459125
+          }
+        },
+        "over180": {
+          "samples": 35,
+          "lastOwn": {
+            "samples": 35,
+            "meanAbsoluteLogError": 1.2690473434796823,
+            "medianFactorError": 3.549375581803015
+          },
+          "allStage": {
+            "samples": 35,
+            "meanAbsoluteLogError": 1.3871758529892637,
+            "medianFactorError": 3.412246476259888
+          }
+        }
+      }
+    },
+    "secondaryFixed/premium": {
+      "attempts": 67,
+      "uniqueIdentities": 65,
+      "ownAvailable": 66,
+      "ownAvailableIdentities": 64,
+      "ownAbsent": 1,
+      "ownAmbiguous": 0,
+      "allStageAll": {
+        "samples": 67,
+        "meanAbsoluteLogError": 2.5880826680359474,
+        "medianFactorError": 11.635321593942198
+      },
+      "allStageOwnCovered": {
+        "samples": 66,
+        "meanAbsoluteLogError": 2.6241918036063336,
+        "medianFactorError": 12.07491570114352
+      },
+      "lastOwnCovered": {
+        "samples": 66,
+        "meanAbsoluteLogError": 1.5119001408036175,
+        "medianFactorError": 4.5008072678415685
+      },
+      "byOwnAge": {
+        "under30": {
+          "samples": 15,
+          "lastOwn": {
+            "samples": 15,
+            "meanAbsoluteLogError": 1.1510047360372206,
+            "medianFactorError": 1.6447533480984187
+          },
+          "allStage": {
+            "samples": 15,
+            "meanAbsoluteLogError": 3.0478637530872463,
+            "medianFactorError": 21.885387507307378
+          }
+        },
+        "days30to180": {
+          "samples": 14,
+          "lastOwn": {
+            "samples": 14,
+            "meanAbsoluteLogError": 1.237546350530359,
+            "medianFactorError": 4.5008072678415685
+          },
+          "allStage": {
+            "samples": 14,
+            "meanAbsoluteLogError": 2.9956571666743708,
+            "medianFactorError": 14.783253438104328
+          }
+        },
+        "over180": {
+          "samples": 37,
+          "lastOwn": {
+            "samples": 37,
+            "meanAbsoluteLogError": 1.7620186309474435,
+            "medianFactorError": 4.7098703615929285
+          },
+          "allStage": {
+            "samples": 37,
+            "meanAbsoluteLogError": 2.3118784434667052,
+            "medianFactorError": 10.808859843724402
+          }
+        }
+      }
+    },
+    "primary/all": {
+      "attempts": 23792,
+      "uniqueIdentities": 23792,
+      "ownAvailable": 0,
+      "ownAvailableIdentities": 0,
+      "ownAbsent": 23792,
+      "ownAmbiguous": 0,
+      "allStageAll": {
+        "samples": 23792,
+        "meanAbsoluteLogError": 0.8381328361962193,
+        "medianFactorError": 1.609245896106977
+      },
+      "allStageOwnCovered": {
+        "samples": 0,
+        "meanAbsoluteLogError": null,
+        "medianFactorError": null
+      },
+      "lastOwnCovered": {
+        "samples": 0,
+        "meanAbsoluteLogError": null,
+        "medianFactorError": null
+      },
+      "byOwnAge": {
+        "under30": {
+          "samples": 0,
+          "lastOwn": {
+            "samples": 0,
+            "meanAbsoluteLogError": null,
+            "medianFactorError": null
+          },
+          "allStage": {
+            "samples": 0,
+            "meanAbsoluteLogError": null,
+            "medianFactorError": null
+          }
+        },
+        "days30to180": {
+          "samples": 0,
+          "lastOwn": {
+            "samples": 0,
+            "meanAbsoluteLogError": null,
+            "medianFactorError": null
+          },
+          "allStage": {
+            "samples": 0,
+            "meanAbsoluteLogError": null,
+            "medianFactorError": null
+          }
+        },
+        "over180": {
+          "samples": 0,
+          "lastOwn": {
+            "samples": 0,
+            "meanAbsoluteLogError": null,
+            "medianFactorError": null
+          },
+          "allStage": {
+            "samples": 0,
+            "meanAbsoluteLogError": null,
+            "medianFactorError": null
+          }
+        }
+      }
+    },
+    "primary/ordinary": {
+      "attempts": 17743,
+      "uniqueIdentities": 17743,
+      "ownAvailable": 0,
+      "ownAvailableIdentities": 0,
+      "ownAbsent": 17743,
+      "ownAmbiguous": 0,
+      "allStageAll": {
+        "samples": 17743,
+        "meanAbsoluteLogError": 0.4067778637843987,
+        "medianFactorError": 1.5022878756170215
+      },
+      "allStageOwnCovered": {
+        "samples": 0,
+        "meanAbsoluteLogError": null,
+        "medianFactorError": null
+      },
+      "lastOwnCovered": {
+        "samples": 0,
+        "meanAbsoluteLogError": null,
+        "medianFactorError": null
+      },
+      "byOwnAge": {
+        "under30": {
+          "samples": 0,
+          "lastOwn": {
+            "samples": 0,
+            "meanAbsoluteLogError": null,
+            "medianFactorError": null
+          },
+          "allStage": {
+            "samples": 0,
+            "meanAbsoluteLogError": null,
+            "medianFactorError": null
+          }
+        },
+        "days30to180": {
+          "samples": 0,
+          "lastOwn": {
+            "samples": 0,
+            "meanAbsoluteLogError": null,
+            "medianFactorError": null
+          },
+          "allStage": {
+            "samples": 0,
+            "meanAbsoluteLogError": null,
+            "medianFactorError": null
+          }
+        },
+        "over180": {
+          "samples": 0,
+          "lastOwn": {
+            "samples": 0,
+            "meanAbsoluteLogError": null,
+            "medianFactorError": null
+          },
+          "allStage": {
+            "samples": 0,
+            "meanAbsoluteLogError": null,
+            "medianFactorError": null
+          }
+        }
+      }
+    },
+    "primary/intermediate": {
+      "attempts": 2546,
+      "uniqueIdentities": 2546,
+      "ownAvailable": 0,
+      "ownAvailableIdentities": 0,
+      "ownAbsent": 2546,
+      "ownAmbiguous": 0,
+      "allStageAll": {
+        "samples": 2546,
+        "meanAbsoluteLogError": 1.4425449675364121,
+        "medianFactorError": 4.079121258681973
+      },
+      "allStageOwnCovered": {
+        "samples": 0,
+        "meanAbsoluteLogError": null,
+        "medianFactorError": null
+      },
+      "lastOwnCovered": {
+        "samples": 0,
+        "meanAbsoluteLogError": null,
+        "medianFactorError": null
+      },
+      "byOwnAge": {
+        "under30": {
+          "samples": 0,
+          "lastOwn": {
+            "samples": 0,
+            "meanAbsoluteLogError": null,
+            "medianFactorError": null
+          },
+          "allStage": {
+            "samples": 0,
+            "meanAbsoluteLogError": null,
+            "medianFactorError": null
+          }
+        },
+        "days30to180": {
+          "samples": 0,
+          "lastOwn": {
+            "samples": 0,
+            "meanAbsoluteLogError": null,
+            "medianFactorError": null
+          },
+          "allStage": {
+            "samples": 0,
+            "meanAbsoluteLogError": null,
+            "medianFactorError": null
+          }
+        },
+        "over180": {
+          "samples": 0,
+          "lastOwn": {
+            "samples": 0,
+            "meanAbsoluteLogError": null,
+            "medianFactorError": null
+          },
+          "allStage": {
+            "samples": 0,
+            "meanAbsoluteLogError": null,
+            "medianFactorError": null
+          }
+        }
+      }
+    },
+    "primary/premium": {
+      "attempts": 3503,
+      "uniqueIdentities": 3503,
+      "ownAvailable": 0,
+      "ownAvailableIdentities": 0,
+      "ownAbsent": 3503,
+      "ownAmbiguous": 0,
+      "allStageAll": {
+        "samples": 3503,
+        "meanAbsoluteLogError": 2.583693209907544,
+        "medianFactorError": 15.006631542180656
+      },
+      "allStageOwnCovered": {
+        "samples": 0,
+        "meanAbsoluteLogError": null,
+        "medianFactorError": null
+      },
+      "lastOwnCovered": {
+        "samples": 0,
+        "meanAbsoluteLogError": null,
+        "medianFactorError": null
+      },
+      "byOwnAge": {
+        "under30": {
+          "samples": 0,
+          "lastOwn": {
+            "samples": 0,
+            "meanAbsoluteLogError": null,
+            "medianFactorError": null
+          },
+          "allStage": {
+            "samples": 0,
+            "meanAbsoluteLogError": null,
+            "medianFactorError": null
+          }
+        },
+        "days30to180": {
+          "samples": 0,
+          "lastOwn": {
+            "samples": 0,
+            "meanAbsoluteLogError": null,
+            "medianFactorError": null
+          },
+          "allStage": {
+            "samples": 0,
+            "meanAbsoluteLogError": null,
+            "medianFactorError": null
+          }
+        },
+        "over180": {
+          "samples": 0,
+          "lastOwn": {
+            "samples": 0,
+            "meanAbsoluteLogError": null,
+            "medianFactorError": null
+          },
+          "allStage": {
+            "samples": 0,
+            "meanAbsoluteLogError": null,
+            "medianFactorError": null
+          }
+        }
+      }
+    }
+  },
+  "limitations": [
+    "Exposed historical feature-export targets, not an unbiased current-market sample.",
+    "The last own sale is a diagnostic baseline, not an active offer, guaranteed floor or production valuation.",
+    "Actual price and realized venue are used only for retrospective reporting; no target-time routing is tested.",
+    "Any future learned fusion needs a separately frozen chronological protocol, matched v25 and untouched 2026 validation."
+  ]
+}

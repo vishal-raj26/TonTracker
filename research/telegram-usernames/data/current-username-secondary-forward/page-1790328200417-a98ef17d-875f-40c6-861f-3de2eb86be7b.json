@@ -1,0 +1,91 @@
+{
+  "schemaVersion": "username-secondary-local-v1",
+  "from": "2026-09-20T14:00:00Z",
+  "pipeline": "username-toncenter-secondary-sales-v1",
+  "collectedAt": "2026-09-25T09:23:20.417Z",
+  "cursor": {
+    "absoluteOffset": 21370,
+    "caughtUp": false
+  },
+  "metadata": {
+    "transfers": 100,
+    "saleContracts": 4,
+    "verifiedSales": 1,
+    "assets": 1,
+    "sales": 1,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-25T09:23:20.417Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:0c5907851570718cf7e59dd21565ca2c7c90f13c4c4dc48b8ebd27ca980f2f60",
+      "normalizedName": "rkfuc",
+      "displayName": "@rkfuc",
+      "primaryRoute": "word",
+      "lengthBucket": "4-5",
+      "script": "Latin",
+      "scarcityClass": "5L",
+      "feature": {
+        "classifierVersion": "username-structural-v2",
+        "normalizedUsername": "rkfuc",
+        "displayUsername": "@rkfuc",
+        "characterLength": 5,
+        "byteLength": 5,
+        "characterClass": "letters",
+        "primaryRoute": "word",
+        "routes": [
+          "word"
+        ],
+        "scarcityClass": "5L",
+        "patternSignature": "ABCDE",
+        "shapeSignature": "LLLLL",
+        "uniqueCharacterCount": 5,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "repeatedBlock": null,
+        "scripts": [
+          "Latin"
+        ],
+        "primaryScript": "Latin",
+        "containsUnderscore": false,
+        "underscoreCount": 0,
+        "digitCount": 0,
+        "digitRatio": 0,
+        "vowelRatio": 0.2,
+        "pronounceability": "difficult",
+        "leadingZero": false,
+        "roundNumber": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-24T07:13:14.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-secondary:6196b6ed15a9738791cc7fc67c2ec34ba11d020c367fce9c03cc104430ba7495",
+      "assetKind": "username",
+      "assetKey": "0:0c5907851570718cf7e59dd21565ca2c7c90f13c4c4dc48b8ebd27ca980f2f60",
+      "normalizedName": "rkfuc",
+      "soldAt": "2026-09-24T07:13:14.000Z",
+      "priceGram": 5.8,
+      "historicalUsdRate": 1.4233632608219458,
+      "priceUsd": 8.255506912767284,
+      "marketplace": "Getgems",
+      "source": "toncenter-indexed-secondary-sale",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-completed-sale-contract",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "transactionHash": "uIttJBxd7BG2sUdDPe29PhO3yildHrx+7mdutuAQHYg=",
+        "saleContract": "0:2e2be7d639b68c7d8660ad83eaa8f9ec817d6073a4e3f15864dbd816fcc18411"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "4-5",
+      "script": "Latin",
+      "scarcityClass": "5L"
+    }
+  ]
+}

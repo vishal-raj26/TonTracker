@@ -1,0 +1,176 @@
+{
+  "schemaVersion": "username-forward-v2-local-v1",
+  "from": "2026-09-27T00:00:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "requestedEndUtime": 1790761800,
+  "collectedAt": "2026-09-30T09:59:00.355Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 19245,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 80,
+    "candidates": 14,
+    "verifiedItems": 3,
+    "wrongCollection": 11,
+    "assets": 3,
+    "sales": 3,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-30T09:59:00.355Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:6e712973c8f5f4d55728c62bf4b679e47020914528e2b412edacae7426c310be",
+      "normalizedName": "astronomry",
+      "displayName": "@astronomry",
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "10L",
+      "feature": {
+        "characterLength": 10,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCDEFEGDH",
+        "uniqueCharacterCount": 8,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-28T00:45:37.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:11bdf16aa5865194ddbc265fcb3dc855383891e70808fa9934ce6ab6d92ed03a",
+      "normalizedName": "muertos",
+      "displayName": "@muertos",
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "7L",
+      "feature": {
+        "characterLength": 7,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCDEFG",
+        "uniqueCharacterCount": 7,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-28T00:50:45.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:fb9e4b99c48effafc4b2bf563c35cb451668e922ce93e562b252e2f27990b6c9",
+      "normalizedName": "kglcy",
+      "displayName": "@kglcy",
+      "primaryRoute": "word",
+      "lengthBucket": "4-5",
+      "script": "Latin",
+      "scarcityClass": "5L",
+      "feature": {
+        "characterLength": 5,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCDE",
+        "uniqueCharacterCount": 5,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-28T00:50:47.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:b04efeca274834b790325aa6857e0c0a7c8e159b5dd1ee7e68e57b5c27dcf0fa",
+      "assetKind": "username",
+      "assetKey": "0:6e712973c8f5f4d55728c62bf4b679e47020914528e2b412edacae7426c310be",
+      "normalizedName": "astronomry",
+      "soldAt": "2026-09-28T00:45:37.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.6132433277698157,
+      "priceUsd": 16.13243327769816,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "7SMcI6nM96gq5rhxDd4AWQ7LFlOBWs5gPefO3YfCNfc=",
+        "messageHash": "VBagtt4BqrQ8yMOZ03/NegSxJmPYz4jSN54ngWjGXQ4=",
+        "bidAt": "2026-09-21T00:41:19.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "10L"
+    },
+    {
+      "saleId": "toncenter-username-sale:e6f1938aa342ab2c6e3aaca94b61c34868da3a99ce9160126abb607535fde94f",
+      "assetKind": "username",
+      "assetKey": "0:11bdf16aa5865194ddbc265fcb3dc855383891e70808fa9934ce6ab6d92ed03a",
+      "normalizedName": "muertos",
+      "soldAt": "2026-09-28T00:50:45.000Z",
+      "priceGram": 245,
+      "historicalUsdRate": 1.6130105039495934,
+      "priceUsd": 395.1875734676504,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "80x8Gwjxd0yP/AHwH32VjESB4XJCS4CJKaiKzHRSRx4=",
+        "messageHash": "SnM/0EcYuiYj+djitcAl6CI0JkyMIN4uvQFM9YcdV1I=",
+        "bidAt": "2026-09-27T23:50:25.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "7L"
+    },
+    {
+      "saleId": "toncenter-username-sale:222e57a511ca04b04894e1eb91e1a0534d8218cb29aa3f6126439fba1ab638f5",
+      "assetKind": "username",
+      "assetKey": "0:fb9e4b99c48effafc4b2bf563c35cb451668e922ce93e562b252e2f27990b6c9",
+      "normalizedName": "kglcy",
+      "soldAt": "2026-09-28T00:50:47.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.6130090261756376,
+      "priceUsd": 16.130090261756376,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "dKOufLv8E0bZu9LPY6DPif5PUTqBn4RjHzCKzmpSovU=",
+        "messageHash": "QWpVl+/TmVtYBRQT/4+YE3HLX7GMVnzDMh0ik7sQiLE=",
+        "bidAt": "2026-09-21T00:46:22.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "4-5",
+      "script": "Latin",
+      "scarcityClass": "5L"
+    }
+  ]
+}

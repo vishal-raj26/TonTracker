@@ -1,0 +1,76 @@
+{
+  "schemaVersion": "username-forward-v2-local-v1",
+  "from": "2026-09-27T00:00:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "requestedEndUtime": 1790761800,
+  "collectedAt": "2026-09-30T10:02:33.686Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 21885,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 80,
+    "candidates": 13,
+    "verifiedItems": 1,
+    "wrongCollection": 12,
+    "assets": 1,
+    "sales": 1,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-30T10:02:33.686Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:b621c07fa5bcafbf39d1ccd29caf9216cc4073af5b662fb403e9707364ee8df0",
+      "normalizedName": "notafiscaleletronica",
+      "displayName": "@notafiscaleletronica",
+      "primaryRoute": "residual",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "20L",
+      "feature": {
+        "characterLength": 20,
+        "characterClass": "letters",
+        "routes": [
+          "residual"
+        ],
+        "patternSignature": "ABCDEFGHDIJIJCKBAFHD",
+        "uniqueCharacterCount": 11,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-28T06:45:09.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:54a998ea7de83b498e969fb883da710ad76979143283d3a600ba9096d5c7d23b",
+      "assetKind": "username",
+      "assetKey": "0:b621c07fa5bcafbf39d1ccd29caf9216cc4073af5b662fb403e9707364ee8df0",
+      "normalizedName": "notafiscaleletronica",
+      "soldAt": "2026-09-28T06:45:09.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.5969242819294127,
+      "priceUsd": 15.969242819294127,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "vYio9u56ndtlzL94E4jUolJUzqQmnVvQI8TWQR50wY4=",
+        "messageHash": "9Qck1Tzg0dhII8zdO8eWulJT+WyTcXKHW7nRLnUhAtU=",
+        "bidAt": "2026-09-21T06:44:52.000Z"
+      },
+      "primaryRoute": "residual",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "20L"
+    }
+  ]
+}

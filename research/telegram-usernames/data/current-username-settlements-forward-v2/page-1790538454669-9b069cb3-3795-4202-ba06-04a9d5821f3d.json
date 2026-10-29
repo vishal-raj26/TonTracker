@@ -1,0 +1,176 @@
+{
+  "schemaVersion": "username-forward-v2-local-v1",
+  "from": "2026-09-27T00:00:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "requestedEndUtime": 1790537700,
+  "collectedAt": "2026-09-27T19:47:34.669Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 4431,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 80,
+    "candidates": 14,
+    "verifiedItems": 3,
+    "wrongCollection": 11,
+    "assets": 3,
+    "sales": 3,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-27T19:47:34.669Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:9ba85b39830e5c8eb3894abe4243f7bc0cb800a6e896f839c7be12532ca3b87e",
+      "normalizedName": "semka_vip",
+      "displayName": "@semka_vip",
+      "primaryRoute": "residual",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "9M",
+      "feature": {
+        "characterLength": 9,
+        "characterClass": "alphanumeric",
+        "routes": [
+          "residual"
+        ],
+        "patternSignature": "ABCDEFGHI",
+        "uniqueCharacterCount": 9,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": true,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-27T08:21:51.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:213ab3b35ff48674766c959bb8f665b269ec3f0f70f6e0c26c4d7402faae00da",
+      "normalizedName": "quale",
+      "displayName": "@quale",
+      "primaryRoute": "word",
+      "lengthBucket": "4-5",
+      "script": "Latin",
+      "scarcityClass": "5L",
+      "feature": {
+        "characterLength": 5,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCDE",
+        "uniqueCharacterCount": 5,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-27T08:22:14.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:f5bee07dfa948803b2933a91d36d5b07e9199b19e07e42047069a5130a456b73",
+      "normalizedName": "cxioo",
+      "displayName": "@cxioo",
+      "primaryRoute": "pattern",
+      "lengthBucket": "4-5",
+      "script": "Latin",
+      "scarcityClass": "5L",
+      "feature": {
+        "characterLength": 5,
+        "characterClass": "letters",
+        "routes": [
+          "pattern"
+        ],
+        "patternSignature": "ABCDD",
+        "uniqueCharacterCount": 4,
+        "maxRunLength": 2,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-27T08:25:05.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:13692132d95f58c2f7f51f939fa2f531dee9b74431caa058cd88370ac2541352",
+      "assetKind": "username",
+      "assetKey": "0:9ba85b39830e5c8eb3894abe4243f7bc0cb800a6e896f839c7be12532ca3b87e",
+      "normalizedName": "semka_vip",
+      "soldAt": "2026-09-27T08:21:51.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.5984180751975352,
+      "priceUsd": 15.984180751975352,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "TSYiMU/S+jgMvh4soAhb2Ryy8C2Dtzjlk+Y5Eb/WgUU=",
+        "messageHash": "WMqff36EBih7ue1r13sA82ApsGw2TIPO+dFj465MsEY=",
+        "bidAt": "2026-09-20T08:21:31.000Z"
+      },
+      "primaryRoute": "residual",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "9M"
+    },
+    {
+      "saleId": "toncenter-username-sale:356d6e929562d7ff1ffec2860345241bb004ad46807a15e01b60ad359b3fd924",
+      "assetKind": "username",
+      "assetKey": "0:213ab3b35ff48674766c959bb8f665b269ec3f0f70f6e0c26c4d7402faae00da",
+      "normalizedName": "quale",
+      "soldAt": "2026-09-27T08:22:14.000Z",
+      "priceGram": 50,
+      "historicalUsdRate": 1.5984110252502344,
+      "priceUsd": 79.92055126251172,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "yDM1z8S/ENeFMeAAuYL6N2+eG9kqkn68fyZ+7ZOLemw=",
+        "messageHash": "dh4tN8k3C8e+bopfwA17Tcu2n9zp6JnMzaNEraUeIqE=",
+        "bidAt": "2026-09-27T07:21:57.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "4-5",
+      "script": "Latin",
+      "scarcityClass": "5L"
+    },
+    {
+      "saleId": "toncenter-username-sale:b0507e7d5de15e1cceef7d3209fd69cd66b0e1de41b7e5cf20e95b262db5ce85",
+      "assetKind": "username",
+      "assetKey": "0:f5bee07dfa948803b2933a91d36d5b07e9199b19e07e42047069a5130a456b73",
+      "normalizedName": "cxioo",
+      "soldAt": "2026-09-27T08:25:05.000Z",
+      "priceGram": 7,
+      "historicalUsdRate": 1.59835861042465,
+      "priceUsd": 11.18851027297255,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "+7hOyvtpk1yZw7jKmnlhdE8E4rVh/bMpfnU/3ks9X2w=",
+        "messageHash": "Ze/OnRwZgRlMHZ5bw8s2rR10JBNJIogS5QZVpOj/KZk=",
+        "bidAt": "2026-09-27T08:25:05.000Z"
+      },
+      "primaryRoute": "pattern",
+      "lengthBucket": "4-5",
+      "script": "Latin",
+      "scarcityClass": "5L"
+    }
+  ]
+}

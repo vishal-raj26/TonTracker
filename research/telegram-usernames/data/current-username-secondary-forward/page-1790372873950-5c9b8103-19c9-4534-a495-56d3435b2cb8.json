@@ -1,0 +1,91 @@
+{
+  "schemaVersion": "username-secondary-local-v1",
+  "from": "2026-09-20T14:00:00Z",
+  "pipeline": "username-toncenter-secondary-sales-v1",
+  "collectedAt": "2026-09-25T21:47:53.950Z",
+  "cursor": {
+    "absoluteOffset": 29232,
+    "caughtUp": false
+  },
+  "metadata": {
+    "transfers": 100,
+    "saleContracts": 1,
+    "verifiedSales": 1,
+    "assets": 1,
+    "sales": 1,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-25T21:47:53.950Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:a7aa7de28003f8da4ccc5cefff7d8bb36e589aef37a0dcb4369bcf160446299c",
+      "normalizedName": "work_pavel_durov",
+      "displayName": "@work_pavel_durov",
+      "primaryRoute": "residual",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "16M",
+      "feature": {
+        "classifierVersion": "username-structural-v2",
+        "normalizedUsername": "work_pavel_durov",
+        "displayUsername": "@work_pavel_durov",
+        "characterLength": 16,
+        "byteLength": 16,
+        "characterClass": "alphanumeric",
+        "primaryRoute": "residual",
+        "routes": [
+          "residual"
+        ],
+        "scarcityClass": "16M",
+        "patternSignature": "ABCDEFGHIJEKLCBH",
+        "shapeSignature": "LLLL_LLLLL_LLLLL",
+        "uniqueCharacterCount": 12,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "repeatedBlock": null,
+        "scripts": [
+          "Latin"
+        ],
+        "primaryScript": "Latin",
+        "containsUnderscore": true,
+        "underscoreCount": 2,
+        "digitCount": 0,
+        "digitRatio": 0,
+        "vowelRatio": 0.35714285714285715,
+        "pronounceability": "not-applicable",
+        "leadingZero": false,
+        "roundNumber": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-25T18:45:12.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-secondary:6cb0d9cc537fa06d45152dbdd67815e2f20343e7447007240f8c76d4bee0cbc4",
+      "assetKind": "username",
+      "assetKey": "0:a7aa7de28003f8da4ccc5cefff7d8bb36e589aef37a0dcb4369bcf160446299c",
+      "normalizedName": "work_pavel_durov",
+      "soldAt": "2026-09-25T18:45:12.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.4307716761729061,
+      "priceUsd": 14.307716761729061,
+      "marketplace": "Getgems",
+      "source": "toncenter-indexed-secondary-sale",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-completed-sale-contract",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "transactionHash": "IfVqDzJafyvcBO2IwEkbIV1WI0Yi6cnZp3zlZbQfrbI=",
+        "saleContract": "0:9acca88696415e2cd66adcb3954aabad571af10b88119f70c2c0b5fa358fc07e"
+      },
+      "primaryRoute": "residual",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "16M"
+    }
+  ]
+}

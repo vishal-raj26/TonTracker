@@ -1,0 +1,125 @@
+{
+  "schemaVersion": "username-local-collection-v1",
+  "from": "2026-09-20T13:45:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "collectedAt": "2026-09-22T12:58:29.673Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 21289,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 80,
+    "candidates": 8,
+    "verifiedItems": 2,
+    "wrongCollection": 6,
+    "assets": 2,
+    "sales": 2,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-22T12:58:29.673Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:0cf83600c299b58eea01b3f312a7cabdd05a44cc4ac7db1f178b7bf2429286a4",
+      "normalizedName": "games_bzr",
+      "displayName": "@games_bzr",
+      "primaryRoute": "residual",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "9M",
+      "feature": {
+        "characterLength": 9,
+        "characterClass": "alphanumeric",
+        "routes": [
+          "residual"
+        ],
+        "patternSignature": "ABCDEFGHI",
+        "uniqueCharacterCount": 9,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": true,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-21T13:58:14.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:8fd30c91f8da02df737b826e2b72daae0df24eac999c129f0b6a40df1f00fb08",
+      "normalizedName": "girlx_paid",
+      "displayName": "@girlx_paid",
+      "primaryRoute": "residual",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "10M",
+      "feature": {
+        "characterLength": 10,
+        "characterClass": "alphanumeric",
+        "routes": [
+          "residual"
+        ],
+        "patternSignature": "ABCDEFGHBI",
+        "uniqueCharacterCount": 9,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": true,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-21T13:59:14.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:41fb34ca5df5cf84fbb81cf28709f794764bdaf60654ac705dab8af6476f8bbb",
+      "assetKind": "username",
+      "assetKey": "0:0cf83600c299b58eea01b3f312a7cabdd05a44cc4ac7db1f178b7bf2429286a4",
+      "normalizedName": "games_bzr",
+      "soldAt": "2026-09-21T13:58:14.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.4286030758107517,
+      "priceUsd": 14.286030758107518,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "3a5z32ehiyZiWdZCmukO6SbCvzhh/QBq0mEZriNTiBU=",
+        "messageHash": "2SUIrg0dyfP6f0CS0ZeGczT9vFjfhCHxxWET4UU32Yc=",
+        "bidAt": "2026-09-14T13:57:56.000Z"
+      },
+      "primaryRoute": "residual",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "9M"
+    },
+    {
+      "saleId": "toncenter-username-sale:a4470a51e6fea7cad6cba5bd4b3c5d929f04b5c54261df962daeb9556a082d13",
+      "assetKind": "username",
+      "assetKey": "0:8fd30c91f8da02df737b826e2b72daae0df24eac999c129f0b6a40df1f00fb08",
+      "normalizedName": "girlx_paid",
+      "soldAt": "2026-09-21T13:59:14.000Z",
+      "priceGram": 53,
+      "historicalUsdRate": 1.428663704611669,
+      "priceUsd": 75.71917634441846,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "xwTk6i7OwI4BgvqQV0eu2MX/ysNDGSA4RxixTNQ7R0w=",
+        "messageHash": "t83iQGgcfePV5TMU/sBIp70PL6M+DoivS3JvEvE1lpo=",
+        "bidAt": "2026-09-21T12:58:54.000Z"
+      },
+      "primaryRoute": "residual",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "10M"
+    }
+  ]
+}

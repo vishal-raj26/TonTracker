@@ -1,0 +1,176 @@
+{
+  "schemaVersion": "username-forward-v2-local-v1",
+  "from": "2026-09-27T00:00:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "requestedEndUtime": 1790761800,
+  "collectedAt": "2026-09-30T10:00:39.092Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 19965,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 80,
+    "candidates": 12,
+    "verifiedItems": 3,
+    "wrongCollection": 9,
+    "assets": 3,
+    "sales": 3,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-30T10:00:39.092Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:bd8fdff6fe2d1e7ecd567dc29d570a14d3c6620a5877044341b09b0ad675b853",
+      "normalizedName": "anastomosis",
+      "displayName": "@anastomosis",
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "11L",
+      "feature": {
+        "characterLength": 11,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABACDEFECGC",
+        "uniqueCharacterCount": 7,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-28T03:00:29.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:55a038e9935015728f8d6c14ad5c738a2950c04da0223824c9d10f2095d5ff2d",
+      "normalizedName": "yucatancar",
+      "displayName": "@yucatancar",
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "10L",
+      "feature": {
+        "characterLength": 10,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCDEDFCDG",
+        "uniqueCharacterCount": 7,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-28T03:01:08.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:30c110081663426886063e31a5e2924d59fd8a48147a51b822dbde77801ddec8",
+      "normalizedName": "cubanewsua",
+      "displayName": "@cubanewsua",
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "10L",
+      "feature": {
+        "characterLength": 10,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCDEFGHBD",
+        "uniqueCharacterCount": 8,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-28T03:05:05.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:24a0a7af08c2aa27fa3589810c00d76b9794d852efb77017ccae1f7a4a093ebb",
+      "assetKind": "username",
+      "assetKey": "0:bd8fdff6fe2d1e7ecd567dc29d570a14d3c6620a5877044341b09b0ad675b853",
+      "normalizedName": "anastomosis",
+      "soldAt": "2026-09-28T03:00:29.000Z",
+      "priceGram": 5.01,
+      "historicalUsdRate": 1.6080610139891864,
+      "priceUsd": 8.056385680085823,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "v91lPPEPpqGqyU5JyP3D8UuIuMCFreVLs4TKRlEK4yo=",
+        "messageHash": "40+D9PuVRhH+hmaQAQ5Y9C00C6qQ96/730quUR3gbVs=",
+        "bidAt": "2026-08-22T16:17:04.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "11L"
+    },
+    {
+      "saleId": "toncenter-username-sale:28ab4a4a4a0f60eb21451c3f6d304a50dfe9a621799a20347fe0c49f2e85b7ea",
+      "assetKind": "username",
+      "assetKey": "0:55a038e9935015728f8d6c14ad5c738a2950c04da0223824c9d10f2095d5ff2d",
+      "normalizedName": "yucatancar",
+      "soldAt": "2026-09-28T03:01:08.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.608072327480066,
+      "priceUsd": 16.080723274800658,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "vX7cakKYhJeilI+PXda9FFmL+6UivvAxHH9VHCNH1V8=",
+        "messageHash": "XKsKQdXk+8bRjF/J/dflHjrFZHY1cHzrOhnsGpe6pCA=",
+        "bidAt": "2026-09-21T03:00:39.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "10L"
+    },
+    {
+      "saleId": "toncenter-username-sale:04a31778314159a5768c51b26ef3c354888cce736c10094f522322ffe37a639e",
+      "assetKind": "username",
+      "assetKey": "0:30c110081663426886063e31a5e2924d59fd8a48147a51b822dbde77801ddec8",
+      "normalizedName": "cubanewsua",
+      "soldAt": "2026-09-28T03:05:05.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.608272248685036,
+      "priceUsd": 16.08272248685036,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "59nw2447FXc0zWQHnnOGWmpP1WXAerxNSw9q/DglwBM=",
+        "messageHash": "Kj7yDSNdr+cHjP6M+h+URJVvZprOyviLO4nXJcI2tXw=",
+        "bidAt": "2026-09-21T03:02:18.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "10L"
+    }
+  ]
+}

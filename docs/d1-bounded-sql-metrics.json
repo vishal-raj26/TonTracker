@@ -1,0 +1,280 @@
+{
+  "smallCorpus": 10000,
+  "largeCorpus": 200000,
+  "queries": [
+    {
+      "kind": "identity",
+      "query": "UPDATE bounded_maintenance_state SET",
+      "smallSteps": 11500,
+      "largeSteps": 11500,
+      "plan": [
+        "SEARCH bounded_maintenance_state USING INDEX sqlite_autoindex_bounded_maintenance_state_1 (job_key=?)",
+        "CORRELATED SCALAR SUBQUERY 6",
+        "CO-ROUTINE (subquery-5)",
+        "SEARCH identity_assets USING INTEGER PRIMARY KEY (rowid>?)",
+        "SEARCH (subquery-5)",
+        "CORRELATED SCALAR SUBQUERY 2",
+        "CO-ROUTINE (subquery-1)",
+        "SEARCH identity_assets USING INTEGER PRIMARY KEY (rowid>?)",
+        "SCAN (subquery-1)",
+        "CORRELATED SCALAR SUBQUERY 4",
+        "CO-ROUTINE (subquery-3)",
+        "SEARCH identity_assets USING INTEGER PRIMARY KEY (rowid>?)",
+        "SCAN (subquery-3)"
+      ]
+    },
+    {
+      "kind": "identity",
+      "query": "UPDATE bounded_maintenance_state SET",
+      "smallSteps": 11500,
+      "largeSteps": 11500,
+      "plan": [
+        "SEARCH bounded_maintenance_state USING INDEX sqlite_autoindex_bounded_maintenance_state_1 (job_key=?)",
+        "CORRELATED SCALAR SUBQUERY 6",
+        "CO-ROUTINE (subquery-5)",
+        "SEARCH identity_sales USING INTEGER PRIMARY KEY (rowid>?)",
+        "SEARCH (subquery-5)",
+        "CORRELATED SCALAR SUBQUERY 2",
+        "CO-ROUTINE (subquery-1)",
+        "SEARCH identity_sales USING INTEGER PRIMARY KEY (rowid>?)",
+        "SCAN (subquery-1)",
+        "CORRELATED SCALAR SUBQUERY 4",
+        "CO-ROUTINE (subquery-3)",
+        "SEARCH identity_sales USING INTEGER PRIMARY KEY (rowid>?)",
+        "SCAN (subquery-3)"
+      ]
+    },
+    {
+      "kind": "identity",
+      "query": "SELECT rowid AS source_rowid,sale_id,normalized_name,price_usd,sold_at,reliability_score,primary_route,length_bucket,script,scarcity_class",
+      "smallSteps": 12500,
+      "largeSteps": 12500,
+      "plan": [
+        "SEARCH identity_sales USING INDEX identity_sales_kind_time_bounded_idx (asset_kind=? AND (sold_at,sale_id)>(?,?) AND (sold_at,sale_id)<(?,?))"
+      ]
+    },
+    {
+      "kind": "identity",
+      "query": "SELECT rowid AS source_rowid,sale_id,normalized_name,price_usd,sold_at,reliability_score,primary_route,length_bucket,script,scarcity_class",
+      "smallSteps": 13500,
+      "largeSteps": 13500,
+      "plan": [
+        "SEARCH identity_sales USING INDEX identity_sales_kind_price_bounded_idx (asset_kind=? AND (price_usd,sale_id)>(?,?) AND (price_usd,sale_id)<(?,?))"
+      ]
+    },
+    {
+      "kind": "identity",
+      "query": "SELECT normalized_name,semantic_json FROM identity_assets",
+      "smallSteps": 1700,
+      "largeSteps": 1700,
+      "plan": [
+        "SEARCH identity_assets USING INDEX identity_assets_name_idx (asset_kind=? AND normalized_name=?)"
+      ]
+    },
+    {
+      "kind": "identity",
+      "query": "SELECT normalized_name,semantic_json FROM identity_assets",
+      "smallSteps": 900,
+      "largeSteps": 900,
+      "plan": [
+        "SEARCH identity_assets USING INDEX identity_assets_name_idx (asset_kind=? AND normalized_name=?)"
+      ]
+    },
+    {
+      "kind": "compact",
+      "query": "UPDATE bounded_maintenance_state SET",
+      "smallSteps": 11500,
+      "largeSteps": 11500,
+      "plan": [
+        "SEARCH bounded_maintenance_state USING INDEX sqlite_autoindex_bounded_maintenance_state_1 (job_key=?)",
+        "CORRELATED SCALAR SUBQUERY 6",
+        "CO-ROUTINE (subquery-5)",
+        "SEARCH gift_sale_events USING PRIMARY KEY (sale_id>?)",
+        "SEARCH (subquery-5)",
+        "CORRELATED SCALAR SUBQUERY 2",
+        "CO-ROUTINE (subquery-1)",
+        "SEARCH gift_sale_events USING PRIMARY KEY (sale_id>?)",
+        "SCAN (subquery-1)",
+        "CORRELATED SCALAR SUBQUERY 4",
+        "CO-ROUTINE (subquery-3)",
+        "SEARCH gift_sale_events USING PRIMARY KEY (sale_id>?)",
+        "SCAN (subquery-3)"
+      ]
+    },
+    {
+      "kind": "compact",
+      "query": "UPDATE bounded_maintenance_state SET",
+      "smallSteps": 100,
+      "largeSteps": 100,
+      "plan": [
+        "SEARCH bounded_maintenance_state USING INDEX sqlite_autoindex_bounded_maintenance_state_1 (job_key=?)",
+        "CORRELATED SCALAR SUBQUERY 6",
+        "CO-ROUTINE (subquery-5)",
+        "SEARCH gift_sale_combos USING INTEGER PRIMARY KEY (rowid>?)",
+        "SEARCH (subquery-5)",
+        "CORRELATED SCALAR SUBQUERY 2",
+        "CO-ROUTINE (subquery-1)",
+        "SEARCH gift_sale_combos USING INTEGER PRIMARY KEY (rowid>?)",
+        "SCAN (subquery-1)",
+        "CORRELATED SCALAR SUBQUERY 4",
+        "CO-ROUTINE (subquery-3)",
+        "SEARCH gift_sale_combos USING INTEGER PRIMARY KEY (rowid>?)",
+        "SCAN (subquery-3)"
+      ]
+    },
+    {
+      "kind": "compact",
+      "query": "SELECT sale_id,combo_id,sold_at FROM gift_sale_events INDEXED BY gift_sale_events_time_bounded_idx",
+      "smallSteps": 6000,
+      "largeSteps": 6000,
+      "plan": [
+        "SEARCH gift_sale_events USING INDEX gift_sale_events_time_bounded_idx ((sold_at,sale_id)>(?,?))"
+      ]
+    },
+    {
+      "kind": "compact",
+      "query": "DELETE FROM gift_sale_events WHERE sale_id IN (",
+      "smallSteps": 0,
+      "largeSteps": 8100,
+      "plan": [
+        "SEARCH gift_sale_events USING PRIMARY KEY (sale_id=?)",
+        "LIST SUBQUERY 4",
+        "SCALAR SUBQUERY 3",
+        "SEARCH bounded_maintenance_state USING INDEX sqlite_autoindex_bounded_maintenance_state_1 (job_key=?)",
+        "SEARCH candidate USING PRIMARY KEY (sale_id=?)",
+        "CORRELATED SCALAR SUBQUERY 1",
+        "SEARCH newer USING COVERING INDEX gift_sale_events_combo_bounded_idx (combo_id=? AND sold_at=? AND sale_id>?)",
+        "CORRELATED SCALAR SUBQUERY 2",
+        "SEARCH newer USING COVERING INDEX gift_sale_events_combo_bounded_idx (combo_id=? AND sold_at>?)"
+      ]
+    },
+    {
+      "kind": "compact",
+      "query": "DELETE FROM gift_sale_events WHERE sale_id IN (",
+      "smallSteps": 0,
+      "largeSteps": 4600,
+      "plan": [
+        "SEARCH gift_sale_events USING PRIMARY KEY (sale_id=?)",
+        "LIST SUBQUERY 4",
+        "SCALAR SUBQUERY 3",
+        "SEARCH bounded_maintenance_state USING INDEX sqlite_autoindex_bounded_maintenance_state_1 (job_key=?)",
+        "SEARCH candidate USING PRIMARY KEY (sale_id=?)",
+        "CORRELATED SCALAR SUBQUERY 1",
+        "SEARCH newer USING COVERING INDEX gift_sale_events_combo_bounded_idx (combo_id=? AND sold_at=? AND sale_id>?)",
+        "CORRELATED SCALAR SUBQUERY 2",
+        "SEARCH newer USING COVERING INDEX gift_sale_events_combo_bounded_idx (combo_id=? AND sold_at>?)"
+      ]
+    },
+    {
+      "kind": "compact",
+      "query": "SELECT combo_id FROM gift_sale_combos WHERE combo_id>?1 ORDER BY combo_id LIMIT 500",
+      "smallSteps": 0,
+      "largeSteps": 0,
+      "plan": [
+        "SEARCH gift_sale_combos USING INTEGER PRIMARY KEY (rowid>?)"
+      ]
+    },
+    {
+      "kind": "compact",
+      "query": "DELETE FROM gift_sale_combos WHERE combo_id IN (?,?) AND NOT EXISTS",
+      "smallSteps": 0,
+      "largeSteps": 0,
+      "plan": [
+        "SEARCH gift_sale_combos USING INTEGER PRIMARY KEY (rowid=?)",
+        "CORRELATED SCALAR SUBQUERY 1",
+        "SEARCH gift_sale_events USING COVERING INDEX gift_sale_events_combo_bounded_idx (combo_id=?)"
+      ]
+    },
+    {
+      "kind": "compact",
+      "query": "DELETE FROM gift_sale_events",
+      "smallSteps": 33500,
+      "largeSteps": 33500,
+      "plan": [
+        "SEARCH gift_sale_events USING PRIMARY KEY (sale_id=?)",
+        "LIST SUBQUERY 2",
+        "SEARCH gift_sale_events USING COVERING INDEX gift_sale_events_combo_bounded_idx (combo_id=?)",
+        "SCALAR SUBQUERY 1",
+        "SEARCH gift_sale_combos USING COVERING INDEX gift_sale_combos_identity_bounded_idx (collection_key=? AND model_key=? AND backdrop_key=?)"
+      ]
+    },
+    {
+      "kind": "legacy",
+      "query": "SELECT sale_id,collection_key,model_key,backdrop_key,sold_at FROM gift_sales INDEXED BY gift_sales_time_bounded_idx",
+      "smallSteps": 7500,
+      "largeSteps": 7500,
+      "plan": [
+        "SEARCH gift_sales USING INDEX gift_sales_time_bounded_idx ((sold_at,sale_id)>(?,?) AND sold_at<?)"
+      ]
+    },
+    {
+      "kind": "legacy",
+      "query": "DELETE FROM gift_sales WHERE sale_id IN (",
+      "smallSteps": 17800,
+      "largeSteps": 17800,
+      "plan": [
+        "SEARCH gift_sales USING PRIMARY KEY (sale_id=?)",
+        "LIST SUBQUERY 6",
+        "SEARCH candidate USING PRIMARY KEY (sale_id=?)",
+        "CORRELATED SCALAR SUBQUERY 5",
+        "CO-ROUTINE (subquery-4)",
+        "COMPOUND QUERY",
+        "LEFT-MOST SUBQUERY",
+        "CO-ROUTINE (subquery-1)",
+        "SEARCH gift_sales USING COVERING INDEX gift_sales_exact_bounded_idx (collection_key=? AND model_key=? AND backdrop_key=? AND sold_at=? AND sale_id>?)",
+        "SCAN (subquery-1)",
+        "UNION ALL",
+        "CO-ROUTINE (subquery-3)",
+        "SEARCH gift_sales USING COVERING INDEX gift_sales_exact_bounded_idx (collection_key=? AND model_key=? AND backdrop_key=? AND sold_at>?)",
+        "SCAN (subquery-3)",
+        "SCAN (subquery-4)"
+      ]
+    },
+    {
+      "kind": "legacy",
+      "query": "DELETE FROM gift_sales WHERE sale_id IN (",
+      "smallSteps": 9900,
+      "largeSteps": 9900,
+      "plan": [
+        "SEARCH gift_sales USING PRIMARY KEY (sale_id=?)",
+        "LIST SUBQUERY 6",
+        "SEARCH candidate USING PRIMARY KEY (sale_id=?)",
+        "CORRELATED SCALAR SUBQUERY 5",
+        "CO-ROUTINE (subquery-4)",
+        "COMPOUND QUERY",
+        "LEFT-MOST SUBQUERY",
+        "CO-ROUTINE (subquery-1)",
+        "SEARCH gift_sales USING COVERING INDEX gift_sales_exact_bounded_idx (collection_key=? AND model_key=? AND backdrop_key=? AND sold_at=? AND sale_id>?)",
+        "SCAN (subquery-1)",
+        "UNION ALL",
+        "CO-ROUTINE (subquery-3)",
+        "SEARCH gift_sales USING COVERING INDEX gift_sales_exact_bounded_idx (collection_key=? AND model_key=? AND backdrop_key=? AND sold_at>?)",
+        "SCAN (subquery-3)",
+        "SCAN (subquery-4)"
+      ]
+    },
+    {
+      "kind": "legacy",
+      "query": "DELETE FROM gift_sales WHERE sale_id IN (",
+      "smallSteps": 3900,
+      "largeSteps": 3900,
+      "plan": [
+        "SEARCH gift_sales USING PRIMARY KEY (sale_id=?)",
+        "LIST SUBQUERY 6",
+        "SEARCH candidate USING PRIMARY KEY (sale_id=?)",
+        "CORRELATED SCALAR SUBQUERY 5",
+        "CO-ROUTINE (subquery-4)",
+        "COMPOUND QUERY",
+        "LEFT-MOST SUBQUERY",
+        "CO-ROUTINE (subquery-1)",
+        "SEARCH gift_sales USING COVERING INDEX gift_sales_exact_bounded_idx (collection_key=? AND model_key=? AND backdrop_key=? AND sold_at=? AND sale_id>?)",
+        "SCAN (subquery-1)",
+        "UNION ALL",
+        "CO-ROUTINE (subquery-3)",
+        "SEARCH gift_sales USING COVERING INDEX gift_sales_exact_bounded_idx (collection_key=? AND model_key=? AND backdrop_key=? AND sold_at>?)",
+        "SCAN (subquery-3)",
+        "SCAN (subquery-4)"
+      ]
+    }
+  ]
+}

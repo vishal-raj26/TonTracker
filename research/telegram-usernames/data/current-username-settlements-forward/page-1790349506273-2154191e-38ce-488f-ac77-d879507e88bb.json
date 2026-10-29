@@ -1,0 +1,175 @@
+{
+  "schemaVersion": "username-local-collection-v1",
+  "from": "2026-09-20T13:45:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "collectedAt": "2026-09-25T15:18:26.273Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 57545,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 80,
+    "candidates": 12,
+    "verifiedItems": 3,
+    "wrongCollection": 9,
+    "assets": 3,
+    "sales": 3,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-25T15:18:26.273Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:261dfcbb77e52c7796fc7f3cc30333c6ea6c49b19b6c9b99c85271d5b128cae8",
+      "normalizedName": "mysurge",
+      "displayName": "@mysurge",
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "7L",
+      "feature": {
+        "characterLength": 7,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCDEFG",
+        "uniqueCharacterCount": 7,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-23T10:09:48.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:78e7823da567cf029ef1d06fdb0e8ed901a02cf4610c596a8bbf73b3ea955a2b",
+      "normalizedName": "tt00u",
+      "displayName": "@tt00u",
+      "primaryRoute": "pattern",
+      "lengthBucket": "4-5",
+      "script": "Latin",
+      "scarcityClass": "5M",
+      "feature": {
+        "characterLength": 5,
+        "characterClass": "alphanumeric",
+        "routes": [
+          "pattern"
+        ],
+        "patternSignature": "AABBC",
+        "uniqueCharacterCount": 3,
+        "maxRunLength": 2,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-23T10:14:50.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:7092d3e16a8b3964c4985d008e5903633b8789e1a0ba92c166b861ef4fcd6528",
+      "normalizedName": "sherwin",
+      "displayName": "@sherwin",
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "7L",
+      "feature": {
+        "characterLength": 7,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCDEFG",
+        "uniqueCharacterCount": 7,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-23T10:15:11.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:b5c7d5fa6ee88b597f8bc27a814fc4620b22c4956674a06281be81bdb9b5c3df",
+      "assetKind": "username",
+      "assetKey": "0:261dfcbb77e52c7796fc7f3cc30333c6ea6c49b19b6c9b99c85271d5b128cae8",
+      "normalizedName": "mysurge",
+      "soldAt": "2026-09-23T10:09:48.000Z",
+      "priceGram": 30,
+      "historicalUsdRate": 1.4500418433872917,
+      "priceUsd": 43.50125530161875,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "ZE4vA+MlCVEFCtXsFFcjiybhnyQcyyhEUhjMSoWkjwA=",
+        "messageHash": "fdzBwXXapJxgih0juy+lbCRAcfu0cDWY20skLxlbEwg=",
+        "bidAt": "2026-09-16T10:09:30.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "7L"
+    },
+    {
+      "saleId": "toncenter-username-sale:c58416ede28e57327e008b9df4b56d5a684892a336b1c0a5a3d9abe124a6c2fd",
+      "assetKind": "username",
+      "assetKey": "0:78e7823da567cf029ef1d06fdb0e8ed901a02cf4610c596a8bbf73b3ea955a2b",
+      "normalizedName": "tt00u",
+      "soldAt": "2026-09-23T10:14:50.000Z",
+      "priceGram": 12,
+      "historicalUsdRate": 1.4498446431428214,
+      "priceUsd": 17.398135717713856,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "sDLjvrdC7fi8mTy7iiaJyxRxXxBusSIM6c6KtapffvQ=",
+        "messageHash": "/U5e92WgZMPTzrOUQPnJ9n+OPNZtZ/gp/q+UWHjTKK0=",
+        "bidAt": "2026-09-23T10:14:50.000Z"
+      },
+      "primaryRoute": "pattern",
+      "lengthBucket": "4-5",
+      "script": "Latin",
+      "scarcityClass": "5M"
+    },
+    {
+      "saleId": "toncenter-username-sale:3c69dcb7099cc53be5e45badcd1eff09ac5280dac22c04d3ffc25c6047771050",
+      "assetKind": "username",
+      "assetKey": "0:7092d3e16a8b3964c4985d008e5903633b8789e1a0ba92c166b861ef4fcd6528",
+      "normalizedName": "sherwin",
+      "soldAt": "2026-09-23T10:15:11.000Z",
+      "priceGram": 50,
+      "historicalUsdRate": 1.4498309305430401,
+      "priceUsd": 72.49154652715201,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "KiAt7Pvt4++xYO3Ivc/e13gcD7y+qYpcQT5efUPvIQk=",
+        "messageHash": "nfZEJ7F4nlekV4bTtE+1OGbG4PKVtDCSNm5L9iesWJk=",
+        "bidAt": "2026-09-16T10:14:53.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "7L"
+    }
+  ]
+}

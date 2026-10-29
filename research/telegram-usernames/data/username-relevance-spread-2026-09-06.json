@@ -1,0 +1,758 @@
+{
+  "source": "local partial Dune export joined to TON API collection inventory",
+  "sales": 340000,
+  "estimatorVersion": "username-market-v23",
+  "calibrationVersion": "username-calibration-v4",
+  "modelVersions": [
+    "username-learned-ridge-v14"
+  ],
+  "rejected": 0,
+  "evaluationStride": 50,
+  "maxHistory": 1500,
+  "historicalRetrieval": true,
+  "comparableSelection": "relevance-first",
+  "firstSale": "2022-11-02T17:13:50.000Z",
+  "lastSale": "2025-07-20T18:21:58.000Z",
+  "limitations": [
+    "Partial historical export; not representative of today's market",
+    "No point-in-time semantic snapshots; external semantics excluded",
+    "Historical USD labels inherited from research export; no current FX substitution"
+  ],
+  "attempted": 200,
+  "evaluated": 200,
+  "abstained": 0,
+  "medianFactorError": 1.1779649316581524,
+  "coverage": 0.89,
+  "meanAbsoluteLogError": 0.41914055445725923,
+  "medianRelativeError": 0.1769510968234329,
+  "byRoute": {
+    "pattern": {
+      "samples": 62,
+      "medianFactorError": 1.176951096823433,
+      "medianPredictionRatio": 1.0577283142389524,
+      "coverage": 0.9032258064516129,
+      "meanAbsoluteLogError": 0.4284075329508356,
+      "medianRelativeError": 0.1769510968234329
+    },
+    "residual": {
+      "samples": 31,
+      "medianFactorError": 1.1779649316581524,
+      "medianPredictionRatio": 0.9673856625351761,
+      "coverage": 0.8064516129032258,
+      "meanAbsoluteLogError": 0.4882595877372706,
+      "medianRelativeError": 0.17796493165815241
+    },
+    "word": {
+      "samples": 92,
+      "medianFactorError": 1.1769102895787944,
+      "medianPredictionRatio": 1.0859941234084232,
+      "coverage": 0.9130434782608695,
+      "meanAbsoluteLogError": 0.3837467917710998,
+      "medianRelativeError": 0.17544812689414613
+    },
+    "alphanumeric": {
+      "samples": 15,
+      "medianFactorError": 1.2024525830087183,
+      "medianPredictionRatio": 1.0534265257415616,
+      "coverage": 0.8666666666666667,
+      "meanAbsoluteLogError": 0.4550727857135646,
+      "medianRelativeError": 0.18408126355055465
+    }
+  },
+  "byConfidence": {
+    "low": {
+      "samples": 199,
+      "medianFactorError": 1.1779649316581524,
+      "medianPredictionRatio": 1.0568779079095139,
+      "coverage": 0.8894472361809045,
+      "meanAbsoluteLogError": 0.42081632265351493,
+      "medianRelativeError": 0.1769510968234329
+    },
+    "medium": {
+      "samples": 1,
+      "medianFactorError": 1.089438780535855,
+      "medianPredictionRatio": 0.9179038031931787,
+      "coverage": 1,
+      "meanAbsoluteLogError": 0.08566268340236935,
+      "medianRelativeError": 0.08209619680682134
+    },
+    "high": {
+      "samples": 0,
+      "medianFactorError": null,
+      "medianPredictionRatio": null,
+      "coverage": null,
+      "meanAbsoluteLogError": null,
+      "medianRelativeError": null
+    }
+  },
+  "byPriceBand": {
+    "under-25": {
+      "samples": 44,
+      "medianFactorError": 1.3134781826540605,
+      "medianPredictionRatio": 1.3034040256651143,
+      "coverage": 0.8636363636363636,
+      "meanAbsoluteLogError": 0.3193935701279351,
+      "medianRelativeError": 0.30340402566511426
+    },
+    "25-100": {
+      "samples": 131,
+      "medianFactorError": 1.117869404781004,
+      "medianPredictionRatio": 1.0577283142389524,
+      "coverage": 1,
+      "meanAbsoluteLogError": 0.20606824117829767,
+      "medianRelativeError": 0.11326501122646337
+    },
+    "100-500": {
+      "samples": 23,
+      "medianFactorError": 5.667485206211889,
+      "medianPredictionRatio": 0.17644510106597944,
+      "coverage": 0.34782608695652173,
+      "meanAbsoluteLogError": 1.7315837707875255,
+      "medianRelativeError": 0.8235548989340206
+    },
+    "500-plus": {
+      "samples": 2,
+      "medianFactorError": 13.38312311433149,
+      "medianPredictionRatio": 0.6980719933011771,
+      "coverage": 0.5,
+      "meanAbsoluteLogError": 1.4767137416763156,
+      "medianRelativeError": 0.9252790255714575
+    }
+  },
+  "bySemanticCategory": {
+    "commerce": {
+      "samples": 7,
+      "medianFactorError": 1.1141729504251563,
+      "medianPredictionRatio": 1.1141729504251563,
+      "coverage": 1,
+      "meanAbsoluteLogError": 0.13463368854437777,
+      "medianRelativeError": 0.1141729504251563
+    },
+    "community": {
+      "samples": 1,
+      "medianFactorError": 2.111693145822292,
+      "medianPredictionRatio": 2.111693145822292,
+      "coverage": 0,
+      "meanAbsoluteLogError": 0.7474900644844447,
+      "medianRelativeError": 1.1116931458222918
+    },
+    "ecosystem": {
+      "samples": 9,
+      "medianFactorError": 1.2657291103907797,
+      "medianPredictionRatio": 1.020902940770399,
+      "coverage": 0.7777777777777778,
+      "meanAbsoluteLogError": 0.32828450977399315,
+      "medianRelativeError": 0.2099415334681991
+    },
+    "finance": {
+      "samples": 8,
+      "medianFactorError": 1.3341541905694696,
+      "medianPredictionRatio": 1.1674665512201712,
+      "coverage": 0.625,
+      "meanAbsoluteLogError": 0.6859951643392015,
+      "medianRelativeError": 0.3341541905694696
+    },
+    "media": {
+      "samples": 2,
+      "medianFactorError": 10.184640522875817,
+      "medianPredictionRatio": 1.0775645450780065,
+      "coverage": 0.5,
+      "meanAbsoluteLogError": 1.1977920990614,
+      "medianRelativeError": 0.90181293117279
+    }
+  },
+  "preparedKnowledgeCoverage": {
+    "none": {
+      "samples": 200,
+      "medianFactorError": 1.1779649316581524,
+      "medianPredictionRatio": 1.0568779079095139,
+      "coverage": 0.89,
+      "meanAbsoluteLogError": 0.41914055445725923,
+      "medianRelativeError": 0.1769510968234329
+    },
+    "present": {
+      "samples": 0,
+      "medianFactorError": null,
+      "medianPredictionRatio": null,
+      "coverage": null,
+      "meanAbsoluteLogError": null,
+      "medianRelativeError": null
+    }
+  },
+  "byPreparedKnowledgeSignal": {},
+  "byOwnSaleHistory": {
+    "none": {
+      "samples": 141,
+      "medianFactorError": 1.150829456120648,
+      "medianPredictionRatio": 1.048214519293656,
+      "coverage": 0.9078014184397163,
+      "meanAbsoluteLogError": 0.42050376448370924,
+      "medianRelativeError": 0.13886351310635736
+    },
+    "one": {
+      "samples": 34,
+      "medianFactorError": 1.4325170033981849,
+      "medianPredictionRatio": 1.3134781826540605,
+      "coverage": 0.7941176470588235,
+      "meanAbsoluteLogError": 0.5005086206132463,
+      "medianRelativeError": 0.3618666298495099
+    },
+    "repeated": {
+      "samples": 25,
+      "medianFactorError": 1.1551026157337105,
+      "medianPredictionRatio": 0.930966339074742,
+      "coverage": 0.92,
+      "meanAbsoluteLogError": 0.3007914799359391,
+      "medianRelativeError": 0.15510261573371054
+    }
+  },
+  "byStructuralCohort": {
+    "alphanumeric|Latin|5": {
+      "samples": 8,
+      "medianFactorError": 1.1663866829566278,
+      "medianPredictionRatio": 1.0923744228347558,
+      "coverage": 1,
+      "meanAbsoluteLogError": 0.27658146769847614,
+      "medianRelativeError": 0.1426513911620294
+    },
+    "alphanumeric|Latin|6-8": {
+      "samples": 6,
+      "medianFactorError": 1.3341541905694696,
+      "medianPredictionRatio": 1.1840812635505547,
+      "coverage": 0.8333333333333334,
+      "meanAbsoluteLogError": 0.4090754855366107,
+      "medianRelativeError": 0.3341541905694696
+    },
+    "alphanumeric|Latin|9-12": {
+      "samples": 1,
+      "medianFactorError": 8.662359377407922,
+      "medianPredictionRatio": 0.1154419894662965,
+      "coverage": 0,
+      "meanAbsoluteLogError": 2.1589871308959943,
+      "medianRelativeError": 0.8845580105337035
+    },
+    "pattern|Latin|13+": {
+      "samples": 4,
+      "medianFactorError": 1.117972174762277,
+      "medianPredictionRatio": 1.1126491646778043,
+      "coverage": 1,
+      "meanAbsoluteLogError": 0.1388919248613955,
+      "medianRelativeError": 0.11264916467780428
+    },
+    "pattern|Latin|5": {
+      "samples": 15,
+      "medianFactorError": 1.398181519015447,
+      "medianPredictionRatio": 1.0442483555270334,
+      "coverage": 0.7333333333333333,
+      "meanAbsoluteLogError": 0.8416508697493866,
+      "medianRelativeError": 0.3618666298495099
+    },
+    "pattern|Latin|6-8": {
+      "samples": 26,
+      "medianFactorError": 1.212425790418335,
+      "medianPredictionRatio": 1.0577283142389524,
+      "coverage": 0.9615384615384616,
+      "meanAbsoluteLogError": 0.29772489458804874,
+      "medianRelativeError": 0.2124257904183351
+    },
+    "pattern|Latin|9-12": {
+      "samples": 17,
+      "medianFactorError": 1.1592092642414316,
+      "medianPredictionRatio": 1.0665668499239678,
+      "coverage": 0.9411764705882353,
+      "meanAbsoluteLogError": 0.3317699434103623,
+      "medianRelativeError": 0.15920926424143156
+    },
+    "residual|Latin|13+": {
+      "samples": 16,
+      "medianFactorError": 1.1779649316581524,
+      "medianPredictionRatio": 0.9668499239677155,
+      "coverage": 0.8125,
+      "meanAbsoluteLogError": 0.41229324931404565,
+      "medianRelativeError": 0.17796493165815241
+    },
+    "residual|Latin|5": {
+      "samples": 5,
+      "medianFactorError": 1.8697710922171353,
+      "medianPredictionRatio": 0.8727463175122749,
+      "coverage": 0.8,
+      "meanAbsoluteLogError": 0.8060083308492892,
+      "medianRelativeError": 0.8697710922171353
+    },
+    "residual|Latin|6-8": {
+      "samples": 1,
+      "medianFactorError": 1.0337138937736097,
+      "medianPredictionRatio": 0.9673856625351761,
+      "coverage": 1,
+      "meanAbsoluteLogError": 0.03315803932001671,
+      "medianRelativeError": 0.032614337464823895
+    },
+    "residual|Latin|9-12": {
+      "samples": 9,
+      "medianFactorError": 1.1191015562329534,
+      "medianPredictionRatio": 1.048214519293656,
+      "coverage": 0.7777777777777778,
+      "meanAbsoluteLogError": 0.49735061525157714,
+      "medianRelativeError": 0.11910155623295338
+    },
+    "word|Latin|5": {
+      "samples": 32,
+      "medianFactorError": 1.2197408796454143,
+      "medianPredictionRatio": 1.0364096811869052,
+      "coverage": 0.875,
+      "meanAbsoluteLogError": 0.2956160452899687,
+      "medianRelativeError": 0.21974087964541433
+    },
+    "word|Latin|6-8": {
+      "samples": 30,
+      "medianFactorError": 1.2831452918213844,
+      "medianPredictionRatio": 1.0859941234084232,
+      "coverage": 0.9333333333333333,
+      "meanAbsoluteLogError": 0.588222308660482,
+      "medianRelativeError": 0.22066502805732047
+    },
+    "word|Latin|9-12": {
+      "samples": 30,
+      "medianFactorError": 1.1674665512201712,
+      "medianPredictionRatio": 1.1120843627598673,
+      "coverage": 0.9333333333333333,
+      "meanAbsoluteLogError": 0.27327740446159143,
+      "medianRelativeError": 0.16746655122017118
+    }
+  },
+  "premiumCalibration": {
+    "0-1%": {
+      "samples": 0,
+      "medianFactorError": null,
+      "medianPredictionRatio": null,
+      "coverage": null,
+      "meanAbsoluteLogError": null,
+      "medianRelativeError": null,
+      "actualPremiumRate": null,
+      "averagePredictedPremiumProbability": null
+    },
+    "1-3%": {
+      "samples": 0,
+      "medianFactorError": null,
+      "medianPredictionRatio": null,
+      "coverage": null,
+      "meanAbsoluteLogError": null,
+      "medianRelativeError": null,
+      "actualPremiumRate": null,
+      "averagePredictedPremiumProbability": null
+    },
+    "3-7%": {
+      "samples": 6,
+      "medianFactorError": 1.0953292695634054,
+      "medianPredictionRatio": 0.9983507139419218,
+      "coverage": 1,
+      "meanAbsoluteLogError": 0.3046214472535468,
+      "medianRelativeError": 0.08703252274213691,
+      "actualPremiumRate": 0.16666666666666666,
+      "averagePredictedPremiumProbability": 0.06421616666666667
+    },
+    "7-15%": {
+      "samples": 170,
+      "medianFactorError": 1.192405192249132,
+      "medianPredictionRatio": 1.0554387212947112,
+      "coverage": 0.8823529411764706,
+      "meanAbsoluteLogError": 0.42001543510903866,
+      "medianRelativeError": 0.18193126036547735,
+      "actualPremiumRate": 0.11764705882352941,
+      "averagePredictedPremiumProbability": 0.10939068823529408
+    },
+    "15%+": {
+      "samples": 24,
+      "medianFactorError": 1.212425790418335,
+      "medianPredictionRatio": 1.1128394118299583,
+      "coverage": 0.9166666666666666,
+      "meanAbsoluteLogError": 0.44157325997475044,
+      "medianRelativeError": 0.2124257904183351,
+      "actualPremiumRate": 0.16666666666666666,
+      "averagePredictedPremiumProbability": 0.17115
+    }
+  },
+  "largestMisses": [
+    {
+      "username": "wassi",
+      "actualUsd": 496.925,
+      "predictedUsd": 32.91,
+      "factorError": 15.09951382558493,
+      "route": "pattern",
+      "semanticCategories": [],
+      "ownSaleCount": 1,
+      "learnedEstimateUsd": 38.39,
+      "premiumProbability": 0.143567,
+      "rawPremiumProbability": 0.143099,
+      "cohortEvidenceCount": 89,
+      "baseEstimateUsd": 28.151355527603613,
+      "premiumEstimateUsd": 1592.598141020642
+    },
+    {
+      "username": "februry",
+      "actualUsd": 1828.5361111111113,
+      "predictedUsd": 136.63,
+      "factorError": 13.38312311433149,
+      "route": "word",
+      "semanticCategories": [],
+      "ownSaleCount": 2,
+      "learnedEstimateUsd": 34.33,
+      "premiumProbability": 0.12279,
+      "rawPremiumProbability": 0.105185,
+      "cohortEvidenceCount": 322,
+      "baseEstimateUsd": 27.84175330225093,
+      "premiumEstimateUsd": 1605.5313697350034
+    },
+    {
+      "username": "game_over",
+      "actualUsd": 337.62083333333334,
+      "predictedUsd": 33.15,
+      "factorError": 10.184640522875817,
+      "route": "residual",
+      "semanticCategories": [
+        "media"
+      ],
+      "ownSaleCount": 0,
+      "learnedEstimateUsd": 33.15399533968608,
+      "premiumProbability": 0.114142,
+      "rawPremiumProbability": 0.079458,
+      "cohortEvidenceCount": 33,
+      "baseEstimateUsd": 29.47653757189607,
+      "premiumEstimateUsd": 946.7662382581642
+    },
+    {
+      "username": "x222x",
+      "actualUsd": 312.27805555555557,
+      "predictedUsd": 30.84,
+      "factorError": 10.125747586107508,
+      "route": "pattern",
+      "semanticCategories": [],
+      "ownSaleCount": 0,
+      "learnedEstimateUsd": 30.837791721007733,
+      "premiumProbability": 0.193188,
+      "rawPremiumProbability": 0.161773,
+      "cohortEvidenceCount": 82,
+      "baseEstimateUsd": 21.632989036566755,
+      "premiumEstimateUsd": 3098.0516768474545
+    },
+    {
+      "username": "pairtradingpro",
+      "actualUsd": 338.9244444444445,
+      "predictedUsd": 34.48,
+      "factorError": 9.829595256509412,
+      "route": "residual",
+      "semanticCategories": [
+        "finance"
+      ],
+      "ownSaleCount": 0,
+      "learnedEstimateUsd": 37.12,
+      "premiumProbability": 0.114319,
+      "rawPremiumProbability": 0.121578,
+      "cohortEvidenceCount": 69,
+      "baseEstimateUsd": 27.85460814880847,
+      "premiumEstimateUsd": 2231.87079112441
+    },
+    {
+      "username": "dz_tv",
+      "actualUsd": 330.9583333333333,
+      "predictedUsd": 34.34,
+      "factorError": 9.637691710347504,
+      "route": "residual",
+      "semanticCategories": [],
+      "ownSaleCount": 0,
+      "learnedEstimateUsd": 34.33836665729686,
+      "premiumProbability": 0.092968,
+      "rawPremiumProbability": 0.09423,
+      "cohortEvidenceCount": 25,
+      "baseEstimateUsd": 32.993462825134976,
+      "premiumEstimateUsd": 2297.050341566557
+    },
+    {
+      "username": "tasjeel",
+      "actualUsd": 330.9583333333333,
+      "predictedUsd": 36.41,
+      "factorError": 9.089764716652935,
+      "route": "pattern",
+      "semanticCategories": [],
+      "ownSaleCount": 0,
+      "learnedEstimateUsd": 36.41450688840751,
+      "premiumProbability": 0.106128,
+      "rawPremiumProbability": 0.113808,
+      "cohortEvidenceCount": 195,
+      "baseEstimateUsd": 31.933476239234015,
+      "premiumEstimateUsd": 1574.2543546369402
+    },
+    {
+      "username": "ccc1c",
+      "actualUsd": 312.27805555555557,
+      "predictedUsd": 35.31,
+      "factorError": 8.843898486421852,
+      "route": "pattern",
+      "semanticCategories": [],
+      "ownSaleCount": 0,
+      "learnedEstimateUsd": 35.30587002253678,
+      "premiumProbability": 0.182311,
+      "rawPremiumProbability": 0.155652,
+      "cohortEvidenceCount": 85,
+      "baseEstimateUsd": 28.52096788268604,
+      "premiumEstimateUsd": 3018.5055960236596
+    },
+    {
+      "username": "babys",
+      "actualUsd": 368.3679166666667,
+      "predictedUsd": 41.98,
+      "factorError": 8.774843179291727,
+      "route": "word",
+      "semanticCategories": [],
+      "ownSaleCount": 0,
+      "learnedEstimateUsd": 30.82,
+      "premiumProbability": 0.109971,
+      "rawPremiumProbability": 0.128434,
+      "cohortEvidenceCount": 255,
+      "baseEstimateUsd": 25.852892279070254,
+      "premiumEstimateUsd": 2986.9551581436717
+    },
+    {
+      "username": "shipin1v1",
+      "actualUsd": 312.27805555555557,
+      "predictedUsd": 36.05,
+      "factorError": 8.662359377407922,
+      "route": "alphanumeric",
+      "semanticCategories": [],
+      "ownSaleCount": 0,
+      "learnedEstimateUsd": 36.04861463773542,
+      "premiumProbability": 0.13806,
+      "rawPremiumProbability": 0.104811,
+      "cohortEvidenceCount": 18,
+      "baseEstimateUsd": 29.990944179169404,
+      "premiumEstimateUsd": 2177.912341126655
+    },
+    {
+      "username": "spacyba",
+      "actualUsd": 281.51694444444445,
+      "predictedUsd": 35.14,
+      "factorError": 8.011296085499273,
+      "route": "word",
+      "semanticCategories": [],
+      "ownSaleCount": 0,
+      "learnedEstimateUsd": 35.143554882077225,
+      "premiumProbability": 0.149687,
+      "rawPremiumProbability": 0.138436,
+      "cohortEvidenceCount": 355,
+      "baseEstimateUsd": 28.470359219276105,
+      "premiumEstimateUsd": 1826.654218525555
+    },
+    {
+      "username": "pay33",
+      "actualUsd": 162.31770833333334,
+      "predictedUsd": 28.59,
+      "factorError": 5.677429462516032,
+      "route": "pattern",
+      "semanticCategories": [
+        "finance"
+      ],
+      "ownSaleCount": 0,
+      "learnedEstimateUsd": 28.88,
+      "premiumProbability": 0.083252,
+      "rawPremiumProbability": 0.068084,
+      "cohortEvidenceCount": 84,
+      "baseEstimateUsd": 23.967904617205164,
+      "premiumEstimateUsd": 1748.4102499254614
+    },
+    {
+      "username": "zengli",
+      "actualUsd": 209.64027777777778,
+      "predictedUsd": 36.99,
+      "factorError": 5.667485206211889,
+      "route": "word",
+      "semanticCategories": [],
+      "ownSaleCount": 1,
+      "learnedEstimateUsd": 34.5,
+      "premiumProbability": 0.10754,
+      "rawPremiumProbability": 0.103118,
+      "cohortEvidenceCount": 358,
+      "baseEstimateUsd": 29.487415760398477,
+      "premiumEstimateUsd": 2009.389083680927
+    },
+    {
+      "username": "vertykall",
+      "actualUsd": 178.10416666666669,
+      "predictedUsd": 33.75,
+      "factorError": 5.277160493827161,
+      "route": "pattern",
+      "semanticCategories": [],
+      "ownSaleCount": 0,
+      "learnedEstimateUsd": 33.75313223705649,
+      "premiumProbability": 0.100307,
+      "rawPremiumProbability": 0.118775,
+      "cohortEvidenceCount": 106,
+      "baseEstimateUsd": 28.82288934111244,
+      "premiumEstimateUsd": 1387.9848650634744
+    },
+    {
+      "username": "uyatsiz_opalar",
+      "actualUsd": 124.67291666666668,
+      "predictedUsd": 26.81,
+      "factorError": 4.6502393385552665,
+      "route": "residual",
+      "semanticCategories": [],
+      "ownSaleCount": 0,
+      "learnedEstimateUsd": 26.81202089423135,
+      "premiumProbability": 0.066395,
+      "rawPremiumProbability": 0.085457,
+      "cohortEvidenceCount": 77,
+      "baseEstimateUsd": 24.738841766665043,
+      "premiumEstimateUsd": 1539.0937064169511
+    },
+    {
+      "username": "ywhiskey",
+      "actualUsd": 29.68402777777778,
+      "predictedUsd": 135.73,
+      "factorError": 4.572492689203415,
+      "route": "word",
+      "semanticCategories": [],
+      "ownSaleCount": 0,
+      "learnedEstimateUsd": 32.53,
+      "premiumProbability": 0.133857,
+      "rawPremiumProbability": 0.116351,
+      "cohortEvidenceCount": 306,
+      "baseEstimateUsd": 26.734708368195633,
+      "premiumEstimateUsd": 1569.9814854786534
+    },
+    {
+      "username": "xiangfu",
+      "actualUsd": 156.19097222222223,
+      "predictedUsd": 34.23,
+      "factorError": 4.5629848735676966,
+      "route": "word",
+      "semanticCategories": [],
+      "ownSaleCount": 0,
+      "learnedEstimateUsd": 34.29,
+      "premiumProbability": 0.083655,
+      "rawPremiumProbability": 0.073445,
+      "cohortEvidenceCount": 311,
+      "baseEstimateUsd": 28.50424442748717,
+      "premiumEstimateUsd": 1975.8502752600768
+    },
+    {
+      "username": "nvnnn",
+      "actualUsd": 371.8595833333333,
+      "predictedUsd": 82.69,
+      "factorError": 4.4970320877171766,
+      "route": "pattern",
+      "semanticCategories": [],
+      "ownSaleCount": 0,
+      "learnedEstimateUsd": 35.95,
+      "premiumProbability": 0.203643,
+      "rawPremiumProbability": 0.157107,
+      "cohortEvidenceCount": 85,
+      "baseEstimateUsd": 26.80966348726535,
+      "premiumEstimateUsd": 1246.9421183060058
+    },
+    {
+      "username": "m12345",
+      "actualUsd": 280.31666666666666,
+      "predictedUsd": 69.57,
+      "factorError": 4.029275070672225,
+      "route": "alphanumeric",
+      "semanticCategories": [],
+      "ownSaleCount": 1,
+      "learnedEstimateUsd": 33.98,
+      "premiumProbability": 0.081166,
+      "rawPremiumProbability": 0.076026,
+      "cohortEvidenceCount": 59,
+      "baseEstimateUsd": 31.895076016185,
+      "premiumEstimateUsd": 1206.871008911602
+    },
+    {
+      "username": "robaviejos",
+      "actualUsd": 113.62239583333334,
+      "predictedUsd": 30.36,
+      "factorError": 3.742503156565657,
+      "route": "word",
+      "semanticCategories": [],
+      "ownSaleCount": 0,
+      "learnedEstimateUsd": 37.34,
+      "premiumProbability": 0.113736,
+      "rawPremiumProbability": 0.117778,
+      "cohortEvidenceCount": 216,
+      "baseEstimateUsd": 31.438898171872598,
+      "premiumEstimateUsd": 1599.8980932999248
+    },
+    {
+      "username": "pgdb9",
+      "actualUsd": 19.1125,
+      "predictedUsd": 71.22,
+      "factorError": 3.7263570961412684,
+      "route": "alphanumeric",
+      "semanticCategories": [],
+      "ownSaleCount": 1,
+      "learnedEstimateUsd": 36.01,
+      "premiumProbability": 0.128044,
+      "rawPremiumProbability": 0.100849,
+      "cohortEvidenceCount": 50,
+      "baseEstimateUsd": 30.114327883228142,
+      "premiumEstimateUsd": 2659.725113804365
+    },
+    {
+      "username": "b_a_n_d_i_t",
+      "actualUsd": 292.98027777777776,
+      "predictedUsd": 87.25,
+      "factorError": 3.357940146450175,
+      "route": "residual",
+      "semanticCategories": [],
+      "ownSaleCount": 0,
+      "learnedEstimateUsd": 30.53,
+      "premiumProbability": 0.120271,
+      "rawPremiumProbability": 0.123652,
+      "cohortEvidenceCount": 53,
+      "baseEstimateUsd": 28.891937412144546,
+      "premiumEstimateUsd": 1207.0606121347155
+    },
+    {
+      "username": "kremta",
+      "actualUsd": 31.822916666666664,
+      "predictedUsd": 105.48,
+      "factorError": 3.3145924713584294,
+      "route": "word",
+      "semanticCategories": [],
+      "ownSaleCount": 0,
+      "learnedEstimateUsd": 39.54,
+      "premiumProbability": 0.105353,
+      "rawPremiumProbability": 0.093312,
+      "cohortEvidenceCount": 336,
+      "baseEstimateUsd": 29.620999400343308,
+      "premiumEstimateUsd": 1903.303982535341
+    },
+    {
+      "username": "copycatter",
+      "actualUsd": 111.66291666666667,
+      "predictedUsd": 36.19,
+      "factorError": 3.085463295569679,
+      "route": "pattern",
+      "semanticCategories": [],
+      "ownSaleCount": 0,
+      "learnedEstimateUsd": 36.1918699265775,
+      "premiumProbability": 0.115921,
+      "rawPremiumProbability": 0.124641,
+      "cohortEvidenceCount": 110,
+      "baseEstimateUsd": 29.598511537103718,
+      "premiumEstimateUsd": 1196.5833983534196
+    },
+    {
+      "username": "angryborn",
+      "actualUsd": 29.948611111111113,
+      "predictedUsd": 88.58,
+      "factorError": 2.9577331540138196,
+      "route": "word",
+      "semanticCategories": [],
+      "ownSaleCount": 0,
+      "learnedEstimateUsd": 35.78,
+      "premiumProbability": 0.120161,
+      "rawPremiumProbability": 0.10625,
+      "cohortEvidenceCount": 216,
+      "baseEstimateUsd": 29.982585551651116,
+      "premiumEstimateUsd": 1811.5895818619856
+    }
+  ]
+}

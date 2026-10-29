@@ -7,6 +7,8 @@ const { dnsLengthBucket } = require("../lib/dns-engine");
 const { classifyTonDns } = require("../lib/dns-structural");
 const { USERNAME_ESTIMATOR_VERSION, USERNAME_CALIBRATION_VERSION } = require("../lib/username-engine");
 const { predictUsernameLearnedModel, trainUsernameLearnedModel } = require("../lib/username-learned-model");
+const { estimateTelegramUsernameValue } = require("../lib/username-estimator");
+const { usernamePortfolioEligible } = require("../lib/username-publication");
 const { createValuationLedgerClient } = require("../lib/valuation-ledger-client");
 
 function loadLocalEnv() {
@@ -122,9 +124,14 @@ function rememberOwnSale(assets, sale) {
     count: 0,
     histogram: new LogHistogram(),
     lastSoldAt: 0,
+    events: [],
   };
   current.count += 1;
   current.histogram.add(sale.price_usd);
+  current.events.push({ username: sale.normalized_name, nftAddress: key, eventId: sale.sale_id,
+    eventTime: new Date(Number(sale.sold_at) * 1000).toISOString(), priceUsd: Number(sale.price_usd),
+    eventType: "sale", finalized: true, paymentAsset: "TON", reliabilityScore: Number(sale.reliability_score ?? 1),
+    marketplace: sale.marketplace, source: sale.source });
   const soldAt = Number(sale.sold_at || 0);
   if (soldAt > current.lastSoldAt) {
     current.lastSoldAt = soldAt;
@@ -134,6 +141,22 @@ function rememberOwnSale(assets, sale) {
 }
 
 function exactValuation(kind, assetKey, evidence, options = {}) {
+  if (kind === "username") {
+    // This worker uses the same numerical engine as the API. A histogram
+    // cannot reconstruct event timestamps or stand in for sale evidence.
+    const events = evidence.events || (evidence.lastPriceUsd > 0 ? [{
+      username: evidence.name, nftAddress: assetKey, priceUsd: evidence.lastPriceUsd,
+      eventTime: new Date(evidence.lastSoldAt * 1000).toISOString(), eventType: "sale", paymentAsset: "TON",
+    }] : []);
+    const estimate = estimateTelegramUsernameValue(evidence.name, events, options);
+    return { ...estimate, assetKind: kind, assetKey, displayName: `@${evidence.name}`,
+      valuationStatus: estimate.status, portfolioEligible: usernamePortfolioEligible(estimate),
+      calibrationVersion: USERNAME_CALIBRATION_VERSION, marketPlatform: "Fragment",
+      valuedAt: new Date().toISOString(), staleAt: new Date(Date.now() + 86400000).toISOString(),
+      explanation: { provenance: "canonical-username-evidence-engine", historicalUsd: true,
+        lastSaleAnchor: estimate.lastSaleAnchor, trend: estimate.trend, comparables: estimate.comparables.slice(0, 8),
+        displayedComparableCount: Math.min(estimate.comparables.length, 8) } };
+  }
   const histogram = evidence.histogram || new LogHistogram();
   for (const price of evidence.prices || []) histogram.add(price);
   const valueAt = (ratio) => histogram.quantile(ratio);
@@ -146,7 +169,6 @@ function exactValuation(kind, assetKey, evidence, options = {}) {
     const ownShare = Math.max(0.45, Math.min(0.88, (evidence.count >= 2 ? 0.82 : 0.65) * freshness));
     midpoint = Math.exp(Math.log(midpoint) * ownShare + Math.log(learned.estimateUsd) * (1 - ownShare));
   }
-  if (kind === "username" && exactSaleAnchor > 0) midpoint = Math.max(midpoint, exactSaleAnchor);
   // One finalized sale is useful price evidence, but it is not enough to
   // establish a durable portfolio value on its own. It remains visible as a
   // low-confidence estimate until repeated sales or independent comparables
@@ -238,7 +260,18 @@ async function refreshKind(kind, options = {}) {
 }
 
 async function refreshKindFromAggregate(kind) {
-  const source = await ledger().readBaselineSource(kind, 2048);
+  let source;
+  // At most 4,000 source rows per invocation. Each remote call is independently
+  // bounded, checkpointed and leased; a partial result never becomes a baseline.
+  for (let step=0;step<8;step++) {
+    source=await ledger().readBaselineSource(kind,2048);
+    if(source.status!=='partial' || source.reason) break;
+  }
+  if (source.status === 'partial') return { kind, status: 'partial', phase: source.phase, reason: source.reason,
+    sales: Number(source.ledgerSaleCount || 0), baselineWrites: 0, valuationWrites: 0 };
+  if (source.status !== 'complete' || !(Number(source.freshUntil) > Date.now() / 1000)) {
+    throw new Error('Prepared baseline source is incomplete or stale');
+  }
   const estimatorVersion = kind === "dns" ? DNS_ESTIMATOR_VERSION : USERNAME_ESTIMATOR_VERSION;
   const marketPremiumRate = Number(source.marketPremiumRate || 0);
   const premiumRates = new Map((source.premiumCohorts || []).map((row) => {
@@ -266,8 +299,8 @@ async function refreshKindFromAggregate(kind) {
     marketPremiumRate: source.marketPremiumRate,
     cohortStats: cohortOverrides,
   }) : null;
-  const generatedAt = new Date().toISOString();
-  const staleAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+  const generatedAt = new Date(Number(source.preparedAt) * 1000).toISOString();
+  const staleAt = new Date(Number(source.freshUntil) * 1000).toISOString();
   const baselines = (source.groups || []).flatMap((row) => {
     const midpointUsd = Number(row.midpoint_usd || 0);
     const evidenceCount = Number(row.evidence_count || 0);
@@ -290,7 +323,9 @@ async function refreshKindFromAggregate(kind) {
       provenance: {
         verifiedSalesOnly: true,
         publicCompletedMarketSalesOnly: true,
-        aggregation: "d1-window-quantiles",
+        aggregation: source.aggregation,
+        sourceAsOf: source.sourceAsOf,
+        sourceRevision: source.sourceRevision,
         historicalUsd: true,
         ...(row.scope === "global" && learnedModel
           ? { learnedModel: { ...learnedModel, ledgerSaleCount: Number(source.ledgerSaleCount || evidenceCount) } }
@@ -301,12 +336,15 @@ async function refreshKindFromAggregate(kind) {
   const baselineWrites = await ledger().ingestBaselines(baselines);
   const sales = Number(source.groups?.find((row) => row.scope === "global")?.evidence_count || 0);
   console.log(`[identity-baselines] aggregate kind=${kind} sales=${sales} groups=${baselines.length} training=${source.training?.length || 0} baselineWrites=${baselineWrites}`);
-  return { kind, sales, groups: baselines.length, exact: 0, baselineWrites, valuationWrites: 0, training: source.training?.length || 0 };
+  return { kind, status: 'complete', sales, groups: baselines.length, exact: 0, baselineWrites, valuationWrites: 0, training: source.training?.length || 0 };
 }
 
 async function main() {
-  for (const kind of kinds) await refreshKind(kind);
-  await ledger().maintain();
+  // Preserve the established CLI contract: no flags rebuild baselines AND
+  // exact-name valuations. Prepared aggregate-only work requires explicit opt-in.
+  // --full-rebuild remains an alias for the original default behavior.
+  const prepared=process.argv.includes('--prepared') && !process.argv.includes('--full-rebuild');
+  for (const kind of kinds) await refreshKind(kind, { aggregateSource: prepared, writeExactValuations: !prepared });
 }
 
 if (require.main === module) main().catch((error) => {

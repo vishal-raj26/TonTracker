@@ -1,0 +1,125 @@
+{
+  "schemaVersion": "username-local-collection-v1",
+  "from": "2026-09-10T00:00:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "collectedAt": "2026-09-20T12:45:17.300Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 6080,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 80,
+    "candidates": 29,
+    "verifiedItems": 2,
+    "wrongCollection": 27,
+    "assets": 2,
+    "sales": 2,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-20T12:45:17.300Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:378cda02578b7ab30a1ddb4e8662ce881278bd2b1b0ce9476d44e75b2e3ba94d",
+      "normalizedName": "restaurante_florencia",
+      "displayName": "@restaurante_florencia",
+      "primaryRoute": "residual",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "21M",
+      "feature": {
+        "characterLength": 21,
+        "characterClass": "alphanumeric",
+        "routes": [
+          "residual"
+        ],
+        "patternSignature": "ABCDEFAEGDBHIJKABGLME",
+        "uniqueCharacterCount": 13,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": true,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-10T09:44:25.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:5c0fa02ca3bb52321b247ae79cdd74c24317124b44a9a824aaf0b946c46b319b",
+      "normalizedName": "redobaby",
+      "displayName": "@redobaby",
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "8L",
+      "feature": {
+        "characterLength": 8,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCDEFEG",
+        "uniqueCharacterCount": 7,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-10T09:45:55.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:8065d8f74dae824ef5d197f30f4af8faa50a20b39f165a596d1b34698eb0d7e9",
+      "assetKind": "username",
+      "assetKey": "0:378cda02578b7ab30a1ddb4e8662ce881278bd2b1b0ce9476d44e75b2e3ba94d",
+      "normalizedName": "restaurante_florencia",
+      "soldAt": "2026-09-10T09:44:25.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.367205189139503,
+      "priceUsd": 13.672051891395029,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "I5QPH5nBqz53jgkzKgL/99YqjcB3qF9/B3/DceziUQc=",
+        "messageHash": "Zq+wuO6GCplZCtgCrVeuAqhrUhf+UumbmM4VjEktLbY=",
+        "bidAt": "2026-09-03T09:44:06.000Z"
+      },
+      "primaryRoute": "residual",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "21M"
+    },
+    {
+      "saleId": "toncenter-username-sale:27677f3387abc54018fbff875c8e00430cfa899289a155c7679208a211301114",
+      "assetKind": "username",
+      "assetKey": "0:5c0fa02ca3bb52321b247ae79cdd74c24317124b44a9a824aaf0b946c46b319b",
+      "normalizedName": "redobaby",
+      "soldAt": "2026-09-10T09:45:55.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.367157702978187,
+      "priceUsd": 13.671577029781869,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "cOR4Jr33mgFJpjoy6tpJcezlc7i9IyJ6zGXBUVV0lc4=",
+        "messageHash": "5Agj6KkDLYyDmUyMyeU0CbUhptNICag9ERao8GU62Is=",
+        "bidAt": "2026-09-03T09:45:36.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "8L"
+    }
+  ]
+}

@@ -1,0 +1,91 @@
+{
+  "schemaVersion": "username-secondary-local-v1",
+  "from": "2026-09-20T14:00:00Z",
+  "pipeline": "username-toncenter-secondary-sales-v1",
+  "collectedAt": "2026-09-22T13:14:23.287Z",
+  "cursor": {
+    "absoluteOffset": 11100,
+    "caughtUp": false
+  },
+  "metadata": {
+    "transfers": 100,
+    "saleContracts": 6,
+    "verifiedSales": 1,
+    "assets": 1,
+    "sales": 1,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-22T13:14:23.286Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:426fb9179d2c2770d768a05224d13226a1e01ca6875a9a14b40f985babeedb69",
+      "normalizedName": "penguinsgames",
+      "displayName": "@penguinsgames",
+      "primaryRoute": "residual",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "13L",
+      "feature": {
+        "classifierVersion": "username-structural-v2",
+        "normalizedUsername": "penguinsgames",
+        "displayUsername": "@penguinsgames",
+        "characterLength": 13,
+        "byteLength": 13,
+        "characterClass": "letters",
+        "primaryRoute": "residual",
+        "routes": [
+          "residual"
+        ],
+        "scarcityClass": "13L",
+        "patternSignature": "ABCDEFCGDHIBG",
+        "shapeSignature": "LLLLLLLLLLLLL",
+        "uniqueCharacterCount": 9,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "repeatedBlock": null,
+        "scripts": [
+          "Latin"
+        ],
+        "primaryScript": "Latin",
+        "containsUnderscore": false,
+        "underscoreCount": 0,
+        "digitCount": 0,
+        "digitRatio": 0,
+        "vowelRatio": 0.38461538461538464,
+        "pronounceability": "balanced",
+        "leadingZero": false,
+        "roundNumber": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-22T08:46:54.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-secondary:1336abac882f0e97948ce9d54ac441b9eb77ed2fbc712a3f58240dd0db006fb9",
+      "assetKind": "username",
+      "assetKey": "0:426fb9179d2c2770d768a05224d13226a1e01ca6875a9a14b40f985babeedb69",
+      "normalizedName": "penguinsgames",
+      "soldAt": "2026-09-22T08:46:54.000Z",
+      "priceGram": 5.97,
+      "historicalUsdRate": 1.4335768160815467,
+      "priceUsd": 8.558453592006833,
+      "marketplace": "Getgems",
+      "source": "toncenter-indexed-secondary-sale",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-completed-sale-contract",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "nearest-observation",
+        "transactionHash": "WSQ8Y49RQVsUDDnBv9IMxP0BKKyo1snQPj7EQ38L9m0=",
+        "saleContract": "0:85fe7fe2600142cfddbadeaaaa454cdbc0f6386c3cbd95abf0de8855ac15bada"
+      },
+      "primaryRoute": "residual",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "13L"
+    }
+  ]
+}

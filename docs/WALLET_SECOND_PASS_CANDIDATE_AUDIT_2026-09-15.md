@@ -1,0 +1,52 @@
+# Wallet contest second pass: candidate audit
+
+Research cutoff: 15 September 2026. This is a product-strategy record, not financial advice. `FACT` means a capability or process supported by a cited primary source or direct product inspection; `ANECDOTE` means a reported individual experience; `INFERENCE` is our synthesis; `ASSUMPTION` needs Wallet data or an implementation test.
+
+## What this audit corrects
+
+The first research cycle was useful but too often treated Wallet's present menus as the edge of the opportunity space. It also rewarded technical novelty before proving reach, and occasionally confused an integration precedent with a shipped consumer flow. This pass keeps verified findings, reopens rankings, and penalizes ideas whose value depends on a small affected cohort or a large behavioral assumption.
+
+The direct baseline remains strong: Wallet already has custodial and self-custodial accounts, contact transfers, P2P, Earn, spot assets, tokenized stocks, perpetuals, TP/SL, trading controls, Stars withdrawal, rewards and Squads. The 242-post announcement archive and inspected product are summarized in [the product map](WALLET_CONTEST_PRODUCT_AND_COMPETITOR_MAP_2026-09-15.md). The Telegram discussion displayed 408 comments; only the content actually loaded and inspected is treated as checked, not all 408 ideas.
+
+## Reconstructed candidate ledger
+
+| Candidate | Problem and proposed feature | Wallet fit and differentiator | Evidence | Principal weakness | Second-pass decision |
+| --- | --- | --- | --- | --- | --- |
+| Deal Rooms / Wallet Plans | Chat participants need protected milestone commerce; bind terms, evidence and escrow to a Telegram conversation. | Strong Telegram commerce fit; transaction state lives beside the deal rather than in a separate marketplace. | P2P escrow and Wallet Pay prove primitives (`FACT`). Freelance escrow was common in inspected comments (`FACT`). | Very crowded comment territory; disputes, prohibited goods and evidence adjudication create heavy operations. | Kill as contest entry. |
+| Spend Pass | Repeated app actions are either interrupted by confirmations or dangerously broad; create revocable amount/time/action permissions. | Wallet can be the universal authorization layer for Mini Apps, trading automations and later agents. | Coinbase ships token/time/amount spend permissions; Crossmint documents scoped agent signers (`FACT`). | Original Telegram framing was too narrow, and Stars policy constrains digital-goods payments. | Keep, expanded to **Wallet Permissions** across eligible apps and automations. |
+| Promise Lock / Risk Lock | Traders break their own limits after losses; enforce a user-chosen session loss, leverage and cooldown policy. | Direct extension of Wallet perpetuals; differentiates on user welfare instead of activity. | TopstepX documents locked risk settings (`FACT`); traders report revenge-trading failures (`ANECDOTE`). | Trader-only reach and exact enforcement edge cases. | Keep finalist. |
+| Private Proofs | People disclose entire balances/history to prove one fact; issue purpose-bound selective proofs. | Wallet could create verifiable Telegram cards without public profiles. | Selective disclosure is technically credible (`FACT` at protocol level). | Hard to explain, uncertain recurring use, issuer/liability and cryptographic complexity. | Reserve; not final five. |
+| Money Inbox | Requests, refunds, invoices and expiring claims are scattered; give them one actionable inbox. | Wallet already sees transactions and Telegram context. | Notification overload is plausible (`INFERENCE`). | No strong direct pain evidence; easily becomes a generic notification center. | Kill. |
+| Context Receipt | Bind purpose, counterparty and message context to a transfer. | Could improve reconciliation and support evidence. | Wallet itself requests transaction/support evidence (`FACT`). | Close to existing receipt/tax ideas; metadata authenticity and privacy unclear. | Fold into Work Account, not standalone. |
+| Funding Control | Perpetual users face variable funding; create a position-linked funding-rate hedge with combined accounting. | Sophisticated extension of Wallet perpetuals. | Boros provides funding-rate markets (`FACT`). | Matching exposures, liquidity, basis and settlement are complex; very narrow audience. | Kill for contest; specialist product, not mass Wallet priority. |
+| Target Premium | Users want price-target income; package a covered option-like strategy. | Could sit beside Earn/trading. | Rysk and exchange options prove mechanics (`FACT`). | Options precedent is extensive; suitability and downside explanation are difficult. | Kill. |
+| Fixed Term Earn | Users want a known maturity/rate rather than floating yield. | Natural extension of Earn. | PT/fixed-yield products exist (`FACT`). | Not original; liquidity, depeg and smart-contract risks; generic yield feature. | Kill. |
+| Local Pay / stablecoin card / QR | Stablecoin holders struggle to spend locally; auto-convert at checkout. | High-frequency money utility. | MiniPay, Phantom Cash, Peanut and regional QR products ship variants (`FACT`). | Extremely crowded and already represented in comments; corridor-heavy operations. | Kill as standalone; use rails inside a sharper job. |
+| Portfolio Credit | Borrow against portfolio rather than sell. | Extends assets/earn. | Crypto collateral products exist (`FACT`). | Liquidation, suitability and regulation; not novel. | Kill. |
+| Wallet Versus | Express relative view between two assets in one trade. | Simple trading hook. | Pear/The Orchard already provides pair trading (`FACT`). | Direct prior art and specialist demand. | Kill. |
+| Events / Pulse | Follow sourced probabilities and trade eligible event contracts. | Wallet's polls and trading distribution make discovery natural. | Polymarket APIs exist; BM Wallet, Bitget Wallet and Binance Wallet added prediction markets (`FACT`). | 2026 wallet integrations erase originality; major jurisdiction and responsible-use risk. | Kill despite trend strength. |
+| Private Receive | Address reuse exposes unrelated receipts; rotate independently keyed receiving accounts into one inbox. | Self-custody privacy improvement for public payment links. | Fluidkey validates the experience on EVM (`FACT`); TON public-key model invalidates simple subwallet rotation (`FACT`). | Recovery and metadata leakage are difficult; limited to public-chain recipients. | Strong reserve, displaced from final five by broader recurring jobs. |
+| Legacy Setup | Crypto can be lost after incapacity/death; create delayed recovery/inheritance plan. | Natural self-custody safety path. | Casa and other inheritance products exist (`FACT`). | High-trust, low-frequency setup; substantial legal and security risk. | Kill for contest. |
+| Storylines | Explain portfolio movement as causal narratives. | Uses Wallet holdings/trades rather than generic news. | Portfolio explainers exist (`FACT`). Exact nearby comment overlap was later found (`FACT`). | AI-summary saturation and causal hallucination risk. | Kill. |
+| Return Desk | Exchange-returned withdrawals reach Wallet's central address but are not automatically attributed; attach a structured case to the original withdrawal. | Precisely fits a documented Wallet operational gap. | Wallet's own guide requests return hash, amount, date, proof and verification (`FACT`). Coinbase has a different structured recovery tool (`FACT`). | Affected cohort may be small and the process cannot guarantee recovery. | Keep finalist as the best small-interface entry. |
+| Replay | Reconstruct a closed trade and permit one clearly modeled alternative. | Uses Wallet's own fills, funding, fees and margin events. | TradingView validates replay (`FACT`); Wallet docs say funding affects profitability (`FACT`). | Historical event granularity may be insufficient; trader-only reach. | Keep finalist. |
+| Proofed Calls / social copy | Make public market calls verifiable or copyable. | Telegram distribution gives strong social context. | dub/Base/social investing validate behavior (`FACT`). | Copy trading and AI/social signals saturate comments; advice/manipulation risk. | Kill. |
+| Generic DCA, rebalancing, AI copilot, safety scanner, card, remittance, escrow, group savings, tax center | Familiar convenience categories. | Mostly adjacent to current Wallet capabilities. | Each has extensive shipped prior art and comment overlap (`FACT`). | Fails originality unless attached to a more specific unsolved job. | Do not submit standalone. |
+
+## What survives and why
+
+Three earlier concepts survive unchanged in substance: Return Desk, Replay and Risk Lock. They are specific, credibly scoped and not exact matches in the inspected comment sample. Spend Pass survives only after being reframed as a universal permissions layer rather than a Telegram payment allowance. Private Receive remains sound enough for a reserve but loses on reach and recovery risk.
+
+The global scan creates one materially stronger new direction: a worker-centered international earnings account. The idea is not “add remittance” or “add a card.” It owns the complete recurring job of getting paid by a foreign client, preserving evidence of legitimate income, choosing how much to hold, and exiting through an available local route. That opportunity is developed and tested separately rather than smuggled into this audit as a predetermined winner.
+
+## Sources most material to the corrections
+
+- [Wallet exchange-return process](https://help.wallet.tg/article/250-sending-ton-to-exchanges)
+- [Wallet trading mechanics](https://help.wallet.tg/article/634-trade-and-trading-assets-in-wallet)
+- [Coinbase spend permissions](https://docs.cdp.coinbase.com/wallets/using-wallets/spend-permissions)
+- [Crossmint agent payment controls](https://docs.crossmint.com/agents/how-agents-pay)
+- [TopstepX locked controls](https://help.topstep.com/en/articles/14434175-topstepx)
+- [TradingView Replay](https://www.tradingview.com/support/solutions/43000691889-learn-to-trade-on-historical-data/)
+- [TON standard wallet model](https://docs.ton.org/contracts/standard/wallets/how-it-works)
+- [Polymarket builder/API migration](https://docs.polymarket.com/v2-migration)
+- [Bitget Wallet prediction-market integration](https://www.globenewswire.com/news-release/2026/04/22/3278876/0/en/Bitget-Wallet-Launches-AI-Powered-Prediction-Market-Access-Through-Polymarket-Integration.html)

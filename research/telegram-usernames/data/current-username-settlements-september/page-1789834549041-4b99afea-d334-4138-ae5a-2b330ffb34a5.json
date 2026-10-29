@@ -1,0 +1,125 @@
+{
+  "schemaVersion": "username-local-collection-v1",
+  "from": "2026-09-01T00:00:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "collectedAt": "2026-09-19T16:15:49.041Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 15760,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 80,
+    "candidates": 17,
+    "verifiedItems": 2,
+    "wrongCollection": 15,
+    "assets": 2,
+    "sales": 2,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-19T16:15:49.041Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:95d0d5845327ce9a87abc0a0ad5a8975a20714584c912f0cf4d75f92703a3c50",
+      "normalizedName": "entry_level_jobs",
+      "displayName": "@entry_level_jobs",
+      "primaryRoute": "residual",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "16M",
+      "feature": {
+        "characterLength": 16,
+        "characterClass": "alphanumeric",
+        "routes": [
+          "residual"
+        ],
+        "patternSignature": "ABCDEFGAHAGFIJKL",
+        "uniqueCharacterCount": 12,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": true,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-01T20:49:34.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:8f9a4af2f5d07ab9889133def4f2b72cf27abe5325525ec169612b18e94882b3",
+      "normalizedName": "free_bangladesh",
+      "displayName": "@free_bangladesh",
+      "primaryRoute": "pattern",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "15M",
+      "feature": {
+        "characterLength": 15,
+        "characterClass": "alphanumeric",
+        "routes": [
+          "pattern"
+        ],
+        "patternSignature": "ABCCDEFGHIFJCKL",
+        "uniqueCharacterCount": 12,
+        "maxRunLength": 2,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": true,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-01T20:49:56.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:5428074c3615455a4af16fa25131249a72dc0651ebf2cc73b5d33d51c28948a9",
+      "assetKind": "username",
+      "assetKey": "0:95d0d5845327ce9a87abc0a0ad5a8975a20714584c912f0cf4d75f92703a3c50",
+      "normalizedName": "entry_level_jobs",
+      "soldAt": "2026-09-01T20:49:34.000Z",
+      "priceGram": 5.01,
+      "historicalUsdRate": 1.321926613748298,
+      "priceUsd": 6.6228523348789725,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "6A1ixwBx2UA9EQjuEPSx2+RPgVbiGdIHGrUE0mkufr4=",
+        "messageHash": "POLk5a2+//dYpAEa+gnKkY9YYD2l/NjYJplTXhFihzU=",
+        "bidAt": "2026-08-04T18:11:33.000Z"
+      },
+      "primaryRoute": "residual",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "16M"
+    },
+    {
+      "saleId": "toncenter-username-sale:35f3c927dcd6ab856007c6bb90944c0d3b7f5bd04c7abb73bf996bef26ba3587",
+      "assetKind": "username",
+      "assetKey": "0:8f9a4af2f5d07ab9889133def4f2b72cf27abe5325525ec169612b18e94882b3",
+      "normalizedName": "free_bangladesh",
+      "soldAt": "2026-09-01T20:49:56.000Z",
+      "priceGram": 5.01,
+      "historicalUsdRate": 1.3219083790708717,
+      "priceUsd": 6.622760979145067,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "0H7iPNzk/3BfXGrbmW5ZyeWqBI3kDprfAKiGFD0qIeg=",
+        "messageHash": "3EBL5uCfWYIyCv7G/ssrCZX16YUUjprJb9YwSqe0oE8=",
+        "bidAt": "2026-08-04T19:21:06.000Z"
+      },
+      "primaryRoute": "pattern",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "15M"
+    }
+  ]
+}

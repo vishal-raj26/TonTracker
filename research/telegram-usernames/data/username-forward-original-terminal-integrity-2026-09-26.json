@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "username-forward-original-terminal-integrity-v1",
+  "qualification": false,
+  "pricesOpened": false,
+  "createdAt": "2026-09-26T22:43:49Z",
+  "reservation": {
+    "path": "research/telegram-usernames/data/username-forward-reservation-manifest-2026-09-20.json",
+    "sha256": "3b55296dc54d5c96772039bff0024bbb26515d772817c92305f2dedd6d93f936"
+  },
+  "finalPriceBlindAudit": {
+    "path": "research/telegram-usernames/data/username-reserved-integrity-2026-09-26-forward-batch27.json",
+    "sha256": "defee6b82f6f76556fc9c86382e626aa186fe3cce78ac30fac15353bab378ebc"
+  },
+  "reservedDirectory": "current-username-settlements-forward",
+  "frozenMaximumUniqueEvents": 4000,
+  "uniqueEvents": 3993,
+  "uniqueAssets": 3917,
+  "duplicateRows": 0,
+  "capHeadroom": 7,
+  "collectorMinimumPageSize": 10,
+  "cursor": {
+    "absoluteOffset": 72218,
+    "caughtUp": false
+  },
+  "firstVerifiedEventTime": "2026-09-20T13:45:04.000Z",
+  "lastVerifiedEventTime": "2026-09-24T06:22:59.000Z",
+  "weeklyBlocks": [
+    { "fromInclusive": "2026-09-20T13:45:00Z", "untilExclusive": "2026-09-27T00:00:00Z", "events": 3993 },
+    { "fromInclusive": "2026-09-27T00:00:00Z", "untilExclusive": "2026-10-04T00:00:00Z", "events": 0 },
+    { "fromInclusive": "2026-10-04T00:00:00Z", "untilExclusive": "2026-10-11T00:00:00Z", "events": 0 },
+    { "fromInclusive": "2026-10-11T00:00:00Z", "untilExclusive": "2026-10-18T00:00:00Z", "events": 0 },
+    { "fromInclusive": "2026-10-18T00:00:00Z", "untilExclusive": "2026-10-20T00:00:00Z", "events": 0 }
+  ],
+  "predeclaredMinimumPremiumWeeklyBlocks": 2,
+  "timeCoverageGate": "failed",
+  "reason": "The cap-safe collector has fewer than ten slots and cannot advance; every verified event precedes the second weekly block. At most one block can contain premium examples, independent of their unopened prices.",
+  "holdoutEvaluationRun": false,
+  "productionIntegrated": false,
+  "limitations": [
+    "This is a price-blind collection and timing audit, not an accuracy or premium-count result.",
+    "The separately sealed September 27 primary v2 reservation is independent and remains eligible for future collection."
+  ]
+}

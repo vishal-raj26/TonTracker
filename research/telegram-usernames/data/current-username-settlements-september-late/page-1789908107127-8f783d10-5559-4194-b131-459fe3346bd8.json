@@ -1,0 +1,125 @@
+{
+  "schemaVersion": "username-local-collection-v1",
+  "from": "2026-09-10T00:00:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "collectedAt": "2026-09-20T12:41:47.127Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 880,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 80,
+    "candidates": 6,
+    "verifiedItems": 2,
+    "wrongCollection": 4,
+    "assets": 2,
+    "sales": 2,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-20T12:41:47.127Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:c63da56409f19eb568eff35d21144f775870bd36516a56dad2a5e0832e038429",
+      "normalizedName": "icecasino",
+      "displayName": "@icecasino",
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "9L",
+      "feature": {
+        "characterLength": 9,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCBDEAFG",
+        "uniqueCharacterCount": 7,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-10T01:25:22.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:000e5e52f4544abfedf0fb1de3b8a9854962dcc8d853271c7dc2a9a249f33696",
+      "normalizedName": "twi_x",
+      "displayName": "@twi_x",
+      "primaryRoute": "residual",
+      "lengthBucket": "4-5",
+      "script": "Latin",
+      "scarcityClass": "5M",
+      "feature": {
+        "characterLength": 5,
+        "characterClass": "alphanumeric",
+        "routes": [
+          "residual"
+        ],
+        "patternSignature": "ABCDE",
+        "uniqueCharacterCount": 5,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": true,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-10T01:28:56.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:774293d6517cc1662047bcac0773d6fa9174aa9c9e29bd4bd62ee494e2f5063e",
+      "assetKind": "username",
+      "assetKey": "0:c63da56409f19eb568eff35d21144f775870bd36516a56dad2a5e0832e038429",
+      "normalizedName": "icecasino",
+      "soldAt": "2026-09-10T01:25:22.000Z",
+      "priceGram": 200,
+      "historicalUsdRate": 1.3609449908433442,
+      "priceUsd": 272.18899816866883,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "AdLWXhMvIE01bGl/G2s5NYX5ndqo5ky0IQf860f9yJo=",
+        "messageHash": "+HY0si8nwCS5/tXQSt7t6xIVM4chV/t84mEniwKwbLs=",
+        "bidAt": "2026-09-10T00:25:06.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "9L"
+    },
+    {
+      "saleId": "toncenter-username-sale:b073ca17768aaf60cd9171fcdea15b0c528ebe5bc3951fb04557ef9d42464352",
+      "assetKind": "username",
+      "assetKey": "0:000e5e52f4544abfedf0fb1de3b8a9854962dcc8d853271c7dc2a9a249f33696",
+      "normalizedName": "twi_x",
+      "soldAt": "2026-09-10T01:28:56.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.3607864643001697,
+      "priceUsd": 13.607864643001697,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "g4cGcODThijPp0zf8hDBQyI+VCAhqEIqAR6bqYjs+q4=",
+        "messageHash": "YG1TfB0AldKQa+KiV89UABqQ9m8r2lVOwL75us8zKgk=",
+        "bidAt": "2026-09-03T01:28:38.000Z"
+      },
+      "primaryRoute": "residual",
+      "lengthBucket": "4-5",
+      "script": "Latin",
+      "scarcityClass": "5M"
+    }
+  ]
+}

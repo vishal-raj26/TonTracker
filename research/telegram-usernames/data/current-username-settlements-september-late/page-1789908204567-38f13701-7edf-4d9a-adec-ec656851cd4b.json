@@ -1,0 +1,125 @@
+{
+  "schemaVersion": "username-local-collection-v1",
+  "from": "2026-09-10T00:00:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "collectedAt": "2026-09-20T12:43:24.567Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 3440,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 80,
+    "candidates": 14,
+    "verifiedItems": 2,
+    "wrongCollection": 12,
+    "assets": 2,
+    "sales": 2,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-20T12:43:24.567Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:af990a8e314e91bc6dd8cbcef5079b8e7f060211dc791acda9f41057976d3370",
+      "normalizedName": "live_cams",
+      "displayName": "@live_cams",
+      "primaryRoute": "residual",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "9M",
+      "feature": {
+        "characterLength": 9,
+        "characterClass": "alphanumeric",
+        "routes": [
+          "residual"
+        ],
+        "patternSignature": "ABCDEFGHI",
+        "uniqueCharacterCount": 9,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": true,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-10T06:21:32.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:eecbad054037d7a8829a397c2ba61b92c974047185304d02bfb8c1a2debc3e8f",
+      "normalizedName": "mastrocorriere",
+      "displayName": "@mastrocorriere",
+      "primaryRoute": "pattern",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "14L",
+      "feature": {
+        "characterLength": 14,
+        "characterClass": "letters",
+        "routes": [
+          "pattern"
+        ],
+        "patternSignature": "ABCDEFGFEEHIEI",
+        "uniqueCharacterCount": 9,
+        "maxRunLength": 2,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-10T06:24:04.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:f312c4fa0778b1849225d9db507a46a5ba2833d914c19c769e3f468fda44887a",
+      "assetKind": "username",
+      "assetKey": "0:af990a8e314e91bc6dd8cbcef5079b8e7f060211dc791acda9f41057976d3370",
+      "normalizedName": "live_cams",
+      "soldAt": "2026-09-10T06:21:32.000Z",
+      "priceGram": 120,
+      "historicalUsdRate": 1.372988179951859,
+      "priceUsd": 164.75858159422307,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "BoPNM3OxVPO38r3giepzd2KLbTToDx0asmeso3F/VQg=",
+        "messageHash": "wqS7MDWFrEJEHHihU+QSizrpD0Z7LXOGG5IbBd5ItdQ=",
+        "bidAt": "2026-09-03T06:21:16.000Z"
+      },
+      "primaryRoute": "residual",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "9M"
+    },
+    {
+      "saleId": "toncenter-username-sale:a1372e2dd0438376d6267d8c0ab72b9ad9c775e48235600426118cbe328eb8b4",
+      "assetKind": "username",
+      "assetKey": "0:eecbad054037d7a8829a397c2ba61b92c974047185304d02bfb8c1a2debc3e8f",
+      "normalizedName": "mastrocorriere",
+      "soldAt": "2026-09-10T06:24:04.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.3729332727488373,
+      "priceUsd": 13.729332727488373,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "x2wsNANkzmdvncNFWl0rEdR3dzQcqfRYWbYbpmme+p8=",
+        "messageHash": "KVl2lta9GlZ3K8MIrOA1iS8E+n6zxwRBmd5t1LHZySQ=",
+        "bidAt": "2026-09-03T06:23:48.000Z"
+      },
+      "primaryRoute": "pattern",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "14L"
+    }
+  ]
+}

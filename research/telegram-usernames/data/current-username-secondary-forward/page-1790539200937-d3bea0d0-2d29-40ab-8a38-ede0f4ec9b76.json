@@ -1,0 +1,91 @@
+{
+  "schemaVersion": "username-secondary-local-v1",
+  "from": "2026-09-20T14:00:00Z",
+  "pipeline": "username-toncenter-secondary-sales-v1",
+  "collectedAt": "2026-09-27T20:00:00.937Z",
+  "cursor": {
+    "absoluteOffset": 42640,
+    "caughtUp": false
+  },
+  "metadata": {
+    "transfers": 100,
+    "saleContracts": 4,
+    "verifiedSales": 1,
+    "assets": 1,
+    "sales": 1,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-27T20:00:00.937Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:ccf9909055430c9ca1d6d0e1f5c722c1f4b39c65dcdc54cef015172cea94685c",
+      "normalizedName": "wafato",
+      "displayName": "@wafato",
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "6L",
+      "feature": {
+        "classifierVersion": "username-structural-v2",
+        "normalizedUsername": "wafato",
+        "displayUsername": "@wafato",
+        "characterLength": 6,
+        "byteLength": 6,
+        "characterClass": "letters",
+        "primaryRoute": "word",
+        "routes": [
+          "word"
+        ],
+        "scarcityClass": "6L",
+        "patternSignature": "ABCBDE",
+        "shapeSignature": "LLLLLL",
+        "uniqueCharacterCount": 5,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "repeatedBlock": null,
+        "scripts": [
+          "Latin"
+        ],
+        "primaryScript": "Latin",
+        "containsUnderscore": false,
+        "underscoreCount": 0,
+        "digitCount": 0,
+        "digitRatio": 0,
+        "vowelRatio": 0.5,
+        "pronounceability": "balanced",
+        "leadingZero": false,
+        "roundNumber": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-27T17:47:31.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-secondary:e51f5cc3c56792c11f27fb1aa8993ec6b2f0d683e4d9718b311d0e89d66a9fb8",
+      "assetKind": "username",
+      "assetKey": "0:ccf9909055430c9ca1d6d0e1f5c722c1f4b39c65dcdc54cef015172cea94685c",
+      "normalizedName": "wafato",
+      "soldAt": "2026-09-27T17:47:31.000Z",
+      "priceGram": 5.67999,
+      "historicalUsdRate": 1.6536602654416153,
+      "priceUsd": 9.39277377110572,
+      "marketplace": "Getgems",
+      "source": "toncenter-indexed-secondary-sale",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-completed-sale-contract",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "transactionHash": "H28LV4VCHZpat/q0+h0FV4XbeP5h7BPJXoGt3yRUNvo=",
+        "saleContract": "0:e49b5cb7dd5fcb5a58e8b204ec1336aea0085c16edcfc3e8364988a489c08d06"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "6L"
+    }
+  ]
+}

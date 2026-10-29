@@ -8,6 +8,7 @@ const { Address } = require("@ton/core");
 const crypto = require("crypto");
 const { createDnsRuntime } = require("./lib/dns-runtime");
 const { createUsernameRuntime } = require("./lib/username-runtime");
+const giftPricePreview = require("./lib/gift-price-preview");
 
 // `__dirname` is unavailable after the CommonJS server is bundled for the
 // Cloudflare Node compatibility runtime. Local/Node startup keeps the project
@@ -44,7 +45,7 @@ const tonApiBase = "https://tonapi.io/v2";
 const tonApiKey = process.env.TONAPI_KEY || "";
 const tonCenterApiBase = String(process.env.TONCENTER_API_BASE || "https://toncenter.com/api/v3").replace(/\/+$/, "");
 const tonCenterApiKey = String(process.env.TONCENTER_API_KEY || "");
-const usdTonRate = 3.12;
+const usdTonRate = 0;
 const nativeTonLogo = "/assets/branding/gram-diamond-mark.svg";
 const TON_DNS_COLLECTION_RAW = "0:b774d95eb20543f186c06b371ab88ad704f7e256130caf96189368a7d0cb6ccf";
 const TELEGRAM_USERNAMES_COLLECTION_RAW = "0:80d78a35f955a14b679faa887ff4cd5bfc0f43b4a4eea2a7e6927f3701b273c2";
@@ -82,7 +83,9 @@ const d1GiftIngestSecret = String(process.env.D1_INGEST_SECRET || process.env.IN
 const giftRegistryProxyUrl = String(process.env.GIFT_REGISTRY_PROXY_URL || "").replace(/\/+$/, "");
 const publicGiftRegistryUrl = "https://tontrack-gift-registry.vishu-vishal264.workers.dev";
 const giftRegistryReadUrl = d1GiftRegistryUrl || publicGiftRegistryUrl;
+let giftRegistryUnavailableUntil = 0;
 async function d1RegistryJson(route = "", options = {}, directTimeoutMs = 15000) {
+  if (giftRegistryUnavailableUntil > Date.now()) throw new Error("Gift registry temporarily unavailable");
   const candidates = [
     giftRegistryReadUrl ? { url: `${giftRegistryReadUrl}${route}`, timeoutMs: directTimeoutMs } : null,
     giftRegistryProxyUrl ? { url: `${giftRegistryProxyUrl}/api/gift-registry${route}`, timeoutMs: 2500 } : null,
@@ -90,11 +93,14 @@ async function d1RegistryJson(route = "", options = {}, directTimeoutMs = 15000)
   let lastError = null;
   for (const candidate of candidates) {
     try {
-      return await marketJson(candidate.url, options, candidate.timeoutMs);
+      const payload = await marketJson(candidate.url, options, candidate.timeoutMs);
+      giftRegistryUnavailableUntil = 0;
+      return payload;
     } catch (error) {
       lastError = error;
     }
   }
+  giftRegistryUnavailableUntil = Date.now() + 30 * 1000;
   throw lastError || new Error("Gift registry is unavailable");
 }
 const giftComboCoverageMaxAgeMs = Math.max(60 * 60 * 1000, Number(process.env.GIFT_COMBO_COVERAGE_MAX_AGE_MS || 12 * 60 * 60 * 1000));
@@ -121,6 +127,14 @@ const jettonHistoryCache = new Map();
 const walletActivityCache = new Map();
 const walletHistoryCache = new Map();
 const walletJettonsCache = new Map();
+const WALLET_JETTON_INVENTORY_TTL_MS = 5 * 60 * 1000;
+const WALLET_JETTON_REQUEST_TIMEOUT_MS = 6_500;
+const WALLET_JETTON_PROVIDER_TIMEOUT_MS = 22_000;
+const jettonPriceCache = new Map();
+const JETTON_PRICE_CACHE_TTL_MS = 15 * 60 * 1000;
+const TONKEEPER_JETTON_REGISTRY_URL = "https://raw.githubusercontent.com/tonkeeper/ton-assets/main/jettons.json";
+const TONKEEPER_JETTON_REGISTRY_TTL_MS = 6 * 60 * 60 * 1000;
+let tonkeeperJettonImageCache = { value: new Map(), expiresAt: 0, promise: null };
 const walletHistoryJobs = new Map();
 const giftComboHealJobs = new Set();
 const giftComboExactMissCache = new Map();
@@ -216,6 +230,7 @@ let stickerCategoryPromise = null;
 let stickerCollectionsRegistryPromise = null;
 let stickerCollectionsSnapshotCache = null;
 let stickerCollectionsSnapshotMtimeMs = 0;
+let stickerCollectionsSnapshotUpdatedAt = 0;
 let liveCollectiblesRegistryCache = null;
 let giftSnapshotCollectorState = { status: "idle", startedAt: "", completedAt: "", total: 0, done: 0, ok: 0, errors: 0, modelSnapshots: 0, attributes: 0, error: "" };
 let giftSnapshotCollectorPromise = null;
@@ -234,7 +249,7 @@ let tonCenterQueue = Promise.resolve();
 let historyBuildQueue = Promise.resolve();
 let lastTonApiAt = 0;
 let lastTonCenterAt = 0;
-const tonApiMinDelay = tonApiKey ? 160 : 950;
+const tonApiMinDelay = tonApiKey ? 160 : 4_200;
 const tonCenterMinDelay = tonCenterApiKey ? 120 : 1100;
 const giftSnapshotIntervalMs = Number(process.env.GIFT_SNAPSHOT_INTERVAL_MS || 60 * 60 * 1000);
 const giftSnapshotUnchangedIntervalMs = Number(process.env.GIFT_SNAPSHOT_UNCHANGED_INTERVAL_MS || 23 * 60 * 60 * 1000);
@@ -456,11 +471,17 @@ const KNOWN_JETTON_IDS = {
 
 const KNOWN_SYMBOL_GECKO_IDS = {
   TON: "the-open-network",
+  GRAM: "the-open-network",
+  TONCOIN: "the-open-network",
   USD: "tether",
   USDT: "tether",
   "USDâ‚®": "tether",
   JUSDT: "tether",
 };
+
+function isNativeTonSymbol(symbol = "") {
+  return /^(?:TON|GRAM|TONCOIN)$/i.test(String(symbol || "").trim());
+}
 
 const mime = {
   ".html": "text/html; charset=utf-8",
@@ -472,14 +493,28 @@ const mime = {
   ".jpeg": "image/jpeg",
   ".svg": "image/svg+xml",
   ".ico": "image/x-icon",
+  ".webp": "image/webp",
+  ".gif": "image/gif",
+  ".avif": "image/avif",
+  ".mp4": "video/mp4",
+  ".webm": "video/webm",
+  ".woff": "font/woff",
+  ".woff2": "font/woff2",
+  ".ttf": "font/ttf",
 };
 
 function json(res, status, body) {
+  if (!res.giftPricePreview && status >= 200 && status < 300 && giftPricePreview.containsFixturePricing(body)) {
+    status = 503;
+    body = { error: "Fixture pricing is not available in live mode" };
+  }
+  if (res.giftPricePreview && status >= 200 && status < 300) body = giftPricePreview.walletResponse(body);
   res.writeHead(status, {
     "content-type": "application/json; charset=utf-8",
     "access-control-allow-origin": "*",
     "access-control-allow-methods": "GET,POST,OPTIONS",
     "access-control-allow-headers": "content-type,authorization",
+    ...(res.giftPricePreview ? { "cache-control": "no-store", "x-tontrack-preview": "mock-gift-prices" } : {}),
   });
   res.end(JSON.stringify(body, null, 2));
 }
@@ -505,10 +540,7 @@ function readJsonBody(req, maxBytes = 1024 * 1024) {
 }
 
 function safeStaticPath(urlPath) {
-  const appEntryPaths = new Set(["/", "/miniapp-v2", "/miniapp-v2/"]);
-  const pathname = decodeURIComponent(appEntryPaths.has(urlPath) ? "/index.html" : urlPath);
-  const filePath = path.resolve(root, `.${pathname}`);
-  return filePath.startsWith(root) ? filePath : null;
+  return require("./lib/static-policy").resolveStaticPath(root, urlPath);
 }
 
 function requestOrigin(req) {
@@ -939,15 +971,24 @@ function friendlyTonAddress(input) {
 }
 
 function serveStatic(req, res) {
-  const filePath = safeStaticPath(new URL(req.url, `http://${req.headers.host}`).pathname);
+  if (req.method !== "GET" && req.method !== "HEAD") {
+    res.setHeader("allow", "GET, HEAD");
+    return json(res, 405, { error: "Method not allowed" });
+  }
+  // Validate the original request target before URL normalization can erase traversal.
+  const filePath = safeStaticPath(req.url);
   if (!filePath) return json(res, 403, { error: "Forbidden" });
   fs.readFile(filePath, (error, data) => {
     if (error) return json(res, 404, { error: "Not found" });
+    if (path.basename(filePath) === "index.html" && giftPricePreview.enabled() && giftPricePreview.allowedRequest(req)) {
+      data = Buffer.from(data.toString().replace("<head>", '<head><script>window.TONTRACK_GIFT_PRICE_PREVIEW=true;</script>'));
+    }
     res.writeHead(200, {
       "content-type": mime[path.extname(filePath)] || "application/octet-stream",
       "cache-control": "no-store",
+      "x-content-type-options": "nosniff",
     });
-    res.end(data);
+    res.end(req.method === "HEAD" ? undefined : data);
   });
 }
 
@@ -970,7 +1011,8 @@ async function tonApi(pathname, options = {}) {
   if (tonApiKey) headers.authorization = `Bearer ${tonApiKey}`;
   const request = async () => {
     let lastMessage = "";
-    for (let attempt = 0; attempt < 4; attempt += 1) {
+    const maxAttempts = Math.max(1, Math.min(4, Number(options.maxAttempts) || 4));
+    for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
       const response = await fetch(`${tonApiBase}${pathname}`, { headers });
       const text = await response.text();
       let body = null;
@@ -983,7 +1025,7 @@ async function tonApi(pathname, options = {}) {
       const message = body?.error || body?.message || `TonAPI request failed (${response.status})`;
       lastMessage = message;
       const limited = response.status === 429 || /rate limit/i.test(message);
-      if (!limited || attempt === 3) throw new Error(message);
+      if (!limited || attempt === maxAttempts - 1) throw new Error(message);
       await sleep(2500 + attempt * 2500);
     }
     throw new Error(lastMessage || "TonAPI request failed");
@@ -3539,6 +3581,7 @@ function stickerCollectionsSnapshot() {
     if (stickerCollectionsSnapshotCache && stickerCollectionsSnapshotMtimeMs === stat.mtimeMs) return stickerCollectionsSnapshotCache;
     const payload = JSON.parse(fs.readFileSync(stickerCollectionsRegistryFile, "utf8"));
     stickerCollectionsSnapshotCache = Array.isArray(payload.collections) ? payload.collections : [];
+    stickerCollectionsSnapshotUpdatedAt = Date.parse(payload.updatedAt || "") || 0;
     stickerCollectionsSnapshotMtimeMs = stat.mtimeMs;
     return stickerCollectionsSnapshotCache;
   } catch {
@@ -3585,7 +3628,10 @@ function stickerCategoryRegistryFromSnapshot() {
 
 function stickerSnapshotFloor(aliases = [], tonRate = 0, meta = {}) {
   const collections = stickerCollectionsSnapshot();
-  if (!collections.length) return null;
+  // The registry is also a classification/media source. Its old market
+  // observations must not be presented as a current executable floor.
+  if (!collections.length || !stickerCollectionsSnapshotUpdatedAt
+    || Date.now() - stickerCollectionsSnapshotUpdatedAt > 60 * 60 * 1000) return null;
   const clean = (value) => normalizeStickerKey(String(value || "").replace(/\s+#\d+.*$/i, ""));
   const aliasKeys = expandStickerAliases(aliases).map(clean).filter((key) => key.length > 2);
   const itemKeys = expandStickerAliases([meta.item, meta.title, meta.characterName]).map(clean).filter((key) => key.length > 2);
@@ -4175,10 +4221,121 @@ function normalizeJettons(payload) {
       balance,
       verification: item?.jetton?.verification || "none",
       priceUsd,
+      providerPriceUsd: priceUsd,
       valueUsd: balance * priceUsd,
       diff24h: item?.price?.diff_24h?.USD ?? null,
     };
   });
+}
+
+async function tonkeeperJettonImageRegistry() {
+  if (tonkeeperJettonImageCache.value.size && tonkeeperJettonImageCache.expiresAt > Date.now()) {
+    return tonkeeperJettonImageCache.value;
+  }
+  if (tonkeeperJettonImageCache.promise) return tonkeeperJettonImageCache.promise;
+  tonkeeperJettonImageCache.promise = marketJson(TONKEEPER_JETTON_REGISTRY_URL, {}, 3_500)
+    .then((rows) => {
+      const images = new Map();
+      (Array.isArray(rows) ? rows : []).forEach((row) => {
+        const key = canonicalAddressKey(row?.address || "");
+        const image = String(row?.image || "").trim();
+        if (key && image) images.set(key, image);
+      });
+      tonkeeperJettonImageCache.value = images;
+      tonkeeperJettonImageCache.expiresAt = Date.now() + TONKEEPER_JETTON_REGISTRY_TTL_MS;
+      return images;
+    })
+    .catch((error) => {
+      if (tonkeeperJettonImageCache.value.size) return tonkeeperJettonImageCache.value;
+      throw error;
+    })
+    .finally(() => {
+      tonkeeperJettonImageCache.promise = null;
+    });
+  return tonkeeperJettonImageCache.promise;
+}
+
+function applyJettonImageRegistry(jettons = [], registry = new Map()) {
+  return jettons.map((jetton) => {
+    const key = canonicalAddressKey(jetton?.masterAddress || jetton?.address || "");
+    const candidates = [...new Set([
+      String(jetton?.image || "").trim(),
+      String(registry.get(key) || "").trim(),
+    ].filter(Boolean))];
+    return {
+      ...jetton,
+      image: candidates[0] || null,
+      imageFallbacks: candidates.slice(1),
+    };
+  });
+}
+
+function walletJettonCacheKey(address) {
+  return canonicalAddressKey(address);
+}
+
+function cachedWalletJettons(cache, address, now = Date.now()) {
+  const rows = cache.get(walletJettonCacheKey(address));
+  return Array.isArray(rows)
+    ? rows.filter((row) => {
+      const observedAt = Number(row?.inventoryObservedAt || 0);
+      return observedAt > 0 && now - observedAt <= WALLET_JETTON_INVENTORY_TTL_MS;
+    }).map((row) => ({ ...row }))
+    : [];
+}
+
+function reconcileJettonInventory(freshJettons = [], cachedJettons = [], inventoryStatus = {}, now = Date.now()) {
+  const status = String(inventoryStatus?.status || "unavailable");
+  const usable = (rows) => dedupeJettons(rows).filter((row) => {
+    const contract = canonicalAddressKey(row?.masterAddress || row?.address || "");
+    return Boolean(contract) && Number(row?.balance || 0) > 0;
+  });
+  const fresh = usable(freshJettons);
+  const cached = usable(cachedJettons).filter((row) => {
+    const observedAt = Number(row?.inventoryObservedAt || 0);
+    return observedAt > 0 && now - observedAt <= WALLET_JETTON_INVENTORY_TTL_MS;
+  });
+  const fallback = {
+    used: false,
+    mode: "none",
+    cachedCount: cached.length,
+    restoredCount: 0,
+    stale: false,
+  };
+
+  // Two successful providers make an empty inventory authoritative. Never let
+  // an old wallet snapshot resurrect holdings after they have been transferred.
+  if (status === "ready") return { jettons: fresh, fallback };
+
+  if (status === "unavailable") {
+    if (!fresh.length && cached.length) {
+      fallback.used = true;
+      fallback.mode = "stale-cache";
+      fallback.restoredCount = cached.length;
+      fallback.stale = true;
+      return {
+        jettons: cached.map((row) => ({ ...row, inventoryCacheStatus: "stale" })),
+        fallback,
+      };
+    }
+    return { jettons: fresh, fallback };
+  }
+
+  // With one provider unavailable, preserve every fresh contract row and add
+  // only exact-contract rows missing from that partial response. Never match by
+  // mutable metadata such as token name or symbol.
+  const freshContracts = new Set(fresh.map((row) => canonicalAddressKey(row.masterAddress || row.address)));
+  const missingCached = cached.filter((row) => !freshContracts.has(canonicalAddressKey(row.masterAddress || row.address)));
+  if (missingCached.length) {
+    fallback.used = true;
+    fallback.mode = "partial-merge";
+    fallback.restoredCount = missingCached.length;
+    fallback.stale = true;
+  }
+  return {
+    jettons: [...fresh, ...missingCached.map((row) => ({ ...row, inventoryCacheStatus: "stale" }))],
+    fallback,
+  };
 }
 
 function tonCenterAddress(value) {
@@ -4297,6 +4454,25 @@ async function fetchJettonProvider(provider, request, { maxAttempts = 2, retryDe
   failure.provider = provider;
   failure.attempts = attempts;
   throw failure;
+}
+
+function providerWithin(promise, provider, timeoutMs = 4_000) {
+  let timeout;
+  const bounded = new Promise((resolve, reject) => {
+    timeout = setTimeout(() => {
+      const error = new Error(`${provider} timed out after ${timeoutMs}ms`);
+      error.provider = provider;
+      error.attempts = 1;
+      reject(error);
+    }, timeoutMs);
+    Promise.resolve(promise).then(resolve, reject);
+  });
+  return bounded.finally(() => clearTimeout(timeout));
+}
+
+function firstWalletAccountWithin(candidates = [], timeoutMs = 4_000) {
+  if (!candidates.length) return Promise.reject(new Error("No wallet account providers configured"));
+  return providerWithin(Promise.any(candidates), "wallet account providers", timeoutMs);
 }
 
 function jettonInventoryStatus(tonApiResult, tonCenterResult, { forceRefresh = false } = {}) {
@@ -5045,21 +5221,64 @@ async function getRates(tokens, options = {}) {
   return responses.reduce((merged, rates) => Object.assign(merged, rates), {});
 }
 
-async function dexScreenerPairsForJettons(addresses = []) {
+async function dexScreenerPairsForJettons(addresses = [], timeoutMs = 1_500) {
   const unique = [...new Set((addresses || []).flatMap(tonAddressVariants).filter(Boolean))];
   if (!unique.length) return [];
   const chunks = Array.from({ length: Math.ceil(unique.length / 30) }, (_, index) => unique.slice(index * 30, index * 30 + 30));
   const responses = await Promise.all(chunks.map((chunk) =>
-    externalJson(`https://api.dexscreener.com/tokens/v1/ton/${chunk.map(encodeURIComponent).join(",")}`, 5000).catch(() => [])
+    externalJson(`https://api.dexscreener.com/tokens/v1/ton/${chunk.map(encodeURIComponent).join(",")}`, timeoutMs).catch(() => [])
   ));
   return responses.flatMap((payload) => Array.isArray(payload) ? payload : payload?.pairs || []);
+}
+
+function applyRecentJettonPrices(jettons = [], now = Date.now(), cache = jettonPriceCache) {
+  const dexPricedKeys = new Set();
+  jettons.forEach((jetton) => {
+    const key = jettonAddressKey(jetton.masterAddress || jetton.address);
+    const cached = key ? cache.get(key) : null;
+    if (!cached || now - Number(cached.observedAt || 0) > JETTON_PRICE_CACHE_TTL_MS) return;
+    const price = Number(cached.priceUsd || 0);
+    if (!(price > 0) || !isPlausibleJettonPrice(jetton, price)) return;
+    jetton.priceUsd = price;
+    jetton.valueUsd = Number(jetton.balance || 0) * price;
+    jetton.diff24h = cached.diff24h ?? jetton.diff24h ?? null;
+    jetton.priceSource = cached.priceSource || "recent-provider-cache";
+    jetton.dexLiquidityUsd = Number(cached.dexLiquidityUsd || 0);
+    jetton.dexVolume24hUsd = Number(cached.dexVolume24hUsd || 0);
+    jetton.dexTxCount24h = Number(cached.dexTxCount24h || 0);
+    if (cached.priceSource === "dexscreener") dexPricedKeys.add(key);
+  });
+  return dexPricedKeys;
+}
+
+function rememberRecentJettonPrices(jettons = [], now = Date.now(), cache = jettonPriceCache) {
+  jettons.forEach((jetton) => {
+    const key = jettonAddressKey(jetton.masterAddress || jetton.address);
+    const price = Number(jetton.priceUsd || 0);
+    if (!key || !(price > 0) || jetton.qualityStatus === "blocked") return;
+    cache.set(key, {
+      observedAt: now,
+      priceUsd: price,
+      diff24h: jetton.diff24h ?? null,
+      priceSource: jetton.priceSource || "tonapi",
+      dexLiquidityUsd: Number(jetton.dexLiquidityUsd || 0),
+      dexVolume24hUsd: Number(jetton.dexVolume24hUsd || 0),
+      dexTxCount24h: Number(jetton.dexTxCount24h || 0),
+    });
+  });
+  return cache;
 }
 
 async function enrichJettonRates(jettons, includeZeroBalances = false, options = {}) {
   const priced = jettons.filter((jetton) => (includeZeroBalances || jetton.balance > 0) && jetton.address);
   if (!priced.length) return jettons;
-  try {
-    const rates = await getRates(priced.map((jetton) => jetton.address), options);
+  const dexPricedKeys = applyRecentJettonPrices(priced);
+  const addresses = priced.map((jetton) => jetton.masterAddress || jetton.address);
+  const [rates, pairs] = await Promise.all([
+    settleWithin(getRates(addresses, options), 1_350, null),
+    dexScreenerPairsForJettons(addresses, 1_500),
+  ]);
+  if (rates) {
     const ratesByKey = new Map(Object.entries(rates || {}).map(([address, rate]) => [jettonAddressKey(address), rate]));
     jettons.forEach((jetton) => {
       const rate = rates?.[jetton.address] || ratesByKey.get(jettonAddressKey(jetton.address)) || null;
@@ -5072,68 +5291,29 @@ async function enrichJettonRates(jettons, includeZeroBalances = false, options =
       }
       jetton.diff24h = rate?.diff_24h?.USD || jetton.diff24h || "0.00%";
     });
-  } catch (error) {
-    jettons.forEach((jetton) => {
-      jetton.rateWarning = error.message;
-    });
   }
-  const dexPricedKeys = new Set();
-  try {
-    const pairs = await dexScreenerPairsForJettons(priced.map((jetton) => jetton.address));
-    priced.forEach((jetton) => {
-      const pair = bestDexPair(pairs, jetton.address);
-      const price = Number(pair?.priceUsd || 0);
-      if (!(price > 0) || !isPlausibleJettonPrice(jetton, price)) return;
-      const liquidityUsd = Number(pair?.liquidity?.usd || 0);
-      const volume24hUsd = Number(pair?.volume?.h24 || 0);
-      const txCount24h = dexTxCount24h(pair);
-      const change = Number(pair?.priceChange?.h24);
-      const impliedValueUsd = Number(jetton.balance || 0) * price;
-      jetton.dexLiquidityUsd = liquidityUsd;
-      jetton.dexVolume24hUsd = volume24hUsd;
-      jetton.dexTxCount24h = txCount24h;
-      const trustedByApi = String(jetton.verification || "").toLowerCase() === "whitelist";
-      if (!trustedByApi && liquidityUsd < JETTON_QUALITY_RULES.minUnverifiedDexLiquidityUsd) return;
-      jetton.priceUsd = price;
-      jetton.valueUsd = impliedValueUsd;
-      dexPricedKeys.add(jettonAddressKey(jetton.address));
-      if (Number.isFinite(change)) jetton.diff24h = `${change >= 0 ? "+" : ""}${change.toFixed(2)}%`;
-    });
-  } catch (error) {
-    priced.forEach((jetton) => {
-      jetton.rateWarning = jetton.rateWarning || error.message;
-    });
-  }
-  const unresolved = priced.filter((jetton) => !(Number(jetton.priceUsd || 0) > 0));
-  if (unresolved.length) {
-    try {
-      const pairs = await dexScreenerPairsForJettons(unresolved.map((jetton) => jetton.address));
-      unresolved.forEach((jetton) => {
-        const pair = bestDexPair(pairs, jetton.address);
-        const price = Number(pair?.priceUsd || 0);
-        if (!(price > 0) || !isPlausibleJettonPrice(jetton, price)) return;
-        const liquidityUsd = Number(pair?.liquidity?.usd || 0);
-        const volume24hUsd = Number(pair?.volume?.h24 || 0);
-        const txCount24h = dexTxCount24h(pair);
-        const change = Number(pair?.priceChange?.h24);
-        const impliedValueUsd = Number(jetton.balance || 0) * price;
-        jetton.dexLiquidityUsd = liquidityUsd;
-        jetton.dexVolume24hUsd = volume24hUsd;
-        jetton.dexTxCount24h = txCount24h;
-        const trustedByApi = String(jetton.verification || "").toLowerCase() === "whitelist";
-        if (!trustedByApi && liquidityUsd < JETTON_QUALITY_RULES.minUnverifiedDexLiquidityUsd) return;
-        jetton.priceUsd = price;
-        jetton.valueUsd = impliedValueUsd;
-        dexPricedKeys.add(jettonAddressKey(jetton.address));
-        if (Number.isFinite(change)) jetton.diff24h = `${change >= 0 ? "+" : ""}${change.toFixed(2)}%`;
-      });
-    } catch (error) {
-      unresolved.forEach((jetton) => {
-        jetton.rateWarning = jetton.rateWarning || error.message;
-      });
-    }
-  }
-  return applyJettonQualityRegistry(jettons, dexPricedKeys);
+  priced.forEach((jetton) => {
+    const pair = bestDexPair(pairs, jetton.masterAddress || jetton.address);
+    const price = Number(pair?.priceUsd || 0);
+    if (!(price > 0) || !isPlausibleJettonPrice(jetton, price)) return;
+    const liquidityUsd = Number(pair?.liquidity?.usd || 0);
+    const volume24hUsd = Number(pair?.volume?.h24 || 0);
+    const txCount24h = dexTxCount24h(pair);
+    const change = Number(pair?.priceChange?.h24);
+    const trustedByApi = String(jetton.verification || "").toLowerCase() === "whitelist";
+    if (!trustedByApi && liquidityUsd < JETTON_QUALITY_RULES.minUnverifiedDexLiquidityUsd) return;
+    jetton.dexLiquidityUsd = liquidityUsd;
+    jetton.dexVolume24hUsd = volume24hUsd;
+    jetton.dexTxCount24h = txCount24h;
+    jetton.priceUsd = price;
+    jetton.valueUsd = Number(jetton.balance || 0) * price;
+    jetton.priceSource = "dexscreener";
+    dexPricedKeys.add(jettonAddressKey(jetton.masterAddress || jetton.address));
+    if (Number.isFinite(change)) jetton.diff24h = `${change >= 0 ? "+" : ""}${change.toFixed(2)}%`;
+  });
+  const enriched = applyJettonQualityRegistry(jettons, dexPricedKeys);
+  rememberRecentJettonPrices(enriched);
+  return enriched;
 }
 
 function historyJettonsFromOperations(currentJettons, operations) {
@@ -5226,8 +5406,8 @@ async function tonUsdRate() {
         return value;
       } catch {
         console.warn(`TON/USD live rate failed: ${geckoError.message}`);
-        tonUsdRateCache = { value: tonUsdRateCache.value || usdTonRate, expiresAt: Date.now() + 10 * 1000, promise: null };
-        return tonUsdRateCache.value || usdTonRate;
+        tonUsdRateCache = { value: tonUsdRateCache.value || 0, expiresAt: Date.now() + 10 * 1000, promise: null };
+        return tonUsdRateCache.value;
       }
     }
   })();
@@ -5408,6 +5588,7 @@ async function chartFromBestSources({ address, symbol, range }) {
       if (chart.length > 1) return { source: url.includes("tonscan") ? "tonscan" : url.includes("dedust") ? "dedust" : "stonfi", points: chart };
     } catch {}
   }
+  const nativeTon = isNativeTonSymbol(symbol);
   const geckoId = symbol ? KNOWN_SYMBOL_GECKO_IDS[String(symbol).toUpperCase()] : null;
   if (geckoId) {
     try {
@@ -5417,8 +5598,8 @@ async function chartFromBestSources({ address, symbol, range }) {
       if (points.length > 1) return { source: "coingecko", points };
     } catch {}
   }
-  if (address || symbol === "TON") {
-    const points = await getRateChart(symbol === "TON" ? "TON" : address, start, end);
+  if (address || nativeTon) {
+    const points = await getRateChart(nativeTon ? "TON" : address, start, end);
     if (points.length > 1) return { source: "tonapi", points };
   }
   return { source: "none", points: [] };
@@ -5434,16 +5615,12 @@ async function tokenDetailData(url) {
   const cacheKey = `${address}:${symbol}:${decimals}:${priceUsd}:${valueUsd}:${range}`;
   const cached = tokenDetailCache.get(cacheKey);
   if (cached && cached.expiresAt > Date.now()) return cached.data;
-  if (!address && String(symbol).toUpperCase() === "TON") {
-    const chart = await chartFromBestSources({ address, symbol, range });
-    let geckoMarket = null;
-    let tonStat = null;
-    try {
-      geckoMarket = await geckoFetch("/coins/the-open-network?localization=false&tickers=false&market_data=true&community_data=false&developer_data=false&sparkline=false", 4500);
-    } catch {}
-    try {
-      tonStat = await tonStatSnapshot();
-    } catch {}
+  if (!address && isNativeTonSymbol(symbol)) {
+    const [chart, geckoMarket, tonStat] = await Promise.all([
+      chartFromBestSources({ address, symbol, range }),
+      geckoFetch("/coins/the-open-network?localization=false&tickers=false&market_data=true&community_data=false&developer_data=false&sparkline=false", 4500).catch(() => null),
+      tonStatSnapshot().catch(() => null),
+    ]);
     const marketData = geckoMarket?.market_data || {};
     const data = {
       source: { chart: chart.source, pool: "coingecko", market: "coingecko" },
@@ -5815,27 +5992,33 @@ function startWalletHistoryJobs(address, currentTonBalance, jettons) {
 
 async function walletImport(address, { forceRefresh = false } = {}) {
   address = parseTonAddress(address);
+  const walletCacheKey = walletJettonCacheKey(address);
+  const priorCachedJettons = cachedWalletJettons(walletJettonsCache, address);
   if (forceRefresh) {
-    walletJettonsCache.delete(String(address).toLowerCase());
+    walletJettonsCache.delete(walletCacheKey);
     clearWalletHistoryCache(address);
   }
-  let accountSource = "tonapi";
-  const accountPromise = !tonApiKey
-    ? tonCenterImmediateJson(`/walletInformation?address=${encodeURIComponent(address)}`).then((account) => {
-      accountSource = "toncenter";
-      return account;
-    })
-    : tonApi(`/accounts/${encodeURIComponent(address)}`, { immediate: true }).catch(async (tonApiError) => {
-      accountSource = "toncenter";
-      console.warn(`[wallet-import] TonAPI account fallback: ${tonApiError.message}`);
-      return tonCenterImmediateJson(`/walletInformation?address=${encodeURIComponent(address)}`);
-    });
+  let accountSource = "toncenter";
+  const accountCandidates = [
+    tonCenterImmediateJson(`/walletInformation?address=${encodeURIComponent(address)}`)
+      .then((account) => ({ account, source: "toncenter" })),
+  ];
+  accountCandidates.unshift(
+    tonApi(`/accounts/${encodeURIComponent(address)}`, { immediate: true, maxAttempts: 1 })
+      .then((account) => ({ account, source: "tonapi" })),
+  );
+  const accountPromise = firstWalletAccountWithin(accountCandidates, 4_000).then((result) => {
+    accountSource = result.source;
+    return result.account;
+  });
   const tonUsdPromise = tonUsdRate();
+  // Attach the optional-download fallback before awaiting core providers. The
+  // registry can time out first, or the account request can fail altogether.
+  const jettonImageRegistryPromise = tonkeeperJettonImageRegistry().catch(() => new Map());
   const jettonProvidersPromise = Promise.allSettled([
-    tonApiKey
-      ? fetchJettonProvider("tonapi", () => fetchAllTonApiJettons(address, (pathname) => tonApi(pathname, { immediate: true })), { maxAttempts: forceRefresh ? 3 : 2 })
-      : Promise.reject(new Error("TonAPI key is not configured")),
-    fetchJettonProvider("toncenter", () => fetchAllTonCenterJettons(address, (pathname) => tonCenterImmediateJson(pathname)), { maxAttempts: forceRefresh ? 3 : 2 }),
+    // Public TonAPI reads are supported; without a key use the paced queue.
+    providerWithin(fetchJettonProvider("tonapi", () => fetchAllTonApiJettons(address, (pathname) => tonApi(pathname, { immediate: Boolean(tonApiKey), maxAttempts: 1 })), { maxAttempts: forceRefresh ? 3 : 2 }), "tonapi", WALLET_JETTON_PROVIDER_TIMEOUT_MS),
+    providerWithin(fetchJettonProvider("toncenter", () => fetchAllTonCenterJettons(address, (pathname) => tonCenterImmediateJson(pathname, WALLET_JETTON_REQUEST_TIMEOUT_MS)), { maxAttempts: forceRefresh ? 3 : 2 }), "toncenter", WALLET_JETTON_PROVIDER_TIMEOUT_MS),
   ]);
   // Account and inventory are both first-visible data. Fetch them together so a
   // degraded provider cannot turn two bounded requests into one long serial wait.
@@ -5850,7 +6033,16 @@ async function walletImport(address, { forceRefresh = false } = {}) {
   const inventoryStatus = jettonInventoryStatus(jettonsResult, tonCenterJettonsResult, { forceRefresh });
   const tonApiJettons = jettonsResult.status === "fulfilled" ? normalizeJettons(jettonsResult.value.payload) : [];
   const tonCenterJettons = tonCenterJettonsResult.status === "fulfilled" ? normalizeTonCenterJettons(tonCenterJettonsResult.value.payload) : [];
-  const jettonInventory = mergeJettonInventories(tonApiJettons, tonCenterJettons);
+  const inventoryObservedAt = Date.now();
+  const jettonImageRegistry = await settleWithin(jettonImageRegistryPromise, 900, new Map());
+  const freshJettonInventory = applyJettonImageRegistry(mergeJettonInventories(tonApiJettons, tonCenterJettons), jettonImageRegistry)
+    .map((row) => ({ ...row, inventoryObservedAt }));
+  const reconciledInventory = reconcileJettonInventory(freshJettonInventory, priorCachedJettons, inventoryStatus);
+  const jettonInventory = reconciledInventory.jettons;
+  inventoryStatus.fallback = reconciledInventory.fallback;
+  if (inventoryStatus.status === "ready" && !jettonInventory.length) {
+    walletJettonsCache.delete(walletCacheKey);
+  }
   if (inventoryStatus.status !== "ready") {
     console.warn(`[wallet-import] jetton inventory ${inventoryStatus.status} for ${address}: ${Object.values(inventoryStatus.providers).filter((provider) => provider.error).map((provider) => `${provider.provider}: ${provider.error}`).join("; ")}`);
   }
@@ -5859,13 +6051,14 @@ async function walletImport(address, { forceRefresh = false } = {}) {
     namePromise: tonNamePromise,
     jettonsPromise: jettonRatesPromise,
     tonUsdPromise,
+    timeoutMs: 1_650,
   });
   normalizedAccount.tonName = initial.tonName || "";
   normalizedAccount.tonscanUrl = `https://tonscan.org/address/${encodeURIComponent(address)}`;
   normalizedAccount.tonviewerUrl = `https://tonviewer.com/${encodeURIComponent(address)}`;
   let jettons = dedupeJettons(initial.jettons.length ? initial.jettons : jettonInventory);
   if (jettons.length) {
-    walletJettonsCache.set(String(normalizedAccount.address || address).toLowerCase(), jettons);
+    walletJettonsCache.set(walletJettonCacheKey(normalizedAccount.address || address), jettons);
     clearWalletHistoryCache(normalizedAccount.address || address);
   }
   // The client immediately loads /api/collectibles into the category-specific
@@ -5897,7 +6090,7 @@ async function walletImport(address, { forceRefresh = false } = {}) {
   Promise.all([jettonRatesPromise, tonUsdPromise]).then(([enrichedJettons, accurateTonUsd]) => {
     const refreshedJettons = dedupeJettons(enrichedJettons);
     if (refreshedJettons.length) {
-      walletJettonsCache.set(String(normalizedAccount.address || address).toLowerCase(), refreshedJettons);
+      walletJettonsCache.set(walletJettonCacheKey(normalizedAccount.address || address), refreshedJettons);
       clearWalletHistoryCache(normalizedAccount.address || address);
     }
     saveWalletSnapshot(
@@ -6410,8 +6603,8 @@ function warmGiftComboHistoryCache(models = []) {
 }
 
 async function d1GiftComboFloors(pairs = []) {
-  if ((!giftRegistryReadUrl && !giftRegistryProxyUrl) || !pairs.length) return { combinations: [], estimates: [], coverage: [] };
-  const collectionLookup = await d1GiftCollectionComboFloors(pairs);
+  if ((!giftRegistryReadUrl && !giftRegistryProxyUrl) || !pairs.length) return { combinations: [], estimates: [], coverage: [], available: false };
+  const collectionLookupPromise = d1GiftCollectionComboFloors(pairs);
   const seen = new Set();
   const requested = [];
   pairs.forEach((pair) => {
@@ -6437,6 +6630,7 @@ async function d1GiftComboFloors(pairs = []) {
   const combinations = [];
   const estimates = [];
   const coverage = new Map();
+  let available = false;
   const concurrentD1Reads = 6;
   for (let index = 0; index < chunks.length; index += concurrentD1Reads) {
     const batchStarted = Date.now();
@@ -6454,6 +6648,7 @@ async function d1GiftComboFloors(pairs = []) {
     }));
     console.log(`[gift-d1-lookup] directBatch=${batchNumber}/${Math.ceil(chunks.length / concurrentD1Reads)} chunks=${batchChunks.length} requested=${batchChunks.reduce((sum, chunk) => sum + chunk.length, 0)} ms=${Date.now() - batchStarted}`);
     responses.forEach((response) => {
+      if (response) available = true;
       if (Array.isArray(response?.combinations)) combinations.push(...response.combinations);
       if (Array.isArray(response?.estimates)) estimates.push(...response.estimates);
       (Array.isArray(response?.coverage) ? response.coverage : []).forEach((entry) => {
@@ -6463,6 +6658,8 @@ async function d1GiftComboFloors(pairs = []) {
       });
     });
   }
+  const collectionLookup = await collectionLookupPromise;
+  available ||= Boolean(collectionLookup.available);
   const mergedCombinations = new Map();
   const addCombination = (combination) => {
     const key = [combination?.collection, combination?.model, combination?.backdrop]
@@ -6497,6 +6694,7 @@ async function d1GiftComboFloors(pairs = []) {
     estimates: [...mergedEstimates.values()],
     coverage: [...coverage].map(([collectionKey, snapshotAt]) => ({ collectionKey, snapshotAt })),
     collections: collectionLookup.collections || [],
+    available,
   };
 }
 
@@ -6939,6 +7137,12 @@ function estimatedGiftComboFloorFromRegistry(pair = {}, collections = [], tonRat
 }
 
 async function priceWalletGiftsFromD1(gifts = [], tonRate = 0, context = "wallet-import") {
+  // Preview prices are applied to the HTTP response only, never stored as live
+  // wallet evidence. Skip D1 pricing reads/healing while UI fixtures are active.
+  if (giftPricePreview.enabled()) {
+    giftPricePreview.setTonRate(tonRate);
+    return gifts.map((gift) => ({ ...gift, floorStatus: "unavailable", priceLoading: false }));
+  }
   const started = Date.now();
   const pairsByKey = new Map();
   gifts.forEach((gift) => {
@@ -6947,7 +7151,6 @@ async function priceWalletGiftsFromD1(gifts = [], tonRate = 0, context = "wallet
     pairsByKey.set(giftComboPairKey(pair), pair);
   });
   const pairs = [...pairsByKey.values()];
-  queueD1GiftSalesTargets(pairs);
   console.log(`[gift-import-pricing] ${context}: gifts=${gifts.length} uniqueCombos=${pairs.length}`);
   if (!pairs.length) {
     console.log(`[gift-import-pricing] ${context}: d1Batches=0 resolved=0 missing=${gifts.length} totalMs=${Date.now() - started}`);
@@ -6958,6 +7161,7 @@ async function priceWalletGiftsFromD1(gifts = [], tonRate = 0, context = "wallet
   const salesPromise = settleWithin(d1GiftSalesBulk(pairs, 10), 4200, new Map());
   const lookupStarted = Date.now();
   const lookup = await d1GiftComboFloors(pairs);
+  if (lookup.available) queueD1GiftSalesTargets(pairs);
   const lookupMs = Date.now() - lookupStarted;
   const combosByKey = new Map((lookup.combinations || []).map((combo) => [
     [combo.collection, combo.model, combo.backdrop].map(giftSnapshotKey).join(":"),
@@ -6973,7 +7177,7 @@ async function priceWalletGiftsFromD1(gifts = [], tonRate = 0, context = "wallet
     const pair = giftFloorPairFromItem(gift);
     const combo = pair ? d1ComboForGiftPair(pair, combosByKey) : null;
     const thinListedCombo = combo && Number(combo.floorTon || 0) > 0 && Number(combo.listedCount || 0) <= 1;
-    if (!combo || !(Number(combo.floorTon || 0) > 0) || thinListedCombo) {
+    if (!combo || !isFreshGiftComboFloor(combo) || thinListedCombo) {
       // A sale is evidence of past demand, not a current floor. Keep recent
       // sales on the asset, but never let one replace a live market price.
       // The product contract is: exact backdrop floor only when >1 listings;
@@ -7053,7 +7257,7 @@ async function priceWalletGiftsFromD1(gifts = [], tonRate = 0, context = "wallet
   });
   // A Telegram import is a D1 read path. It must not quietly trigger live
   // market reads that can change the result on the user's next screen.
-  const healingScheduled = context === "telegram-miniapp-import"
+  const healingScheduled = context === "telegram-miniapp-import" || !lookup.available
     ? 0
     : scheduleGiftComboFloorHeal(pairs, combosByKey, tonRate);
   if (healingScheduled) {
@@ -7103,11 +7307,12 @@ async function d1GiftCollectionComboFloors(pairs = []) {
     ...(pair.collectionKeys || []),
     ...giftCollectionAliasKeys(pair.collection),
   ]).filter(Boolean))];
-  if (!collections.length) return { combinations: [], coverage: [] };
+  if (!collections.length) return { combinations: [], coverage: [], available: false };
   const cacheTtlMs = 5 * 60 * 1000;
   const now = Date.now();
   const cachedCollections = new Map();
   const fetchCollections = [];
+  let registryResponded = false;
   collections.forEach((collection) => {
     const aliasKeys = [...new Set([
       collection,
@@ -7130,6 +7335,7 @@ async function d1GiftCollectionComboFloors(pairs = []) {
     const concurrentCollectionReads = Math.max(1, Math.min(4, Number(process.env.GIFT_COLLECTION_COMBO_CONCURRENCY || 4)));
     const appendPayloadCollections = (payloads = []) => {
       payloads.forEach((payload) => {
+        if (payload) registryResponded = true;
         if (Array.isArray(payload?.collections)) payloadCollections.push(...payload.collections);
       });
     };
@@ -7162,7 +7368,7 @@ async function d1GiftCollectionComboFloors(pairs = []) {
       const aliases = [collection, giftSnapshotKey(collection), ...giftCollectionAliasKeys(collection)].filter(Boolean).map(giftSnapshotKey);
       return !aliases.some((key) => firstPassKeys.has(key));
     });
-    if (retryCollections.length) {
+    if (retryCollections.length && (registryResponded || cachedCollections.size)) {
       const retryChunkSize = Math.max(1, Math.min(10, Number(process.env.GIFT_COLLECTION_COMBO_RETRY_CHUNK_SIZE || 8)));
       const retryChunks = Array.from({ length: Math.ceil(retryCollections.length / retryChunkSize) }, (_, index) => retryCollections.slice(index * retryChunkSize, index * retryChunkSize + retryChunkSize));
       for (let index = 0; index < retryChunks.length; index += concurrentCollectionReads) {
@@ -7234,9 +7440,10 @@ async function d1GiftCollectionComboFloors(pairs = []) {
       combinations,
       coverage: [...coverage].map(([collectionKey, snapshotAt]) => ({ collectionKey, snapshotAt })),
       collections: [...collectionMaps.values()],
+      available: registryResponded || cachedCollections.size > 0,
     };
   } catch {
-    return { combinations: [], coverage: [], collections: [] };
+    return { combinations: [], coverage: [], collections: [], available: false };
   }
 }
 
@@ -8000,6 +8207,22 @@ async function tonCenterWalletNfts(address, limit = 5000) {
   return { nft_items: rows.map((item) => tonCenterNftToTonApi(item, payload)) };
 }
 
+function shouldFallbackWalletNfts(mergedRows = []) {
+  return !Array.isArray(mergedRows) || mergedRows.length === 0;
+}
+
+function uniqueWalletNfts(rows = []) {
+  const byAddress = new Map();
+  for (const item of rows) {
+    if (!item?.address) continue;
+    const key = canonicalAddressKey(item.address);
+    // Prefer the richer primary-provider record; collection/name/index alone
+    // must never collapse distinct NFT contracts or invent an NFT identity.
+    if (!byAddress.has(key)) byAddress.set(key, item);
+  }
+  return [...byAddress.values()];
+}
+
 function normalizeWalletNft(item = {}) {
   const collection = item?.collection?.name || "Unknown collection";
   const name = item?.metadata?.name || collection || "Telegram Collectible";
@@ -8054,7 +8277,7 @@ async function walletNftsByType(address) {
   const categoryRegistry = stickerCategoryCache || stickerCategoryRegistryFromSnapshot();
   if (!stickerCategoryCache) stickerCategoryRegistry().catch(() => null);
   if (!liveCollectiblesRegistryCache) refreshCollectiblesRegistry().catch(() => null);
-  const tonRate = await tonUsdRate();
+  const tonRate = await settleWithin(tonUsdRate(), 1_500, usdTonRate);
   const stickerRegistryMatch = (item) => {
     const inferredBrand = inferStickerBrandName(item.collection, item.name);
     const aliasValues = expandStickerAliases([item.collection, item.name, inferredBrand]);
@@ -8066,34 +8289,30 @@ async function walletNftsByType(address) {
     const nameMatch = directNameMatch;
     return addressMatch || nameMatch || null;
   };
-  const [directPayload, indirectPayload] = tonApiKey
-    ? await Promise.allSettled([
-      tonApi(`/accounts/${encodeURIComponent(address)}/nfts?limit=1000&indirect_ownership=false`),
-      tonApi(`/accounts/${encodeURIComponent(address)}/nfts?limit=1000&indirect_ownership=true`),
-    ])
-    : [
-      { status: "rejected", reason: new Error("TonAPI key is not configured") },
-      { status: "rejected", reason: new Error("TonAPI key is not configured") },
-    ];
+  const [directPayload, indirectPayload, tonCenterPayload] = await Promise.allSettled([
+    // An indirect-ownership query includes direct holdings. Without a key,
+    // make one paced public request rather than spending two rate-limit slots.
+    tonApiKey
+      ? providerWithin(tonApi(`/accounts/${encodeURIComponent(address)}/nfts?limit=1000&indirect_ownership=false`, { immediate: true, maxAttempts: 1 }), "tonapi-direct-nfts", 10_000)
+      : Promise.resolve({ nft_items: [] }),
+    providerWithin(tonApi(`/accounts/${encodeURIComponent(address)}/nfts?limit=1000&indirect_ownership=true`, { immediate: Boolean(tonApiKey), maxAttempts: 1 }), "tonapi-indirect-nfts", 20_000),
+    providerWithin(tonCenterWalletNfts(address), "toncenter-wallet-nfts", 12_000),
+  ]);
   let mergedRows = [
     ...(directPayload.status === "fulfilled" ? (directPayload.value?.nft_items || []) : []),
     ...(indirectPayload.status === "fulfilled" ? (indirectPayload.value?.nft_items || []) : []),
+    ...(tonCenterPayload.status === "fulfilled" ? (tonCenterPayload.value?.nft_items || []) : []),
   ];
-  let discoverySource = "tonapi-wallet";
-  let discoveryError = directPayload.status === "rejected" && indirectPayload.status === "rejected"
-    ? [directPayload.reason, indirectPayload.reason].map((reason) => reason?.message).filter(Boolean).join("; ") || "TON NFT discovery failed"
-    : "";
-  if (!mergedRows.length && discoveryError) {
-    try {
-      const fallback = await tonCenterWalletNfts(address);
-      mergedRows = fallback.nft_items || [];
-      discoverySource = "toncenter-wallet";
-      discoveryError = "";
-    } catch (error) {
-      discoveryError = `${discoveryError}; TON Center fallback: ${error.message}`;
-    }
-  }
-  const uniqueRows = [...new Map(mergedRows.map((item) => [String(item?.address || `${item?.collection?.address || ""}:${item?.index || ""}`), item])).values()];
+  const tonApiRows = (directPayload.status === "fulfilled" ? directPayload.value?.nft_items?.length || 0 : 0)
+    + (indirectPayload.status === "fulfilled" ? indirectPayload.value?.nft_items?.length || 0 : 0);
+  const tonCenterRows = tonCenterPayload.status === "fulfilled" ? tonCenterPayload.value?.nft_items?.length || 0 : 0;
+  const discoverySource = tonApiRows && tonCenterRows ? "tonapi+toncenter-wallet" : tonCenterRows ? "toncenter-wallet" : "tonapi-wallet";
+  const discoveryError = mergedRows.length ? "" : [directPayload, indirectPayload, tonCenterPayload]
+    .filter((result) => result.status === "rejected")
+    .map((result) => result.reason?.message)
+    .filter(Boolean)
+    .join("; ");
+  const uniqueRows = uniqueWalletNfts(mergedRows);
   const items = uniqueRows.map((item) => {
     const normalized = normalizeWalletNft(item);
     if (normalized.type === "ton_dns" || normalized.type === "telegram_username" || normalized.type === "anonymous_number") {
@@ -8166,13 +8385,16 @@ async function getCollectibles(address) {
   const key = `${canonicalAddressKey(address)}:wallet-v11-identity-assets-v1`;
   const cached = cachedMapValue(collectiblesCache, key);
   if (cached) return cached;
-  const tonRate = await tonUsdRate();
+  const tonRate = await settleWithin(tonUsdRate(), 1_500, usdTonRate);
   const classified = await walletNftsByType(address);
   console.log(`[gift-import-pricing] collectibles:${canonicalAddressKey(address)}: tonapiGifts=${classified.gifts?.length || 0} stickers=${classified.stickers?.length || 0}`);
-  classified.gifts = await priceWalletGiftsFromD1(classified.gifts || [], tonRate, `collectibles:${canonicalAddressKey(address)}`);
-  [classified.dns, classified.usernames] = await Promise.all([
-    dnsRuntime.valueAssets(classified.dns || [], tonRate),
-    usernameRuntime.valueAssets(classified.usernames || []),
+  const unresolvedGifts = (classified.gifts || []).map((gift) => ({
+    ...gift, floorStatus: "unavailable", priceLoading: false,
+  }));
+  [classified.gifts, classified.dns, classified.usernames] = await Promise.all([
+    settleWithin(priceWalletGiftsFromD1(classified.gifts || [], tonRate, `collectibles:${canonicalAddressKey(address)}`), 8_000, unresolvedGifts),
+    settleWithin(dnsRuntime.valueAssets(classified.dns || [], tonRate), 4_000, classified.dns || []),
+    settleWithin(usernameRuntime.valueAssets(classified.usernames || [], tonRate), 4_000, classified.usernames || []),
   ]);
   dnsRuntime.enqueueAssets(classified.dns).catch((error) => {
     console.warn(`[dns-estimator] wallet refresh queue failed: ${error.message}`);
@@ -8223,9 +8445,16 @@ async function getCollectibles(address) {
           unavailable: classified.gifts.filter((item) => item.floorStatus !== "priced").length,
         },
       },
-      source: "tonapi-wallet",
-    }, identityNeedsRefresh ? 15 * 1000 : 5 * 60 * 1000);
+      source: classified.source || "tonapi-wallet",
+    }, identityNeedsRefresh ? 15 * 1000 : classified.gifts.some((item) => item.floorStatus === "unavailable") ? 60 * 1000 : 5 * 60 * 1000);
   }
+
+  // Successful discovery with no supported holdings is a valid empty result.
+  // Do not turn it into an error merely because optional Getgems is offline.
+  if (!classified.error) return setCachedMapValue(collectiblesCache, key, {
+    gifts: [], stickers: [], dns: [], usernames: [], anonymousNumbers: [],
+    source: classified.source || "tonapi-wallet",
+  }, 5 * 60 * 1000);
 
   const query = `query WalletNfts($owner: String!) {
     nfts(ownerAddress: $owner, first: 100) {
@@ -8240,7 +8469,7 @@ async function getCollectibles(address) {
     }
   }`;
   try {
-    const payload = await getgemsGraphql(query, { owner: address });
+    const payload = await providerWithin(getgemsGraphql(query, { owner: address }), "getgems-wallet-nfts", 8_000);
     const root = payload?.data?.nfts;
     const nodes = root?.edges?.map((edge) => edge.node) || root?.items || [];
     const items = nodes.map((node) => normalizeGetgemsNft(node, tonRate)).filter((item) => item.type);
@@ -9719,6 +9948,18 @@ function giftDetailLinks(collectionAddress = "", collectionName = "", floor = {}
 
 async function handleApi(req, res, url) {
   if (req.method === "OPTIONS") return json(res, 204, {});
+  if (giftPricePreview.enabled()) {
+    if (!giftPricePreview.allowedRequest(req)) {
+      return json(res, 403, { error: "Gift UI preview is loopback-only" });
+    }
+    res.giftPricePreview = true;
+    const previewPaths = ["/api/gift-detail-data", "/api/gift-registry/history", "/api/gift-registry/sales",
+      "/api/gift-model-floors/bulk", "/api/gift-registry/combos", "/api/gift-model-stats"];
+    if (previewPaths.includes(url.pathname)) {
+      const body = req.method === "POST" ? await readJsonBody(req) : {};
+      return json(res, 200, giftPricePreview.apiResponse(url.pathname, url.searchParams, body));
+    }
+  }
   if (url.pathname === "/api/dns-estimator/status" && req.method === "GET") {
     return json(res, 200, await dnsRuntime.status());
   }
@@ -9753,7 +9994,7 @@ async function handleApi(req, res, url) {
     try {
       const body = await readJsonBody(req, 64 * 1024);
       const addresses = Array.isArray(body.addresses) ? body.addresses.slice(0, 500) : [];
-      const rows = await usernameRuntime.lookupValuations(addresses);
+      const rows = await usernameRuntime.lookupPublishedValuations(addresses);
       return json(res, 200, { valuations: [...rows.values()] });
     } catch (error) {
       return json(res, 400, { error: error.message, valuations: [] });
@@ -9911,6 +10152,10 @@ async function handleApi(req, res, url) {
         const registryTraitRarities = Object.fromEntries(
           Object.entries(registryTraitMetrics).map(([label, value]) => [label, Number(value.rarity || 0)])
         );
+        const effectiveTraitMetrics = Object.keys(stored.traitMetrics || {}).length ? stored.traitMetrics : registryTraitMetrics;
+        const modelTraitMetric = effectiveTraitMetrics.Model || effectiveTraitMetrics.model || {};
+        const modelFloorTon = Number(modelTraitMetric.floorTon || 0);
+        const modelFloorUsd = Number(modelTraitMetric.floorUsd || 0) || (modelFloorTon > 0 ? modelFloorTon * rate : 0);
         const model = {
           ...stored,
           requestKey: giftComboPairKey(pair),
@@ -9920,7 +10165,13 @@ async function handleApi(req, res, url) {
           modelKey: pair.modelKey,
           backdrop: pair.backdrop,
           symbol: pair.symbol,
-          traitMetrics: Object.keys(stored.traitMetrics || {}).length ? stored.traitMetrics : registryTraitMetrics,
+          // Keep the model-level reference separate from the exact combo floor.
+          // The frontend can show this as an estimate without changing portfolio
+          // valuation when a backdrop-level listing is unavailable.
+          modelFloorTon,
+          modelFloorUsd,
+          modelFloorSource: modelFloorTon > 0 || modelFloorUsd > 0 ? "model-floor" : "",
+          traitMetrics: effectiveTraitMetrics,
           traitRarities: Object.keys(stored.traitRarities || {}).length ? stored.traitRarities : registryTraitRarities,
         };
         if (!combo) {
@@ -10424,7 +10675,7 @@ async function handleApi(req, res, url) {
       }
       const account = await tonApi(`/accounts/${encodeURIComponent(address)}`);
       const normalizedAccount = normalizeAccount(account, address);
-      const cacheAddress = String(normalizedAccount.address || address).toLowerCase();
+      const cacheAddress = walletJettonCacheKey(normalizedAccount.address || address);
       let jettons = walletJettonsCache.get(cacheAddress) || [];
       try {
         const jettonsPayload = await tonApi(`/accounts/${encodeURIComponent(address)}/jettons`);
@@ -10448,23 +10699,31 @@ async function handleApi(req, res, url) {
 }
 
 const server = http.createServer((req, res) => {
-  const url = new URL(req.url, `http://${req.headers.host}`);
+  let url;
+  try { url = new URL(req.url, `http://${req.headers.host}`); }
+  catch { return json(res, 400, { error: "Invalid request URL" }); }
   if (url.pathname.startsWith("/api/")) {
     handleApi(req, res, url).catch((error) => json(res, 500, { error: error.message }));
     return;
   }
+  if (req.method !== "GET" && req.method !== "HEAD") {
+    res.setHeader("allow", "GET, HEAD");
+    return json(res, 405, { error: "Method not allowed" });
+  }
+  const rawPath = req.url.split("?")[0];
   // Telegram Desktop can block or delay third-party CDNs. Keep the Lottie
   // player on the same origin as the Mini App so animated gift media is not
   // dependent on an external script loading first.
-  if (url.pathname === "/assets/vendor/lottie.min.js") {
-    const player = path.join(root, "node_modules", "lottie-web", "build", "player", "lottie.min.js");
+  if (rawPath === "/assets/vendor/lottie.min.js") {
+    const player = safeStaticPath(req.url);
+    if (!player) return json(res, 404, { error: "Lottie player not found" });
     return fs.readFile(player, (error, data) => {
       if (error) return json(res, 404, { error: "Lottie player not found" });
       res.writeHead(200, { "content-type": "text/javascript; charset=utf-8", "cache-control": "public, max-age=86400" });
-      res.end(data);
+      res.end(req.method === "HEAD" ? undefined : data);
     });
   }
-  if (url.pathname === "/tonconnect-manifest.json") {
+  if (rawPath === "/tonconnect-manifest.json") {
     tonConnectManifest(req, res);
     return;
   }
@@ -10659,15 +10918,28 @@ module.exports = {
   verifiedTonListing,
   normalizeJettons,
   normalizeTonCenterJettons,
+  applyJettonImageRegistry,
   fetchAllTonApiJettons,
   fetchAllTonCenterJettons,
   fetchJettonProvider,
+  providerWithin,
+  firstWalletAccountWithin,
   jettonInventoryStatus,
+  walletJettonCacheKey,
+  cachedWalletJettons,
+  reconcileJettonInventory,
+  WALLET_JETTON_INVENTORY_TTL_MS,
+  WALLET_JETTON_REQUEST_TIMEOUT_MS,
+  WALLET_JETTON_PROVIDER_TIMEOUT_MS,
   walletImportInitialPresentation,
   mergeJettonInventories,
+  applyRecentJettonPrices,
+  rememberRecentJettonPrices,
   normalizeTonCenterActions,
   filterGiftHistoryRange,
   tonCenterNftToTonApi,
+  shouldFallbackWalletNfts,
+  uniqueWalletNfts,
   dnsRuntime,
   usernameRuntime,
   identityAssetFields,

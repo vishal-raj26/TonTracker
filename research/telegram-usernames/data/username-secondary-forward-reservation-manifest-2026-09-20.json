@@ -1,0 +1,63 @@
+{
+  "schemaVersion": "username-secondary-forward-reservation-v1",
+  "sealedBeforeWindow": true,
+  "createdAt": "2026-09-20T13:50:37.815Z",
+  "window": {
+    "fromInclusive": "2026-09-20T14:00:00Z",
+    "untilExclusive": "2026-10-20T00:00:00Z",
+    "directory": "current-username-secondary-forward",
+    "maximumUniqueEvents": 4000,
+    "weeklyBlocks": [
+      "2026-09-20T14:00:00Z",
+      "2026-09-27T00:00:00Z",
+      "2026-10-04T00:00:00Z",
+      "2026-10-11T00:00:00Z",
+      "2026-10-18T00:00:00Z",
+      "2026-10-20T00:00:00Z"
+    ]
+  },
+  "candidate": {
+    "estimatorVersion": "username-market-v25",
+    "calibrationVersion": "username-calibration-v5",
+    "modelVersion": "telegram-username-learned-v15",
+    "maxHistory": 30000,
+    "strategy": "v25 using only strictly prior completed evidence, augmented by prior contract-verified secondary Username sales",
+    "files": {
+      "lib/toncenter-username-secondary-ledger.js": "740a80b4b8080c77a6a2ce5b5cb7803ab6fa4424667f66a053d5e3efd8b44756",
+      "scripts/collect-username-secondary-local.js": "21700609dbe48876ee9513b6eb7aa1d4a20c64bd4b9c4d6953e5b4cbaf878da8",
+      "scripts/audit-username-secondary-reservation.js": "8984f751fd333d8e3241266465533ca0e18fed102919cdbfcc7c8ed03b9d6fe2",
+      "lib/username-estimator.js": "c83daedfead6f2dbe7d247e9fdd669446cf075f3bf1a501437b789739ae5a8c7",
+      "lib/username-learned-model.js": "2e5e895b7dcdc8635d70edf1ee3a6232a893387f4f62f0426d8e579767079d7a",
+      "lib/username-backtest.js": "bc358537d100cc113412c048be68b7443d9636a1b1c232b4b9fd07bbbbfd6651"
+    }
+  },
+  "baseline": "same-case v25 without the new prospective secondary stream",
+  "selection": {
+    "exactUsernameCollection": true,
+    "completedNftSaleContract": true,
+    "positiveNativePrice": true,
+    "includeEveryVerifiedSecondarySale": true,
+    "noPriceNameOrOutcomeSelection": true,
+    "retainFailures": true,
+    "stopAtFirstOf": [
+      "maximumUniqueEvents",
+      "untilExclusive"
+    ]
+  },
+  "gates": {
+    "minimumPremiumUniqueIdentities": 100,
+    "minimumPremiumWeeklyBlocks": 2,
+    "premiumThresholdUsd": 500,
+    "premiumMedianFactorErrorMaximum": 3,
+    "premiumMaleImprovementVsV25Minimum": 0.25,
+    "ordinaryAndIntermediateMaleRegressionMaximum": 0.05,
+    "overallIntervalCoverageMinimum": 0.75,
+    "overallIntervalCoverageMaximum": 0.85,
+    "premiumIntervalCoverageMinimum": 0.7
+  },
+  "limitations": [
+    "This stream targets completed inactive/secondary resales and is separate from Fragment active-auction nowcasting.",
+    "The already inspected pre-window API probe is development evidence and is excluded by the prospective start.",
+    "Insufficient event or premium counts fail without extension or exposed-label pooling."
+  ]
+}

@@ -1,0 +1,175 @@
+{
+  "schemaVersion": "username-local-collection-v1",
+  "from": "2026-09-20T13:45:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "collectedAt": "2026-09-22T13:36:40.948Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 37129,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 80,
+    "candidates": 31,
+    "verifiedItems": 3,
+    "wrongCollection": 28,
+    "assets": 3,
+    "sales": 3,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-22T13:36:40.948Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:636134ae1d9623c4dd9c460116a1cf588ba108e50f62d64570d0acb7b660c472",
+      "normalizedName": "truthcredo",
+      "displayName": "@truthcredo",
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "10L",
+      "feature": {
+        "characterLength": 10,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCADEBFGH",
+        "uniqueCharacterCount": 8,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-22T09:19:18.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:ff90f23c7949dd3119888cc3ba7cb991a31091107f8642c6b5d6f1438faaac63",
+      "normalizedName": "tradingda",
+      "displayName": "@tradingda",
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "9L",
+      "feature": {
+        "characterLength": 9,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCDEFGDC",
+        "uniqueCharacterCount": 7,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-22T09:21:05.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:7121ac6167de99a34871f4f811e79f65b097c1efb176b21c5448f1500cb47ca1",
+      "normalizedName": "memeverse",
+      "displayName": "@memeverse",
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "9L",
+      "feature": {
+        "characterLength": 9,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABABCBDEB",
+        "uniqueCharacterCount": 5,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-22T09:23:20.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:cb16880b8ec7a08b324cb4d101939486e4f2bb24e4983fbdfdda393b161ada06",
+      "assetKind": "username",
+      "assetKey": "0:636134ae1d9623c4dd9c460116a1cf588ba108e50f62d64570d0acb7b660c472",
+      "normalizedName": "truthcredo",
+      "soldAt": "2026-09-22T09:19:18.000Z",
+      "priceGram": 11,
+      "historicalUsdRate": 1.42595626393269,
+      "priceUsd": 15.68551890325959,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "nearest-observation",
+        "txHash": "UdG8LXcXGsPf8Cek8EaZEocZazhN6jgzRKqG8wyt9Pw=",
+        "messageHash": "b/nC4xdzbtNHZqDb45qoFZV3Opo5gOWMD0J9Vu1KC2o=",
+        "bidAt": "2026-09-22T09:19:18.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "10L"
+    },
+    {
+      "saleId": "toncenter-username-sale:98a25a94ca1305b8367a43cc60f9e3365ccf5e25f287a91ff412d05003c0429f",
+      "assetKind": "username",
+      "assetKey": "0:ff90f23c7949dd3119888cc3ba7cb991a31091107f8642c6b5d6f1438faaac63",
+      "normalizedName": "tradingda",
+      "soldAt": "2026-09-22T09:21:05.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.42595626393269,
+      "priceUsd": 14.2595626393269,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "nearest-observation",
+        "txHash": "K0kCvCIPd1Pa9R6oOjmn5RUlLlFa1j25qIWMEJLxqAE=",
+        "messageHash": "H+zyARYeyOiDooq1BReoBAGTRKigKRHsFKSRGhEcxJI=",
+        "bidAt": "2026-09-15T09:20:49.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "9L"
+    },
+    {
+      "saleId": "toncenter-username-sale:d16ba14ac5594902f2c1945051c29c5b018b19a0c8d9e9e322369553536ec682",
+      "assetKind": "username",
+      "assetKey": "0:7121ac6167de99a34871f4f811e79f65b097c1efb176b21c5448f1500cb47ca1",
+      "normalizedName": "memeverse",
+      "soldAt": "2026-09-22T09:23:20.000Z",
+      "priceGram": 100,
+      "historicalUsdRate": 1.42595626393269,
+      "priceUsd": 142.595626393269,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "nearest-observation",
+        "txHash": "PXeUTdGNZMX5J/SXfElLh4uDZcoTUtrI6dSWdF/NDpE=",
+        "messageHash": "RAMjVnBc9xWuJ30pQOxEJQmlBLamAdlzq8liRl8MPi0=",
+        "bidAt": "2026-09-22T08:19:41.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "9L"
+    }
+  ]
+}

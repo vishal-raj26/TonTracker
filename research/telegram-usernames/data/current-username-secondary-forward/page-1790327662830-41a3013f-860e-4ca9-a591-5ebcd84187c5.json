@@ -1,0 +1,91 @@
+{
+  "schemaVersion": "username-secondary-local-v1",
+  "from": "2026-09-20T14:00:00Z",
+  "pipeline": "username-toncenter-secondary-sales-v1",
+  "collectedAt": "2026-09-25T09:14:22.830Z",
+  "cursor": {
+    "absoluteOffset": 16470,
+    "caughtUp": false
+  },
+  "metadata": {
+    "transfers": 100,
+    "saleContracts": 2,
+    "verifiedSales": 1,
+    "assets": 1,
+    "sales": 1,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-25T09:14:22.830Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:33a103ec53b89dbf15689e96325e58ff31cd317b531a22345eac42dc95f93b45",
+      "normalizedName": "danilskypov",
+      "displayName": "@danilskypov",
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "11L",
+      "feature": {
+        "classifierVersion": "username-structural-v2",
+        "normalizedUsername": "danilskypov",
+        "displayUsername": "@danilskypov",
+        "characterLength": 11,
+        "byteLength": 11,
+        "characterClass": "letters",
+        "primaryRoute": "word",
+        "routes": [
+          "word"
+        ],
+        "scarcityClass": "11L",
+        "patternSignature": "ABCDEFGHIJK",
+        "shapeSignature": "LLLLLLLLLLL",
+        "uniqueCharacterCount": 11,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "repeatedBlock": null,
+        "scripts": [
+          "Latin"
+        ],
+        "primaryScript": "Latin",
+        "containsUnderscore": false,
+        "underscoreCount": 0,
+        "digitCount": 0,
+        "digitRatio": 0,
+        "vowelRatio": 0.36363636363636365,
+        "pronounceability": "balanced",
+        "leadingZero": false,
+        "roundNumber": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-23T08:41:16.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-secondary:87b59803c1e974a8ac02278fbb086fc0fa769a655361cfd4ee895c34ce2c5683",
+      "assetKind": "username",
+      "assetKey": "0:33a103ec53b89dbf15689e96325e58ff31cd317b531a22345eac42dc95f93b45",
+      "normalizedName": "danilskypov",
+      "soldAt": "2026-09-23T08:41:16.000Z",
+      "priceGram": 5.97,
+      "historicalUsdRate": 1.4598659699828398,
+      "priceUsd": 8.715399840797554,
+      "marketplace": "Getgems",
+      "source": "toncenter-indexed-secondary-sale",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-completed-sale-contract",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "transactionHash": "SvlrFidQ/2XO9DfNP6MujbyhVOeDRV2LYPgfvJAwsMQ=",
+        "saleContract": "0:2de49df414f5f9d1353a8c117891dad83addcd7605d64f75c8d4307e961f682c"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "11L"
+    }
+  ]
+}

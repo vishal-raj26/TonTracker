@@ -1,0 +1,75 @@
+{
+  "schemaVersion": "username-local-collection-v1",
+  "from": "2026-09-01T00:00:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "collectedAt": "2026-09-19T16:13:15.259Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 13040,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 80,
+    "candidates": 7,
+    "verifiedItems": 1,
+    "wrongCollection": 6,
+    "assets": 1,
+    "sales": 1,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-19T16:13:15.258Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:732da765c3501eb130736e51ea3ff9c8190a51668e3d27ae9a05e9212c328f66",
+      "normalizedName": "emoboi",
+      "displayName": "@emoboi",
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "6L",
+      "feature": {
+        "characterLength": 6,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCDCE",
+        "uniqueCharacterCount": 5,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-01T17:50:55.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:fc2e68c146f98350219cc3bb05055f37c074cf666256477a6f1e4e38070b98f2",
+      "assetKind": "username",
+      "assetKey": "0:732da765c3501eb130736e51ea3ff9c8190a51668e3d27ae9a05e9212c328f66",
+      "normalizedName": "emoboi",
+      "soldAt": "2026-09-01T17:50:55.000Z",
+      "priceGram": 666,
+      "historicalUsdRate": 1.3333256774231699,
+      "priceUsd": 887.9949011638312,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "0p1q4ur2DrMIBC5x0fOIYslrkCDt3aWiI1LQBKLOIcE=",
+        "messageHash": "vXvrfyUty1UvkVFRCG1PDmZClURzUzp8j1X1x+ddTIQ=",
+        "bidAt": "2026-09-01T17:50:55.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "6L"
+    }
+  ]
+}

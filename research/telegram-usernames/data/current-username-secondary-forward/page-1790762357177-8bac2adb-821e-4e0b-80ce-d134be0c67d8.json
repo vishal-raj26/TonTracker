@@ -1,0 +1,159 @@
+{
+  "schemaVersion": "username-secondary-local-v1",
+  "from": "2026-09-20T14:00:00Z",
+  "pipeline": "username-toncenter-secondary-sales-v1",
+  "collectedAt": "2026-09-30T09:59:17.177Z",
+  "cursor": {
+    "absoluteOffset": 46058,
+    "caughtUp": false
+  },
+  "metadata": {
+    "transfers": 100,
+    "saleContracts": 5,
+    "verifiedSales": 2,
+    "assets": 2,
+    "sales": 2,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-30T09:59:17.177Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:ccef156316fd64120563c01ccd1108b0a4277836c11db7471ddcc0925e69463a",
+      "normalizedName": "kovete",
+      "displayName": "@kovete",
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "6L",
+      "feature": {
+        "classifierVersion": "username-structural-v2",
+        "normalizedUsername": "kovete",
+        "displayUsername": "@kovete",
+        "characterLength": 6,
+        "byteLength": 6,
+        "characterClass": "letters",
+        "primaryRoute": "word",
+        "routes": [
+          "word"
+        ],
+        "scarcityClass": "6L",
+        "patternSignature": "ABCDED",
+        "shapeSignature": "LLLLLL",
+        "uniqueCharacterCount": 5,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "repeatedBlock": null,
+        "scripts": [
+          "Latin"
+        ],
+        "primaryScript": "Latin",
+        "containsUnderscore": false,
+        "underscoreCount": 0,
+        "digitCount": 0,
+        "digitRatio": 0,
+        "vowelRatio": 0.5,
+        "pronounceability": "balanced",
+        "leadingZero": false,
+        "roundNumber": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-28T08:53:23.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:61748a77d121ad72bc97d8b84b755b0a046f5b77edbb51714358a280be272736",
+      "normalizedName": "guillotined",
+      "displayName": "@guillotined",
+      "primaryRoute": "pattern",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "11L",
+      "feature": {
+        "classifierVersion": "username-structural-v2",
+        "normalizedUsername": "guillotined",
+        "displayUsername": "@guillotined",
+        "characterLength": 11,
+        "byteLength": 11,
+        "characterClass": "letters",
+        "primaryRoute": "pattern",
+        "routes": [
+          "pattern"
+        ],
+        "scarcityClass": "11L",
+        "patternSignature": "ABCDDEFCGHI",
+        "shapeSignature": "LLLLLLLLLLL",
+        "uniqueCharacterCount": 9,
+        "maxRunLength": 2,
+        "palindrome": false,
+        "sequence": null,
+        "repeatedBlock": null,
+        "scripts": [
+          "Latin"
+        ],
+        "primaryScript": "Latin",
+        "containsUnderscore": false,
+        "underscoreCount": 0,
+        "digitCount": 0,
+        "digitRatio": 0,
+        "vowelRatio": 0.45454545454545453,
+        "pronounceability": "balanced",
+        "leadingZero": false,
+        "roundNumber": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-28T08:39:52.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-secondary:4128493056b51fb89329997f75c64107d82ea5cd89d8123fb5de6a80f71b29cc",
+      "assetKind": "username",
+      "assetKey": "0:ccef156316fd64120563c01ccd1108b0a4277836c11db7471ddcc0925e69463a",
+      "normalizedName": "kovete",
+      "soldAt": "2026-09-28T08:53:23.000Z",
+      "priceGram": 5.6,
+      "historicalUsdRate": 1.6364873227349732,
+      "priceUsd": 9.16432900731585,
+      "marketplace": "Getgems",
+      "source": "toncenter-indexed-secondary-sale",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-completed-sale-contract",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "transactionHash": "BroE723Cem8j3+UVEy92tkvvY+ZInHQ+TtMdNGSnO0k=",
+        "saleContract": "0:e49f3a2df91f54099f2e78567bdbb9cb191ae3de946cbafd4bd10d171eff50d0"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "6L"
+    },
+    {
+      "saleId": "toncenter-username-secondary:3a45f6a3b323558713925b9a5fee0eb2079b5dd229b3400fe7689e0fe0f04112",
+      "assetKind": "username",
+      "assetKey": "0:61748a77d121ad72bc97d8b84b755b0a046f5b77edbb51714358a280be272736",
+      "normalizedName": "guillotined",
+      "soldAt": "2026-09-28T08:39:52.000Z",
+      "priceGram": 150,
+      "historicalUsdRate": 1.6358311222300772,
+      "priceUsd": 245.37466833451157,
+      "marketplace": "Getgems",
+      "source": "toncenter-indexed-secondary-sale",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-completed-sale-contract",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "transactionHash": "NHAdWnN8NZzLnXzgbkSGxMesCpxxNiCuxXEqZOWjfY8=",
+        "saleContract": "0:1460467d5220a47c6203069fd0013b0e43756494c51efabe47790fc77b8b87fa"
+      },
+      "primaryRoute": "pattern",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "11L"
+    }
+  ]
+}

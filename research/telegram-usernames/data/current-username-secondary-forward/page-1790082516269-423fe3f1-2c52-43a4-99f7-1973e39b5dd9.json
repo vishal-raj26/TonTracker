@@ -1,0 +1,159 @@
+{
+  "schemaVersion": "username-secondary-local-v1",
+  "from": "2026-09-20T14:00:00Z",
+  "pipeline": "username-toncenter-secondary-sales-v1",
+  "collectedAt": "2026-09-22T13:08:36.269Z",
+  "cursor": {
+    "absoluteOffset": 2000,
+    "caughtUp": false
+  },
+  "metadata": {
+    "transfers": 100,
+    "saleContracts": 3,
+    "verifiedSales": 2,
+    "assets": 2,
+    "sales": 2,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-22T13:08:36.269Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:0d2e2fb9634f890989b48a3004eea8b3f0972eeddf12eec91764baaa43016054",
+      "normalizedName": "dollmaker",
+      "displayName": "@dollmaker",
+      "primaryRoute": "pattern",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "9L",
+      "feature": {
+        "classifierVersion": "username-structural-v2",
+        "normalizedUsername": "dollmaker",
+        "displayUsername": "@dollmaker",
+        "characterLength": 9,
+        "byteLength": 9,
+        "characterClass": "letters",
+        "primaryRoute": "pattern",
+        "routes": [
+          "pattern"
+        ],
+        "scarcityClass": "9L",
+        "patternSignature": "ABCCDEFGH",
+        "shapeSignature": "LLLLLLLLL",
+        "uniqueCharacterCount": 8,
+        "maxRunLength": 2,
+        "palindrome": false,
+        "sequence": null,
+        "repeatedBlock": null,
+        "scripts": [
+          "Latin"
+        ],
+        "primaryScript": "Latin",
+        "containsUnderscore": false,
+        "underscoreCount": 0,
+        "digitCount": 0,
+        "digitRatio": 0,
+        "vowelRatio": 0.3333333333333333,
+        "pronounceability": "balanced",
+        "leadingZero": false,
+        "roundNumber": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-20T18:42:36.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:8698464d0f88afcf98d26c43e54dae9200604e1d78dd2b63428664a2b4bb5040",
+      "normalizedName": "amulete",
+      "displayName": "@amulete",
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "7L",
+      "feature": {
+        "classifierVersion": "username-structural-v2",
+        "normalizedUsername": "amulete",
+        "displayUsername": "@amulete",
+        "characterLength": 7,
+        "byteLength": 7,
+        "characterClass": "letters",
+        "primaryRoute": "word",
+        "routes": [
+          "word"
+        ],
+        "scarcityClass": "7L",
+        "patternSignature": "ABCDEFE",
+        "shapeSignature": "LLLLLLL",
+        "uniqueCharacterCount": 6,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "repeatedBlock": null,
+        "scripts": [
+          "Latin"
+        ],
+        "primaryScript": "Latin",
+        "containsUnderscore": false,
+        "underscoreCount": 0,
+        "digitCount": 0,
+        "digitRatio": 0,
+        "vowelRatio": 0.5714285714285714,
+        "pronounceability": "balanced",
+        "leadingZero": false,
+        "roundNumber": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-20T18:39:10.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-secondary:7f161a5ed075ef8e6fe01b5b29dc9a60999caaf1a5027b9d6c9f0e2f21b9124d",
+      "assetKind": "username",
+      "assetKey": "0:0d2e2fb9634f890989b48a3004eea8b3f0972eeddf12eec91764baaa43016054",
+      "normalizedName": "dollmaker",
+      "soldAt": "2026-09-20T18:42:36.000Z",
+      "priceGram": 36,
+      "historicalUsdRate": 1.386272264504535,
+      "priceUsd": 49.90580152216326,
+      "marketplace": "Getgems",
+      "source": "toncenter-indexed-secondary-sale",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-completed-sale-contract",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "transactionHash": "zLSWBC+Fkdcl2o3xYWkQTfOj/exXMwXXRh9avTut2r0=",
+        "saleContract": "0:2b39f2edc2ab37944f25eb316ab146037b4f9b6a311c5b89ad439cbff6f16a33"
+      },
+      "primaryRoute": "pattern",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "9L"
+    },
+    {
+      "saleId": "toncenter-username-secondary:48c18739c1837029a757e24f8ce4f4878c743e58833ef7a112cecfb566080d6c",
+      "assetKind": "username",
+      "assetKey": "0:8698464d0f88afcf98d26c43e54dae9200604e1d78dd2b63428664a2b4bb5040",
+      "normalizedName": "amulete",
+      "soldAt": "2026-09-20T18:39:10.000Z",
+      "priceGram": 54,
+      "historicalUsdRate": 1.3861309369345407,
+      "priceUsd": 74.8510705944652,
+      "marketplace": "Getgems",
+      "source": "toncenter-indexed-secondary-sale",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-completed-sale-contract",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "transactionHash": "ENfmcGpEhYGP1pHtynZmhRHqMrPMrMBpDMlJ4nZKP9U=",
+        "saleContract": "0:890c1e09e301b22198fbf98b26bbbe568d63bd04ee2341820da3046da9e965eb"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "7L"
+    }
+  ]
+}

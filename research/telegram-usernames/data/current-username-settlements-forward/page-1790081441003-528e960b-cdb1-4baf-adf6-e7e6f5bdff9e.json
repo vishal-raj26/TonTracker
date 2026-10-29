@@ -1,0 +1,125 @@
+{
+  "schemaVersion": "username-local-collection-v1",
+  "from": "2026-09-20T13:45:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "collectedAt": "2026-09-22T12:50:41.003Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 8409,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 80,
+    "candidates": 15,
+    "verifiedItems": 2,
+    "wrongCollection": 13,
+    "assets": 2,
+    "sales": 2,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-22T12:50:41.003Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:9b50761970d469a58cad3b426e785f5f7d8f1ab0f440477621abe8b5b7c2bf5a",
+      "normalizedName": "a_a_a_a_a_a",
+      "displayName": "@a_a_a_a_a_a",
+      "primaryRoute": "pattern",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "11M",
+      "feature": {
+        "characterLength": 11,
+        "characterClass": "alphanumeric",
+        "routes": [
+          "pattern"
+        ],
+        "patternSignature": "ABABABABABA",
+        "uniqueCharacterCount": 2,
+        "maxRunLength": 1,
+        "palindrome": true,
+        "sequence": null,
+        "containsUnderscore": true,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-20T22:41:51.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:35485da6a357199e0e088cc22f0b1953b88263a3442f6f70971c2063e8bb448e",
+      "normalizedName": "pekao_bank_pl",
+      "displayName": "@pekao_bank_pl",
+      "primaryRoute": "residual",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "13M",
+      "feature": {
+        "characterLength": 13,
+        "characterClass": "alphanumeric",
+        "routes": [
+          "residual"
+        ],
+        "patternSignature": "ABCDEFGDHCFAI",
+        "uniqueCharacterCount": 9,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": true,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-20T22:47:36.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:eff4abca283115835ba1512a106e44b04ef3bd526a2ade93ca64aae5925f59b4",
+      "assetKind": "username",
+      "assetKey": "0:9b50761970d469a58cad3b426e785f5f7d8f1ab0f440477621abe8b5b7c2bf5a",
+      "normalizedName": "a_a_a_a_a_a",
+      "soldAt": "2026-09-20T22:41:51.000Z",
+      "priceGram": 52,
+      "historicalUsdRate": 1.384746934246504,
+      "priceUsd": 72.0068405808182,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "+JSPJ5C0bIEr05/YPbo2a5dUQviPB2NetTlJC/SMVlg=",
+        "messageHash": "/zlYcjeh91M4C55+LbBYMlClAT2mwneVhdGctIn8334=",
+        "bidAt": "2026-09-20T22:41:51.000Z"
+      },
+      "primaryRoute": "pattern",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "11M"
+    },
+    {
+      "saleId": "toncenter-username-sale:ec48dc0d504680d6c2e58de92e1afc894f1b36200da4ec8fd1446793a7e4a680",
+      "assetKind": "username",
+      "assetKey": "0:35485da6a357199e0e088cc22f0b1953b88263a3442f6f70971c2063e8bb448e",
+      "normalizedName": "pekao_bank_pl",
+      "soldAt": "2026-09-20T22:47:36.000Z",
+      "priceGram": 7,
+      "historicalUsdRate": 1.3847626873602459,
+      "priceUsd": 9.693338811521722,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "FJ638DVQas19h42vCoj1Hcqnk+zHuCLS7PuT5/sAgsw=",
+        "messageHash": "Fsv/TeUe89lpDFHACqTcdKgcfFwm9clhoFGh85yTyz4=",
+        "bidAt": "2026-09-20T22:47:36.000Z"
+      },
+      "primaryRoute": "residual",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "13M"
+    }
+  ]
+}

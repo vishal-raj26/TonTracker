@@ -1,0 +1,91 @@
+{
+  "schemaVersion": "username-secondary-local-v1",
+  "from": "2026-09-20T14:00:00Z",
+  "pipeline": "username-toncenter-secondary-sales-v1",
+  "collectedAt": "2026-09-22T13:08:44.095Z",
+  "cursor": {
+    "absoluteOffset": 2300,
+    "caughtUp": false
+  },
+  "metadata": {
+    "transfers": 100,
+    "saleContracts": 2,
+    "verifiedSales": 1,
+    "assets": 1,
+    "sales": 1,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-22T13:08:44.095Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:91f73793069aa6121f4690a27ad592bc9643808955d4f17247a9382c61f0aeed",
+      "normalizedName": "zazabw",
+      "displayName": "@zazabw",
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "6L",
+      "feature": {
+        "classifierVersion": "username-structural-v2",
+        "normalizedUsername": "zazabw",
+        "displayUsername": "@zazabw",
+        "characterLength": 6,
+        "byteLength": 6,
+        "characterClass": "letters",
+        "primaryRoute": "word",
+        "routes": [
+          "word"
+        ],
+        "scarcityClass": "6L",
+        "patternSignature": "ABABCD",
+        "shapeSignature": "LLLLLL",
+        "uniqueCharacterCount": 4,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "repeatedBlock": null,
+        "scripts": [
+          "Latin"
+        ],
+        "primaryScript": "Latin",
+        "containsUnderscore": false,
+        "underscoreCount": 0,
+        "digitCount": 0,
+        "digitRatio": 0,
+        "vowelRatio": 0.3333333333333333,
+        "pronounceability": "balanced",
+        "leadingZero": false,
+        "roundNumber": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-20T19:58:02.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-secondary:a102263dce10d67fa573506cc1ef7b7daa37edc885dc812efdf30ade5b2d001e",
+      "assetKind": "username",
+      "assetKey": "0:91f73793069aa6121f4690a27ad592bc9643808955d4f17247a9382c61f0aeed",
+      "normalizedName": "zazabw",
+      "soldAt": "2026-09-20T19:58:02.000Z",
+      "priceGram": 5.97,
+      "historicalUsdRate": 1.3860645015986612,
+      "priceUsd": 8.274805074544007,
+      "marketplace": "Getgems",
+      "source": "toncenter-indexed-secondary-sale",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-completed-sale-contract",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "transactionHash": "YN6rBuzW3pavkGIFxz/So8+eczhhwspPsQ+GtWL+aiY=",
+        "saleContract": "0:0df55e063805f417a8d8e63d827ecc54ca2097514ec4551e37d6aec4afd96170"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "6L"
+    }
+  ]
+}

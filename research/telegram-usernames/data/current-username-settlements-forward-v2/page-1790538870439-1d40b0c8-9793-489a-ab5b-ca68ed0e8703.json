@@ -1,0 +1,76 @@
+{
+  "schemaVersion": "username-forward-v2-local-v1",
+  "from": "2026-09-27T00:00:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "requestedEndUtime": 1790537700,
+  "collectedAt": "2026-09-27T19:54:30.439Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 13551,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 80,
+    "candidates": 12,
+    "verifiedItems": 1,
+    "wrongCollection": 11,
+    "assets": 1,
+    "sales": 1,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-27T19:54:30.439Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:e194af2278274cb6831fe0bafa7bd26396655d65b4d0323e39d2601120a519a3",
+      "normalizedName": "tolaundermoney",
+      "displayName": "@tolaundermoney",
+      "primaryRoute": "residual",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "14L",
+      "feature": {
+        "characterLength": 14,
+        "characterClass": "letters",
+        "routes": [
+          "residual"
+        ],
+        "patternSignature": "ABCDEFGHIJBFHK",
+        "uniqueCharacterCount": 11,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-27T17:23:43.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:1655f1d5ac5970697d99640a41022554a2d9d469bcad79554975e140c4e6dc0e",
+      "assetKind": "username",
+      "assetKey": "0:e194af2278274cb6831fe0bafa7bd26396655d65b4d0323e39d2601120a519a3",
+      "normalizedName": "tolaundermoney",
+      "soldAt": "2026-09-27T17:23:43.000Z",
+      "priceGram": 111,
+      "historicalUsdRate": 1.6812370424678726,
+      "priceUsd": 186.61731171393387,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "plqYALly0A5i50ZGD9n4eut2j9htLwYwgzGP0Mouq6Y=",
+        "messageHash": "3ImiIok7qS10PAEdlokopAyiDJWaoNV25OdpoJppYZI=",
+        "bidAt": "2026-09-20T17:23:24.000Z"
+      },
+      "primaryRoute": "residual",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "14L"
+    }
+  ]
+}

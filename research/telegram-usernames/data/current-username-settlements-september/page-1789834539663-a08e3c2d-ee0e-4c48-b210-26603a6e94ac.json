@@ -1,0 +1,125 @@
+{
+  "schemaVersion": "username-local-collection-v1",
+  "from": "2026-09-01T00:00:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "collectedAt": "2026-09-19T16:15:39.663Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 15600,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 80,
+    "candidates": 18,
+    "verifiedItems": 2,
+    "wrongCollection": 16,
+    "assets": 2,
+    "sales": 2,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-19T16:15:39.663Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:0f64facfc972f9b6a2b18fe6e3d1de13b9b3bcceba4dcd2159a3221b9da65372",
+      "normalizedName": "breast_expansion",
+      "displayName": "@breast_expansion",
+      "primaryRoute": "residual",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "16M",
+      "feature": {
+        "characterLength": 16,
+        "characterClass": "alphanumeric",
+        "routes": [
+          "residual"
+        ],
+        "patternSignature": "ABCDEFGCHIDJEKLJ",
+        "uniqueCharacterCount": 12,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": true,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-01T20:34:53.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:6ad08913c0a6176d2d6df1f04e1d5aea053ced9f9e8eab35273748b0e4e2df8c",
+      "normalizedName": "nepon",
+      "displayName": "@nepon",
+      "primaryRoute": "word",
+      "lengthBucket": "4-5",
+      "script": "Latin",
+      "scarcityClass": "5L",
+      "feature": {
+        "characterLength": 5,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCDA",
+        "uniqueCharacterCount": 4,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-01T20:39:35.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:d0ed1cd4c04efab849f2024e97169a191c2e7f3ec1b7b8ed9258bc594899fe9d",
+      "assetKind": "username",
+      "assetKey": "0:0f64facfc972f9b6a2b18fe6e3d1de13b9b3bcceba4dcd2159a3221b9da65372",
+      "normalizedName": "breast_expansion",
+      "soldAt": "2026-09-01T20:34:53.000Z",
+      "priceGram": 5.01,
+      "historicalUsdRate": 1.326021447841252,
+      "priceUsd": 6.6433674536846725,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "G4KiLu/yq7am1Yp+lWfO2TYz+gNphJFe2Oi79zkWF74=",
+        "messageHash": "Bhz7RpvFhZlydijNp7ZN655jsIVm2qAwsQz/8Ul42Pg=",
+        "bidAt": "2026-08-04T18:11:19.000Z"
+      },
+      "primaryRoute": "residual",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "16M"
+    },
+    {
+      "saleId": "toncenter-username-sale:0a246ad0a03e9b9b69339d4e1a7c8ca06e04f0460948f889b5a690ef696fec4b",
+      "assetKind": "username",
+      "assetKey": "0:6ad08913c0a6176d2d6df1f04e1d5aea053ced9f9e8eab35273748b0e4e2df8c",
+      "normalizedName": "nepon",
+      "soldAt": "2026-09-01T20:39:35.000Z",
+      "priceGram": 30,
+      "historicalUsdRate": 1.325752730510616,
+      "priceUsd": 39.77258191531848,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "AdaZaA5X5VAC8FuNY2MbulP3C8Y97EJOljBfh2xAh2U=",
+        "messageHash": "hqzJm/Crs6Wrii0656Y1ZfteYYFmeC2VgA42FnO3cv8=",
+        "bidAt": "2026-09-01T19:39:17.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "4-5",
+      "script": "Latin",
+      "scarcityClass": "5L"
+    }
+  ]
+}

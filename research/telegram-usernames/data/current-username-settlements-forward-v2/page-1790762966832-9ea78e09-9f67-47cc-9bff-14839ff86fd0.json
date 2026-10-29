@@ -1,0 +1,126 @@
+{
+  "schemaVersion": "username-forward-v2-local-v1",
+  "from": "2026-09-27T00:00:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "requestedEndUtime": 1790761800,
+  "collectedAt": "2026-09-30T10:09:26.832Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 25965,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 80,
+    "candidates": 12,
+    "verifiedItems": 2,
+    "wrongCollection": 10,
+    "assets": 2,
+    "sales": 2,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-30T10:09:26.832Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:7324bfd4ede7404e7cc2ea279a927408deddf297498aa23827b914c1cf1927bc",
+      "normalizedName": "katsukiu",
+      "displayName": "@katsukiu",
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "8L",
+      "feature": {
+        "characterLength": 8,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCDEAFE",
+        "uniqueCharacterCount": 6,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-28T12:09:58.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:c794ee4fe4d966f70ceac5f61ab4bc81c85eeab974de7d1c932b4d6725c14266",
+      "normalizedName": "di_s5",
+      "displayName": "@di_s5",
+      "primaryRoute": "alphanumeric",
+      "lengthBucket": "4-5",
+      "script": "Latin",
+      "scarcityClass": "5M",
+      "feature": {
+        "characterLength": 5,
+        "characterClass": "alphanumeric",
+        "routes": [
+          "alphanumeric"
+        ],
+        "patternSignature": "ABCDE",
+        "uniqueCharacterCount": 5,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": true,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-28T12:11:58.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:83d6e570ec3eb903f94a2a887d0b4e91921a39757502f831afc029049c401a59",
+      "assetKind": "username",
+      "assetKey": "0:7324bfd4ede7404e7cc2ea279a927408deddf297498aa23827b914c1cf1927bc",
+      "normalizedName": "katsukiu",
+      "soldAt": "2026-09-28T12:09:58.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.6670436816579075,
+      "priceUsd": 16.670436816579077,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "MQ4ccrWd3Zt0dlEE54IOcjmjSluZn6h13/XIe9aV99I=",
+        "messageHash": "PyDao1QX2hCBi83IkaEDHx2kVaTntiNCzC3EkarVXAg=",
+        "bidAt": "2026-09-21T12:09:14.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "8L"
+    },
+    {
+      "saleId": "toncenter-username-sale:78d362ff83757c4fa3aee38af1caec3cf8266bed416c47015628dd366545f507",
+      "assetKind": "username",
+      "assetKey": "0:c794ee4fe4d966f70ceac5f61ab4bc81c85eeab974de7d1c932b4d6725c14266",
+      "normalizedName": "di_s5",
+      "soldAt": "2026-09-28T12:11:58.000Z",
+      "priceGram": 7,
+      "historicalUsdRate": 1.6669069755630652,
+      "priceUsd": 11.668348828941456,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "/PeOEdFBvQn4rNx7AgRKtmmk09Ix3iRedAw1UIUGcy8=",
+        "messageHash": "nH2REdyT2pHuJi6uAxAgNGG9Fx3o6JSTKMPOwvE8XSM=",
+        "bidAt": "2026-09-28T12:11:58.000Z"
+      },
+      "primaryRoute": "alphanumeric",
+      "lengthBucket": "4-5",
+      "script": "Latin",
+      "scarcityClass": "5M"
+    }
+  ]
+}

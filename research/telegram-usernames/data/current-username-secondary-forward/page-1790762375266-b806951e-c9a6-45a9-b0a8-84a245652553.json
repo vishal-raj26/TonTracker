@@ -1,0 +1,91 @@
+{
+  "schemaVersion": "username-secondary-local-v1",
+  "from": "2026-09-20T14:00:00Z",
+  "pipeline": "username-toncenter-secondary-sales-v1",
+  "collectedAt": "2026-09-30T09:59:35.266Z",
+  "cursor": {
+    "absoluteOffset": 46458,
+    "caughtUp": false
+  },
+  "metadata": {
+    "transfers": 100,
+    "saleContracts": 20,
+    "verifiedSales": 1,
+    "assets": 1,
+    "sales": 1,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-30T09:59:35.266Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:1d74365cdcbea2993ee93439380507cf6a4ebd3e4481b536d31b9f75cc1ae9ce",
+      "normalizedName": "zombeach",
+      "displayName": "@zombeach",
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "8L",
+      "feature": {
+        "classifierVersion": "username-structural-v2",
+        "normalizedUsername": "zombeach",
+        "displayUsername": "@zombeach",
+        "characterLength": 8,
+        "byteLength": 8,
+        "characterClass": "letters",
+        "primaryRoute": "word",
+        "routes": [
+          "word"
+        ],
+        "scarcityClass": "8L",
+        "patternSignature": "ABCDEFGH",
+        "shapeSignature": "LLLLLLLL",
+        "uniqueCharacterCount": 8,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "repeatedBlock": null,
+        "scripts": [
+          "Latin"
+        ],
+        "primaryScript": "Latin",
+        "containsUnderscore": false,
+        "underscoreCount": 0,
+        "digitCount": 0,
+        "digitRatio": 0,
+        "vowelRatio": 0.375,
+        "pronounceability": "balanced",
+        "leadingZero": false,
+        "roundNumber": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-28T10:19:37.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-secondary:308513fcc492e0b9428e7391ed9ba3ae4e02cdef788d56416e4495f3673facb3",
+      "assetKind": "username",
+      "assetKey": "0:1d74365cdcbea2993ee93439380507cf6a4ebd3e4481b536d31b9f75cc1ae9ce",
+      "normalizedName": "zombeach",
+      "soldAt": "2026-09-28T10:19:37.000Z",
+      "priceGram": 5.9,
+      "historicalUsdRate": 1.692851783383421,
+      "priceUsd": 9.987825521962185,
+      "marketplace": "Getgems",
+      "source": "toncenter-indexed-secondary-sale",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-completed-sale-contract",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "transactionHash": "DIaCCvtH4A/SY4RI5CaghjP/IDGUpXnFwHqw/OL3Mhg=",
+        "saleContract": "0:9dd09ee2c5adb22aefea38c7f45fa39e7e7d92c8b8724e4b63ca00d1959ac202"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "8L"
+    }
+  ]
+}

@@ -1,0 +1,110 @@
+{
+  "version": "secondary-own-history-development-v1",
+  "purpose": "Test whether strictly-prior exact-NFT sale history can be learned as a time-sensitive input to inactive secondary-resale valuation",
+  "frozenBeforeFitting": true,
+  "createdAt": "2026-09-27",
+  "sources": {
+    "historicalSales": {
+      "path": "research/telegram-usernames/data/dune_username_sales.part",
+      "sha256": "6d724b74f727a797d553190cb72e408d3c70d6069202636a60f7ea2b2850682f"
+    },
+    "pointInTimeFeatureExport": {
+      "path": "research/telegram-usernames/data/username-broad-training-2026-09-09.json",
+      "sha256": "00b13883db59d511ee1625f0186c115c1d765e6e9b504c4a0980de15acaec77a",
+      "rows": 81617
+    },
+    "exposedEvaluationSet": {
+      "path": "research/telegram-usernames/data/username-secondary-resale-fixed-development-2026-09-26.json",
+      "sha256": "bcf957d8ac3a1d6adf7800587a0b726b57128fe15012be92e02782022fffa82d",
+      "rows": 30995
+    },
+    "ownHistoryDiagnostic": {
+      "path": "research/telegram-usernames/data/username-resale-own-anchor-opportunity-2026-09-27.json",
+      "sha256": "83855675c7305967c671bc5483b80a4ddfe675299dca00012c7fa8b9af4a2553"
+    }
+  },
+  "population": {
+    "training": "Every completed historical sale strictly before each target cutoff; no filtering by target price, realized venue, or prediction availability",
+    "evaluation": "Every event in the frozen 2024Q4 and 2025-01 exposed evaluation blocks; all cases retained",
+    "realizedVenue": "Retrospective reporting only; never a feature or routing condition",
+    "premiumThresholdUsd": 500,
+    "intermediateBandUsd": [100, 500],
+    "ordinaryThresholdUsd": 100
+  },
+  "ownHistoryFeatures": {
+    "identity": "Exact nftAddress and a single unambiguous normalized username in all strictly-prior finalized sale records",
+    "strictTimeCutoff": "sale.eventTime < target.eventTime; simultaneous and future sales excluded",
+    "features": [
+      "hasPriorOwnSale",
+      "logPriorOwnPriceUsd (missing when unavailable)",
+      "log1pPriorOwnAgeDays (missing when unavailable)",
+      "log1pPriorOwnSaleCount"
+    ],
+    "priceRole": "A learned input to the regression, not a minimum bound or permanent floor",
+    "otherInputs": "Frozen 118 point-in-time structural/semantic features and 128 fixed SHA-256 spelling indicators; existing static-control tabular features are unchanged",
+    "forbiddenInputs": ["target sale price", "same-time/future event", "realized venue", "target outcome cohort", "post-cutoff semantic knowledge"]
+  },
+  "folds": [
+    {
+      "id": "2024q4",
+      "trainUntilExclusive": "2024-07-01T00:00:00Z",
+      "calibrationFromInclusive": "2024-07-01T00:00:00Z",
+      "calibrationUntilExclusive": "2024-10-01T00:00:00Z",
+      "evaluationFromInclusive": "2024-10-01T00:00:00Z",
+      "evaluationUntilExclusive": "2025-01-01T00:00:00Z"
+    },
+    {
+      "id": "2025jan",
+      "trainUntilExclusive": "2024-10-01T00:00:00Z",
+      "calibrationFromInclusive": "2024-10-01T00:00:00Z",
+      "calibrationUntilExclusive": "2025-01-01T00:00:00Z",
+      "evaluationFromInclusive": "2025-01-01T00:00:00Z",
+      "evaluationUntilExclusive": "2025-02-01T00:00:00Z"
+    }
+  ],
+  "candidate": {
+    "family": "all-stage sklearn HistGradientBoostingRegressor on log historical USD with four strictly-prior own-history features",
+    "params": {
+      "max_iter": 100,
+      "max_leaf_nodes": 15,
+      "min_samples_leaf": 20,
+      "learning_rate": 0.1,
+      "early_stopping": false,
+      "random_state": 17
+    },
+    "centerLoss": "absolute_error",
+    "quantileLosses": [0.1, 0.9],
+    "missingOwnHistory": "Native missing values; no target rows removed",
+    "calibration": "For each estimator, expand fitted 10th/90th log-price bounds using finite-sample 80% conformal score on strictly later secondary calibration outcomes; same calibration rows and formula for the matched static control"
+  },
+  "controls": [
+    "Matched all-stage HGB with the existing 246 features and same fixed parameters, fit/calibrated on the same temporal fold",
+    "Strictly-prior last-own-sale value, diagnostic only and reported on common own-history availability",
+    "Full same-case v25 replay is mandatory before any candidate promotion; saved overlapping point reports are not an adequate substitute"
+  ],
+  "reporting": {
+    "allAttempts": true,
+    "cohorts": ["overall", "secondary", "secondary/auction", "secondary/fixed", "primary/auction", "ordinary", "intermediate", "premium", "first-observed", "repeated", "own-sale-age-under-30d", "own-sale-age-30-180d", "own-sale-age-over-180d"],
+    "metrics": ["mean-absolute-log-error", "median-factor-error", "p95-factor-error", "nominal-80-coverage", "mean-log-interval-score", "abstentions", "own-history-availability"],
+    "uncertainty": "Deterministic identity-clustered 2000-resample paired 95% interval for premium MALE improvement"
+  },
+  "promotionGates": {
+    "premiumUniqueIdentities": 100,
+    "premiumBlocks": 2,
+    "premiumMedianFactorErrorMaximum": 3,
+    "premiumMaleImprovementVsV25Minimum": 0.25,
+    "positiveLowerClusteredImprovementBound": true,
+    "ordinaryAndIntermediateMaleRegressionMaximum": 0.05,
+    "premiumIntervalCoverageMinimum": 0.7,
+    "overallIntervalCoverage": [0.75, 0.85],
+    "noIntervalScoreRegressionVsV25": true,
+    "noAvailabilityRegressionVsV25": true,
+    "currentMarketProspectiveValidation": "Required separately; these exposed temporal blocks cannot qualify production"
+  },
+  "limitations": [
+    "Both evaluation blocks are exposed development data; 2024Q4 is reused as calibration in the second fold and neither is untouched qualification.",
+    "The earlier-own-price diagnostic is descriptive and outcome-stratified; it does not establish a causal improvement or a production rule.",
+    "Historical USD comes from the frozen research export, whose indexed sources have mixed settlement provenance.",
+    "No production integration is authorized by a development pass alone."
+  ]
+}

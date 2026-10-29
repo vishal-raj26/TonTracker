@@ -1,0 +1,14 @@
+{
+  "schemaVersion": "username-forward-v2-protocol-supplement-v1",
+  "sealedBeforeWindow": true,
+  "zeroCollectedEventsAtSeal": true,
+  "createdAt": "2026-09-25T14:49:05.132Z",
+  "originalManifestSha256": "f8fe9c91df7a2d37f0237cac4a447204976677a326574099c6c3980eb7a71901",
+  "supersedesOnly": {
+    "collectionFile": "scripts/collect-username-forward-v2-local.js",
+    "oldSha256": "66c140ae2e4a4a6afdbf14dd47021be08e498e05adc4d323a45702c6bad7a288",
+    "newSha256": "a827be8f55db782fbab251a3db93f7ea8802a0709d4aedf8a5e31343d7ae7d6e"
+  },
+  "invariant": "Reject any page with pending historical-USD conversion before writing it or advancing the cursor; all reservation, candidate, selection, evaluation and gate fields remain frozen by the original manifest",
+  "testFileSha256": "c3f00ec7ddf34bf703d54bc2222216809d25e7f388357f02806e49237460674b"
+}

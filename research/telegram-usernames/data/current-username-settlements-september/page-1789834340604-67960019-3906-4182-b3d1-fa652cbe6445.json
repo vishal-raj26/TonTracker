@@ -1,0 +1,75 @@
+{
+  "schemaVersion": "username-local-collection-v1",
+  "from": "2026-09-01T00:00:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "collectedAt": "2026-09-19T16:12:20.604Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 12240,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 80,
+    "candidates": 11,
+    "verifiedItems": 1,
+    "wrongCollection": 10,
+    "assets": 1,
+    "sales": 1,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-19T16:12:20.603Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:553022b784525b50f2293b33997d37b0570ce34156d35ed7c300be126e4e6180",
+      "normalizedName": "azkoril",
+      "displayName": "@azkoril",
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "7L",
+      "feature": {
+        "characterLength": 7,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCDEFG",
+        "uniqueCharacterCount": 7,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-01T17:21:09.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:7158663cd1aebed4e8550d1bab18d7722374a68203671d63e6d1f9e6f4b86b9f",
+      "assetKind": "username",
+      "assetKey": "0:553022b784525b50f2293b33997d37b0570ce34156d35ed7c300be126e4e6180",
+      "normalizedName": "azkoril",
+      "soldAt": "2026-09-01T17:21:09.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.3243849389259434,
+      "priceUsd": 13.243849389259434,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "ICIAyGFUiheVztAd4gdVwY+mS2etK6n8Fo20X1Yd7dY=",
+        "messageHash": "ovYo5dTBTFVqKvjcXhgLvAahrJaVoiN/J/2wfO6ySWM=",
+        "bidAt": "2026-08-25T17:20:51.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "7L"
+    }
+  ]
+}

@@ -1,0 +1,75 @@
+{
+  "schemaVersion": "username-local-collection-v1",
+  "from": "2026-09-01T00:00:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "collectedAt": "2026-09-19T16:07:31.086Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 7040,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 80,
+    "candidates": 11,
+    "verifiedItems": 1,
+    "wrongCollection": 10,
+    "assets": 1,
+    "sales": 1,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-19T16:07:31.086Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:4d727a732e8e5ed012d9fec3c05b449b441f3c5f3bc6ad52cfd38e7a6b6dcc79",
+      "normalizedName": "zjcyl",
+      "displayName": "@zjcyl",
+      "primaryRoute": "word",
+      "lengthBucket": "4-5",
+      "script": "Latin",
+      "scarcityClass": "5L",
+      "feature": {
+        "characterLength": 5,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCDE",
+        "uniqueCharacterCount": 5,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-01T12:01:17.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:ede40839e58944352f184d4e2726615087e0d082ea6b3b8d0e4f7f6c9c484276",
+      "assetKind": "username",
+      "assetKey": "0:4d727a732e8e5ed012d9fec3c05b449b441f3c5f3bc6ad52cfd38e7a6b6dcc79",
+      "normalizedName": "zjcyl",
+      "soldAt": "2026-09-01T12:01:17.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.353216414382856,
+      "priceUsd": 13.53216414382856,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "fPKVV5ldw4h8szKu3qxgvx8JvOZXoG7x+Eb2ZnMo/sg=",
+        "messageHash": "2QFocumtjACkUr8teCW7lk3QCUgv5FgXHN841Ekedbc=",
+        "bidAt": "2026-08-25T12:00:58.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "4-5",
+      "script": "Latin",
+      "scarcityClass": "5L"
+    }
+  ]
+}

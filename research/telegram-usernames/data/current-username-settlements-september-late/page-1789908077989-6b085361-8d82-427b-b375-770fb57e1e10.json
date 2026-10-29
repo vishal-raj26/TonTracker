@@ -1,0 +1,75 @@
+{
+  "schemaVersion": "username-local-collection-v1",
+  "from": "2026-09-10T00:00:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "collectedAt": "2026-09-20T12:41:17.989Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 160,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 80,
+    "candidates": 39,
+    "verifiedItems": 1,
+    "wrongCollection": 38,
+    "assets": 1,
+    "sales": 1,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-20T12:41:17.989Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:ae249f33ae0dca622081508645785a585c67e4d2585b13df71f8af68f405ecdd",
+      "normalizedName": "blansu",
+      "displayName": "@blansu",
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "6L",
+      "feature": {
+        "characterLength": 6,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCDEF",
+        "uniqueCharacterCount": 6,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-10T00:11:20.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:730441db5f33229eaae4457ef01c52cc001715f37047d3260099f202f9eaaa92",
+      "assetKind": "username",
+      "assetKey": "0:ae249f33ae0dca622081508645785a585c67e4d2585b13df71f8af68f405ecdd",
+      "normalizedName": "blansu",
+      "soldAt": "2026-09-10T00:11:20.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.3695426097511154,
+      "priceUsd": 13.695426097511154,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "sFO3L2v2hWLCWFy+KFc6BeIm6y/Vr1BRtuIPYOlIsqs=",
+        "messageHash": "n34AS06sfd7+PQsOJpT9MPWoagQPR2Z9psezaeAra7A=",
+        "bidAt": "2026-09-03T00:11:01.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "6L"
+    }
+  ]
+}

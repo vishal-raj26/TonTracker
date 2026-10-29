@@ -1,0 +1,76 @@
+{
+  "schemaVersion": "username-forward-v2-local-v1",
+  "from": "2026-09-27T00:00:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "requestedEndUtime": 1790761800,
+  "collectedAt": "2026-09-30T10:07:42.948Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 24285,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 80,
+    "candidates": 13,
+    "verifiedItems": 1,
+    "wrongCollection": 12,
+    "assets": 1,
+    "sales": 1,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-30T10:07:42.948Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:7e3d8e36b479a18df00ed5a75ceab58ba82904b16651c02f53affa0adfb019b0",
+      "normalizedName": "hxxddd",
+      "displayName": "@hxxddd",
+      "primaryRoute": "pattern",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "6L",
+      "feature": {
+        "characterLength": 6,
+        "characterClass": "letters",
+        "routes": [
+          "pattern"
+        ],
+        "patternSignature": "ABBCCC",
+        "uniqueCharacterCount": 3,
+        "maxRunLength": 3,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-28T10:02:05.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:eb0b903dd60d9d265403c2b88cac3fd1e7874dcaf110f85e0cae8889502b4191",
+      "assetKind": "username",
+      "assetKey": "0:7e3d8e36b479a18df00ed5a75ceab58ba82904b16651c02f53affa0adfb019b0",
+      "normalizedName": "hxxddd",
+      "soldAt": "2026-09-28T10:02:05.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.671537024328692,
+      "priceUsd": 16.71537024328692,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "FHQurlp4BVmqJQS8BS5bEK/ymjLbb/2S/7ZgIICpR5o=",
+        "messageHash": "C9DHDG3qrUWnIHGqH32VnT3eDhvLWhqdAZUjH9oTIIE=",
+        "bidAt": "2026-09-21T09:55:54.000Z"
+      },
+      "primaryRoute": "pattern",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "6L"
+    }
+  ]
+}

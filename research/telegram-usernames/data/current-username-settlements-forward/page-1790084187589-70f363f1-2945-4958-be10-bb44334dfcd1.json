@@ -1,0 +1,175 @@
+{
+  "schemaVersion": "username-local-collection-v1",
+  "from": "2026-09-20T13:45:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "collectedAt": "2026-09-22T13:36:27.589Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 36809,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 80,
+    "candidates": 13,
+    "verifiedItems": 3,
+    "wrongCollection": 10,
+    "assets": 3,
+    "sales": 3,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-22T13:36:27.589Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:2ac55509454161ef010d50d8a62fabd8700b69e196479d90ce8b1dfefc1cebc7",
+      "normalizedName": "fundrich",
+      "displayName": "@fundrich",
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "8L",
+      "feature": {
+        "characterLength": 8,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCDEFGH",
+        "uniqueCharacterCount": 8,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-22T08:56:41.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:45964ae94e35d40ee27e2aa7820adb9c2d4f4a8707edf2e7feae024b3e3673db",
+      "normalizedName": "cognexaai",
+      "displayName": "@cognexaai",
+      "primaryRoute": "pattern",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "9L",
+      "feature": {
+        "characterLength": 9,
+        "characterClass": "letters",
+        "routes": [
+          "pattern"
+        ],
+        "patternSignature": "ABCDEFGGH",
+        "uniqueCharacterCount": 8,
+        "maxRunLength": 2,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-22T08:57:14.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:292e5c697e135cd741925b5a42eb1e0addc9aa461b3d21bb2e65c31ad28b26ce",
+      "normalizedName": "averoai",
+      "displayName": "@averoai",
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "7L",
+      "feature": {
+        "characterLength": 7,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCDEAF",
+        "uniqueCharacterCount": 6,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-22T08:58:54.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:d1caaa86b88ac357843d1b011be4ebc8bafd2e7e31db6bd1b7f9bcf78955509b",
+      "assetKind": "username",
+      "assetKey": "0:2ac55509454161ef010d50d8a62fabd8700b69e196479d90ce8b1dfefc1cebc7",
+      "normalizedName": "fundrich",
+      "soldAt": "2026-09-22T08:56:41.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.4362420311596218,
+      "priceUsd": 14.362420311596217,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "GFylaX/ue7GDpU1DMg+stT3pPV5wj0mlorLBo17ZExI=",
+        "messageHash": "Qk2Ob5TL5ua0siuscDctczULZ2EeBkI5yxVdXeQYaMg=",
+        "bidAt": "2026-09-15T08:56:24.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "8L"
+    },
+    {
+      "saleId": "toncenter-username-sale:f8ff2158ffa5d8d7cc9528403f5e7c8b64585bf6429691fc52c5eb4ad215df13",
+      "assetKind": "username",
+      "assetKey": "0:45964ae94e35d40ee27e2aa7820adb9c2d4f4a8707edf2e7feae024b3e3673db",
+      "normalizedName": "cognexaai",
+      "soldAt": "2026-09-22T08:57:14.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.436228313140432,
+      "priceUsd": 14.362283131404322,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "hT/m06Dg2sw9ujRltSWRL6VOYJ0wT3N2+C3aKk+n/ec=",
+        "messageHash": "ZFT+JXgrU2qihgrwJzOSyrwNgyHgxceDK4/QiPglGg8=",
+        "bidAt": "2026-09-15T08:56:52.000Z"
+      },
+      "primaryRoute": "pattern",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "9L"
+    },
+    {
+      "saleId": "toncenter-username-sale:835033f349ed2060bc3423b341ce8b97ad550c556e969250dd36afb49eae25ef",
+      "assetKind": "username",
+      "assetKey": "0:292e5c697e135cd741925b5a42eb1e0addc9aa461b3d21bb2e65c31ad28b26ce",
+      "normalizedName": "averoai",
+      "soldAt": "2026-09-22T08:58:54.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.4361867433853122,
+      "priceUsd": 14.36186743385312,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "R4TjMbvrpC5OHMH5q1E0UwsvC20b3zIyckaFTxNNwZY=",
+        "messageHash": "1Q+XkX0RMh4vSXNUNVwmnSI5hcMcrS0yWauaD+9RZ2g=",
+        "bidAt": "2026-09-15T08:58:32.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "7L"
+    }
+  ]
+}

@@ -1,0 +1,91 @@
+{
+  "schemaVersion": "username-secondary-local-v1",
+  "from": "2026-09-20T14:00:00Z",
+  "pipeline": "username-toncenter-secondary-sales-v1",
+  "collectedAt": "2026-09-27T19:59:28.910Z",
+  "cursor": {
+    "absoluteOffset": 42140,
+    "caughtUp": false
+  },
+  "metadata": {
+    "transfers": 100,
+    "saleContracts": 1,
+    "verifiedSales": 1,
+    "assets": 1,
+    "sales": 1,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-27T19:59:28.910Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:fec353866a0ad73bfa93e7d8d5a238becec04aebc03ebace9e45ff2692914603",
+      "normalizedName": "thevance",
+      "displayName": "@thevance",
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "8L",
+      "feature": {
+        "classifierVersion": "username-structural-v2",
+        "normalizedUsername": "thevance",
+        "displayUsername": "@thevance",
+        "characterLength": 8,
+        "byteLength": 8,
+        "characterClass": "letters",
+        "primaryRoute": "word",
+        "routes": [
+          "word"
+        ],
+        "scarcityClass": "8L",
+        "patternSignature": "ABCDEFGC",
+        "shapeSignature": "LLLLLLLL",
+        "uniqueCharacterCount": 7,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "repeatedBlock": null,
+        "scripts": [
+          "Latin"
+        ],
+        "primaryScript": "Latin",
+        "containsUnderscore": false,
+        "underscoreCount": 0,
+        "digitCount": 0,
+        "digitRatio": 0,
+        "vowelRatio": 0.375,
+        "pronounceability": "balanced",
+        "leadingZero": false,
+        "roundNumber": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-27T17:19:33.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-secondary:df57bf5f8fec6e55ac94969a27e76dbc29c7d9076f0dce3e8f86c3ec70e85dfd",
+      "assetKind": "username",
+      "assetKey": "0:fec353866a0ad73bfa93e7d8d5a238becec04aebc03ebace9e45ff2692914603",
+      "normalizedName": "thevance",
+      "soldAt": "2026-09-27T17:19:33.000Z",
+      "priceGram": 5.75,
+      "historicalUsdRate": 1.6834099130674856,
+      "priceUsd": 9.679607000138041,
+      "marketplace": "Getgems",
+      "source": "toncenter-indexed-secondary-sale",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-completed-sale-contract",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "transactionHash": "3NMRijga7MLFis/gAw8dY79YF1kspN4MHioAidhNZ7c=",
+        "saleContract": "0:fdf7399e8df936f14420bb61ae83a66b07ba78d9c0e6ce72c1a0c4cc110d52bd"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "8L"
+    }
+  ]
+}

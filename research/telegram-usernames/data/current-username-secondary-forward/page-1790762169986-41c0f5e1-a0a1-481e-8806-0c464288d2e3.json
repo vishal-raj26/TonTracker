@@ -1,0 +1,159 @@
+{
+  "schemaVersion": "username-secondary-local-v1",
+  "from": "2026-09-20T14:00:00Z",
+  "pipeline": "username-toncenter-secondary-sales-v1",
+  "collectedAt": "2026-09-30T09:56:09.986Z",
+  "cursor": {
+    "absoluteOffset": 43658,
+    "caughtUp": false
+  },
+  "metadata": {
+    "transfers": 100,
+    "saleContracts": 2,
+    "verifiedSales": 2,
+    "assets": 2,
+    "sales": 2,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-30T09:56:09.986Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:9f7be38c75431044550835a70cd420a11ee375208187a4136e8c329db119c370",
+      "normalizedName": "masdity",
+      "displayName": "@masdity",
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "7L",
+      "feature": {
+        "classifierVersion": "username-structural-v2",
+        "normalizedUsername": "masdity",
+        "displayUsername": "@masdity",
+        "characterLength": 7,
+        "byteLength": 7,
+        "characterClass": "letters",
+        "primaryRoute": "word",
+        "routes": [
+          "word"
+        ],
+        "scarcityClass": "7L",
+        "patternSignature": "ABCDEFG",
+        "shapeSignature": "LLLLLLL",
+        "uniqueCharacterCount": 7,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "repeatedBlock": null,
+        "scripts": [
+          "Latin"
+        ],
+        "primaryScript": "Latin",
+        "containsUnderscore": false,
+        "underscoreCount": 0,
+        "digitCount": 0,
+        "digitRatio": 0,
+        "vowelRatio": 0.42857142857142855,
+        "pronounceability": "balanced",
+        "leadingZero": false,
+        "roundNumber": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-27T21:41:06.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:0ace3fa17f6c074dcf3bef485820e76d5998b1470aff47fb4c2357b7b5d7647b",
+      "normalizedName": "herzinsuffizienz",
+      "displayName": "@herzinsuffizienz",
+      "primaryRoute": "pattern",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "16L",
+      "feature": {
+        "classifierVersion": "username-structural-v2",
+        "normalizedUsername": "herzinsuffizienz",
+        "displayUsername": "@herzinsuffizienz",
+        "characterLength": 16,
+        "byteLength": 16,
+        "characterClass": "letters",
+        "primaryRoute": "pattern",
+        "routes": [
+          "pattern"
+        ],
+        "scarcityClass": "16L",
+        "patternSignature": "ABCDEFGHIIEDEBFD",
+        "shapeSignature": "LLLLLLLLLLLLLLLL",
+        "uniqueCharacterCount": 9,
+        "maxRunLength": 2,
+        "palindrome": false,
+        "sequence": null,
+        "repeatedBlock": null,
+        "scripts": [
+          "Latin"
+        ],
+        "primaryScript": "Latin",
+        "containsUnderscore": false,
+        "underscoreCount": 0,
+        "digitCount": 0,
+        "digitRatio": 0,
+        "vowelRatio": 0.375,
+        "pronounceability": "balanced",
+        "leadingZero": false,
+        "roundNumber": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-27T21:29:02.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-secondary:828690b706a0bbed3afd538ec4d404936302ad11ecd78cb4581d31d544df1b25",
+      "assetKind": "username",
+      "assetKey": "0:9f7be38c75431044550835a70cd420a11ee375208187a4136e8c329db119c370",
+      "normalizedName": "masdity",
+      "soldAt": "2026-09-27T21:41:06.000Z",
+      "priceGram": 45,
+      "historicalUsdRate": 1.6322035998534703,
+      "priceUsd": 73.44916199340616,
+      "marketplace": "Getgems",
+      "source": "toncenter-indexed-secondary-sale",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-completed-sale-contract",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "transactionHash": "DUE+/twMO8HyOxBpSGvpGSc8tM4SJDRbMq+wv3Pi7rw=",
+        "saleContract": "0:1a30c7e8f94c61e0f2b80fc06555d5335eced56549d59ea7b961890275e6f54c"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "7L"
+    },
+    {
+      "saleId": "toncenter-username-secondary:64dab5f3aa0dc53d3d2f35667332ca8a2af06403e5f34d6f03c7a6c2877a0a2a",
+      "assetKind": "username",
+      "assetKey": "0:0ace3fa17f6c074dcf3bef485820e76d5998b1470aff47fb4c2357b7b5d7647b",
+      "normalizedName": "herzinsuffizienz",
+      "soldAt": "2026-09-27T21:29:02.000Z",
+      "priceGram": 5.75,
+      "historicalUsdRate": 1.6330003810795732,
+      "priceUsd": 9.389752191207545,
+      "marketplace": "Getgems",
+      "source": "toncenter-indexed-secondary-sale",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-completed-sale-contract",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "transactionHash": "zpMbbSzNFQvfKb5bHlxknyZnL17i53iLyZhbf8nCEJE=",
+        "saleContract": "0:a36a922cef3de36a84f5c9101c715db32a33de5a3faef7a70b68ed95d7775dcb"
+      },
+      "primaryRoute": "pattern",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "16L"
+    }
+  ]
+}

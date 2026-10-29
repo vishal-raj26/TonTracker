@@ -1,0 +1,91 @@
+{
+  "schemaVersion": "username-secondary-local-v1",
+  "from": "2026-09-20T14:00:00Z",
+  "pipeline": "username-toncenter-secondary-sales-v1",
+  "collectedAt": "2026-09-30T09:56:45.524Z",
+  "cursor": {
+    "absoluteOffset": 44458,
+    "caughtUp": false
+  },
+  "metadata": {
+    "transfers": 100,
+    "saleContracts": 6,
+    "verifiedSales": 1,
+    "assets": 1,
+    "sales": 1,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-30T09:56:45.524Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:a2fc0d9f17713e3501d487c129bd200c5c5fc78b59f706e76331d134032aa376",
+      "normalizedName": "acolf",
+      "displayName": "@acolf",
+      "primaryRoute": "word",
+      "lengthBucket": "4-5",
+      "script": "Latin",
+      "scarcityClass": "5L",
+      "feature": {
+        "classifierVersion": "username-structural-v2",
+        "normalizedUsername": "acolf",
+        "displayUsername": "@acolf",
+        "characterLength": 5,
+        "byteLength": 5,
+        "characterClass": "letters",
+        "primaryRoute": "word",
+        "routes": [
+          "word"
+        ],
+        "scarcityClass": "5L",
+        "patternSignature": "ABCDE",
+        "shapeSignature": "LLLLL",
+        "uniqueCharacterCount": 5,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "repeatedBlock": null,
+        "scripts": [
+          "Latin"
+        ],
+        "primaryScript": "Latin",
+        "containsUnderscore": false,
+        "underscoreCount": 0,
+        "digitCount": 0,
+        "digitRatio": 0,
+        "vowelRatio": 0.4,
+        "pronounceability": "balanced",
+        "leadingZero": false,
+        "roundNumber": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-28T03:28:38.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-secondary:e26e36d5e2ffe350f27dbffcebd31b76ea3151a082852be361cfcf09c8c07e7b",
+      "assetKind": "username",
+      "assetKey": "0:a2fc0d9f17713e3501d487c129bd200c5c5fc78b59f706e76331d134032aa376",
+      "normalizedName": "acolf",
+      "soldAt": "2026-09-28T03:28:38.000Z",
+      "priceGram": 8,
+      "historicalUsdRate": 1.609255420120462,
+      "priceUsd": 12.874043360963697,
+      "marketplace": "Getgems",
+      "source": "toncenter-indexed-secondary-sale",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-completed-sale-contract",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "transactionHash": "MG6sP3DRWT0kdd4QDRPRKNjFGlr6KvaAbsL1UWJ2e1s=",
+        "saleContract": "0:1703cda4ce41cedc64a0fccf23aa18da018c0a5f0e5dc44095b74c738108b7a4"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "4-5",
+      "script": "Latin",
+      "scarcityClass": "5L"
+    }
+  ]
+}

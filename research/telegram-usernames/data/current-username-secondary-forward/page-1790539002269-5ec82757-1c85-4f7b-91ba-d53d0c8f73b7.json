@@ -1,0 +1,159 @@
+{
+  "schemaVersion": "username-secondary-local-v1",
+  "from": "2026-09-20T14:00:00Z",
+  "pipeline": "username-toncenter-secondary-sales-v1",
+  "collectedAt": "2026-09-27T19:56:42.268Z",
+  "cursor": {
+    "absoluteOffset": 37140,
+    "caughtUp": false
+  },
+  "metadata": {
+    "transfers": 100,
+    "saleContracts": 4,
+    "verifiedSales": 2,
+    "assets": 2,
+    "sales": 2,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-27T19:56:42.268Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:be303f776b0e97c1eeab43452f48d24142854f6659a5c97de4088d63aaa18bf7",
+      "normalizedName": "ofelak",
+      "displayName": "@ofelak",
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "6L",
+      "feature": {
+        "classifierVersion": "username-structural-v2",
+        "normalizedUsername": "ofelak",
+        "displayUsername": "@ofelak",
+        "characterLength": 6,
+        "byteLength": 6,
+        "characterClass": "letters",
+        "primaryRoute": "word",
+        "routes": [
+          "word"
+        ],
+        "scarcityClass": "6L",
+        "patternSignature": "ABCDEF",
+        "shapeSignature": "LLLLLL",
+        "uniqueCharacterCount": 6,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "repeatedBlock": null,
+        "scripts": [
+          "Latin"
+        ],
+        "primaryScript": "Latin",
+        "containsUnderscore": false,
+        "underscoreCount": 0,
+        "digitCount": 0,
+        "digitRatio": 0,
+        "vowelRatio": 0.5,
+        "pronounceability": "balanced",
+        "leadingZero": false,
+        "roundNumber": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-27T08:54:28.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:c74c5c34e03f2e627dae1bf314397418408d55e578e81145f02a6a7b5a09f49a",
+      "normalizedName": "iwoti",
+      "displayName": "@iwoti",
+      "primaryRoute": "word",
+      "lengthBucket": "4-5",
+      "script": "Latin",
+      "scarcityClass": "5L",
+      "feature": {
+        "classifierVersion": "username-structural-v2",
+        "normalizedUsername": "iwoti",
+        "displayUsername": "@iwoti",
+        "characterLength": 5,
+        "byteLength": 5,
+        "characterClass": "letters",
+        "primaryRoute": "word",
+        "routes": [
+          "word"
+        ],
+        "scarcityClass": "5L",
+        "patternSignature": "ABCDA",
+        "shapeSignature": "LLLLL",
+        "uniqueCharacterCount": 4,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "repeatedBlock": null,
+        "scripts": [
+          "Latin"
+        ],
+        "primaryScript": "Latin",
+        "containsUnderscore": false,
+        "underscoreCount": 0,
+        "digitCount": 0,
+        "digitRatio": 0,
+        "vowelRatio": 0.6,
+        "pronounceability": "balanced",
+        "leadingZero": false,
+        "roundNumber": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-27T08:44:10.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-secondary:c5732400a8654305e463d1b05f22e6af712be486ef5296b5957cfe0b7dfb21e3",
+      "assetKind": "username",
+      "assetKey": "0:be303f776b0e97c1eeab43452f48d24142854f6659a5c97de4088d63aaa18bf7",
+      "normalizedName": "ofelak",
+      "soldAt": "2026-09-27T08:54:28.000Z",
+      "priceGram": 5.6,
+      "historicalUsdRate": 1.5893531191194663,
+      "priceUsd": 8.90037746706901,
+      "marketplace": "Getgems",
+      "source": "toncenter-indexed-secondary-sale",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-completed-sale-contract",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "transactionHash": "ZFERiPmzGehDGhcE0LpcaXQ7bLGva3U9Dz9NaeM0HII=",
+        "saleContract": "0:03139d54c4ed41ba3435a1425d17c86772e057e0d861224614edad72d9fe0176"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "6L"
+    },
+    {
+      "saleId": "toncenter-username-secondary:b2f6427e2cbdf57ef44909606c0d290e5a7848dc6efdb5d6415099db752e1026",
+      "assetKind": "username",
+      "assetKey": "0:c74c5c34e03f2e627dae1bf314397418408d55e578e81145f02a6a7b5a09f49a",
+      "normalizedName": "iwoti",
+      "soldAt": "2026-09-27T08:44:10.000Z",
+      "priceGram": 5.6,
+      "historicalUsdRate": 1.589265004249147,
+      "priceUsd": 8.899884023795222,
+      "marketplace": "Getgems",
+      "source": "toncenter-indexed-secondary-sale",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-completed-sale-contract",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "transactionHash": "Bnp0eYKxlTLyoekhrb3bcKHEue1yFayQe9nx4DObF5w=",
+        "saleContract": "0:6393f4840d70fd0a986d80c9d6a7bb6082e0c39d72fed959f2fce9dcc11e26ec"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "4-5",
+      "script": "Latin",
+      "scarcityClass": "5L"
+    }
+  ]
+}

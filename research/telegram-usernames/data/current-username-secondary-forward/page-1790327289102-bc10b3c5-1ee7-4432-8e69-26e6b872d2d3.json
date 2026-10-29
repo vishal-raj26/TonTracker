@@ -1,0 +1,91 @@
+{
+  "schemaVersion": "username-secondary-local-v1",
+  "from": "2026-09-20T14:00:00Z",
+  "pipeline": "username-toncenter-secondary-sales-v1",
+  "collectedAt": "2026-09-25T09:08:09.102Z",
+  "cursor": {
+    "absoluteOffset": 13970,
+    "caughtUp": false
+  },
+  "metadata": {
+    "transfers": 100,
+    "saleContracts": 5,
+    "verifiedSales": 1,
+    "assets": 1,
+    "sales": 1,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-25T09:08:09.102Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:37b14ce8e48a53e67318d0b9969c13bc05c6a7d0ab68e2bbc5a30fe12306467a",
+      "normalizedName": "queen_cyka",
+      "displayName": "@queen_cyka",
+      "primaryRoute": "pattern",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "10M",
+      "feature": {
+        "classifierVersion": "username-structural-v2",
+        "normalizedUsername": "queen_cyka",
+        "displayUsername": "@queen_cyka",
+        "characterLength": 10,
+        "byteLength": 10,
+        "characterClass": "alphanumeric",
+        "primaryRoute": "pattern",
+        "routes": [
+          "pattern"
+        ],
+        "scarcityClass": "10M",
+        "patternSignature": "ABCCDEFGHI",
+        "shapeSignature": "LLLLL_LLLL",
+        "uniqueCharacterCount": 9,
+        "maxRunLength": 2,
+        "palindrome": false,
+        "sequence": null,
+        "repeatedBlock": null,
+        "scripts": [
+          "Latin"
+        ],
+        "primaryScript": "Latin",
+        "containsUnderscore": true,
+        "underscoreCount": 1,
+        "digitCount": 0,
+        "digitRatio": 0,
+        "vowelRatio": 0.5555555555555556,
+        "pronounceability": "not-applicable",
+        "leadingZero": false,
+        "roundNumber": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-22T17:37:35.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-secondary:b5037b20fc736f9e076edc904da65351fa19a18102f7e8d769c3c518c92a4746",
+      "assetKind": "username",
+      "assetKey": "0:37b14ce8e48a53e67318d0b9969c13bc05c6a7d0ab68e2bbc5a30fe12306467a",
+      "normalizedName": "queen_cyka",
+      "soldAt": "2026-09-22T17:37:35.000Z",
+      "priceGram": 5.84,
+      "historicalUsdRate": 1.4473351589763122,
+      "priceUsd": 8.452437328421663,
+      "marketplace": "Getgems",
+      "source": "toncenter-indexed-secondary-sale",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-completed-sale-contract",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "transactionHash": "yN/DhrYKD3nqh/oLCgkW+Xf477ixAu4OTtmeIUvd84g=",
+        "saleContract": "0:f460c2996f7e967f61235c152b32fa5cca84fe6d12fbe167a500ba2b80147506"
+      },
+      "primaryRoute": "pattern",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "10M"
+    }
+  ]
+}

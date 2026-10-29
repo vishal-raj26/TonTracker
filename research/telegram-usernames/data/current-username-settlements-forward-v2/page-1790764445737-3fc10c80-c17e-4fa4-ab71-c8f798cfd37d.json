@@ -1,0 +1,76 @@
+{
+  "schemaVersion": "username-forward-v2-local-v1",
+  "from": "2026-09-27T00:00:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "requestedEndUtime": 1790761800,
+  "collectedAt": "2026-09-30T10:34:05.737Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 51645,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 80,
+    "candidates": 24,
+    "verifiedItems": 1,
+    "wrongCollection": 23,
+    "assets": 1,
+    "sales": 1,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-30T10:34:05.737Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:962e35e6a7a6d12160d2b6f222aadecb4fe17a79dd1332934fc633b2e6cabf8b",
+      "normalizedName": "shitbider",
+      "displayName": "@shitbider",
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "9L",
+      "feature": {
+        "characterLength": 9,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCDECFGH",
+        "uniqueCharacterCount": 8,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-29T22:24:45.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:e88345a39853f09a8bff0fb9622c3e568d6ba78a39982473e62c889de7753fa3",
+      "assetKind": "username",
+      "assetKey": "0:962e35e6a7a6d12160d2b6f222aadecb4fe17a79dd1332934fc633b2e6cabf8b",
+      "normalizedName": "shitbider",
+      "soldAt": "2026-09-29T22:24:45.000Z",
+      "priceGram": 6,
+      "historicalUsdRate": 1.4939068160269844,
+      "priceUsd": 8.963440896161906,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "twlG7rMbvagX4tyzAflozpalxkl9B+J3sc4pg6iNUMI=",
+        "messageHash": "TwPjDRor24MFCZQfIqPurJ0vFUVwfEgR18TODJnAEms=",
+        "bidAt": "2026-09-29T22:24:45.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "9L"
+    }
+  ]
+}

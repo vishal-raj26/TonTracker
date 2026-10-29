@@ -1,0 +1,1034 @@
+{
+  "qualification": false,
+  "developmentOnly": true,
+  "createdBeforeFetch": true,
+  "pilotSha256": "c74bd655b1309ca569a183520916e648074e8bc8352b0d0f4d44236335f9f181",
+  "sourceSha256": "2218fa2650c2b7343afc7fb1f4f91e4deb38724483cbd3563868446365d45922",
+  "contractSource": "https://github.com/TelegramMessenger/telemint/blob/main/func/nft-item.fc",
+  "evidenceRule": "Successful exact-name deployment plus successful empty-message bids to the same NFT, strictly before sale; failed bids excluded",
+  "eventIds": [
+    "0:53beef7115db79201e66627d04ceb205bd961b36e9468c65036317fa86ebaf11:1.71716839e+09:104",
+    "0:9f3d80c43f266b801d2e8077c08019661495da4054142d1a55284fc01a108072:1.72489526e+09:104",
+    "0:5c5c4c8249b45e938a8be7b0e2a4d13766e3df1ebf04761e1a5f1037e8360e41:1.716324188e+09:104",
+    "0:1512b42a60c7c4f91f4a827d485a797605a86533fa5efcfec6e9f53e37d5ab1a:1.72005085e+09:104",
+    "0:b53fef6c94e310cdc725892cfdee9ab1481db8242471e2e0fb983d58fc69e73b:1.714132011e+09:104",
+    "0:4a0ad7f3664d9e0d5336fa010982bcd95135e2cf47e2c836c17983ae56bfb7fd:1.715357498e+09:104",
+    "0:133a967f90fe48d45e022aaff19c1b88fed1ab29cec3fbaa0588c1e913248ccf:1.715224098e+09:98",
+    "0:31532544400e442905f9f7a6c1265644063e2de63b0ca3700907af9edc20b777:1.728410773e+09:104",
+    "0:94340d730dbed7c7e56097c5c57333767fa47b2ab3a62acc3d4492942d3a2598:1.728655122e+09:287",
+    "0:7edc8c0edeaa11d596a11b2e30456cc3466acb770be28ab8e7df459c3957ab07:1.727693308e+09:405",
+    "0:91223d7a96c13a27626a85e1e1e23513ee6db0b5b897d619dfacc8f4d0b74c4a:1.719146059e+09:10",
+    "0:dd50b9d56515b2d0d85c012bcb5a6fd77b905630ee63607f3969afa1eb4dbc4f:1.750891681e+09:10",
+    "0:9e30d289c628e2cb04a458792954381962076d2359759310d54f61e3c795bee5:1.752590597e+09:12",
+    "0:74ca18b646d9b84a37617e53c946742c5dc8c31f925c07f26e80adb2ea15c141:1.72613191e+09:11",
+    "0:05eb12a0b44aaa8f91233fb7ff6bf49c5aa1a0291e053c8ab4a4a630f25efe44:1.730640779e+09:10",
+    "0:f91f197d930dbcc7da6f85524a30603ad89443033cbbc359c6f8e911a77c117e:1.727890708e+09:10",
+    "0:21fe690943d83968b062f50e23c53288dac3a179da61ba98afb6ddaa690bbdc2:1.74190079e+09:10",
+    "0:392020e24730c1b3640b993ce2088b30b0068dbc19653908a7a396037ec9a15f:1.739202445e+09:10",
+    "0:0d893d96934185105da3eef449b2e890aad39376781f11b30571f119f80b1120:1.752174583e+09:10",
+    "0:f4507abb22c50f37ebaa4b096806a074483dc3c981dccaf917a9620412c1efd4:1.751957435e+09:5.6"
+  ],
+  "observedAt": "2026-09-18T20:29:59.250Z",
+  "summary": {
+    "attempted": 20,
+    "covered": 18,
+    "latestBidMatchesSale": 18,
+    "errors": 0
+  },
+  "results": [
+    {
+      "eventId": "0:53beef7115db79201e66627d04ceb205bd961b36e9468c65036317fa86ebaf11:1.71716839e+09:104",
+      "username": "nikefootball",
+      "eventTime": "2024-05-31T15:13:10.000Z",
+      "actualUsd": 665.8275,
+      "saleNative": 104,
+      "transactionCount": 2,
+      "status": "verified-bid-lifecycle",
+      "bids": [
+        {
+          "eventType": "bid",
+          "eventTime": "2024-05-24T15:12:35.000Z",
+          "amountNano": "104000000000",
+          "bidderAddress": "0:ca5b410826fa4cc6a2f2cf5ca566607c2181bd8d205881b05aa4900201a0cd6a",
+          "txHash": "9/QYdBnCXRgDXYoQ7RL3e6bz1Yru2a2YUe3dZecU5ZY=",
+          "kind": "initial",
+          "identityVerified": true
+        }
+      ],
+      "latestBid": {
+        "eventType": "bid",
+        "eventTime": "2024-05-24T15:12:35.000Z",
+        "amountNano": "104000000000",
+        "bidderAddress": "0:ca5b410826fa4cc6a2f2cf5ca566607c2181bd8d205881b05aa4900201a0cd6a",
+        "txHash": "9/QYdBnCXRgDXYoQ7RL3e6bz1Yru2a2YUe3dZecU5ZY=",
+        "kind": "initial",
+        "identityVerified": true
+      },
+      "settlementVerified": false,
+      "limitation": "Bid lifecycle proves auction demand before cutoff, not settlement or present inactive resale value",
+      "latestBidMatchesSale": true
+    },
+    {
+      "eventId": "0:9f3d80c43f266b801d2e8077c08019661495da4054142d1a55284fc01a108072:1.72489526e+09:104",
+      "username": "pinjol",
+      "eventTime": "2024-08-29T01:34:20.000Z",
+      "actualUsd": 575.2716666666666,
+      "saleNative": 104,
+      "transactionCount": 3,
+      "status": "verified-bid-lifecycle",
+      "bids": [
+        {
+          "eventType": "bid",
+          "eventTime": "2024-08-22T01:33:50.000Z",
+          "amountNano": "104000000000",
+          "bidderAddress": "0:e847b0ff294ac39f2a11be4390a6a52490ba4412440ad4471795896972f65ef9",
+          "txHash": "SdsGznGTWagU26GGDdcmNkmmvHKa9izwcXIS8XxrbzQ=",
+          "kind": "initial",
+          "identityVerified": true
+        }
+      ],
+      "latestBid": {
+        "eventType": "bid",
+        "eventTime": "2024-08-22T01:33:50.000Z",
+        "amountNano": "104000000000",
+        "bidderAddress": "0:e847b0ff294ac39f2a11be4390a6a52490ba4412440ad4471795896972f65ef9",
+        "txHash": "SdsGznGTWagU26GGDdcmNkmmvHKa9izwcXIS8XxrbzQ=",
+        "kind": "initial",
+        "identityVerified": true
+      },
+      "settlementVerified": false,
+      "limitation": "Bid lifecycle proves auction demand before cutoff, not settlement or present inactive resale value",
+      "latestBidMatchesSale": true
+    },
+    {
+      "eventId": "0:5c5c4c8249b45e938a8be7b0e2a4d13766e3df1ebf04761e1a5f1037e8360e41:1.716324188e+09:104",
+      "username": "consequence",
+      "eventTime": "2024-05-21T20:43:08.000Z",
+      "actualUsd": 676.4188888888889,
+      "saleNative": 104,
+      "transactionCount": 6,
+      "status": "verified-bid-lifecycle",
+      "bids": [
+        {
+          "eventType": "bid",
+          "eventTime": "2024-05-14T20:42:26.000Z",
+          "amountNano": "10000000000",
+          "bidderAddress": "0:265c09503fd69f94f288ad475346dd064b782bbfb4be615ca1786506b87897ee",
+          "txHash": "JHhBbmwa74TnrNrXO8iX0COUTGX6o+7MCYF4ygB9vhk=",
+          "kind": "initial",
+          "identityVerified": true
+        },
+        {
+          "eventType": "bid",
+          "eventTime": "2024-05-18T16:10:39.000Z",
+          "amountNano": "11000000000",
+          "bidderAddress": "0:b622230e7966d24088bea5749f8343b9b82eac03e071b2cceeeb6807f7cf42da",
+          "txHash": "1DQPML7AHo6vnPpuFUIGg9MFuteFekk1cZm0bvh0eMs=",
+          "kind": "subsequent",
+          "identityVerified": true
+        },
+        {
+          "eventType": "bid",
+          "eventTime": "2024-05-18T16:12:42.000Z",
+          "amountNano": "22000000000",
+          "bidderAddress": "0:265c09503fd69f94f288ad475346dd064b782bbfb4be615ca1786506b87897ee",
+          "txHash": "HhwfKmPzOaB9UpiKjDgOJkga7w24b/n7YSipeKrEhXM=",
+          "kind": "subsequent",
+          "identityVerified": true
+        },
+        {
+          "eventType": "bid",
+          "eventTime": "2024-05-21T03:38:13.000Z",
+          "amountNano": "24000000000",
+          "bidderAddress": "0:cd2411142d7c71c73bf64dc4297d5a4125fea8e641f91c8fc147cd863c64c082",
+          "txHash": "RV1CDkarRdp+Dm4Xr88OIuDwe1shDxX2S0rE36uwEvw=",
+          "kind": "subsequent",
+          "identityVerified": true
+        },
+        {
+          "eventType": "bid",
+          "eventTime": "2024-05-21T03:40:01.000Z",
+          "amountNano": "104000000000",
+          "bidderAddress": "0:265c09503fd69f94f288ad475346dd064b782bbfb4be615ca1786506b87897ee",
+          "txHash": "bwYZ+WsAg73YbvWrdiBzIt3YN0QGD+CtU9jJvecVh7w=",
+          "kind": "subsequent",
+          "identityVerified": true
+        }
+      ],
+      "latestBid": {
+        "eventType": "bid",
+        "eventTime": "2024-05-21T03:40:01.000Z",
+        "amountNano": "104000000000",
+        "bidderAddress": "0:265c09503fd69f94f288ad475346dd064b782bbfb4be615ca1786506b87897ee",
+        "txHash": "bwYZ+WsAg73YbvWrdiBzIt3YN0QGD+CtU9jJvecVh7w=",
+        "kind": "subsequent",
+        "identityVerified": true
+      },
+      "settlementVerified": false,
+      "limitation": "Bid lifecycle proves auction demand before cutoff, not settlement or present inactive resale value",
+      "latestBidMatchesSale": true
+    },
+    {
+      "eventId": "0:1512b42a60c7c4f91f4a827d485a797605a86533fa5efcfec6e9f53e37d5ab1a:1.72005085e+09:104",
+      "username": "clubof",
+      "eventTime": "2024-07-03T23:54:10.000Z",
+      "actualUsd": 821.8130555555555,
+      "saleNative": 104,
+      "transactionCount": 3,
+      "status": "verified-bid-lifecycle",
+      "bids": [
+        {
+          "eventType": "bid",
+          "eventTime": "2024-06-26T23:53:42.000Z",
+          "amountNano": "104000000000",
+          "bidderAddress": "0:3d1ec9a0cb65a29113cc22500b597f25711394a4028aba448d179f8fc44b0d90",
+          "txHash": "Vq+CAKgHMBC0qjw+3LEZ5ZbL73MKUSe0hGYjh8DNZ+8=",
+          "kind": "initial",
+          "identityVerified": true
+        }
+      ],
+      "latestBid": {
+        "eventType": "bid",
+        "eventTime": "2024-06-26T23:53:42.000Z",
+        "amountNano": "104000000000",
+        "bidderAddress": "0:3d1ec9a0cb65a29113cc22500b597f25711394a4028aba448d179f8fc44b0d90",
+        "txHash": "Vq+CAKgHMBC0qjw+3LEZ5ZbL73MKUSe0hGYjh8DNZ+8=",
+        "kind": "initial",
+        "identityVerified": true
+      },
+      "settlementVerified": false,
+      "limitation": "Bid lifecycle proves auction demand before cutoff, not settlement or present inactive resale value",
+      "latestBidMatchesSale": true
+    },
+    {
+      "eventId": "0:b53fef6c94e310cdc725892cfdee9ab1481db8242471e2e0fb983d58fc69e73b:1.714132011e+09:104",
+      "username": "itmemes",
+      "eventTime": "2024-04-26T11:46:51.000Z",
+      "actualUsd": 559.4188888888889,
+      "saleNative": 104,
+      "transactionCount": 2,
+      "status": "verified-bid-lifecycle",
+      "bids": [
+        {
+          "eventType": "bid",
+          "eventTime": "2024-04-19T11:46:19.000Z",
+          "amountNano": "104000000000",
+          "bidderAddress": "0:11d0259516abc3319df8b9042a60e40972af8f640a0d14aa599dcde05b81239e",
+          "txHash": "nG1/qVtr/gJVRQ3ieSjc1aUb/TnFQict7PjnOYYB/ow=",
+          "kind": "initial",
+          "identityVerified": true
+        }
+      ],
+      "latestBid": {
+        "eventType": "bid",
+        "eventTime": "2024-04-19T11:46:19.000Z",
+        "amountNano": "104000000000",
+        "bidderAddress": "0:11d0259516abc3319df8b9042a60e40972af8f640a0d14aa599dcde05b81239e",
+        "txHash": "nG1/qVtr/gJVRQ3ieSjc1aUb/TnFQict7PjnOYYB/ow=",
+        "kind": "initial",
+        "identityVerified": true
+      },
+      "settlementVerified": false,
+      "limitation": "Bid lifecycle proves auction demand before cutoff, not settlement or present inactive resale value",
+      "latestBidMatchesSale": true
+    },
+    {
+      "eventId": "0:4a0ad7f3664d9e0d5336fa010982bcd95135e2cf47e2c836c17983ae56bfb7fd:1.715357498e+09:104",
+      "username": "betkingng",
+      "eventTime": "2024-05-10T16:11:38.000Z",
+      "actualUsd": 698.2408333333333,
+      "saleNative": 104,
+      "transactionCount": 2,
+      "status": "verified-bid-lifecycle",
+      "bids": [
+        {
+          "eventType": "bid",
+          "eventTime": "2024-05-03T16:11:08.000Z",
+          "amountNano": "104000000000",
+          "bidderAddress": "0:c82c49b9d40e104caff6db644bfdcb6f774ba0a4a672fd81b309e38870067d17",
+          "txHash": "HRilk4YGzrvtaRImyQgMMXSA5L+gCceBC+iYybm7vvM=",
+          "kind": "initial",
+          "identityVerified": true
+        }
+      ],
+      "latestBid": {
+        "eventType": "bid",
+        "eventTime": "2024-05-03T16:11:08.000Z",
+        "amountNano": "104000000000",
+        "bidderAddress": "0:c82c49b9d40e104caff6db644bfdcb6f774ba0a4a672fd81b309e38870067d17",
+        "txHash": "HRilk4YGzrvtaRImyQgMMXSA5L+gCceBC+iYybm7vvM=",
+        "kind": "initial",
+        "identityVerified": true
+      },
+      "settlementVerified": false,
+      "limitation": "Bid lifecycle proves auction demand before cutoff, not settlement or present inactive resale value",
+      "latestBidMatchesSale": true
+    },
+    {
+      "eventId": "0:133a967f90fe48d45e022aaff19c1b88fed1ab29cec3fbaa0588c1e913248ccf:1.715224098e+09:98",
+      "username": "hwtb566",
+      "eventTime": "2024-05-09T03:08:18.000Z",
+      "actualUsd": 597.9020833333333,
+      "saleNative": 98,
+      "transactionCount": 3,
+      "status": "verified-bid-lifecycle",
+      "bids": [
+        {
+          "eventType": "bid",
+          "eventTime": "2024-05-02T03:00:32.000Z",
+          "amountNano": "10000000000",
+          "bidderAddress": "0:1b06cf6aa65c2208caacc15874379360454f6f8c80b0977565e932d413ddd622",
+          "txHash": "veipr9aISTobgoTZE1kmqorIjlcBtTiK+qufEzKkHj8=",
+          "kind": "initial",
+          "identityVerified": true
+        },
+        {
+          "eventType": "bid",
+          "eventTime": "2024-05-09T02:07:56.000Z",
+          "amountNano": "98000000000",
+          "bidderAddress": "0:1b06cf6aa65c2208caacc15874379360454f6f8c80b0977565e932d413ddd622",
+          "txHash": "GXasfVVqwF1hztf9K8UGaCa0+Z6NnxzCDcCNys2dO/o=",
+          "kind": "subsequent",
+          "identityVerified": true
+        }
+      ],
+      "latestBid": {
+        "eventType": "bid",
+        "eventTime": "2024-05-09T02:07:56.000Z",
+        "amountNano": "98000000000",
+        "bidderAddress": "0:1b06cf6aa65c2208caacc15874379360454f6f8c80b0977565e932d413ddd622",
+        "txHash": "GXasfVVqwF1hztf9K8UGaCa0+Z6NnxzCDcCNys2dO/o=",
+        "kind": "subsequent",
+        "identityVerified": true
+      },
+      "settlementVerified": false,
+      "limitation": "Bid lifecycle proves auction demand before cutoff, not settlement or present inactive resale value",
+      "latestBidMatchesSale": true
+    },
+    {
+      "eventId": "0:31532544400e442905f9f7a6c1265644063e2de63b0ca3700907af9edc20b777:1.728410773e+09:104",
+      "username": "ppppq",
+      "eventTime": "2024-10-08T18:06:13.000Z",
+      "actualUsd": 541.6125000000001,
+      "saleNative": 104,
+      "transactionCount": 3,
+      "status": "verified-bid-lifecycle",
+      "bids": [
+        {
+          "eventType": "bid",
+          "eventTime": "2024-10-01T18:05:54.000Z",
+          "amountNano": "104000000000",
+          "bidderAddress": "0:1af4395af00ca46f210625cc99201239bd004fb32002536dc65025c0200d5317",
+          "txHash": "BADFAfIlYZOMWLIpDX8vcvXVzhVDCq5dRdeIoji/cFE=",
+          "kind": "initial",
+          "identityVerified": true
+        }
+      ],
+      "latestBid": {
+        "eventType": "bid",
+        "eventTime": "2024-10-01T18:05:54.000Z",
+        "amountNano": "104000000000",
+        "bidderAddress": "0:1af4395af00ca46f210625cc99201239bd004fb32002536dc65025c0200d5317",
+        "txHash": "BADFAfIlYZOMWLIpDX8vcvXVzhVDCq5dRdeIoji/cFE=",
+        "kind": "initial",
+        "identityVerified": true
+      },
+      "settlementVerified": false,
+      "limitation": "Bid lifecycle proves auction demand before cutoff, not settlement or present inactive resale value",
+      "latestBidMatchesSale": true
+    },
+    {
+      "eventId": "0:94340d730dbed7c7e56097c5c57333767fa47b2ab3a62acc3d4492942d3a2598:1.728655122e+09:287",
+      "username": "optibet",
+      "eventTime": "2024-10-11T13:58:42.000Z",
+      "actualUsd": 1492.4896875,
+      "saleNative": 287,
+      "transactionCount": 2,
+      "status": "initial-bid-unavailable",
+      "bids": [],
+      "latestBidMatchesSale": false
+    },
+    {
+      "eventId": "0:7edc8c0edeaa11d596a11b2e30456cc3466acb770be28ab8e7df459c3957ab07:1.727693308e+09:405",
+      "username": "forty",
+      "eventTime": "2024-09-30T10:48:28.000Z",
+      "actualUsd": 2355.5953125,
+      "saleNative": 405,
+      "transactionCount": 41,
+      "status": "verified-bid-lifecycle",
+      "bids": [
+        {
+          "eventType": "bid",
+          "eventTime": "2024-09-23T07:43:00.000Z",
+          "amountNano": "10000000000",
+          "bidderAddress": "0:1ece8c850d48bb85f01e3a484c29d261fa2bb66693ed6d6249d111ae7bc4c7ae",
+          "txHash": "j+ar/Dm6ISOLjT3v3O5+snsZRK/z1jtmrGI/jvlndg4=",
+          "kind": "initial",
+          "identityVerified": true
+        },
+        {
+          "eventType": "bid",
+          "eventTime": "2024-09-25T08:51:51.000Z",
+          "amountNano": "11000000000",
+          "bidderAddress": "0:60283fd21657bfaa2e32150d9c49c86d6c1db93d3e4c2290b8f818c4e8b25387",
+          "txHash": "23o/dUctjsE83Vo41Bohmi8aAiYpc7UB7g1+U2GYOtM=",
+          "kind": "subsequent",
+          "identityVerified": true
+        },
+        {
+          "eventType": "bid",
+          "eventTime": "2024-09-25T19:08:07.000Z",
+          "amountNano": "12000000000",
+          "bidderAddress": "0:37c48f3efb8844e670f7715f373ec4b3ef77d0f67cab377d0a9c3864ae0c8e40",
+          "txHash": "AISpvAYXRlKKmEYMbGDbPPdXSbF/L1X2daLpyUTkMkk=",
+          "kind": "subsequent",
+          "identityVerified": true
+        },
+        {
+          "eventType": "bid",
+          "eventTime": "2024-09-25T20:44:09.000Z",
+          "amountNano": "13000000000",
+          "bidderAddress": "0:60283fd21657bfaa2e32150d9c49c86d6c1db93d3e4c2290b8f818c4e8b25387",
+          "txHash": "4WWOEZO4LnWoaTyFT9cmSbBFYdsubFPWDODYSWtDR0U=",
+          "kind": "subsequent",
+          "identityVerified": true
+        },
+        {
+          "eventType": "bid",
+          "eventTime": "2024-09-27T09:01:55.000Z",
+          "amountNano": "14000000000",
+          "bidderAddress": "0:0cc8fc1baab36572b2152f2540f4918565395deec1898824c04745ce7fd1dd52",
+          "txHash": "+OT7VMCSEAoUSuwfqSIxSDFdfdfEsNN41zqDc0D7sNU=",
+          "kind": "subsequent",
+          "identityVerified": true
+        },
+        {
+          "eventType": "bid",
+          "eventTime": "2024-09-27T18:02:23.000Z",
+          "amountNano": "15000000000",
+          "bidderAddress": "0:8445b57e1b3983877e04b2def5a429be4f0c578c69d9d9cce49115ad5403f8be",
+          "txHash": "QFBol8SZJaA2ausk0aqQfNDAkLqPigIirgzhA9vg0fg=",
+          "kind": "subsequent",
+          "identityVerified": true
+        },
+        {
+          "eventType": "bid",
+          "eventTime": "2024-09-27T18:06:25.000Z",
+          "amountNano": "16000000000",
+          "bidderAddress": "0:ddb023d10f8e9222f3a600ce5e3dd3dfbab809457233ee4eb934aa9e72fb4022",
+          "txHash": "/OxCFsLa0LVxMdf8A7ITAztBNT61bc8LfdPHsrsAbcU=",
+          "kind": "subsequent",
+          "identityVerified": true
+        },
+        {
+          "eventType": "bid",
+          "eventTime": "2024-09-27T18:08:54.000Z",
+          "amountNano": "17000000000",
+          "bidderAddress": "0:8445b57e1b3983877e04b2def5a429be4f0c578c69d9d9cce49115ad5403f8be",
+          "txHash": "k0EXcBIqHtoD/0QQKJjPktqjXTt38kifsNp7Ub3fzzA=",
+          "kind": "subsequent",
+          "identityVerified": true
+        },
+        {
+          "eventType": "bid",
+          "eventTime": "2024-09-27T18:10:17.000Z",
+          "amountNano": "20000000000",
+          "bidderAddress": "0:ddb023d10f8e9222f3a600ce5e3dd3dfbab809457233ee4eb934aa9e72fb4022",
+          "txHash": "gR+G6UqXOiVVuvVitjvrQp37XAsVZ7fDk+IeX+KtK9s=",
+          "kind": "subsequent",
+          "identityVerified": true
+        },
+        {
+          "eventType": "bid",
+          "eventTime": "2024-09-27T18:11:44.000Z",
+          "amountNano": "25000000000",
+          "bidderAddress": "0:8445b57e1b3983877e04b2def5a429be4f0c578c69d9d9cce49115ad5403f8be",
+          "txHash": "FI35XuhFGufs8WS5+x2J6d2D7RYi+3VoE5Fc0neygBQ=",
+          "kind": "subsequent",
+          "identityVerified": true
+        },
+        {
+          "eventType": "bid",
+          "eventTime": "2024-09-27T18:15:12.000Z",
+          "amountNano": "30000000000",
+          "bidderAddress": "0:ddb023d10f8e9222f3a600ce5e3dd3dfbab809457233ee4eb934aa9e72fb4022",
+          "txHash": "7hespcPZxVPVGid2INE8+gMQ4YV8ocYigN7iGMYIOsU=",
+          "kind": "subsequent",
+          "identityVerified": true
+        },
+        {
+          "eventType": "bid",
+          "eventTime": "2024-09-27T18:17:27.000Z",
+          "amountNano": "45000000000",
+          "bidderAddress": "0:8445b57e1b3983877e04b2def5a429be4f0c578c69d9d9cce49115ad5403f8be",
+          "txHash": "dQ1+WZ6tGHDe0+iaVsn8ZVgWu0e+okdWBy3kTydyGE8=",
+          "kind": "subsequent",
+          "identityVerified": true
+        },
+        {
+          "eventType": "bid",
+          "eventTime": "2024-09-27T18:25:47.000Z",
+          "amountNano": "50000000000",
+          "bidderAddress": "0:ddb023d10f8e9222f3a600ce5e3dd3dfbab809457233ee4eb934aa9e72fb4022",
+          "txHash": "uf9sRyj0rPg8RP8zc+YfJLi2qpuAAaUvAYCd7pQ+XXs=",
+          "kind": "subsequent",
+          "identityVerified": true
+        },
+        {
+          "eventType": "bid",
+          "eventTime": "2024-09-27T18:29:24.000Z",
+          "amountNano": "75000000000",
+          "bidderAddress": "0:8445b57e1b3983877e04b2def5a429be4f0c578c69d9d9cce49115ad5403f8be",
+          "txHash": "+V8tCxWSPHj2vA9l3OJPxBazhWWDArSLtF9M4LD04QY=",
+          "kind": "subsequent",
+          "identityVerified": true
+        },
+        {
+          "eventType": "bid",
+          "eventTime": "2024-09-28T15:22:25.000Z",
+          "amountNano": "79000000000",
+          "bidderAddress": "0:abda52d2c9319a0784e11edab1b686d539598e7c2bc13f126cc0c96cb6397092",
+          "txHash": "y2l9obTKvOP8c/M2b3riTQlgdA2yjJWuuioslFaUXho=",
+          "kind": "subsequent",
+          "identityVerified": true
+        },
+        {
+          "eventType": "bid",
+          "eventTime": "2024-09-28T21:23:35.000Z",
+          "amountNano": "83000000000",
+          "bidderAddress": "0:8445b57e1b3983877e04b2def5a429be4f0c578c69d9d9cce49115ad5403f8be",
+          "txHash": "dfGMLAZihR8NJuDxb0Wo3uwPKQGmLntC+0kShiwNuGc=",
+          "kind": "subsequent",
+          "identityVerified": true
+        },
+        {
+          "eventType": "bid",
+          "eventTime": "2024-09-29T04:46:34.000Z",
+          "amountNano": "100000000000",
+          "bidderAddress": "0:ddb023d10f8e9222f3a600ce5e3dd3dfbab809457233ee4eb934aa9e72fb4022",
+          "txHash": "bA5L9Ggcc4m+7YmdZzopq3IAE9VxVgfu6HIBQ3FaZxE=",
+          "kind": "subsequent",
+          "identityVerified": true
+        },
+        {
+          "eventType": "bid",
+          "eventTime": "2024-09-29T05:28:26.000Z",
+          "amountNano": "115000000000",
+          "bidderAddress": "0:8445b57e1b3983877e04b2def5a429be4f0c578c69d9d9cce49115ad5403f8be",
+          "txHash": "eBNY1fewxEBhd4IX2lE8rOYoEgOgbhWhiXGV11p5bQo=",
+          "kind": "subsequent",
+          "identityVerified": true
+        },
+        {
+          "eventType": "bid",
+          "eventTime": "2024-09-29T08:14:56.000Z",
+          "amountNano": "121000000000",
+          "bidderAddress": "0:abda52d2c9319a0784e11edab1b686d539598e7c2bc13f126cc0c96cb6397092",
+          "txHash": "3Jc3/9y8eDMIwRpNne2NoXtOB7gLHKBW/DQXNORyPy4=",
+          "kind": "subsequent",
+          "identityVerified": true
+        },
+        {
+          "eventType": "bid",
+          "eventTime": "2024-09-29T18:34:18.000Z",
+          "amountNano": "128000000000",
+          "bidderAddress": "0:ddb023d10f8e9222f3a600ce5e3dd3dfbab809457233ee4eb934aa9e72fb4022",
+          "txHash": "PeKLTOabLLg+nh57oJMyZMmntFJXUWKx7IdSojfwvoI=",
+          "kind": "subsequent",
+          "identityVerified": true
+        },
+        {
+          "eventType": "bid",
+          "eventTime": "2024-09-29T18:35:43.000Z",
+          "amountNano": "135000000000",
+          "bidderAddress": "0:abda52d2c9319a0784e11edab1b686d539598e7c2bc13f126cc0c96cb6397092",
+          "txHash": "dnreYig8L6VIpitoREzUnNkEcRhQ42OsL1WuPnqIXjg=",
+          "kind": "subsequent",
+          "identityVerified": true
+        },
+        {
+          "eventType": "bid",
+          "eventTime": "2024-09-30T00:09:01.000Z",
+          "amountNano": "166000000000",
+          "bidderAddress": "0:376e2767f643ff6afb73652c4feee458a295c0104c03fc66ff33a65e7234e3e5",
+          "txHash": "E+AAQ+LIoQDx83OPV7xN5rdJgAjy6NtX+ltanUAykTs=",
+          "kind": "subsequent",
+          "identityVerified": true
+        },
+        {
+          "eventType": "bid",
+          "eventTime": "2024-09-30T02:23:30.000Z",
+          "amountNano": "175000000000",
+          "bidderAddress": "0:abda52d2c9319a0784e11edab1b686d539598e7c2bc13f126cc0c96cb6397092",
+          "txHash": "w4gr4p64WTOaHfOWOZydNLRbyhg1AJrTNlGUgd13aC0=",
+          "kind": "subsequent",
+          "identityVerified": true
+        },
+        {
+          "eventType": "bid",
+          "eventTime": "2024-09-30T06:06:53.000Z",
+          "amountNano": "184000000000",
+          "bidderAddress": "0:8445b57e1b3983877e04b2def5a429be4f0c578c69d9d9cce49115ad5403f8be",
+          "txHash": "wKm2I28XGbVbRjQ6N5sqy4q+HRHBiLkwiynCPz3YzSc=",
+          "kind": "subsequent",
+          "identityVerified": true
+        },
+        {
+          "eventType": "bid",
+          "eventTime": "2024-09-30T06:20:36.000Z",
+          "amountNano": "194000000000",
+          "bidderAddress": "0:abda52d2c9319a0784e11edab1b686d539598e7c2bc13f126cc0c96cb6397092",
+          "txHash": "6HixEgbIF9ak7V7xP6LT2N3YlbEtUIVeVcPNpzjkHIM=",
+          "kind": "subsequent",
+          "identityVerified": true
+        },
+        {
+          "eventType": "bid",
+          "eventTime": "2024-09-30T06:41:02.000Z",
+          "amountNano": "204000000000",
+          "bidderAddress": "0:8445b57e1b3983877e04b2def5a429be4f0c578c69d9d9cce49115ad5403f8be",
+          "txHash": "u1P6/ZATgxDUkMm64IIBl834zTauaq33xB1XYo1ShDM=",
+          "kind": "subsequent",
+          "identityVerified": true
+        },
+        {
+          "eventType": "bid",
+          "eventTime": "2024-09-30T06:58:03.000Z",
+          "amountNano": "215000000000",
+          "bidderAddress": "0:abda52d2c9319a0784e11edab1b686d539598e7c2bc13f126cc0c96cb6397092",
+          "txHash": "6shVzEmBpgyvMPHRGcblsYQueWpyzAkpBA/QV0SKrQM=",
+          "kind": "subsequent",
+          "identityVerified": true
+        },
+        {
+          "eventType": "bid",
+          "eventTime": "2024-09-30T07:01:47.000Z",
+          "amountNano": "226000000000",
+          "bidderAddress": "0:8445b57e1b3983877e04b2def5a429be4f0c578c69d9d9cce49115ad5403f8be",
+          "txHash": "SP3EJY94LNpaH2NqgCVNgH5qEqVuIATo7eyh5xt/LqY=",
+          "kind": "subsequent",
+          "identityVerified": true
+        },
+        {
+          "eventType": "bid",
+          "eventTime": "2024-09-30T07:03:23.000Z",
+          "amountNano": "238000000000",
+          "bidderAddress": "0:abda52d2c9319a0784e11edab1b686d539598e7c2bc13f126cc0c96cb6397092",
+          "txHash": "kMw6yYX8mOq7F/84oFvK1mbzkvhoQvKaPd+sTu5rpgg=",
+          "kind": "subsequent",
+          "identityVerified": true
+        },
+        {
+          "eventType": "bid",
+          "eventTime": "2024-09-30T07:20:33.000Z",
+          "amountNano": "250000000000",
+          "bidderAddress": "0:8445b57e1b3983877e04b2def5a429be4f0c578c69d9d9cce49115ad5403f8be",
+          "txHash": "SMvBP2y4LELHIiln0KgNMngx4WzR/ObbL88yr1iKV2o=",
+          "kind": "subsequent",
+          "identityVerified": true
+        },
+        {
+          "eventType": "bid",
+          "eventTime": "2024-09-30T07:41:32.000Z",
+          "amountNano": "263000000000",
+          "bidderAddress": "0:ddb023d10f8e9222f3a600ce5e3dd3dfbab809457233ee4eb934aa9e72fb4022",
+          "txHash": "zcsZmupzUJrDC8zSUT1cI5Oc8LGRCmdSHFcBr9UZLPg=",
+          "kind": "subsequent",
+          "identityVerified": true
+        },
+        {
+          "eventType": "bid",
+          "eventTime": "2024-09-30T07:42:45.000Z",
+          "amountNano": "277000000000",
+          "bidderAddress": "0:8445b57e1b3983877e04b2def5a429be4f0c578c69d9d9cce49115ad5403f8be",
+          "txHash": "haIpMvu2kaXUyBIsgEs5+lUTOB572PeHpafZk7D1dnM=",
+          "kind": "subsequent",
+          "identityVerified": true
+        },
+        {
+          "eventType": "bid",
+          "eventTime": "2024-09-30T07:45:16.000Z",
+          "amountNano": "300000000000",
+          "bidderAddress": "0:ddb023d10f8e9222f3a600ce5e3dd3dfbab809457233ee4eb934aa9e72fb4022",
+          "txHash": "BEFjbNXAaVtxbcD0d2WaRXPbpZ4lIwsn5hrpF8gBtMM=",
+          "kind": "subsequent",
+          "identityVerified": true
+        },
+        {
+          "eventType": "bid",
+          "eventTime": "2024-09-30T07:46:18.000Z",
+          "amountNano": "315000000000",
+          "bidderAddress": "0:8445b57e1b3983877e04b2def5a429be4f0c578c69d9d9cce49115ad5403f8be",
+          "txHash": "dmx5PwQICNVBmuUrU+wQhJ98TYvPOrIa+hd7B0PIZIY=",
+          "kind": "subsequent",
+          "identityVerified": true
+        },
+        {
+          "eventType": "bid",
+          "eventTime": "2024-09-30T08:23:35.000Z",
+          "amountNano": "331000000000",
+          "bidderAddress": "0:ddb023d10f8e9222f3a600ce5e3dd3dfbab809457233ee4eb934aa9e72fb4022",
+          "txHash": "mZOFKtDPRzFVuTSwJZqbNyPBWeStpuY70k2hZNJ2V0o=",
+          "kind": "subsequent",
+          "identityVerified": true
+        },
+        {
+          "eventType": "bid",
+          "eventTime": "2024-09-30T08:24:47.000Z",
+          "amountNano": "348000000000",
+          "bidderAddress": "0:8445b57e1b3983877e04b2def5a429be4f0c578c69d9d9cce49115ad5403f8be",
+          "txHash": "Q3pq3xSijaltz5jlbrfA8jUFqZvwi+wpx4tLpz8O/fg=",
+          "kind": "subsequent",
+          "identityVerified": true
+        },
+        {
+          "eventType": "bid",
+          "eventTime": "2024-09-30T08:38:07.000Z",
+          "amountNano": "366000000000",
+          "bidderAddress": "0:ddb023d10f8e9222f3a600ce5e3dd3dfbab809457233ee4eb934aa9e72fb4022",
+          "txHash": "2HVWCZvGJFQRglM/IId2r0+74IPuqBOLWydTK2yp5Cs=",
+          "kind": "subsequent",
+          "identityVerified": true
+        },
+        {
+          "eventType": "bid",
+          "eventTime": "2024-09-30T08:56:35.000Z",
+          "amountNano": "385000000000",
+          "bidderAddress": "0:8445b57e1b3983877e04b2def5a429be4f0c578c69d9d9cce49115ad5403f8be",
+          "txHash": "q6Fm5rus4Hr2MmPzWgmtkygyWj4WGdckTNo7iIGWAHU=",
+          "kind": "subsequent",
+          "identityVerified": true
+        },
+        {
+          "eventType": "bid",
+          "eventTime": "2024-09-30T09:47:58.000Z",
+          "amountNano": "405000000000",
+          "bidderAddress": "0:ddb023d10f8e9222f3a600ce5e3dd3dfbab809457233ee4eb934aa9e72fb4022",
+          "txHash": "qa12WC7sDdI1Fst+zPx5mbBC/RA0nGw5bLZMf6bKIag=",
+          "kind": "subsequent",
+          "identityVerified": true
+        }
+      ],
+      "latestBid": {
+        "eventType": "bid",
+        "eventTime": "2024-09-30T09:47:58.000Z",
+        "amountNano": "405000000000",
+        "bidderAddress": "0:ddb023d10f8e9222f3a600ce5e3dd3dfbab809457233ee4eb934aa9e72fb4022",
+        "txHash": "qa12WC7sDdI1Fst+zPx5mbBC/RA0nGw5bLZMf6bKIag=",
+        "kind": "subsequent",
+        "identityVerified": true
+      },
+      "settlementVerified": false,
+      "limitation": "Bid lifecycle proves auction demand before cutoff, not settlement or present inactive resale value",
+      "latestBidMatchesSale": true
+    },
+    {
+      "eventId": "0:91223d7a96c13a27626a85e1e1e23513ee6db0b5b897d619dfacc8f4d0b74c4a:1.719146059e+09:10",
+      "username": "viral_nation_talent",
+      "eventTime": "2024-06-23T12:34:19.000Z",
+      "actualUsd": 76.14201388888888,
+      "saleNative": 10,
+      "transactionCount": 2,
+      "status": "verified-bid-lifecycle",
+      "bids": [
+        {
+          "eventType": "bid",
+          "eventTime": "2024-06-16T12:33:40.000Z",
+          "amountNano": "10000000000",
+          "bidderAddress": "0:d09fe91e42c0200dde303d01a16095c8825d9ce558e40c7c5ad310d9a8717e04",
+          "txHash": "CSJfkvqvRNPUnU0sjkxxiHGzpS/EpoJ7e2SI6e+Pamc=",
+          "kind": "initial",
+          "identityVerified": true
+        }
+      ],
+      "latestBid": {
+        "eventType": "bid",
+        "eventTime": "2024-06-16T12:33:40.000Z",
+        "amountNano": "10000000000",
+        "bidderAddress": "0:d09fe91e42c0200dde303d01a16095c8825d9ce558e40c7c5ad310d9a8717e04",
+        "txHash": "CSJfkvqvRNPUnU0sjkxxiHGzpS/EpoJ7e2SI6e+Pamc=",
+        "kind": "initial",
+        "identityVerified": true
+      },
+      "settlementVerified": false,
+      "limitation": "Bid lifecycle proves auction demand before cutoff, not settlement or present inactive resale value",
+      "latestBidMatchesSale": true
+    },
+    {
+      "eventId": "0:dd50b9d56515b2d0d85c012bcb5a6fd77b905630ee63607f3969afa1eb4dbc4f:1.750891681e+09:10",
+      "username": "zojguy",
+      "eventTime": "2025-06-25T22:48:01.000Z",
+      "actualUsd": 28.76701388888889,
+      "saleNative": 10,
+      "transactionCount": 2,
+      "status": "verified-bid-lifecycle",
+      "bids": [
+        {
+          "eventType": "bid",
+          "eventTime": "2025-06-18T22:47:42.000Z",
+          "amountNano": "10000000000",
+          "bidderAddress": "0:c0a51d98603e01bd602eae1b4bef3ba9b23213e19be56a6a85acccfb58816acd",
+          "txHash": "UHIIDtIkNvCzS/UhJ037SmeSj9fsUpLD04XXQ7BDFEw=",
+          "kind": "initial",
+          "identityVerified": true
+        }
+      ],
+      "latestBid": {
+        "eventType": "bid",
+        "eventTime": "2025-06-18T22:47:42.000Z",
+        "amountNano": "10000000000",
+        "bidderAddress": "0:c0a51d98603e01bd602eae1b4bef3ba9b23213e19be56a6a85acccfb58816acd",
+        "txHash": "UHIIDtIkNvCzS/UhJ037SmeSj9fsUpLD04XXQ7BDFEw=",
+        "kind": "initial",
+        "identityVerified": true
+      },
+      "settlementVerified": false,
+      "limitation": "Bid lifecycle proves auction demand before cutoff, not settlement or present inactive resale value",
+      "latestBidMatchesSale": true
+    },
+    {
+      "eventId": "0:9e30d289c628e2cb04a458792954381962076d2359759310d54f61e3c795bee5:1.752590597e+09:12",
+      "username": "skamget",
+      "eventTime": "2025-07-15T14:43:17.000Z",
+      "actualUsd": 36.03208333333333,
+      "saleNative": 12,
+      "transactionCount": 2,
+      "status": "verified-bid-lifecycle",
+      "bids": [
+        {
+          "eventType": "bid",
+          "eventTime": "2025-07-08T14:42:57.000Z",
+          "amountNano": "12000000000",
+          "bidderAddress": "0:cb399c889eb248fa4a51582d7d6b1f97cbede3f6ed09a69ca30f02e81addb1f6",
+          "txHash": "PnYC0xCEGDvjamyEhsSd15LjpaeJ68+DW7o0nMfYzu0=",
+          "kind": "initial",
+          "identityVerified": true
+        }
+      ],
+      "latestBid": {
+        "eventType": "bid",
+        "eventTime": "2025-07-08T14:42:57.000Z",
+        "amountNano": "12000000000",
+        "bidderAddress": "0:cb399c889eb248fa4a51582d7d6b1f97cbede3f6ed09a69ca30f02e81addb1f6",
+        "txHash": "PnYC0xCEGDvjamyEhsSd15LjpaeJ68+DW7o0nMfYzu0=",
+        "kind": "initial",
+        "identityVerified": true
+      },
+      "settlementVerified": false,
+      "limitation": "Bid lifecycle proves auction demand before cutoff, not settlement or present inactive resale value",
+      "latestBidMatchesSale": true
+    },
+    {
+      "eventId": "0:74ca18b646d9b84a37617e53c946742c5dc8c31f925c07f26e80adb2ea15c141:1.72613191e+09:11",
+      "username": "prioperty",
+      "eventTime": "2024-09-12T09:05:10.000Z",
+      "actualUsd": 60.104305555555555,
+      "saleNative": 11,
+      "transactionCount": 3,
+      "status": "verified-bid-lifecycle",
+      "bids": [
+        {
+          "eventType": "bid",
+          "eventTime": "2024-09-05T09:04:41.000Z",
+          "amountNano": "10000000000",
+          "bidderAddress": "0:8592c9dfa7f7d424765698735a7d6f8e61363b35fb6729bed6c7882c9d21ecf0",
+          "txHash": "Js7Je2xuaYn49F4UqEerY2RqbntGA0VrR+dKUD5iJfA=",
+          "kind": "initial",
+          "identityVerified": true
+        },
+        {
+          "eventType": "bid",
+          "eventTime": "2024-09-05T09:30:58.000Z",
+          "amountNano": "11000000000",
+          "bidderAddress": "0:fb4c71d0b2150d2b18a8d78be56ba11aaa91f1567948b70ba6eb1ee8052391c0",
+          "txHash": "UBuuXoVge76d5EnAlyV+sKlfse1OYZOQ9rOw9K1DuIU=",
+          "kind": "subsequent",
+          "identityVerified": true
+        }
+      ],
+      "latestBid": {
+        "eventType": "bid",
+        "eventTime": "2024-09-05T09:30:58.000Z",
+        "amountNano": "11000000000",
+        "bidderAddress": "0:fb4c71d0b2150d2b18a8d78be56ba11aaa91f1567948b70ba6eb1ee8052391c0",
+        "txHash": "UBuuXoVge76d5EnAlyV+sKlfse1OYZOQ9rOw9K1DuIU=",
+        "kind": "subsequent",
+        "identityVerified": true
+      },
+      "settlementVerified": false,
+      "limitation": "Bid lifecycle proves auction demand before cutoff, not settlement or present inactive resale value",
+      "latestBidMatchesSale": true
+    },
+    {
+      "eventId": "0:05eb12a0b44aaa8f91233fb7ff6bf49c5aa1a0291e053c8ab4a4a630f25efe44:1.730640779e+09:10",
+      "username": "msu_smirnov",
+      "eventTime": "2024-11-03T13:32:59.000Z",
+      "actualUsd": 47.995486111111106,
+      "saleNative": 10,
+      "transactionCount": 2,
+      "status": "verified-bid-lifecycle",
+      "bids": [
+        {
+          "eventType": "bid",
+          "eventTime": "2024-10-27T13:32:40.000Z",
+          "amountNano": "10000000000",
+          "bidderAddress": "0:c8992068bc7a0b2132471670a5f5b8a8b804ec5dec714e0f0649d828f8019c39",
+          "txHash": "Utx4J/tzGx02ZOP8ATM1zO+FIbi7NsGxmFP9/82VVKc=",
+          "kind": "initial",
+          "identityVerified": true
+        }
+      ],
+      "latestBid": {
+        "eventType": "bid",
+        "eventTime": "2024-10-27T13:32:40.000Z",
+        "amountNano": "10000000000",
+        "bidderAddress": "0:c8992068bc7a0b2132471670a5f5b8a8b804ec5dec714e0f0649d828f8019c39",
+        "txHash": "Utx4J/tzGx02ZOP8ATM1zO+FIbi7NsGxmFP9/82VVKc=",
+        "kind": "initial",
+        "identityVerified": true
+      },
+      "settlementVerified": false,
+      "limitation": "Bid lifecycle proves auction demand before cutoff, not settlement or present inactive resale value",
+      "latestBidMatchesSale": true
+    },
+    {
+      "eventId": "0:f91f197d930dbcc7da6f85524a30603ad89443033cbbc359c6f8e911a77c117e:1.727890708e+09:10",
+      "username": "o_1xcasino",
+      "eventTime": "2024-10-02T17:38:28.000Z",
+      "actualUsd": 54.11909722222222,
+      "saleNative": 10,
+      "transactionCount": 2,
+      "status": "verified-bid-lifecycle",
+      "bids": [
+        {
+          "eventType": "bid",
+          "eventTime": "2024-09-25T17:38:07.000Z",
+          "amountNano": "10000000000",
+          "bidderAddress": "0:b84cd230d6f6b3fdba4cd162672a2bef050d4ba80ecc4ad9d4fc25213b014b76",
+          "txHash": "2xK6UwHDoyRuI73lkZvcXRPFOpJm7IHUdBwr1rhy6hA=",
+          "kind": "initial",
+          "identityVerified": true
+        }
+      ],
+      "latestBid": {
+        "eventType": "bid",
+        "eventTime": "2024-09-25T17:38:07.000Z",
+        "amountNano": "10000000000",
+        "bidderAddress": "0:b84cd230d6f6b3fdba4cd162672a2bef050d4ba80ecc4ad9d4fc25213b014b76",
+        "txHash": "2xK6UwHDoyRuI73lkZvcXRPFOpJm7IHUdBwr1rhy6hA=",
+        "kind": "initial",
+        "identityVerified": true
+      },
+      "settlementVerified": false,
+      "limitation": "Bid lifecycle proves auction demand before cutoff, not settlement or present inactive resale value",
+      "latestBidMatchesSale": true
+    },
+    {
+      "eventId": "0:21fe690943d83968b062f50e23c53288dac3a179da61ba98afb6ddaa690bbdc2:1.74190079e+09:10",
+      "username": "rnagi",
+      "eventTime": "2025-03-13T21:19:50.000Z",
+      "actualUsd": 27.38958333333333,
+      "saleNative": 10,
+      "transactionCount": 2,
+      "status": "verified-bid-lifecycle",
+      "bids": [
+        {
+          "eventType": "bid",
+          "eventTime": "2025-03-06T21:19:33.000Z",
+          "amountNano": "10000000000",
+          "bidderAddress": "0:27356da3d27f5234d6f3d1d6bf3cbe4f1f25010feb353776053fd19f5244c1d6",
+          "txHash": "e10nNAkeDPPstG9zSgHpgc3dBQL+rqoI3/3H+VWBGh4=",
+          "kind": "initial",
+          "identityVerified": true
+        }
+      ],
+      "latestBid": {
+        "eventType": "bid",
+        "eventTime": "2025-03-06T21:19:33.000Z",
+        "amountNano": "10000000000",
+        "bidderAddress": "0:27356da3d27f5234d6f3d1d6bf3cbe4f1f25010feb353776053fd19f5244c1d6",
+        "txHash": "e10nNAkeDPPstG9zSgHpgc3dBQL+rqoI3/3H+VWBGh4=",
+        "kind": "initial",
+        "identityVerified": true
+      },
+      "settlementVerified": false,
+      "limitation": "Bid lifecycle proves auction demand before cutoff, not settlement or present inactive resale value",
+      "latestBidMatchesSale": true
+    },
+    {
+      "eventId": "0:392020e24730c1b3640b993ce2088b30b0068dbc19653908a7a396037ec9a15f:1.739202445e+09:10",
+      "username": "vip_354",
+      "eventTime": "2025-02-10T15:47:25.000Z",
+      "actualUsd": 38.14861111111111,
+      "saleNative": 10,
+      "transactionCount": 2,
+      "status": "verified-bid-lifecycle",
+      "bids": [
+        {
+          "eventType": "bid",
+          "eventTime": "2025-02-03T15:47:17.000Z",
+          "amountNano": "10000000000",
+          "bidderAddress": "0:794d6d1314c11fe2ddaa5b43a1aac880cbe7a7a7d20f4b4eeb899bb00cbe9184",
+          "txHash": "Dx89Tlvg9Ujp37gVFwCTAiO9L+CJuZmuEngjDOmjqxU=",
+          "kind": "initial",
+          "identityVerified": true
+        }
+      ],
+      "latestBid": {
+        "eventType": "bid",
+        "eventTime": "2025-02-03T15:47:17.000Z",
+        "amountNano": "10000000000",
+        "bidderAddress": "0:794d6d1314c11fe2ddaa5b43a1aac880cbe7a7a7d20f4b4eeb899bb00cbe9184",
+        "txHash": "Dx89Tlvg9Ujp37gVFwCTAiO9L+CJuZmuEngjDOmjqxU=",
+        "kind": "initial",
+        "identityVerified": true
+      },
+      "settlementVerified": false,
+      "limitation": "Bid lifecycle proves auction demand before cutoff, not settlement or present inactive resale value",
+      "latestBidMatchesSale": true
+    },
+    {
+      "eventId": "0:0d893d96934185105da3eef449b2e890aad39376781f11b30571f119f80b1120:1.752174583e+09:10",
+      "username": "kqja1",
+      "eventTime": "2025-07-10T19:09:43.000Z",
+      "actualUsd": 28.81076388888889,
+      "saleNative": 10,
+      "transactionCount": 2,
+      "status": "verified-bid-lifecycle",
+      "bids": [
+        {
+          "eventType": "bid",
+          "eventTime": "2025-07-03T19:09:25.000Z",
+          "amountNano": "10000000000",
+          "bidderAddress": "0:abb225965bd697c38ebf59b81f8665a5bc91e1691d102aff6377d62764e834f2",
+          "txHash": "3ourYZVewTx6G1dVyCve/JeAuINfJixntMR8Bzo9YO4=",
+          "kind": "initial",
+          "identityVerified": true
+        }
+      ],
+      "latestBid": {
+        "eventType": "bid",
+        "eventTime": "2025-07-03T19:09:25.000Z",
+        "amountNano": "10000000000",
+        "bidderAddress": "0:abb225965bd697c38ebf59b81f8665a5bc91e1691d102aff6377d62764e834f2",
+        "txHash": "3ourYZVewTx6G1dVyCve/JeAuINfJixntMR8Bzo9YO4=",
+        "kind": "initial",
+        "identityVerified": true
+      },
+      "settlementVerified": false,
+      "limitation": "Bid lifecycle proves auction demand before cutoff, not settlement or present inactive resale value",
+      "latestBidMatchesSale": true
+    },
+    {
+      "eventId": "0:f4507abb22c50f37ebaa4b096806a074483dc3c981dccaf917a9620412c1efd4:1.751957435e+09:5.6",
+      "username": "vip66dd",
+      "eventTime": "2025-07-08T06:50:35.000Z",
+      "actualUsd": 15.492166666666666,
+      "saleNative": 5.6,
+      "transactionCount": 6,
+      "status": "initial-bid-unavailable",
+      "bids": [],
+      "latestBidMatchesSale": false
+    }
+  ]
+}

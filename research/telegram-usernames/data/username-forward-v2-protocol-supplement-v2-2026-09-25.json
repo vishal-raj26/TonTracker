@@ -1,0 +1,15 @@
+{
+  "schemaVersion": "username-forward-v2-protocol-supplement-v2",
+  "sealedBeforeWindow": true,
+  "zeroCollectedEventsAtSeal": true,
+  "createdAt": "2026-09-25T14:54:27.345Z",
+  "originalManifestSha256": "f8fe9c91df7a2d37f0237cac4a447204976677a326574099c6c3980eb7a71901",
+  "predecessorSupplementSha256": "3fac171c0225c276d8282cde844591279d65c1ef41ab449b116ff22408e24f3a",
+  "supersedesOnly": {
+    "collectionFile": "scripts/collect-username-forward-v2-local.js",
+    "oldSha256": "a827be8f55db782fbab251a3db93f7ea8802a0709d4aedf8a5e31343d7ae7d6e",
+    "newSha256": "b7dd8c6b47f5bef2e706d37eefd566ec8b6807a252d5818ce70c49e4126911c0"
+  },
+  "invariant": "Retain the partial-FX rejection and save the exact requested cutoff with every page/checkpoint; terminal sealing after the window requires a caught-up cursor for the frozen end time",
+  "otherReservationFieldsUnchanged": true
+}

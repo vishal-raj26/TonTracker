@@ -1,0 +1,91 @@
+{
+  "schemaVersion": "username-secondary-local-v1",
+  "from": "2026-09-20T14:00:00Z",
+  "pipeline": "username-toncenter-secondary-sales-v1",
+  "collectedAt": "2026-09-25T09:14:34.805Z",
+  "cursor": {
+    "absoluteOffset": 16870,
+    "caughtUp": false
+  },
+  "metadata": {
+    "transfers": 100,
+    "saleContracts": 9,
+    "verifiedSales": 1,
+    "assets": 1,
+    "sales": 1,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-25T09:14:34.805Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:c889edfd40a433781dadc66efc60823d562e3e030e8a879dc35f0111909d4575",
+      "normalizedName": "tonkoda",
+      "displayName": "@tonkoda",
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "7L",
+      "feature": {
+        "classifierVersion": "username-structural-v2",
+        "normalizedUsername": "tonkoda",
+        "displayUsername": "@tonkoda",
+        "characterLength": 7,
+        "byteLength": 7,
+        "characterClass": "letters",
+        "primaryRoute": "word",
+        "routes": [
+          "word"
+        ],
+        "scarcityClass": "7L",
+        "patternSignature": "ABCDBEF",
+        "shapeSignature": "LLLLLLL",
+        "uniqueCharacterCount": 6,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "repeatedBlock": null,
+        "scripts": [
+          "Latin"
+        ],
+        "primaryScript": "Latin",
+        "containsUnderscore": false,
+        "underscoreCount": 0,
+        "digitCount": 0,
+        "digitRatio": 0,
+        "vowelRatio": 0.42857142857142855,
+        "pronounceability": "balanced",
+        "leadingZero": false,
+        "roundNumber": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-23T10:35:08.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-secondary:653aac881bca6861e82861d998bbb909e69fd779d9d59683f914bb958eabe912",
+      "assetKind": "username",
+      "assetKey": "0:c889edfd40a433781dadc66efc60823d562e3e030e8a879dc35f0111909d4575",
+      "normalizedName": "tonkoda",
+      "soldAt": "2026-09-23T10:35:08.000Z",
+      "priceGram": 5.8949,
+      "historicalUsdRate": 1.4488660512680274,
+      "priceUsd": 8.540920485619894,
+      "marketplace": "Getgems",
+      "source": "toncenter-indexed-secondary-sale",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-completed-sale-contract",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "transactionHash": "+2n4VoCloFiDXL2DrlrX7YHuiPPr2xRD+35QEY1ztbI=",
+        "saleContract": "0:21b312a147f15d02bc7c822293158a7edd3679708453d0d975379d5565a6a2e1"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "7L"
+    }
+  ]
+}

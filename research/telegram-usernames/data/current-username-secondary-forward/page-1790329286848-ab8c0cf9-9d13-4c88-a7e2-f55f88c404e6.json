@@ -1,0 +1,91 @@
+{
+  "schemaVersion": "username-secondary-local-v1",
+  "from": "2026-09-20T14:00:00Z",
+  "pipeline": "username-toncenter-secondary-sales-v1",
+  "collectedAt": "2026-09-25T09:41:26.848Z",
+  "cursor": {
+    "absoluteOffset": 26590,
+    "caughtUp": true
+  },
+  "metadata": {
+    "transfers": 20,
+    "saleContracts": 1,
+    "verifiedSales": 1,
+    "assets": 1,
+    "sales": 1,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-25T09:41:26.848Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:eb7ac9c67d166995a0227fda9757a1a34d4b80ea8b8230afc5f16bed2e20ff9d",
+      "normalizedName": "fevras",
+      "displayName": "@fevras",
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "6L",
+      "feature": {
+        "classifierVersion": "username-structural-v2",
+        "normalizedUsername": "fevras",
+        "displayUsername": "@fevras",
+        "characterLength": 6,
+        "byteLength": 6,
+        "characterClass": "letters",
+        "primaryRoute": "word",
+        "routes": [
+          "word"
+        ],
+        "scarcityClass": "6L",
+        "patternSignature": "ABCDEF",
+        "shapeSignature": "LLLLLL",
+        "uniqueCharacterCount": 6,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "repeatedBlock": null,
+        "scripts": [
+          "Latin"
+        ],
+        "primaryScript": "Latin",
+        "containsUnderscore": false,
+        "underscoreCount": 0,
+        "digitCount": 0,
+        "digitRatio": 0,
+        "vowelRatio": 0.3333333333333333,
+        "pronounceability": "balanced",
+        "leadingZero": false,
+        "roundNumber": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-25T09:31:19.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-secondary:20d42a5f5754ea0477a0b00ee4b7f1f08788c7049a0ad1108ea0fcb0961f108c",
+      "assetKind": "username",
+      "assetKey": "0:eb7ac9c67d166995a0227fda9757a1a34d4b80ea8b8230afc5f16bed2e20ff9d",
+      "normalizedName": "fevras",
+      "soldAt": "2026-09-25T09:31:19.000Z",
+      "priceGram": 6.7,
+      "historicalUsdRate": 1.4230773223044761,
+      "priceUsd": 9.53461805943999,
+      "marketplace": "Getgems",
+      "source": "toncenter-indexed-secondary-sale",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-completed-sale-contract",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "transactionHash": "Ise4bHS/gJysEfSlga0csrnRJNnLEO/+9Y3KAw1Koz8=",
+        "saleContract": "0:43ff7e2d4791404f09444ac669a58810acedb0c7d4f1fbaec1bd968641fc6127"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "6L"
+    }
+  ]
+}

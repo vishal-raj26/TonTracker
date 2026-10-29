@@ -1,0 +1,126 @@
+{
+  "schemaVersion": "username-forward-v2-local-v1",
+  "from": "2026-09-27T00:00:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "requestedEndUtime": 1790761800,
+  "collectedAt": "2026-09-30T10:29:32.216Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 46925,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 80,
+    "candidates": 15,
+    "verifiedItems": 2,
+    "wrongCollection": 13,
+    "assets": 2,
+    "sales": 2,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-30T10:29:32.215Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:7e262d70334985865d160a21eb909b97fe9a7f0d23fd1817a6a907b642bc8f08",
+      "normalizedName": "wellcasino",
+      "displayName": "@wellcasino",
+      "primaryRoute": "pattern",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "10L",
+      "feature": {
+        "characterLength": 10,
+        "characterClass": "letters",
+        "routes": [
+          "pattern"
+        ],
+        "patternSignature": "ABCCDEFGHI",
+        "uniqueCharacterCount": 9,
+        "maxRunLength": 2,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-29T16:41:29.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:38a9c0c2cc0bf604e73c391ab948026da100fc16fb76b54591bf587a6e331142",
+      "normalizedName": "lucygoosy",
+      "displayName": "@lucygoosy",
+      "primaryRoute": "pattern",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "9L",
+      "feature": {
+        "characterLength": 9,
+        "characterClass": "letters",
+        "routes": [
+          "pattern"
+        ],
+        "patternSignature": "ABCDEFFGD",
+        "uniqueCharacterCount": 7,
+        "maxRunLength": 2,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-29T16:41:39.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:661fe8203d4c3a1cba68778090edf86a37a2bc95673b2ebc65965342b0cd0db0",
+      "assetKind": "username",
+      "assetKey": "0:7e262d70334985865d160a21eb909b97fe9a7f0d23fd1817a6a907b642bc8f08",
+      "normalizedName": "wellcasino",
+      "soldAt": "2026-09-29T16:41:29.000Z",
+      "priceGram": 35,
+      "historicalUsdRate": 1.5132904337733308,
+      "priceUsd": 52.96516518206658,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "BVdaen2+flfUL1eqG6xjAUqz8RDHVILqD7IGcSi1LtI=",
+        "messageHash": "bYIs9rTqdWf9OKbVox6bOa3v+uX6e0gG/LPAsDtrjgs=",
+        "bidAt": "2026-09-28T21:47:38.000Z"
+      },
+      "primaryRoute": "pattern",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "10L"
+    },
+    {
+      "saleId": "toncenter-username-sale:496ca0e4a589bf889ed2884bdd32d5e3ad6858851b45df52d0a066e56b5a24f3",
+      "assetKind": "username",
+      "assetKey": "0:38a9c0c2cc0bf604e73c391ab948026da100fc16fb76b54591bf587a6e331142",
+      "normalizedName": "lucygoosy",
+      "soldAt": "2026-09-29T16:41:39.000Z",
+      "priceGram": 5.01,
+      "historicalUsdRate": 1.5132620251418372,
+      "priceUsd": 7.5814427459606035,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "PJ0Rt1MyFCmtoCATGqENzC2+HlYsuNbjnXFmR9dIh1g=",
+        "messageHash": "TZsvsUZ+JC/tCnFx/E/IgA2Q08vs/YRxAbNfdHwtJCQ=",
+        "bidAt": "2026-08-24T11:07:10.000Z"
+      },
+      "primaryRoute": "pattern",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "9L"
+    }
+  ]
+}

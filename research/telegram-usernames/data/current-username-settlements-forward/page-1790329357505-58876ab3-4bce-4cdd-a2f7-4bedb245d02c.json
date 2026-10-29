@@ -1,0 +1,175 @@
+{
+  "schemaVersion": "username-local-collection-v1",
+  "from": "2026-09-20T13:45:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "collectedAt": "2026-09-25T09:42:37.505Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 51225,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 80,
+    "candidates": 25,
+    "verifiedItems": 3,
+    "wrongCollection": 22,
+    "assets": 3,
+    "sales": 3,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-25T09:42:37.505Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:4f4df6b60205b00a3ffd78f97df36f244232f508fe09d5d42cd04b0b82af870f",
+      "normalizedName": "ochirilganhisob",
+      "displayName": "@ochirilganhisob",
+      "primaryRoute": "residual",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "15L",
+      "feature": {
+        "characterLength": 15,
+        "characterClass": "letters",
+        "routes": [
+          "residual"
+        ],
+        "patternSignature": "ABCDEDFGHICDJAK",
+        "uniqueCharacterCount": 11,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-22T22:52:23.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:2cd7340c5d97c6eeb592ba940fb79f1ab609520d32ae9079e25290f61396538e",
+      "normalizedName": "golibona",
+      "displayName": "@golibona",
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "8L",
+      "feature": {
+        "characterLength": 8,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCDEBFG",
+        "uniqueCharacterCount": 7,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-22T22:53:36.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:c523d58bbda6f12c8d062d203712b494b958281160ebf521d7f4e7d5d2719c79",
+      "normalizedName": "yesitzgrippy",
+      "displayName": "@yesitzgrippy",
+      "primaryRoute": "pattern",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "12L",
+      "feature": {
+        "characterLength": 12,
+        "characterClass": "letters",
+        "routes": [
+          "pattern"
+        ],
+        "patternSignature": "ABCDEFGHDIIA",
+        "uniqueCharacterCount": 9,
+        "maxRunLength": 2,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-22T22:55:33.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:4245d91211b8a6b38da23fef610c53e13ac24f353c8dce6b8947d4bcbb293619",
+      "assetKind": "username",
+      "assetKey": "0:4f4df6b60205b00a3ffd78f97df36f244232f508fe09d5d42cd04b0b82af870f",
+      "normalizedName": "ochirilganhisob",
+      "soldAt": "2026-09-22T22:52:23.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.4613237452987982,
+      "priceUsd": 14.613237452987981,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "axXYB9eWWsOgFk4EtP4NFQPyM910H60q/jzaZi7HLA0=",
+        "messageHash": "nRg2lm1ZKhab/oURdkg9xvJcCEXLIc8BFu2atwrfblI=",
+        "bidAt": "2026-09-15T22:52:06.000Z"
+      },
+      "primaryRoute": "residual",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "15L"
+    },
+    {
+      "saleId": "toncenter-username-sale:e002787e74de38daa9382a0cb8dc845df4e31c51423c223ee4b1bb05cfb2c0fd",
+      "assetKind": "username",
+      "assetKey": "0:2cd7340c5d97c6eeb592ba940fb79f1ab609520d32ae9079e25290f61396538e",
+      "normalizedName": "golibona",
+      "soldAt": "2026-09-22T22:53:36.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.4613623009719972,
+      "priceUsd": 14.613623009719971,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "vN5Z+H3RYOKo4a6c3hjxGq9fvPIJeL3fMjy9cCtEPAA=",
+        "messageHash": "6s7t5mQPmNF5LNvPObmHpdY0h1zBvmO6V88UmI/GDFk=",
+        "bidAt": "2026-09-15T22:53:20.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "8L"
+    },
+    {
+      "saleId": "toncenter-username-sale:a8daeb8b5b36e28b2aa7912943f27deb994613430380fffa65351919d78c7828",
+      "assetKind": "username",
+      "assetKey": "0:c523d58bbda6f12c8d062d203712b494b958281160ebf521d7f4e7d5d2719c79",
+      "normalizedName": "yesitzgrippy",
+      "soldAt": "2026-09-22T22:55:33.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.4614240956810969,
+      "priceUsd": 14.614240956810969,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "ga0IDKlr52Z7fEm6usmv5AMzMBQzgMHLNSGox6HtnoE=",
+        "messageHash": "IOhGLYrApjViELU0ZsONXLOyohGYtuch84ZNQNpP7zs=",
+        "bidAt": "2026-09-15T22:55:15.000Z"
+      },
+      "primaryRoute": "pattern",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "12L"
+    }
+  ]
+}

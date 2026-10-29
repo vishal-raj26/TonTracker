@@ -1,0 +1,176 @@
+{
+  "schemaVersion": "username-forward-v2-local-v1",
+  "from": "2026-09-27T00:00:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "requestedEndUtime": 1790761800,
+  "collectedAt": "2026-09-30T10:10:15.923Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 26765,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 80,
+    "candidates": 18,
+    "verifiedItems": 3,
+    "wrongCollection": 15,
+    "assets": 3,
+    "sales": 3,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-30T10:10:15.923Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:a94c7021c3e84bb34cf5c30b2b05cab704b85b567a736ca967917a827412c41a",
+      "normalizedName": "oneprofi",
+      "displayName": "@oneprofi",
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "8L",
+      "feature": {
+        "characterLength": 8,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCDEAFG",
+        "uniqueCharacterCount": 7,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-28T12:55:03.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:431f956e81430501437af1cca356802116be635b6662cd6a8ea50e32ba4ae8dc",
+      "normalizedName": "chut_movies_bf_spanish_18_leaked",
+      "displayName": "@chut_movies_bf_spanish_18_leaked",
+      "primaryRoute": "alphanumeric",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "32M",
+      "feature": {
+        "characterLength": 32,
+        "characterClass": "alphanumeric",
+        "routes": [
+          "alphanumeric"
+        ],
+        "patternSignature": "ABCDEFGHIJKELMEKNOPIKBEQRESJOTJU",
+        "uniqueCharacterCount": 21,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": true,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-28T12:55:05.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:dc1bf4d977f7e80f29292e99fc8a3dfdcf21183ee3430af1c6a2010a471f2877",
+      "normalizedName": "joyparko",
+      "displayName": "@joyparko",
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "8L",
+      "feature": {
+        "characterLength": 8,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCDEFGB",
+        "uniqueCharacterCount": 7,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-28T12:57:40.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:0c6331925887c9851c54c3020955702cddb2c183dcaeb3f9341ee5f13fa5a672",
+      "assetKind": "username",
+      "assetKey": "0:a94c7021c3e84bb34cf5c30b2b05cab704b85b567a736ca967917a827412c41a",
+      "normalizedName": "oneprofi",
+      "soldAt": "2026-09-28T12:55:03.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.660763334499371,
+      "priceUsd": 16.60763334499371,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "0buOcT+86D5meo62SCNTvdXHyF+HgvJ4ZWDiZM3hlV0=",
+        "messageHash": "v4SR1V68kXCUPqbmkc2cf45XgvePkSm5a0cp8tzRI6I=",
+        "bidAt": "2026-09-21T12:54:12.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "8L"
+    },
+    {
+      "saleId": "toncenter-username-sale:f718771d1b5856123ea2cccbd3bd24226bdd4ee6b67cb5ad6dcb8427c37cf36b",
+      "assetKind": "username",
+      "assetKey": "0:431f956e81430501437af1cca356802116be635b6662cd6a8ea50e32ba4ae8dc",
+      "normalizedName": "chut_movies_bf_spanish_18_leaked",
+      "soldAt": "2026-09-28T12:55:05.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.6607611126947046,
+      "priceUsd": 16.607611126947045,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "8E2/H5X6kaKXjnQDjv8uLhkIHtwVeB3tfjSLg4oRsto=",
+        "messageHash": "ajNH2fY9bsRfrTb3DdBclxeEKQQCbnpxMYmN923KBFM=",
+        "bidAt": "2026-09-21T12:54:41.000Z"
+      },
+      "primaryRoute": "alphanumeric",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "32M"
+    },
+    {
+      "saleId": "toncenter-username-sale:1679ce951788f202433a50d6336976df23d45a7ed7b8e8b4f8a892308b257487",
+      "assetKind": "username",
+      "assetKey": "0:dc1bf4d977f7e80f29292e99fc8a3dfdcf21183ee3430af1c6a2010a471f2877",
+      "normalizedName": "joyparko",
+      "soldAt": "2026-09-28T12:57:40.000Z",
+      "priceGram": 6,
+      "historicalUsdRate": 1.6605889228330553,
+      "priceUsd": 9.963533536998332,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "6P0sM/y/85g+ZCTjrx4ocqqEqc8AoZfuIDrHk84MbDs=",
+        "messageHash": "KenhBRD3k/PIJQFdDCGu33AdOSHNEYxoVDQAl7+sEd4=",
+        "bidAt": "2026-09-28T12:57:40.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "8L"
+    }
+  ]
+}

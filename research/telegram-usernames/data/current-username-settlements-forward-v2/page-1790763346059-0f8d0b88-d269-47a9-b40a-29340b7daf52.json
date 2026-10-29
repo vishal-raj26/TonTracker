@@ -1,0 +1,76 @@
+{
+  "schemaVersion": "username-forward-v2-local-v1",
+  "from": "2026-09-27T00:00:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "requestedEndUtime": 1790761800,
+  "collectedAt": "2026-09-30T10:15:46.059Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 32365,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 80,
+    "candidates": 16,
+    "verifiedItems": 1,
+    "wrongCollection": 15,
+    "assets": 1,
+    "sales": 1,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-30T10:15:46.059Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:c568b85bf60c6e7ff687a9e7dec13c3a898eb84aebab7c899368d0ab83f62dfe",
+      "normalizedName": "igyka",
+      "displayName": "@igyka",
+      "primaryRoute": "word",
+      "lengthBucket": "4-5",
+      "script": "Latin",
+      "scarcityClass": "5L",
+      "feature": {
+        "characterLength": 5,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCDE",
+        "uniqueCharacterCount": 5,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-28T18:35:47.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:9fc9b8d94b0eea01a0527ebb9ec955f2607dd8a8783d8afd08ad1dcaa49a3abf",
+      "assetKind": "username",
+      "assetKey": "0:c568b85bf60c6e7ff687a9e7dec13c3a898eb84aebab7c899368d0ab83f62dfe",
+      "normalizedName": "igyka",
+      "soldAt": "2026-09-28T18:35:47.000Z",
+      "priceGram": 6,
+      "historicalUsdRate": 1.642423385768623,
+      "priceUsd": 9.854540314611738,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "/EHmFprBxH4LPbjT0lGPS18pLw42+Jdu5Siu01c43dU=",
+        "messageHash": "pTbMnF7LILQbFWnhv3hNO2Pd3RkEdOkXvGClU3bJ9CM=",
+        "bidAt": "2026-09-28T18:35:47.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "4-5",
+      "script": "Latin",
+      "scarcityClass": "5L"
+    }
+  ]
+}

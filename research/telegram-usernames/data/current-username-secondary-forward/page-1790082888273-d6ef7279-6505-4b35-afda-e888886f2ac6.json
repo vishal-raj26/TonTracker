@@ -1,0 +1,159 @@
+{
+  "schemaVersion": "username-secondary-local-v1",
+  "from": "2026-09-20T14:00:00Z",
+  "pipeline": "username-toncenter-secondary-sales-v1",
+  "collectedAt": "2026-09-22T13:14:48.273Z",
+  "cursor": {
+    "absoluteOffset": 11900,
+    "caughtUp": false
+  },
+  "metadata": {
+    "transfers": 100,
+    "saleContracts": 5,
+    "verifiedSales": 2,
+    "assets": 2,
+    "sales": 2,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-22T13:14:48.272Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:65fd321d14e00a44e79ddd388c810522c51b95a5b1db188090dcbcfb60f0ca7c",
+      "normalizedName": "efoku",
+      "displayName": "@efoku",
+      "primaryRoute": "word",
+      "lengthBucket": "4-5",
+      "script": "Latin",
+      "scarcityClass": "5L",
+      "feature": {
+        "classifierVersion": "username-structural-v2",
+        "normalizedUsername": "efoku",
+        "displayUsername": "@efoku",
+        "characterLength": 5,
+        "byteLength": 5,
+        "characterClass": "letters",
+        "primaryRoute": "word",
+        "routes": [
+          "word"
+        ],
+        "scarcityClass": "5L",
+        "patternSignature": "ABCDE",
+        "shapeSignature": "LLLLL",
+        "uniqueCharacterCount": 5,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "repeatedBlock": null,
+        "scripts": [
+          "Latin"
+        ],
+        "primaryScript": "Latin",
+        "containsUnderscore": false,
+        "underscoreCount": 0,
+        "digitCount": 0,
+        "digitRatio": 0,
+        "vowelRatio": 0.6,
+        "pronounceability": "balanced",
+        "leadingZero": false,
+        "roundNumber": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-22T11:44:31.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:3c62d602d456168b9df575e6b03f372bccfeec59ab673dafb1d90e95f10eb538",
+      "normalizedName": "sandd",
+      "displayName": "@sandd",
+      "primaryRoute": "pattern",
+      "lengthBucket": "4-5",
+      "script": "Latin",
+      "scarcityClass": "5L",
+      "feature": {
+        "classifierVersion": "username-structural-v2",
+        "normalizedUsername": "sandd",
+        "displayUsername": "@sandd",
+        "characterLength": 5,
+        "byteLength": 5,
+        "characterClass": "letters",
+        "primaryRoute": "pattern",
+        "routes": [
+          "pattern"
+        ],
+        "scarcityClass": "5L",
+        "patternSignature": "ABCDD",
+        "shapeSignature": "LLLLL",
+        "uniqueCharacterCount": 4,
+        "maxRunLength": 2,
+        "palindrome": false,
+        "sequence": null,
+        "repeatedBlock": null,
+        "scripts": [
+          "Latin"
+        ],
+        "primaryScript": "Latin",
+        "containsUnderscore": false,
+        "underscoreCount": 0,
+        "digitCount": 0,
+        "digitRatio": 0,
+        "vowelRatio": 0.2,
+        "pronounceability": "difficult",
+        "leadingZero": false,
+        "roundNumber": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-22T11:56:11.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-secondary:e671afd3e1734fe9306c5422b39eddd25b54a4d95539ae3dc634d79da56bb8bd",
+      "assetKind": "username",
+      "assetKey": "0:65fd321d14e00a44e79ddd388c810522c51b95a5b1db188090dcbcfb60f0ca7c",
+      "normalizedName": "efoku",
+      "soldAt": "2026-09-22T11:44:31.000Z",
+      "priceGram": 5.95,
+      "historicalUsdRate": 1.4202549883412738,
+      "priceUsd": 8.45051718063058,
+      "marketplace": "Getgems",
+      "source": "toncenter-indexed-secondary-sale",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-completed-sale-contract",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "transactionHash": "M2FqoKtt+VtEBomnJqLWpTA5kjDv56Y64asXRHLekYw=",
+        "saleContract": "0:4abfdb8cc0df7b5a4a84879295ef80b77932be4bd450a4877c1b14f5cd70827e"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "4-5",
+      "script": "Latin",
+      "scarcityClass": "5L"
+    },
+    {
+      "saleId": "toncenter-username-secondary:f9fc3207a265947072fb7753fba3c5b6368b7b6c57831b178f43ebfd61ade6e4",
+      "assetKind": "username",
+      "assetKey": "0:3c62d602d456168b9df575e6b03f372bccfeec59ab673dafb1d90e95f10eb538",
+      "normalizedName": "sandd",
+      "soldAt": "2026-09-22T11:56:11.000Z",
+      "priceGram": 23.23,
+      "historicalUsdRate": 1.4201247247410211,
+      "priceUsd": 32.989497355733924,
+      "marketplace": "Getgems",
+      "source": "toncenter-indexed-secondary-sale",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-completed-sale-contract",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "nearest-observation",
+        "transactionHash": "OFRltmdrbSKnSFKLdZoD/Q7JOktMNztpA5/UlHYKs2c=",
+        "saleContract": "0:23ea361c95d63b40d6e17731b497c1f07d1a0318dc678303d382037217f58f72"
+      },
+      "primaryRoute": "pattern",
+      "lengthBucket": "4-5",
+      "script": "Latin",
+      "scarcityClass": "5L"
+    }
+  ]
+}

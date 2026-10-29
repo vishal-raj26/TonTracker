@@ -1,3 +1,5 @@
+import { boundedIdentityMaintenance, boundedCompactPrune, boundedCompactRetention, boundedLegacyRetention, boundedCompactStats, maintenanceReady, boundedCounterBootstrap } from './bounded-maintenance.mjs';
+import { prepareIdentityBaselineSource } from './identity-baseline-preparation.mjs';
 const BUCKET_COUNT = 32;
 const UNCHANGED_SAMPLE_MS = 24 * 60 * 60 * 1000;
 
@@ -294,6 +296,8 @@ function valuationReadDatabase(env) {
 }
 
 function valuationRecord(row) {
+  const freshMarket=Boolean(row.market_state_fresh);
+  const username = row.asset_kind === "username";
   return {
     assetKind: row.asset_kind,
     assetKey: row.asset_key,
@@ -308,9 +312,11 @@ function valuationRecord(row) {
     evidenceCount: Number(row.evidence_count || 0),
     effectiveCompCount: Number(row.effective_comp_count || 0),
     ownSaleCount: Number(row.own_sale_count || 0),
-    currentListingGram: Number(row.current_listing_gram || 0),
-    currentBidGram: Number(row.current_bid_gram || 0),
-    marketPlatform: row.market_platform || "",
+    currentListingGram: Number(freshMarket ? row.live_listing_gram || 0 : username ? 0 : row.current_listing_gram || 0),
+    currentBidGram: Number(freshMarket ? row.live_bid_gram || 0 : username ? 0 : row.current_bid_gram || 0),
+    ...(username ? { currentMarket: { verified: freshMarket, observedAt: row.live_observed_at || null,
+      staleAt: row.live_stale_at || null, source: row.live_marketplace || "" } } : {}),
+    marketPlatform: freshMarket ? row.live_marketplace || "Fragment" : row.market_platform || "",
     estimatorVersion: row.estimator_version || "",
     calibrationVersion: row.calibration_version || "",
     valuedAt: row.valued_at || null,
@@ -329,15 +335,21 @@ async function readValuationRecords(env, body = {}) {
     .map((value) => String(value || "").trim().toLowerCase().replace(/^@/, "")).filter(Boolean))].slice(0, 500);
   if (!['dns', 'username'].includes(kind) || (!keys.length && !names.length)) return { records: [], configured: true };
   const records = new Map();
+  const columns=`v.*,cm.lowest_ask_gram AS live_listing_gram,cm.highest_bid_gram AS live_bid_gram,
+    cm.marketplace AS live_marketplace,cm.observed_at AS live_observed_at,cm.stale_at AS live_stale_at,
+    CASE WHEN cm.verified=1 AND unixepoch(cm.observed_at)<=unixepoch()
+    AND unixepoch(cm.stale_at)>unixepoch() THEN 1 ELSE 0 END AS market_state_fresh`;
   for (let index = 0; index < keys.length; index += 50) {
     const chunk = keys.slice(index, index + 50);
-    const result = await database.prepare(`SELECT * FROM valuation_records
-      WHERE asset_kind=? AND asset_key IN (${chunk.map(() => "?").join(",")})`).bind(kind, ...chunk).all();
+    const result = await database.prepare(`SELECT ${columns} FROM valuation_records v LEFT JOIN identity_current_market cm
+      ON cm.asset_kind=v.asset_kind AND cm.asset_key=v.asset_key
+      WHERE v.asset_kind=? AND v.asset_key IN (${chunk.map(() => "?").join(",")})`).bind(kind, ...chunk).all();
     for (const row of result.results || []) records.set(row.asset_key, row);
   }
   for (let index = 0; index < names.length; index += 50) {
     const chunk = names.slice(index, index + 50);
-    const result = await database.prepare(`SELECT * FROM valuation_records WHERE asset_kind=? AND asset_key IN (
+    const result = await database.prepare(`SELECT ${columns} FROM valuation_records v LEFT JOIN identity_current_market cm
+      ON cm.asset_kind=v.asset_kind AND cm.asset_key=v.asset_key WHERE v.asset_kind=? AND v.asset_key IN (
       SELECT asset_key FROM identity_assets
       WHERE asset_kind=? AND normalized_name IN (${chunk.map(() => "?").join(",")})
     )`).bind(kind, kind, ...chunk).all();
@@ -369,10 +381,22 @@ async function storagePolicy(database) {
   return database.prepare("SELECT * FROM identity_storage_policy WHERE policy_key = 'primary'").first();
 }
 
-async function exactIdentityCount(database, table) {
-  if (!['identity_assets', 'identity_sales', 'valuation_records'].includes(table)) throw new Error("Unsupported identity table");
-  const row = await database.prepare(`SELECT COUNT(*) AS count FROM ${table}`).first();
-  return Number(row?.count || 0);
+async function existingIdentityKeys(database, table, column, values) {
+  if (!['identity_assets', 'identity_sales', 'valuation_records'].includes(table)
+    || !['sale_id', 'asset_key', 'normalized_name'].includes(column)) throw new Error("Unsupported identity lookup");
+  const existing = new Set();
+  const keys = [...new Set(values.filter(Boolean))];
+  for (const kind of column === "sale_id" ? [""] : ["dns", "username"]) {
+    const matching = kind ? keys.filter((value) => value.startsWith(`${kind}:`)).map((value) => value.slice(kind.length + 1)) : keys;
+    for (let index = 0; index < matching.length; index += 50) {
+      const chunk = matching.slice(index, index + 50);
+      const result = await database.prepare(`SELECT asset_kind,${column} FROM ${table}
+        WHERE ${kind ? "asset_kind=? AND " : ""}${column} IN (${chunk.map(() => '?').join(',')})`)
+        .bind(...(kind ? [kind] : []), ...chunk).all();
+      for (const row of result.results || []) existing.add(column === "sale_id" ? row.sale_id : `${row.asset_kind}:${row[column]}`);
+    }
+  }
+  return existing;
 }
 
 function storagePressure(policy, field, maximumField) {
@@ -388,14 +412,17 @@ async function ingestIdentityAssets(request, env) {
   const body = await request.json().catch(() => ({}));
   const records = (Array.isArray(body.records) ? body.records : []).slice(0, 500);
   const policy = await storagePolicy(database);
-  policy.tracked_assets = await exactIdentityCount(database, "identity_assets");
   const pressure = storagePressure(policy, "tracked_assets", "max_assets");
   if (pressure.ratio >= Number(policy?.stop_ratio || 0.9)) return json({ error: "Identity asset storage guard is active", pressure }, 507);
+  const acceptedKeys = [];
+  const acceptedNames = [];
   const statements = records.flatMap((record) => {
     const assetKind = String(record.assetKind || record.asset_kind || "").toLowerCase();
     const assetKey = String(record.assetKey || record.asset_key || "").toLowerCase();
     const normalizedName = String(record.normalizedName || record.normalized_name || "").toLowerCase().replace(/^@/, "");
     if (!['dns', 'username'].includes(assetKind) || !assetKey || !normalizedName) return [];
+    acceptedKeys.push(`${assetKind}:${assetKey}`);
+    acceptedNames.push(`${assetKind}:${normalizedName}`);
     return [database.prepare(`INSERT INTO identity_assets (
       asset_kind,asset_key,normalized_name,display_name,primary_route,length_bucket,script,scarcity_class,
       feature_json,semantic_json,source_updated_at,updated_at
@@ -421,11 +448,22 @@ async function ingestIdentityAssets(request, env) {
       ),last_seen_at=CURRENT_TIMESTAMP
       WHERE asset_kind=?1 AND normalized_name=?2`).bind(assetKind, normalizedName)];
   });
+  const existingKeys = await existingIdentityKeys(database, "identity_assets", "asset_key", acceptedKeys);
+  const existingNames = await existingIdentityKeys(database, "identity_assets", "normalized_name", acceptedNames);
+  const newlyAccepted = new Set();
+  const newlyAcceptedNames = new Set();
+  for (let index = 0; index < acceptedKeys.length; index += 1) {
+    if (!existingKeys.has(acceptedKeys[index]) && !existingNames.has(acceptedNames[index])
+      && !newlyAcceptedNames.has(acceptedNames[index])) {
+      newlyAccepted.add(acceptedKeys[index]);
+      newlyAcceptedNames.add(acceptedNames[index]);
+    }
+  }
   const results = statements.length ? await runD1StatementBatches(database, statements) : [];
   const changed = results.reduce((sum, result) => sum + Number(result?.meta?.changes || 0), 0);
-  const trackedAssets = await exactIdentityCount(database, "identity_assets");
-  await database.prepare(`UPDATE identity_storage_policy SET tracked_assets=?1,updated_at=CURRENT_TIMESTAMP
-    WHERE policy_key='primary'`).bind(trackedAssets).run();
+  await database.prepare(`UPDATE identity_storage_policy SET tracked_assets=tracked_assets+?1,updated_at=CURRENT_TIMESTAMP
+    WHERE policy_key='primary'`).bind(newlyAccepted.size).run();
+  const trackedAssets = Number(policy?.tracked_assets || 0) + newlyAccepted.size;
   return json({ ok: true, accepted: statements.length, changed, pressure, trackedAssets });
 }
 
@@ -481,18 +519,13 @@ async function ingestIdentitySales(request, env) {
   if (!database) return json({ error: "Valuation read model is not configured" }, 503);
   const body = await request.json().catch(() => ({}));
   const records = (Array.isArray(body.records) ? body.records : []).slice(0, 500);
-  // D1 reports a changed row for both INSERT and ON CONFLICT UPDATE. Reconcile
-  // here so repeated idempotent evidence writes cannot consume the sale quota.
-  const salesBefore = await exactIdentityCount(database, "identity_sales");
-  let policy = await storagePolicy(database);
-  if (Number(policy?.tracked_sales || 0) !== salesBefore) {
-    await database.prepare(`UPDATE identity_storage_policy
-      SET tracked_sales=?1,updated_at=CURRENT_TIMESTAMP WHERE policy_key='primary'`).bind(salesBefore).run();
-    policy = { ...policy, tracked_sales: salesBefore };
-  }
+  // Probe only incoming sale IDs. A full COUNT here read the entire ledger on
+  // every idempotent ingest, even when no new sale was inserted.
+  const policy = await storagePolicy(database);
   const pressure = storagePressure(policy, "tracked_sales", "max_sales");
   if (pressure.ratio >= Number(policy?.stop_ratio || 0.9)) return json({ error: "Identity sale storage guard is active", pressure }, 507);
   let rejected = 0;
+  const acceptedSaleIds = [];
   const statements = records.flatMap((record) => {
     const saleId = String(record.saleId || record.sale_id || record.eventId || "").trim();
     const assetKind = String(record.assetKind || record.asset_kind || "").toLowerCase();
@@ -503,11 +536,17 @@ async function ingestIdentitySales(request, env) {
     const historicalUsdRate = Number(record.historicalUsdRate || record.historical_usd_rate || 0);
     const priceUsd = Number(record.priceUsd || record.price_usd || 0);
     const usdError = priceUsd > 0 ? Math.abs((priceGram * historicalUsdRate) - priceUsd) / priceUsd : Infinity;
+    if (assetKind === 'username' && (![priceGram, historicalUsdRate, priceUsd, soldAt].every(Number.isFinite)
+      || soldAt > Math.floor(Date.now() / 1000) || record.cancelled || record.reverted || record.selfSale || record.washTrade)) {
+      rejected += 1;
+      return [];
+    }
     if (!saleId || !['dns', 'username'].includes(assetKind) || !assetKey || !normalizedName
       || !soldAt || !(priceGram > 0) || !(historicalUsdRate > 0) || !(priceUsd > 0) || usdError > 0.03) {
       rejected += 1;
       return [];
     }
+    acceptedSaleIds.push(saleId);
     return [database.prepare(`INSERT INTO identity_sales (
       sale_id,asset_kind,asset_key,normalized_name,sold_at,price_gram,historical_usd_rate,price_usd,
       marketplace,source,reliability_score,quality_flags_json,primary_route,length_bucket,script,scarcity_class
@@ -527,19 +566,22 @@ async function ingestIdentitySales(request, env) {
       END`).bind(
       saleId, assetKind, assetKey, normalizedName, soldAt, priceGram, historicalUsdRate, priceUsd,
       String(record.marketplace || "unknown"), String(record.source || "unknown"),
-      Math.max(0, Math.min(1, Number(record.reliabilityScore || record.reliability_score || 1))),
+      Math.max(0, Math.min(1, Number(assetKind === 'username'
+        ? (record.reliabilityScore ?? record.reliability_score ?? 1)
+        : (record.reliabilityScore || record.reliability_score || 1)))),
       compactJson(record.qualityFlags || record.quality_flags_json, []),
       String(record.primaryRoute || record.primary_route || "residual"),
       String(record.lengthBucket || record.length_bucket || "*"),
       String(record.script || "Common"), String(record.scarcityClass || record.scarcity_class || "standard")
     )];
   });
+  const existingSales = await existingIdentityKeys(database, "identity_sales", "sale_id", acceptedSaleIds);
+  const inserted = new Set(acceptedSaleIds.filter((saleId) => !existingSales.has(saleId))).size;
   if (statements.length) await runD1StatementBatches(database, statements);
-  const trackedSales = await exactIdentityCount(database, "identity_sales");
-  const inserted = Math.max(0, trackedSales - salesBefore);
+  const trackedSales = Number(policy?.tracked_sales || 0) + inserted;
   const existing = Math.max(0, statements.length - inserted);
   await database.prepare(`UPDATE identity_storage_policy
-    SET tracked_sales=?1,updated_at=CURRENT_TIMESTAMP WHERE policy_key='primary'`).bind(trackedSales).run();
+    SET tracked_sales=tracked_sales+?1,updated_at=CURRENT_TIMESTAMP WHERE policy_key='primary'`).bind(inserted).run();
   return json({ ok: true, accepted: statements.length, inserted, existing, duplicates: 0, rejected, pressure, trackedSales });
 }
 
@@ -605,7 +647,7 @@ async function readIdentitySales(env, body = {}) {
   };
 }
 
-async function readIdentityBaselineSource(request, env) {
+export async function readIdentityBaselineSource(request, env) {
   if (!authorized(request, env)) return json({ error: "Unauthorized" }, 401);
   const database = valuationReadDatabase(env);
   if (!database) return json({ error: "Valuation read model is not configured" }, 503);
@@ -614,65 +656,8 @@ async function readIdentityBaselineSource(request, env) {
   const trainingLimit = Math.max(256, Math.min(2500, Number(body.trainingLimit || 2048)));
   if (!['dns', 'username'].includes(kind)) return json({ error: "Unsupported asset kind" }, 400);
 
-  const groups = await database.prepare(`WITH expanded AS (
-    SELECT 'global' AS scope,'*' AS primary_route,'*' AS length_bucket,'*' AS script,'*' AS scarcity_class,price_usd
-      FROM identity_sales WHERE asset_kind=?1
-    UNION ALL
-    SELECT 'route',primary_route,'*','*','*',price_usd FROM identity_sales WHERE asset_kind=?1
-    UNION ALL
-    SELECT 'route-length',primary_route,length_bucket,'*','*',price_usd FROM identity_sales WHERE asset_kind=?1
-    UNION ALL
-    SELECT 'archetype',primary_route,length_bucket,script,scarcity_class,price_usd FROM identity_sales WHERE asset_kind=?1
-  ), ranked AS (
-    SELECT *,ROW_NUMBER() OVER (
-      PARTITION BY scope,primary_route,length_bucket,script,scarcity_class ORDER BY price_usd
-    ) AS rank_index,COUNT(*) OVER (
-      PARTITION BY scope,primary_route,length_bucket,script,scarcity_class
-    ) AS evidence_count FROM expanded
-  ) SELECT scope,primary_route,length_bucket,script,scarcity_class,MAX(evidence_count) AS evidence_count,
-    MIN(CASE WHEN rank_index>=CAST((evidence_count-1)*0.2 AS INTEGER)+1 THEN price_usd END) AS range_low_usd,
-    MIN(CASE WHEN rank_index>=CAST((evidence_count-1)*0.5 AS INTEGER)+1 THEN price_usd END) AS midpoint_usd,
-    MIN(CASE WHEN rank_index>=CAST((evidence_count-1)*0.8 AS INTEGER)+1 THEN price_usd END) AS range_high_usd
-    FROM ranked GROUP BY scope,primary_route,length_bucket,script,scarcity_class
-    HAVING evidence_count>=3`).bind(kind).all();
-
-  let training = [];
-  let premiumCohorts = [];
-  let marketPremiumRate = null;
-  if (kind === 'username') {
-    const highValueLimit = Math.min(160, Math.max(32, Math.floor(trainingLimit * 0.08)));
-    const evenLimit = trainingLimit - highValueLimit;
-    const results = await database.batch([
-      database.prepare(`SELECT s.sale_id,s.normalized_name,s.price_usd,s.sold_at,s.reliability_score,k.semantic_json
-        FROM identity_sales s LEFT JOIN identity_assets k
-          ON k.asset_kind=s.asset_kind AND k.normalized_name=s.normalized_name
-        WHERE s.asset_kind='username' ORDER BY s.price_usd DESC LIMIT ?1`).bind(highValueLimit),
-      database.prepare(`WITH ordered AS (
-        SELECT s.sale_id,s.normalized_name,s.price_usd,s.sold_at,s.reliability_score,k.semantic_json,
-          ROW_NUMBER() OVER (ORDER BY s.sold_at,s.sale_id) AS row_index,
-          COUNT(*) OVER () AS total_count
-        FROM identity_sales s LEFT JOIN identity_assets k
-          ON k.asset_kind=s.asset_kind AND k.normalized_name=s.normalized_name
-        WHERE s.asset_kind='username'
-      ) SELECT sale_id,normalized_name,price_usd,sold_at,reliability_score,semantic_json FROM ordered
-        WHERE row_index % MAX(1,CAST(total_count/?1 AS INTEGER))=0 LIMIT ?1`).bind(evenLimit),
-    ]);
-    const unique = new Map();
-    for (const result of results) for (const row of result.results || []) unique.set(row.sale_id, row);
-    training = [...unique.values()].slice(0, trainingLimit);
-    const premium = await database.prepare(`SELECT primary_route,length_bucket,script,
-      COUNT(*) AS total_count,SUM(CASE WHEN price_usd>=100 THEN 1 ELSE 0 END) AS premium_count
-      FROM identity_sales WHERE asset_kind='username' AND sold_at>=unixepoch()-180*86400
-      GROUP BY primary_route,length_bucket,script`).all();
-    premiumCohorts = premium.results || [];
-    const recentMarket = await database.prepare(`SELECT COUNT(*) AS total_count,
-      SUM(CASE WHEN price_usd>=100 THEN 1 ELSE 0 END) AS premium_count
-      FROM identity_sales WHERE asset_kind='username' AND sold_at>=unixepoch()-90*86400`).first();
-    marketPremiumRate = Number(recentMarket?.total_count || 0)
-      ? Number(recentMarket.premium_count || 0) / Number(recentMarket.total_count)
-      : null;
-  }
-  return json({ configured: true, assetKind: kind, groups: groups.results || [], training, premiumCohorts, marketPremiumRate });
+  const source=await prepareIdentityBaselineSource(database,kind,trainingLimit);
+  return json(source,source.status==='complete'?200:source.status==='partial'?202:503);
 }
 
 async function readUsernameEvidence(request, env) {
@@ -687,23 +672,37 @@ async function readUsernameEvidence(request, env) {
   })).filter((target) => target.normalizedName);
   if (!targets.length) return json({ configured: true, records: [] });
 
-  const columns = `s.sale_id,s.asset_key,s.normalized_name,s.sold_at,s.price_usd,s.reliability_score,
+  const columns = `s.sale_id,s.asset_key,s.normalized_name,s.sold_at,s.price_usd,s.price_gram,s.marketplace,s.source,s.reliability_score,
     s.quality_flags_json,s.primary_route,s.length_bucket,s.script,s.scarcity_class,a.semantic_json`;
   const cutoff = Math.floor(Date.now() / 1000) - (10 * 365 * 86400);
   const names = [...new Set(targets.map((target) => target.normalizedName))].slice(0, 50);
+  const knowledge = await database.prepare(`SELECT normalized_name,semantic_json FROM identity_assets
+    WHERE asset_kind='username' AND normalized_name IN (${names.map(() => "?").join(",")})`).bind(...names).all();
+  const relatedNames = [...new Set((knowledge.results || []).flatMap((row) => {
+    let value = row.semantic_json || {};
+    if (typeof value === "string") { try { value = JSON.parse(value); } catch { return []; } }
+    return Array.isArray(value.relatedTerms) ? value.relatedTerms.filter((name) => /^[a-z0-9_]{1,32}$/.test(name)) : [];
+  }))].slice(0, 50);
   const groups = [...new Map(targets.map((target) => [
     `${target.primaryRoute}|${target.lengthBucket}`, target,
   ])).values()].slice(0, 40);
   const cohortLimit = Math.max(120, Math.min(500, Math.floor(5_000 / Math.max(1, groups.length))));
   const statements = [
+    // Per-target history comes first; a frequently traded name cannot crowd
+    // another imported name out of a shared LIMIT.
+    database.prepare(`WITH own AS (SELECT ${columns},
+      ROW_NUMBER() OVER (PARTITION BY s.normalized_name ORDER BY s.sold_at DESC) own_rank
+      FROM identity_sales s LEFT JOIN identity_assets a ON a.asset_kind=s.asset_kind AND a.asset_key=s.asset_key
+      WHERE s.asset_kind='username' AND s.normalized_name IN (${names.map(() => "?").join(",")})
+      AND s.reliability_score>0 AND s.sold_at<=unixepoch()) SELECT * FROM own WHERE own_rank<=100`).bind(...names),
+    ...(relatedNames.length ? [database.prepare(`SELECT ${columns} FROM identity_sales s
+      LEFT JOIN identity_assets a ON a.asset_kind=s.asset_kind AND a.asset_key=s.asset_key
+      WHERE s.asset_kind='username' AND s.normalized_name IN (${relatedNames.map(() => "?").join(",")})
+      AND s.reliability_score>0 AND s.sold_at<=unixepoch() ORDER BY s.sold_at DESC LIMIT 500`).bind(...relatedNames)] : []),
     database.prepare(`SELECT ${columns} FROM identity_sales s
       LEFT JOIN identity_assets a ON a.asset_kind=s.asset_kind AND a.asset_key=s.asset_key
       WHERE s.asset_kind='username' AND s.sold_at>=?1
       ORDER BY s.sold_at DESC LIMIT 500`).bind(cutoff),
-    database.prepare(`SELECT ${columns} FROM identity_sales s
-      LEFT JOIN identity_assets a ON a.asset_kind=s.asset_kind AND a.asset_key=s.asset_key
-      WHERE s.asset_kind='username' AND s.normalized_name IN (${names.map(() => "?").join(",")})
-      ORDER BY s.sold_at DESC LIMIT 1000`).bind(...names),
     ...groups.map((group) => database.prepare(`SELECT ${columns} FROM identity_sales s
       LEFT JOIN identity_assets a ON a.asset_kind=s.asset_kind AND a.asset_key=s.asset_key
       WHERE s.asset_kind='username' AND s.primary_route=?1 AND s.length_bucket=?2 AND s.sold_at>=?3
@@ -718,8 +717,6 @@ async function readUsernameEvidence(request, env) {
     }
     if (records.size >= 6500) break;
   }
-  const knowledge = await database.prepare(`SELECT normalized_name,semantic_json FROM identity_assets
-    WHERE asset_kind='username' AND normalized_name IN (${names.map(() => "?").join(",")})`).bind(...names).all();
   return json({ configured: true, records: [...records.values()], knowledge: knowledge.results || [] });
 }
 
@@ -785,7 +782,7 @@ async function readIdentityAssets(env, body = {}) {
   return { configured: true, records, nextCursor: records.length === limit && last ? last.asset_key : null };
 }
 
-async function readIdentityKnowledgeQueue(env, body = {}) {
+export async function readIdentityKnowledgeQueue(env, body = {}) {
   const database = valuationReadDatabase(env);
   if (!database) return { records: [], configured: false };
   const limit = Math.max(1, Math.min(50, Number(body.limit || 8)));
@@ -796,50 +793,69 @@ async function readIdentityKnowledgeQueue(env, body = {}) {
   const schemaVersion = kind === "dns" ? "dns-knowledge-v1" : "username-knowledge-v5";
   const retryCutoff = new Date(Date.now() - (7 * 86400000)).toISOString();
   const attemptedField = mode === "fast" ? "lexicalLookupAttemptedAt" : "entityLookupAttemptedAt";
-  const stagePending = mode === "fast"
-    ? `OR (json_extract(a.semantic_json,'$.lexicalLookupComplete') IS NOT 1
-      AND (json_extract(a.semantic_json,'$.${attemptedField}') IS NULL OR json_extract(a.semantic_json,'$.${attemptedField}')<=?3))`
-    : `OR (json_extract(a.semantic_json,'$.entityLookupComplete') IS NOT 1
-      AND (json_extract(a.semantic_json,'$.${attemptedField}') IS NULL OR json_extract(a.semantic_json,'$.${attemptedField}')<=?3))`;
-  const marketStagePending = mode === "fast"
-    ? `OR (json_extract(k.semantic_json,'$.lexicalLookupComplete') IS NOT 1
-      AND (json_extract(k.semantic_json,'$.${attemptedField}') IS NULL OR json_extract(k.semantic_json,'$.${attemptedField}')<=?3))`
-    : `OR (json_extract(k.semantic_json,'$.entityLookupComplete') IS NOT 1
-      AND (json_extract(k.semantic_json,'$.${attemptedField}') IS NULL OR json_extract(k.semantic_json,'$.${attemptedField}')<=?3))`;
-  const pending = `(a.semantic_json IS NULL OR a.semantic_json='{}'
-    OR json_extract(a.semantic_json,'$.schemaVersion')!='${schemaVersion}'
-    ${kind === "dns" ? "OR json_extract(a.semantic_json,'$.dnsClassificationVersion')!='dns-semantic-route-v2'" : ""}
-    ${stagePending})`;
-  const [marketPriority, walletPriority] = await database.batch([
-    database.prepare(`SELECT s.asset_kind,s.asset_kind||':'||s.normalized_name AS asset_key,s.normalized_name,
-      COALESCE(k.semantic_json,'{}') AS semantic_json,
-      COALESCE(k.source_updated_at,MAX(s.sold_at)) AS source_updated_at
+  const pending = (value) => {
+    let semantic = {};
+    try { semantic = typeof value === "string" ? JSON.parse(value || "{}") : value || {}; } catch { return true; }
+    return semantic.schemaVersion !== schemaVersion
+      || (kind === "dns" && semantic.dnsClassificationVersion !== "dns-semantic-route-v2")
+      || (semantic[mode === "fast" ? "lexicalLookupComplete" : "entityLookupComplete"] !== true
+        && (!semantic[attemptedField] || semantic[attemptedField] <= retryCutoff));
+  };
+  // Both scans use existing (asset_kind, normalized_name/asset_key) indexes.
+  // Persist independent cursors so every call inspects a small page rather
+  // than sorting/grouping the entire sale and wallet ledgers each minute.
+  const stateKey = `knowledge-queue:${kind}:${mode}`;
+  const state = await database.prepare("SELECT cursor_json FROM valuation_projection_state WHERE projection_key=?1")
+    .bind(stateKey).first();
+  let cursors = {};
+  try { cursors = JSON.parse(state?.cursor_json || "{}"); } catch { /* restart both scans */ }
+  const pageSize = 64;
+  async function page(stream, sql, cursor) {
+    let rows = (await database.prepare(sql).bind(kind, cursor || "", pageSize).all()).results || [];
+    if (!rows.length && cursor) {
+      rows = (await database.prepare(sql).bind(kind, "", pageSize).all()).results || [];
+      cursors[stream] = "";
+    }
+    return rows;
+  }
+  const marketRowsPage = await page("market", `SELECT s.asset_kind,s.asset_kind||':'||s.normalized_name AS asset_key,
+    s.normalized_name,s.price_usd,s.sold_at,k.semantic_json,k.source_updated_at
     FROM identity_sales s LEFT JOIN identity_assets k
       ON k.asset_kind=s.asset_kind AND k.normalized_name=s.normalized_name
-    WHERE s.asset_kind=?2 AND (k.semantic_json IS NULL OR k.semantic_json='{}'
-      OR json_extract(k.semantic_json,'$.schemaVersion')!='${schemaVersion}'
-      ${kind === "dns" ? "OR json_extract(k.semantic_json,'$.dnsClassificationVersion')!='dns-semantic-route-v2'" : ""}
-      ${marketStagePending})
-    GROUP BY s.asset_kind,s.normalized_name,k.semantic_json,k.source_updated_at
-      ORDER BY CASE
-        WHEN MAX(s.price_usd)>=100 AND MAX(s.price_usd)<500 THEN 0
-        WHEN MAX(s.price_usd)>=500 THEN 1
-        WHEN MAX(s.price_usd)>=25 THEN 2
-        ELSE 3 END,
-        MAX(s.sold_at) DESC LIMIT ?1`).bind(limit, kind, retryCutoff),
-    database.prepare(`SELECT a.asset_kind,a.asset_key,a.normalized_name,a.semantic_json,a.source_updated_at
-      FROM identity_assets a WHERE a.asset_kind=?2 AND ${pending}
-      ORDER BY a.source_updated_at DESC LIMIT ?1`).bind(limit, kind, retryCutoff),
-  ]);
+    WHERE s.asset_kind=?1 AND s.normalized_name>?2
+    ORDER BY s.normalized_name LIMIT ?3`, cursors.market);
+  const walletRowsPage = await page("wallet", `SELECT asset_kind,asset_key,normalized_name,semantic_json,source_updated_at
+    FROM identity_assets WHERE asset_kind=?1 AND asset_key>?2
+    ORDER BY asset_key LIMIT ?3`, cursors.wallet);
+  const marketByName = new Map();
+  for (const row of marketRowsPage) {
+    if (!pending(row.semantic_json)) continue;
+    const previous = marketByName.get(row.normalized_name);
+    if (!previous || Number(row.price_usd) > Number(previous.price_usd)) marketByName.set(row.normalized_name, row);
+  }
+  const marketRows = [...marketByName.values()];
+  const walletRows = walletRowsPage.filter((row) => pending(row.semantic_json));
   const unique = new Map();
-  const marketRows = marketPriority.results || [];
-  const walletRows = walletPriority.results || [];
+  let lastMarket = "";
+  let lastWallet = "";
   for (let index = 0; unique.size < limit && index < Math.max(marketRows.length, walletRows.length); index += 1) {
-    for (const row of [marketRows[index], walletRows[index]]) {
+    for (const [stream, row] of [["market", marketRows[index]], ["wallet", walletRows[index]]]) {
+      if (row) {
+        if (stream === "market") lastMarket = row.normalized_name;
+        else lastWallet = row.asset_key;
+      }
       if (row && !unique.has(row.asset_key)) unique.set(row.asset_key, row);
       if (unique.size >= limit) break;
     }
   }
+  cursors.market = marketRows.length > 0 && lastMarket !== marketRows.at(-1).normalized_name
+    ? lastMarket || cursors.market || "" : marketRowsPage.at(-1)?.normalized_name || "";
+  cursors.wallet = walletRows.length > 0 && lastWallet !== walletRows.at(-1).asset_key
+    ? lastWallet || cursors.wallet || "" : walletRowsPage.at(-1)?.asset_key || "";
+  await database.prepare(`INSERT INTO valuation_projection_state (projection_key,cursor_json,updated_at)
+    VALUES (?1,?2,CURRENT_TIMESTAMP) ON CONFLICT(projection_key) DO UPDATE SET
+    cursor_json=excluded.cursor_json,updated_at=CURRENT_TIMESTAMP`)
+    .bind(stateKey, JSON.stringify(cursors)).run();
   return { configured: true, records: [...unique.values()].slice(0, limit) };
 }
 
@@ -959,22 +975,13 @@ async function readIdentityBaselines(env, body = {}) {
   return { configured: true, records: result.results || [] };
 }
 
-async function maintainIdentityStorage(env) {
+export async function maintainIdentityStorage(env) {
   const database = valuationReadDatabase(env);
   if (!database) return { configured: false };
-  const cutoff = new Date(Date.now() - 30 * 86400000).toISOString();
-  const aliasCutoff = new Date(Date.now() - 90 * 86400000).toISOString();
-  await database.prepare("DELETE FROM identity_current_market WHERE stale_at IS NOT NULL AND stale_at < ?1").bind(cutoff).run();
-  await database.prepare("DELETE FROM identity_asset_aliases WHERE last_seen_at < ?1").bind(aliasCutoff).run();
-  const counts = await database.prepare(`SELECT
-    (SELECT COUNT(*) FROM identity_assets) AS assets,
-    (SELECT COUNT(*) FROM identity_sales) AS sales,
-    (SELECT COUNT(*) FROM valuation_records) AS valuations`).first();
-  await database.prepare(`UPDATE identity_storage_policy SET tracked_assets=?1,tracked_sales=?2,
-    tracked_valuations=?3,updated_at=CURRENT_TIMESTAMP WHERE policy_key='primary'`)
-    .bind(Number(counts?.assets || 0), Number(counts?.sales || 0), Number(counts?.valuations || 0)).run();
+  const maintenance = await boundedIdentityMaintenance(database);
+  if (maintenance.status === 'migration-required') return { configured: true, ...maintenance };
   const policy = await storagePolicy(database);
-  return { configured: true, policy, pressure: {
+  return { configured: true, ...maintenance, policy, pressure: {
     assets: storagePressure(policy, "tracked_assets", "max_assets"),
     sales: storagePressure(policy, "tracked_sales", "max_sales"),
     valuations: storagePressure(policy, "tracked_valuations", "max_valuations"),
@@ -988,17 +995,18 @@ async function ingestValuationRecords(request, env) {
   const body = await request.json().catch(() => ({}));
   const records = (Array.isArray(body.records) ? body.records : []).slice(0, 500);
   const policy = await storagePolicy(database);
-  policy.tracked_valuations = await exactIdentityCount(database, "valuation_records");
   const pressure = storagePressure(policy, "tracked_valuations", "max_valuations");
   if (pressure.ratio >= Number(policy?.stop_ratio || 0.9)) {
     return json({ error: "Identity valuation storage guard is active", pressure }, 507);
   }
   const statements = [];
+  const acceptedKeys = [];
   for (const record of records) {
     const assetKind = String(record.asset_kind || record.assetKind || "").trim().toLowerCase();
     const assetKey = String(record.asset_key || record.assetKey || "").trim().toLowerCase();
     const estimatorVersion = String(record.estimator_version || record.estimatorVersion || "").trim();
     if (!['dns', 'username'].includes(assetKind) || !assetKey || !estimatorVersion) continue;
+    acceptedKeys.push(`${assetKind}:${assetKey}`);
     statements.push(database.prepare(
       `INSERT INTO valuation_records (
         asset_kind, asset_key, display_name, estimate_usd, range_low_usd, range_high_usd,
@@ -1052,10 +1060,13 @@ async function ingestValuationRecords(request, env) {
       JSON.stringify(record.explanation_json || record.explanation || {})
     ));
   }
+  const existingKeys = await existingIdentityKeys(database, "valuation_records", "asset_key",
+    acceptedKeys);
+  const inserted = new Set(acceptedKeys.filter((key) => !existingKeys.has(key))).size;
   if (statements.length) await runD1StatementBatches(database, statements);
-  const trackedValuations = await exactIdentityCount(database, "valuation_records");
-  await database.prepare(`UPDATE identity_storage_policy SET tracked_valuations=?1,updated_at=CURRENT_TIMESTAMP
-    WHERE policy_key='primary'`).bind(trackedValuations).run();
+  const trackedValuations = Number(policy?.tracked_valuations || 0) + inserted;
+  await database.prepare(`UPDATE identity_storage_policy SET tracked_valuations=tracked_valuations+?1,updated_at=CURRENT_TIMESTAMP
+    WHERE policy_key='primary'`).bind(inserted).run();
   return json({ ok: true, written: statements.length, pressure, trackedValuations });
 }
 
@@ -1999,87 +2010,33 @@ function compactSaleComboKey(sale) {
   return [sale.collectionKey, sale.modelKey, sale.backdropKey].join("\u0001");
 }
 
-async function pruneTouchedSaleCombos(database, sales = [], perComboLimit = DEFAULT_SALES_PER_COMBO_LIMIT) {
-  const combos = [...new Map(sales.map((sale) => [compactSaleComboKey(sale), sale])).values()];
+export async function pruneTouchedSaleCombos(database, sales = [], perComboLimit = DEFAULT_SALES_PER_COMBO_LIMIT) {
+  if(!await maintenanceReady(database,'compact')) return 0;
+  // Defer other touched identities to the durable global prune traversal. The
+  // ingest invocation itself must remain bounded even for a cold legacy shard.
+  const combos = [...new Map(sales.map((sale) => [compactSaleComboKey(sale), sale])).values()].slice(0,25);
   let deleted = 0;
   for (let index = 0; index < combos.length; index += 25) {
     const chunk = combos.slice(index, index + 25);
     const results = await database.batch(chunk.map((sale) => database.prepare(
       `DELETE FROM gift_sale_events
        WHERE sale_id IN (
-         SELECT sale_id FROM (
-           SELECT e.sale_id,
-             ROW_NUMBER() OVER (ORDER BY e.sold_at DESC, e.sale_id DESC) AS position
-           FROM gift_sale_events e
-           JOIN gift_sale_combos c ON c.combo_id = e.combo_id
-           WHERE c.collection_key = ?1 AND c.model_key = ?2 AND c.backdrop_key = ?3
-         )
-         WHERE position > ?4
+         SELECT sale_id FROM gift_sale_events INDEXED BY gift_sale_events_combo_bounded_idx
+         WHERE combo_id=(SELECT combo_id FROM gift_sale_combos INDEXED BY gift_sale_combos_identity_bounded_idx
+           WHERE collection_key=?1 AND model_key=?2 AND backdrop_key=?3 ORDER BY combo_id LIMIT 1)
+         ORDER BY sold_at DESC,sale_id DESC LIMIT 500 OFFSET ?4
        )`
-    ).bind(sale.collectionKey, sale.modelKey, sale.backdropKey, perComboLimit)));
+    ).bind(sale.collectionKey, sale.modelKey, sale.backdropKey, Math.max(3,Math.min(20,perComboLimit)))));
     deleted += results.reduce((sum, entry) => sum + Number(entry.meta?.changes || 0), 0);
   }
   return deleted;
 }
 
-async function pruneCompactSalesDatabase(database, options = {}) {
-  const maxEvents = Math.max(10_000, Number(options.maxEvents || DEFAULT_SALES_EVENTS_PER_SHARD_LIMIT));
-  const batchLimit = Math.max(100, Math.min(100_000, Number(options.batchLimit || DEFAULT_SALES_PRUNE_BATCH)));
-  const countRow = await database.prepare("SELECT COUNT(*) AS total FROM gift_sale_events").first();
-  const total = Number(countRow?.total || 0);
-  const removeCount = Math.max(0, Math.min(batchLimit, total - maxEvents));
-  let deletedEvents = 0;
-  if (removeCount > 0) {
-    // Remove older duplicates first. This preserves at least the newest known
-    // sale for low-volume combinations while high-volume combinations stay
-    // bounded by the per-combo limit.
-    const duplicateResult = await database.prepare(
-      `DELETE FROM gift_sale_events
-       WHERE sale_id IN (
-         SELECT sale_id FROM (
-           SELECT e.sale_id, e.sold_at,
-             ROW_NUMBER() OVER (
-               PARTITION BY c.collection_key, c.model_key, c.backdrop_key
-               ORDER BY e.sold_at DESC, e.sale_id DESC
-             ) AS position
-           FROM gift_sale_events e
-           JOIN gift_sale_combos c ON c.combo_id = e.combo_id
-         )
-         WHERE position > 1
-         ORDER BY sold_at ASC, sale_id ASC
-         LIMIT ?1
-       )`
-    ).bind(removeCount).run();
-    deletedEvents = Number(duplicateResult.meta?.changes || 0);
-    const remaining = removeCount - deletedEvents;
-    if (remaining > 0) {
-      const oldestResult = await database.prepare(
-        `DELETE FROM gift_sale_events
-         WHERE sale_id IN (
-           SELECT sale_id FROM gift_sale_events
-           ORDER BY sold_at ASC, sale_id ASC
-           LIMIT ?1
-         )`
-      ).bind(remaining).run();
-      deletedEvents += Number(oldestResult.meta?.changes || 0);
-    }
-  }
-  const orphanResult = await database.prepare(
-    `DELETE FROM gift_sale_combos
-     WHERE combo_id IN (
-       SELECT c.combo_id
-       FROM gift_sale_combos c
-       LEFT JOIN gift_sale_events e ON e.combo_id = c.combo_id
-       WHERE e.sale_id IS NULL
-       LIMIT ?1
-     )`
-  ).bind(batchLimit).run();
-  return {
-    before: total,
-    after: Math.max(0, total - deletedEvents),
-    deletedEvents,
-    deletedCombos: Number(orphanResult.meta?.changes || 0),
-  };
+export async function pruneCompactSalesDatabase(database, options = {}) {
+  return boundedCompactPrune(database, {
+    ...options, maxEvents: options.maxEvents || DEFAULT_SALES_EVENTS_PER_SHARD_LIMIT,
+    batchLimit: options.batchLimit || DEFAULT_SALES_PRUNE_BATCH,
+  });
 }
 
 async function writeCompactSales(database, sales = [], perComboLimit = DEFAULT_SALES_PER_COMBO_LIMIT) {
@@ -2185,26 +2142,11 @@ async function writeSales(env, sales = []) {
   return inserted;
 }
 
-async function compactSalesShardStats(env) {
+export async function compactSalesShardStats(env) {
   const limit = Math.max(50_000_000, Number(env.SALES_SHARD_ROTATE_BYTES || DEFAULT_SALES_SHARD_LIMIT_BYTES));
   return Promise.all(compactSalesDatabaseConfigs(env).map(async (config) => {
     try {
-      const [eventsResult, combosResult] = await Promise.all([
-        config.database.prepare(
-          `SELECT COUNT(*) AS events, MIN(sold_at) AS earliest_sold_at,
-             MAX(sold_at) AS latest_sold_at, MAX(ingested_at) AS latest_ingested_at
-           FROM gift_sale_events`
-        ).run(),
-        config.database.prepare("SELECT COUNT(*) AS combinations FROM gift_sale_combos").run(),
-      ]);
-      const bytes = Math.max(
-        Number(eventsResult.meta?.size_after || 0),
-        Number(combosResult.meta?.size_after || 0),
-        Number(salesShardSizeCache.get(config.name)?.bytes || 0)
-      );
-      salesShardSizeCache.set(config.name, { bytes, checkedAt: Date.now() });
-      const events = eventsResult.results?.[0] || {};
-      const combos = combosResult.results?.[0] || {};
+      const [events,bytes] = await Promise.all([boundedCompactStats(config.database),salesShardSize(config)]);
       const utilization = limit > 0 ? bytes / limit : 0;
       return {
         name: config.name,
@@ -2214,8 +2156,9 @@ async function compactSalesShardStats(env) {
         limitBytes: limit,
         utilization: Number(utilization.toFixed(4)),
         status: !config.writable ? "legacy" : utilization >= 1 ? "full" : utilization >= 0.85 ? "critical" : utilization >= 0.7 ? "warning" : "healthy",
-        events: Number(events.events || 0),
-        combinations: Number(combos.combinations || 0),
+        events: events.events,
+        combinations: events.combinations,
+        countsStatus: events.countsStatus,
         earliestSaleAt: Number(events.earliest_sold_at || 0) > 0
           ? new Date(Number(events.earliest_sold_at) * 1000).toISOString() : "",
         latestSaleAt: Number(events.latest_sold_at || 0) > 0
@@ -2229,6 +2172,9 @@ async function compactSalesShardStats(env) {
         writable: Boolean(config.writable),
         historicalUsd: Boolean(config.historicalUsd),
         status: "unavailable",
+        events: null,
+        combinations: null,
+        countsStatus: 'unavailable',
         error: String(error?.message || error).slice(0, 160),
       };
     }
@@ -2926,12 +2872,28 @@ export default {
   async fetch(request, env) {
     if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: json({}).headers });
     const url = new URL(request.url);
-    if (url.pathname === "/health") return json({ ok: true, service: "tontrack-gift-registry" });
+    if (url.pathname === "/health") return json({ ok: true, service: "tontrack-gift-registry", giftSalesCleanupPaused: env.GIFT_SALES_CLEANUP_PAUSED === "1" });
+    if(url.pathname==='/maintenance/counters/bootstrap' && request.method==='POST') {
+      if(!authorized(request,env)) return json({error:'Unauthorized'},401);
+      const body=await request.json().catch(()=>({}));
+      if(body.scope==='identity') {
+        const database=valuationReadDatabase(env);
+        if(!database) return json({status:'unconfigured'},503);
+        return json(await boundedCounterBootstrap(database,'identity',body.steps));
+      }
+      if(body.scope==='compact') {
+        const config=compactSalesDatabaseConfigs(env).find(entry=>entry.name===body.shard && entry.historicalUsd);
+        if(!config) return json({error:'An exact compact shard name is required'},400);
+        return json({shard:config.name,...await boundedCounterBootstrap(config.database,'compact',body.steps)});
+      }
+      return json({error:'scope must be identity or compact'},400);
+    }
     if (url.pathname === "/stats") {
       // The floor worker calls this after every cycle. Keep the default health
       // response on the active state and compact shards; legacy archives are
       // only needed for an explicit forensic audit and can be much slower.
       const includeLegacySales = url.searchParams.get("includeLegacy") === "1";
+      if(includeLegacySales && !authorized(request,env)) return json({error:'Unauthorized'},401);
       const statsSalesDatabases = includeLegacySales
         ? salesReadDatabases(env)
         : [salesDatabase(env)].filter(Boolean);
@@ -2942,10 +2904,10 @@ export default {
           MAX(snapshot_at) AS latest_snapshot_at
          FROM gift_combo_collections`
       ).first();
-      let sales = {};
+      let sales = {sales:null,sales_collections:null,sales_combinations:null,sales_counts_status:'not-materialized'};
       let salesBackfill = {};
       let salesShards = [];
-      try {
+      if(includeLegacySales) try {
         const salesParts = await Promise.all(statsSalesDatabases.map((database) => database.prepare(
           `SELECT COUNT(*) AS sales,
             COUNT(DISTINCT collection_key) AS sales_collections,
@@ -2996,11 +2958,12 @@ export default {
         salesBackfill = {};
       }
       salesShards = await compactSalesShardStats(env);
-      const compactSales = salesShards.filter((shard) => shard.historicalUsd).reduce((total, shard) => ({
-        events: total.events + Number(shard.events || 0),
-        combinations: total.combinations + Number(shard.combinations || 0),
+      const compactStatsShards=salesShards.filter((shard)=>shard.historicalUsd);
+      const compactSales = compactStatsShards.reduce((total, shard) => ({
+        events: total.events===null || shard.events==null ? null : total.events + Number(shard.events),
+        combinations: total.combinations===null || shard.combinations==null ? null : total.combinations + Number(shard.combinations),
         bytes: total.bytes + Number(shard.bytes || 0),
-      }), { events: 0, combinations: 0, bytes: 0 });
+      }), { events: compactStatsShards.length?0:null, combinations: compactStatsShards.length?0:null, bytes: 0 });
       const backfillTotal = Number(salesBackfill.sales_backfill_collections || stats?.collections || 0);
       const backfillCompleted = Math.min(
         backfillTotal,
@@ -3018,6 +2981,7 @@ export default {
         compact_sales: compactSales.events,
         compact_sales_combinations: compactSales.combinations,
         compact_sales_bytes: compactSales.bytes,
+        compact_sales_counts_status: compactStatsShards.length && compactStatsShards.every(shard=>shard.countsStatus==='complete')?'complete':'partial',
         sales_shards: salesShards,
       });
     }
@@ -3201,7 +3165,7 @@ export default {
         .filter((config) => config.historicalUsd)
         .map(async (config) => {
           try {
-            return { name: config.name, ok: true, ...(await pruneCompactSalesDatabase(config.database, { maxEvents, batchLimit })) };
+            return { name: config.name, ok: true, ...(await pruneCompactSalesDatabase(config.database, { maxEvents, batchLimit, forceOrphanSweep: true })) };
           } catch (error) {
             return { name: config.name, ok: false, error: String(error?.message || error).slice(0, 160) };
           }
@@ -3224,54 +3188,35 @@ export default {
   async scheduled(_event, env) {
     const cutoff = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
     await compactLegacyHistory(env, 500);
-    await Promise.all(compactSalesDatabaseConfigs(env)
-      .filter((config) => config.historicalUsd)
-      .map((config) => pruneCompactSalesDatabase(config.database, {
-        maxEvents: Math.max(10_000, Number(env.SALES_EVENTS_PER_SHARD_LIMIT || DEFAULT_SALES_EVENTS_PER_SHARD_LIMIT)),
-        batchLimit: Math.max(100, Math.min(100_000, Number(env.SALES_PRUNE_BATCH || DEFAULT_SALES_PRUNE_BATCH))),
-      }).catch(() => null)));
     await Promise.all(historyDatabases(env).map((database) => database.prepare(
       `DELETE FROM gift_combo_history_buckets WHERE sampled_at < ?1`
     ).bind(cutoff).run()));
     await floorSourcesDatabase(env).prepare(
       `DELETE FROM gift_combo_history_segments WHERE day_start < ?1`
     ).bind(cutoff.slice(0, 10)).run();
-    await maintainIdentityStorage(env).catch(() => null);
     if (new Date().getUTCHours() === 2) {
+      await maintainIdentityStorage(env).catch(() => null);
+      // Temporary operator pause: preserve sales evidence until bounded cleanup
+      // replaces these full-table jobs. History retention and ingestion continue.
+      if (env.GIFT_SALES_CLEANUP_PAUSED === "1") return;
+      // Full-table reconciliation and orphan scans are maintenance, not hourly
+      // request-path work. Keep the manual compact-sales endpoint available.
+      await Promise.all(compactSalesDatabaseConfigs(env)
+        .filter((config) => config.historicalUsd)
+        .map((config) => pruneCompactSalesDatabase(config.database, {
+          maxEvents: Math.max(10_000, Number(env.SALES_EVENTS_PER_SHARD_LIMIT || DEFAULT_SALES_EVENTS_PER_SHARD_LIMIT)),
+          batchLimit: Math.max(100, Math.min(100_000, Number(env.SALES_PRUNE_BATCH || DEFAULT_SALES_PRUNE_BATCH))),
+        }).catch(() => null)));
       const salesRetentionDays = Math.max(30, Number(env.SALES_RETENTION_DAYS || 365));
       const salesCutoff = new Date(Date.now() - salesRetentionDays * 24 * 60 * 60 * 1000).toISOString();
       const compactSalesCutoff = Math.floor(new Date(salesCutoff).getTime() / 1000);
       try {
-        await Promise.all(salesReadDatabases(env).map((database) => database.prepare(
-          `DELETE FROM gift_sales
-           WHERE sold_at < ?1
-             AND sale_id NOT IN (
-               SELECT sale_id FROM (
-                 SELECT sale_id,
-                   ROW_NUMBER() OVER (
-                     PARTITION BY collection_key, model_key, backdrop_key
-                     ORDER BY sold_at DESC
-                   ) AS position
-                 FROM gift_sales
-             )
-               WHERE position <= 10
-             )`
-        ).bind(salesCutoff).run()));
+        await Promise.all(salesReadDatabases(env).map((database) => boundedLegacyRetention(database,salesCutoff)));
       } catch {
         // The sales schema may not be installed during a rolling deployment.
       }
       try {
-        await Promise.all(compactSalesDatabases(env).map(async (database) => {
-          await database.prepare(
-            `DELETE FROM gift_sale_events WHERE sold_at < ?1`
-          ).bind(compactSalesCutoff).run();
-          await database.prepare(
-            `DELETE FROM gift_sale_combos
-             WHERE NOT EXISTS (
-               SELECT 1 FROM gift_sale_events WHERE gift_sale_events.combo_id = gift_sale_combos.combo_id
-             )`
-          ).run();
-        }));
+        await Promise.all(compactSalesDatabases(env).map((database) => boundedCompactRetention(database,compactSalesCutoff)));
       } catch {
         // Compact shards are optional during the migration.
       }

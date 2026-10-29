@@ -1,0 +1,75 @@
+{
+  "schemaVersion": "username-local-collection-v1",
+  "from": "2026-09-20T13:45:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "collectedAt": "2026-09-22T13:02:38.368Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 27609,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 80,
+    "candidates": 10,
+    "verifiedItems": 1,
+    "wrongCollection": 9,
+    "assets": 1,
+    "sales": 1,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-22T13:02:38.368Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:678f165cf06adf8e1dcd9a2bd07e8255687e0803e0c22b30256a0dcf4964aaec",
+      "normalizedName": "buykid",
+      "displayName": "@buykid",
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "6L",
+      "feature": {
+        "characterLength": 6,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCDEF",
+        "uniqueCharacterCount": 6,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-21T18:59:46.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:3ec560bb8173070756eedd59e8938185e1550af0ab8b79e1d49d3829c6fa9109",
+      "assetKind": "username",
+      "assetKey": "0:678f165cf06adf8e1dcd9a2bd07e8255687e0803e0c22b30256a0dcf4964aaec",
+      "normalizedName": "buykid",
+      "soldAt": "2026-09-21T18:59:46.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.4392785254396916,
+      "priceUsd": 14.392785254396916,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "04mv5EG4ba5c3BlKFyYpLAOOK19+Rln1Mo17xg+dWBY=",
+        "messageHash": "e7eqDbrhC+RQ7/iGdcE0kXdokfxMzfIVPnI0Ogyi9aA=",
+        "bidAt": "2026-09-14T18:59:27.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "6L"
+    }
+  ]
+}

@@ -1,0 +1,76 @@
+{
+  "schemaVersion": "username-forward-v2-local-v1",
+  "from": "2026-09-27T00:00:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "requestedEndUtime": 1790537700,
+  "collectedAt": "2026-09-27T19:54:00.675Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 12671,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 80,
+    "candidates": 11,
+    "verifiedItems": 1,
+    "wrongCollection": 10,
+    "assets": 1,
+    "sales": 1,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-27T19:54:00.675Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:838bbfab45f936386fde82840324c2aaecb2f4216c386c4acc910da0b3bca45f",
+      "normalizedName": "phishwork",
+      "displayName": "@phishwork",
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "9L",
+      "feature": {
+        "characterLength": 9,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCDBEFGH",
+        "uniqueCharacterCount": 8,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-27T16:51:12.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:41b8fa9b79d78dd8b10d063b4064868e7b0d303764256badfca59882c65c382c",
+      "assetKind": "username",
+      "assetKey": "0:838bbfab45f936386fde82840324c2aaecb2f4216c386c4acc910da0b3bca45f",
+      "normalizedName": "phishwork",
+      "soldAt": "2026-09-27T16:51:12.000Z",
+      "priceGram": 6.000000001,
+      "historicalUsdRate": 1.7173446061420163,
+      "priceUsd": 10.304067638569443,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "H9DHdVOWQ9EpBKBlyJISACPVs1sw7dib23QZ/+m6Tlo=",
+        "messageHash": "vNSATxZ3Fpy57GOgA/76yhMquqQYjFEQ+AuxDd8fZJc=",
+        "bidAt": "2026-09-27T16:51:12.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "9L"
+    }
+  ]
+}

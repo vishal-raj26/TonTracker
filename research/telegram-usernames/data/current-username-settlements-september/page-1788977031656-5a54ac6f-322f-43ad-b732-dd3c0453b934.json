@@ -1,0 +1,175 @@
+{
+  "schemaVersion": "username-local-collection-v1",
+  "from": "2026-09-01T00:00:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "collectedAt": "2026-09-09T18:03:51.656Z",
+  "cursor": {
+    "startLt": "100559392000004",
+    "offset": 1,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 80,
+    "candidates": 8,
+    "verifiedItems": 3,
+    "wrongCollection": 5,
+    "assets": 3,
+    "sales": 3,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-09T18:03:51.656Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:923f3e018f72180db7114260c15df4b470be5ad33bf1aef8c0df4f29b2c7db73",
+      "normalizedName": "eateliacafe",
+      "displayName": "@eateliacafe",
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "11L",
+      "feature": {
+        "characterLength": 11,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCADEBFBGA",
+        "uniqueCharacterCount": 7,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-01T05:52:47.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:57be28d24d6fc3cf061ee944dddb24072ed47794d0a5b938ca0c56cbdfacf45b",
+      "normalizedName": "valorgram",
+      "displayName": "@valorgram",
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "9L",
+      "feature": {
+        "characterLength": 9,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCDEFEBG",
+        "uniqueCharacterCount": 7,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-01T05:53:01.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:b41d6f19e4c11caa67958ad6ea86a266a325a515bf88677ced1ef0f816fb88a2",
+      "normalizedName": "xonqizi",
+      "displayName": "@xonqizi",
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "7L",
+      "feature": {
+        "characterLength": 7,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCDEFE",
+        "uniqueCharacterCount": 6,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-01T05:59:39.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:209612fab9fe0f9eb0dfea34e878d13bf565edc65289d3c1afb486c0ba0ae5db",
+      "assetKind": "username",
+      "assetKey": "0:923f3e018f72180db7114260c15df4b470be5ad33bf1aef8c0df4f29b2c7db73",
+      "normalizedName": "eateliacafe",
+      "soldAt": "2026-09-01T05:52:47.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.3969908818498362,
+      "priceUsd": 13.969908818498363,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "riYSYo2heyzbJi1QaA7v6bGP7Hi3tXRw6Dpew0mXNOQ=",
+        "messageHash": "vUD1mKgcBVk/MamY3H7KUeXYatkO03b/6dd47OBSzyg=",
+        "bidAt": "2026-08-25T05:52:30.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "11L"
+    },
+    {
+      "saleId": "toncenter-username-sale:87d56b9827dadd0d1506276e9a6de1045e4a859d9baf106243d5581de059a6ec",
+      "assetKind": "username",
+      "assetKey": "0:57be28d24d6fc3cf061ee944dddb24072ed47794d0a5b938ca0c56cbdfacf45b",
+      "normalizedName": "valorgram",
+      "soldAt": "2026-09-01T05:53:01.000Z",
+      "priceGram": 7,
+      "historicalUsdRate": 1.3969665715156767,
+      "priceUsd": 9.778766000609737,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "ShuP+/QtpOLLDra3hqito4v1JjJV6/PSgqmC1zQhmZs=",
+        "messageHash": "/b2rbXXsLZvxRKiE7Q5g1I2Gw40Iejh9X0+3enr99l0=",
+        "bidAt": "2026-09-01T05:53:01.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "9L"
+    },
+    {
+      "saleId": "toncenter-username-sale:ec15f43abe078536b8ce85835be09f8d1c9856fee84b1ffd45037a14df265aca",
+      "assetKind": "username",
+      "assetKey": "0:b41d6f19e4c11caa67958ad6ea86a266a325a515bf88677ced1ef0f816fb88a2",
+      "normalizedName": "xonqizi",
+      "soldAt": "2026-09-01T05:59:39.000Z",
+      "priceGram": 109,
+      "historicalUsdRate": 1.39627546344457,
+      "priceUsd": 152.19402551545812,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "BibRMRslaNL/gPq0qyenFEDXBVDKfbqBf1QvaP0zDM4=",
+        "messageHash": "HjNzt6swQVmR6N01Sn4dKTu63726itfFg0z5Ba83bGA=",
+        "bidAt": "2026-08-25T05:59:22.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "7L"
+    }
+  ]
+}

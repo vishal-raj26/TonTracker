@@ -1,5 +1,18 @@
 # TonTrack Working Rules
 
+## Username Rebuild Continuity
+
+- When resuming the Telegram username estimator rebuild, read `docs/USERNAME_REBUILD_CHECKPOINT.md` first, then the current worktree and its linked source-of-truth document. Do not restart completed work from older handovers.
+- Update that checkpoint after material changes, including verification results, pending commands and exact next steps. Keep unresolved valuation-quality issues marked incomplete.
+
+## Active Workspace And Server
+
+- The only active project is `C:\Users\vishu\Documents\New project\ton-portfolio-chart-platform`.
+- Never edit, run, test, commit, or deploy `ton-portfolio-ui` or any other TonTrack copy unless the user explicitly changes the active project.
+- Every local server start must use the active project's absolute working directory. Stop any existing listener on port `5177` before starting `node server.js` there.
+- Before reporting that the server is live, request `http://127.0.0.1:5177/` and compare its JS/CSS version markers with the active project's `index.html`. A listening process or generic TonTrack title is not sufficient verification.
+- If the served markers differ, treat it as the wrong project, stop that process, and relaunch from the active workspace.
+
 ## Communication
 
 - Before editing, state exactly what will change in one or two sentences.
@@ -14,6 +27,41 @@
 - Do not redesign, refactor, research, or modify adjacent screens unless requested.
 - Treat one-gift or one-token tests as isolated tests. Do not generalize them automatically.
 - Preserve existing user changes and unrelated dirty-worktree files.
+
+## Telegram Username Estimator Rebuild Exception
+
+When the user explicitly requests work on rebuilding, redesigning, researching,
+evaluating, or improving the Telegram username estimator, treat that task as
+an authorized architecture/research/refactor task.
+
+For that task only:
+
+- The agent may inspect all files, database structures, APIs, workers, caches,
+  services, frontend consumers, and documentation materially connected to
+  Telegram username valuation.
+- The agent may redesign or replace the existing estimator architecture when
+  evidence shows a better architecture is warranted.
+- The agent may perform external web/API/market research needed to understand
+  current Telegram collectible username markets, Fragment, TON data sources,
+  comparable sales, historical sales, and valuation methods.
+- The agent may edit relevant files without asking for approval again after
+  stating what it intends to change.
+- The agent may change estimator-related internal API/database contracts when
+  necessary, but must update and verify every affected caller.
+- New dependencies are allowed only when they provide a meaningful advantage
+  and the reason is documented.
+- Existing username-estimator documentation, formulas, scoring weights,
+  assumptions, prompts, heuristics, and architecture are historical reference,
+  NOT canonical requirements. Audit them independently and retain only what
+  can be justified.
+- Do not preserve a legacy estimator behavior merely for compatibility if it
+  materially damages valuation quality.
+- TON DNS valuation documentation remains canonical for TON DNS only. Do not
+  automatically apply TON DNS assumptions or valuation architecture to
+  Telegram usernames.
+- Preserve unrelated TonTrack functionality and unrelated user changes.
+- The task is not complete until the implementation is tested and its valuation
+  behavior is evaluated against real historical examples where possible.
 
 ## Speed And Token Use
 
@@ -31,6 +79,7 @@
 - Reject stale, ambiguous, illiquid, or mismatched market data instead of showing a bogus price.
 - Show a loading or unavailable state when verified data is not ready.
 - Keep wallet-specific caches isolated and clear previous-wallet state on wallet changes.
+- Before changing TON DNS discovery, pricing, AI classification, market ingestion, storage, or UI valuation states, read `docs/TON_DNS_VALUATION_SOURCE_OF_TRUTH.md` and `docs/TON_DNS_ESTIMATOR_IMPLEMENTATION_PLAN.md`. Treat them as the canonical product, architecture, and implementation records for this feature.
 
 ## Gifts And Stickers
 
@@ -57,6 +106,8 @@
 ## Completion
 
 - A task is complete only when the requested behavior is implemented and focused checks pass.
+- A subagent handoff or implementation request is never completion evidence by itself. Before ending the task, confirm the expected edits exist in the active worktree and run the required verification locally.
+- If an agent/tool session ends after delegation but before verification, resume from the worktree and finish the verification instead of reporting the delegated work as completed.
 - Report what changed, what was checked, and any real limitation.
 - Never claim visual or live-data verification that was not actually performed.
 
@@ -81,3 +132,16 @@ Avoid only wasteful loops:
 - launching multiple servers
 - waiting on stuck commands
 - verifying the same thing again and again
+
+## graphify
+
+This project has a knowledge graph at graphify-out/ with god nodes, community structure, and cross-file relationships.
+
+When the user types `/graphify`, use the installed graphify skill or instructions before doing anything else.
+
+Rules:
+- For codebase questions, first run `graphify query "<question>"` when graphify-out/graph.json exists. Use `graphify path "<A>" "<B>"` for relationships and `graphify explain "<concept>"` for focused concepts. These return a scoped subgraph, usually much smaller than GRAPH_REPORT.md or raw grep output.
+- Dirty graphify-out/ files are expected after hooks or incremental updates; dirty graph files are not a reason to skip graphify. Only skip graphify if the task is about stale or incorrect graph output, or the user explicitly says not to use it.
+- If graphify-out/wiki/index.md exists, use it for broad navigation instead of raw source browsing.
+- Read graphify-out/GRAPH_REPORT.md only for broad architecture review or when query/path/explain do not surface enough context.
+- After modifying code, run `graphify update .` to keep the graph current (AST-only, no API cost).

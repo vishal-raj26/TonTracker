@@ -2,6 +2,9 @@
   "name": "tontrack-gift-registry",
   "main": "cloudflare/gift-registry-worker.mjs",
   "compatibility_date": "2026-06-13",
+  "vars": {
+    "GIFT_SALES_CLEANUP_PAUSED": "1"
+  },
   "triggers": {
     "crons": ["17 * * * *"]
   },

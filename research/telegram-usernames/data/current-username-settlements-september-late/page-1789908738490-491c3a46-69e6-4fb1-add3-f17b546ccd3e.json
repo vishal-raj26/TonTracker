@@ -1,0 +1,75 @@
+{
+  "schemaVersion": "username-local-collection-v1",
+  "from": "2026-09-10T00:00:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "collectedAt": "2026-09-20T12:52:18.490Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 13760,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 80,
+    "candidates": 7,
+    "verifiedItems": 1,
+    "wrongCollection": 6,
+    "assets": 1,
+    "sales": 1,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-20T12:52:18.490Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:225fe2b79bfae4f29bc990d275537bddc9a20aa2b89523b26a2d6eb8d64da92f",
+      "normalizedName": "coccuk",
+      "displayName": "@coccuk",
+      "primaryRoute": "pattern",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "6L",
+      "feature": {
+        "characterLength": 6,
+        "characterClass": "letters",
+        "routes": [
+          "pattern"
+        ],
+        "patternSignature": "ABAACD",
+        "uniqueCharacterCount": 4,
+        "maxRunLength": 2,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-10T18:17:08.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:bcfe6136ace4662b1a5b30b101bfa9f9457cc0e26c0c8279ff91bafeec0da334",
+      "assetKind": "username",
+      "assetKey": "0:225fe2b79bfae4f29bc990d275537bddc9a20aa2b89523b26a2d6eb8d64da92f",
+      "normalizedName": "coccuk",
+      "soldAt": "2026-09-10T18:17:08.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.341065179222861,
+      "priceUsd": 13.41065179222861,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "WPrqZT70KJPqsTbu566clvN9tVfkFUb+idLk9d26oJI=",
+        "messageHash": "MnPzQNUcX+VTBT++vYtekeeKwv/OPfaiOUUo63QSP9w=",
+        "bidAt": "2026-09-03T18:16:51.000Z"
+      },
+      "primaryRoute": "pattern",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "6L"
+    }
+  ]
+}

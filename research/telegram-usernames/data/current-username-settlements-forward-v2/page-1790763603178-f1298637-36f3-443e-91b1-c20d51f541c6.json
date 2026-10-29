@@ -1,0 +1,176 @@
+{
+  "schemaVersion": "username-forward-v2-local-v1",
+  "from": "2026-09-27T00:00:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "requestedEndUtime": 1790761800,
+  "collectedAt": "2026-09-30T10:20:03.178Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 37245,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 80,
+    "candidates": 16,
+    "verifiedItems": 3,
+    "wrongCollection": 13,
+    "assets": 3,
+    "sales": 3,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-30T10:20:03.178Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:070966ee27d88daf80728e1150a72b4005b1308a6397818c433dec4d60e9882b",
+      "normalizedName": "monsieur_vip777",
+      "displayName": "@monsieur_vip777",
+      "primaryRoute": "pattern",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "15M",
+      "feature": {
+        "characterLength": 15,
+        "characterClass": "alphanumeric",
+        "routes": [
+          "pattern"
+        ],
+        "patternSignature": "ABCDEFGHIJEKLLL",
+        "uniqueCharacterCount": 12,
+        "maxRunLength": 3,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": true,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-29T02:39:42.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:4b180de82f5a073117200abc12b8d727334ff9230319153f564be1d5deb4f786",
+      "normalizedName": "hotsexuality",
+      "displayName": "@hotsexuality",
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "12L",
+      "feature": {
+        "characterLength": 12,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCDEFGHIJCK",
+        "uniqueCharacterCount": 11,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-29T02:40:22.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:805ccbbd83ffa31709ae33af9921fe672087031e38fcfaa26d3eee3ebd1d298b",
+      "normalizedName": "alerteds",
+      "displayName": "@alerteds",
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "8L",
+      "feature": {
+        "characterLength": 8,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCDECFG",
+        "uniqueCharacterCount": 7,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-29T02:42:31.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:86708302e42a13809ba3ff30325b687e524dcf970e2fc33d1f82b47abd4473f4",
+      "assetKind": "username",
+      "assetKey": "0:070966ee27d88daf80728e1150a72b4005b1308a6397818c433dec4d60e9882b",
+      "normalizedName": "monsieur_vip777",
+      "soldAt": "2026-09-29T02:39:42.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.5377747144987135,
+      "priceUsd": 15.377747144987135,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "4QYC+nVmYSNLRzFbQfHsih+F4VEy1M6LdWbSMJppFXc=",
+        "messageHash": "bdhTtllniETmJx1NWWjLXYykqV+hNM5NiezKWTLNMMk=",
+        "bidAt": "2026-09-22T02:39:05.000Z"
+      },
+      "primaryRoute": "pattern",
+      "lengthBucket": "13+",
+      "script": "Latin",
+      "scarcityClass": "15M"
+    },
+    {
+      "saleId": "toncenter-username-sale:60708246d2f3a5fa016e413b7276863049a890a5ed60e0734d8d716c78c202d9",
+      "assetKind": "username",
+      "assetKey": "0:4b180de82f5a073117200abc12b8d727334ff9230319153f564be1d5deb4f786",
+      "normalizedName": "hotsexuality",
+      "soldAt": "2026-09-29T02:40:22.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.5378281936285199,
+      "priceUsd": 15.378281936285198,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "tuxsxtUqMEKxhkLvJxqwbuyPt/QELE18AvRfcyOHylE=",
+        "messageHash": "3LhsQpRREfYx5V5Z59AmEfQVkB/lTN5lKnM1/BcxBns=",
+        "bidAt": "2026-09-22T02:39:53.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "12L"
+    },
+    {
+      "saleId": "toncenter-username-sale:b621f26661bbaf434dcc6c47405f3f974636990a183c701ea92e02613f59c5c3",
+      "assetKind": "username",
+      "assetKey": "0:805ccbbd83ffa31709ae33af9921fe672087031e38fcfaa26d3eee3ebd1d298b",
+      "normalizedName": "alerteds",
+      "soldAt": "2026-09-29T02:42:31.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.5381381651166768,
+      "priceUsd": 15.381381651166768,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "bjDXaP03AhrthZ4EjUaS+LhEzRaQAPLudlIQZGzlClg=",
+        "messageHash": "jJ3Nw/CcA+RP1OFI4ZdtCYl6ADsxDHPsvXBIvlqKaao=",
+        "bidAt": "2026-09-22T02:40:34.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "8L"
+    }
+  ]
+}

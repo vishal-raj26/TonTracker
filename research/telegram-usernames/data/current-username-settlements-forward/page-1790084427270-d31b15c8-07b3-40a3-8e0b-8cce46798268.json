@@ -1,0 +1,75 @@
+{
+  "schemaVersion": "username-local-collection-v1",
+  "from": "2026-09-20T13:45:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "collectedAt": "2026-09-22T13:40:27.269Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 41369,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 80,
+    "candidates": 5,
+    "verifiedItems": 1,
+    "wrongCollection": 4,
+    "assets": 1,
+    "sales": 1,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-22T13:40:27.269Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:45995b6d1ec9d51144315118a21805af58bfc1ea908f81f87417e7c0d0dad731",
+      "normalizedName": "pycux",
+      "displayName": "@pycux",
+      "primaryRoute": "word",
+      "lengthBucket": "4-5",
+      "script": "Latin",
+      "scarcityClass": "5L",
+      "feature": {
+        "characterLength": 5,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCDE",
+        "uniqueCharacterCount": 5,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-22T13:20:19.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:9e836d1cdb886660f297ee771e44c669850ca7232387ae5915ff37817088b363",
+      "assetKind": "username",
+      "assetKey": "0:45995b6d1ec9d51144315118a21805af58bfc1ea908f81f87417e7c0d0dad731",
+      "normalizedName": "pycux",
+      "soldAt": "2026-09-22T13:20:19.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.426969287909366,
+      "priceUsd": 14.269692879093661,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "nearest-observation",
+        "txHash": "OwumJ06lNv1nP5aFcLm5aNJYUijCLX67k92vyGSZrN4=",
+        "messageHash": "wF6LRXExWtQ6geMvSuQUESqboOUlcAk3Kp+uUTBu+bc=",
+        "bidAt": "2026-09-15T13:20:01.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "4-5",
+      "script": "Latin",
+      "scarcityClass": "5L"
+    }
+  ]
+}

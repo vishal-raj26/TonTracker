@@ -1,0 +1,126 @@
+{
+  "schemaVersion": "username-forward-v2-local-v1",
+  "from": "2026-09-27T00:00:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "requestedEndUtime": 1790537700,
+  "collectedAt": "2026-09-27T19:55:13.924Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 14671,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 80,
+    "candidates": 9,
+    "verifiedItems": 2,
+    "wrongCollection": 7,
+    "assets": 2,
+    "sales": 2,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-27T19:55:13.924Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:61d25bb6a2e927068b07c6cdef94e3b4f7933fc44af6590e0d941569c66317a3",
+      "normalizedName": "pornsite",
+      "displayName": "@pornsite",
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "8L",
+      "feature": {
+        "characterLength": 8,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCDEFGH",
+        "uniqueCharacterCount": 8,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-27T18:18:04.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:1bad4c6817081bf4e3ee33c35373f8c52a2e657bc582c5a605b8443b204728b7",
+      "normalizedName": "meowyomiko",
+      "displayName": "@meowyomiko",
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "10L",
+      "feature": {
+        "characterLength": 10,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCDECAFGC",
+        "uniqueCharacterCount": 7,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-27T18:19:18.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:91d3af84010bf9f7f516b306c2fe9e7b8de7b264401bab4d2c8e085c4e4076bf",
+      "assetKind": "username",
+      "assetKey": "0:61d25bb6a2e927068b07c6cdef94e3b4f7933fc44af6590e0d941569c66317a3",
+      "normalizedName": "pornsite",
+      "soldAt": "2026-09-27T18:18:04.000Z",
+      "priceGram": 116,
+      "historicalUsdRate": 1.6824181113940264,
+      "priceUsd": 195.16050092170707,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "nearest-observation",
+        "txHash": "y61OTdqp9mYHjbJscI5b8su+oewU1BBUwcmOfwUxBTQ=",
+        "messageHash": "AqT8wy0xnwksEbBhWKWBSppVriRvh2q4BKV3zT9T5EI=",
+        "bidAt": "2026-09-20T18:16:30.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "8L"
+    },
+    {
+      "saleId": "toncenter-username-sale:ef454bfa2c5aa0dcf602c554b33e8c3c20a2882c26b0dd053a6a72993f454685",
+      "assetKind": "username",
+      "assetKey": "0:1bad4c6817081bf4e3ee33c35373f8c52a2e657bc582c5a605b8443b204728b7",
+      "normalizedName": "meowyomiko",
+      "soldAt": "2026-09-27T18:19:18.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.6824181113940264,
+      "priceUsd": 16.824181113940263,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "nearest-observation",
+        "txHash": "LIqk6jgpcDDkxTF7nZN9yJChwkcKyZK+qnnbD972ROI=",
+        "messageHash": "0r/m7Z6hP2A4bctvGHgyPqGueW6oubsctjacu3O9D/8=",
+        "bidAt": "2026-09-20T18:18:54.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "10L"
+    }
+  ]
+}

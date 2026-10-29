@@ -1,0 +1,75 @@
+{
+  "schemaVersion": "username-local-collection-v1",
+  "from": "2026-09-01T00:00:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "collectedAt": "2026-09-19T16:07:19.624Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 6800,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 80,
+    "candidates": 17,
+    "verifiedItems": 1,
+    "wrongCollection": 16,
+    "assets": 1,
+    "sales": 1,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-19T16:07:19.624Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:97d092f6502cb4d8abe29474cc163c22080e978184c3e1183164aa1d024c6c35",
+      "normalizedName": "juuhn",
+      "displayName": "@juuhn",
+      "primaryRoute": "pattern",
+      "lengthBucket": "4-5",
+      "script": "Latin",
+      "scarcityClass": "5L",
+      "feature": {
+        "characterLength": 5,
+        "characterClass": "letters",
+        "routes": [
+          "pattern"
+        ],
+        "patternSignature": "ABBCD",
+        "uniqueCharacterCount": 4,
+        "maxRunLength": 2,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-01T11:42:08.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:cef9e8ae008e973652836dc3e9714a1e922a05b400094592b39e18af99617475",
+      "assetKind": "username",
+      "assetKey": "0:97d092f6502cb4d8abe29474cc163c22080e978184c3e1183164aa1d024c6c35",
+      "normalizedName": "juuhn",
+      "soldAt": "2026-09-01T11:42:08.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.360593102255697,
+      "priceUsd": 13.60593102255697,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "/PXwOoCDgHx9Yjh8HOFXC89usIQhI5gW6G7AGTX5oYU=",
+        "messageHash": "k/2FADQEH0wBuNDXs33TpJAvwkhCWY8Nhs31Tf64ScU=",
+        "bidAt": "2026-08-25T11:41:50.000Z"
+      },
+      "primaryRoute": "pattern",
+      "lengthBucket": "4-5",
+      "script": "Latin",
+      "scarcityClass": "5L"
+    }
+  ]
+}

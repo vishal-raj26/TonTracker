@@ -1,0 +1,175 @@
+{
+  "schemaVersion": "username-local-collection-v1",
+  "from": "2026-09-20T13:45:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "collectedAt": "2026-09-26T22:34:00.356Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 62425,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 80,
+    "candidates": 29,
+    "verifiedItems": 3,
+    "wrongCollection": 26,
+    "assets": 3,
+    "sales": 3,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-26T22:34:00.356Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:67f9114b649fcfe7232ac941093f01e1de3ca5b50454e1b4174f977e0777105b",
+      "normalizedName": "darkcoinboy",
+      "displayName": "@darkcoinboy",
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "11L",
+      "feature": {
+        "characterLength": 11,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCDEFGHIFJ",
+        "uniqueCharacterCount": 10,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-23T15:03:48.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:ab4b6fc827c83c6ed34e64fb4c44fecd5b6ffd2a5e90b261c75f263ca2d4cd12",
+      "normalizedName": "envyadams",
+      "displayName": "@envyadams",
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "9L",
+      "feature": {
+        "characterLength": 9,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCDEFEGH",
+        "uniqueCharacterCount": 8,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-23T15:07:35.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:3f54f305841768a295acd316ebda49412c682d48d0a67bd01d892bf7adebf096",
+      "normalizedName": "qalbikir",
+      "displayName": "@qalbikir",
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "8L",
+      "feature": {
+        "characterLength": 8,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCDEFEG",
+        "uniqueCharacterCount": 7,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-23T15:08:12.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:b081de4b55de53a857f4e10e361e34ac763c662b335717e027951d3fbbaf34a6",
+      "assetKind": "username",
+      "assetKey": "0:67f9114b649fcfe7232ac941093f01e1de3ca5b50454e1b4174f977e0777105b",
+      "normalizedName": "darkcoinboy",
+      "soldAt": "2026-09-23T15:03:48.000Z",
+      "priceGram": 7,
+      "historicalUsdRate": 1.4123601429123769,
+      "priceUsd": 9.886521000386638,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "zQj6JD0dkuF52y4436NCxqnkgKH5wurn09BjnApm9lE=",
+        "messageHash": "GDf1X/dEF9MvUwNO6m4IFF8kDjVmUNxoOFevL/o3fVQ=",
+        "bidAt": "2026-09-23T15:03:48.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "11L"
+    },
+    {
+      "saleId": "toncenter-username-sale:2c39957a41becdbc84a07c08ea0f3d31c4fb63fe4ced4b1069924a020bcda5d3",
+      "assetKind": "username",
+      "assetKey": "0:ab4b6fc827c83c6ed34e64fb4c44fecd5b6ffd2a5e90b261c75f263ca2d4cd12",
+      "normalizedName": "envyadams",
+      "soldAt": "2026-09-23T15:07:35.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.412293852211927,
+      "priceUsd": 14.12293852211927,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "TCoPe5QLo0+Rf+iS/S+DqJ7HFjftdDxPOnIeFvmMBtM=",
+        "messageHash": "eBjsFF9lV0tH0Zbdn6gOa62YpnC1eEgC02MosvH1vRQ=",
+        "bidAt": "2026-09-16T15:07:18.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "9L"
+    },
+    {
+      "saleId": "toncenter-username-sale:c9a0601bf8f3cc0850cd5f794849df14bba3ef9651be7207dd759776cea75346",
+      "assetKind": "username",
+      "assetKey": "0:3f54f305841768a295acd316ebda49412c682d48d0a67bd01d892bf7adebf096",
+      "normalizedName": "qalbikir",
+      "soldAt": "2026-09-23T15:08:12.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.4122830471197831,
+      "priceUsd": 14.122830471197831,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "SecTf4rrG914+qW0cC+7TV45MNes6Rz9+QSV2pRI8n0=",
+        "messageHash": "PwtTcBlXQoEAtLZ5zlQBePWxr4eYL6en9VsfwHAy0rM=",
+        "bidAt": "2026-09-16T15:07:54.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "6-8",
+      "script": "Latin",
+      "scarcityClass": "8L"
+    }
+  ]
+}

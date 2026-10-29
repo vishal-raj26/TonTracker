@@ -1,0 +1,627 @@
+{
+  "qualification": false,
+  "productionIntegrated": false,
+  "reservedLabelsOpened": false,
+  "protocolSha256": "5e47d39bb065a7ae4f353a0676ba3ff9a2bd514eea03c3d29d1742c1fd32ea1f",
+  "evaluatorSha256": "1676873e25cc92fbdbc6f61758deadd5613fa8ca48313f8ec73bb454edccd4f9",
+  "caseSetSha256": "2eeb006728713436d09abd65e4640bb0baabc919e70c4eec01151b6358716ab3",
+  "training": {
+    "events": 3393,
+    "identities": 2967,
+    "candidateWins": 1923,
+    "coefficients": [
+      -0.06925311552368763,
+      -0.08159202078607496,
+      0.08579108804644581,
+      -0.11961094945556401,
+      0.04043381975960996
+    ],
+    "intercept": 0.2860755549134168
+  },
+  "windowCases": {
+    "gateFit": 19056,
+    "developmentCheck": 5222,
+    "laterCheck": 6717
+  },
+  "eligible": {
+    "gateFit": 3393,
+    "developmentCheck": 1604,
+    "laterCheck": 2111
+  },
+  "windows": {
+    "gateFit": {
+      "all": {
+        "v25": {
+          "attempts": 19056,
+          "estimates": 19055,
+          "abstentions": 1,
+          "male": 0.6053089311273335,
+          "medianFactor": 1.25476986624705,
+          "coverage80": 0.8361060089215429,
+          "intervalScore": 3.5733620603384515
+        },
+        "gate": {
+          "attempts": 19056,
+          "estimates": 19056,
+          "abstentions": 0,
+          "male": 0.5902536348144788,
+          "medianFactor": 1.2501507496856312,
+          "coverage80": 0.8860201511335013,
+          "intervalScore": 3.3659456301926345
+        }
+      },
+      "ordinary": {
+        "v25": {
+          "attempts": 14611,
+          "estimates": 14611,
+          "abstentions": 0,
+          "male": 0.22834076580279208,
+          "medianFactor": 1.1883508269720098,
+          "coverage80": 0.9244404900417493,
+          "intervalScore": 2.6640205251931928
+        },
+        "gate": {
+          "attempts": 14611,
+          "estimates": 14611,
+          "abstentions": 0,
+          "male": 0.21226594719873623,
+          "medianFactor": 1.1859662023615924,
+          "coverage80": 0.983984669084936,
+          "intervalScore": 2.452933669906107
+        }
+      },
+      "intermediate": {
+        "v25": {
+          "attempts": 2011,
+          "estimates": 2011,
+          "abstentions": 0,
+          "male": 1.0140925894099007,
+          "medianFactor": 2.55276366715046,
+          "coverage80": 0.868224763799105,
+          "intervalScore": 3.0055617789913174
+        },
+        "gate": {
+          "attempts": 2011,
+          "estimates": 2011,
+          "abstentions": 0,
+          "male": 1.0360800606077154,
+          "medianFactor": 2.6269042153589317,
+          "coverage80": 0.8697165589259075,
+          "intervalScore": 3.1571732042817797
+        }
+      },
+      "premium": {
+        "v25": {
+          "attempts": 2434,
+          "estimates": 2433,
+          "abstentions": 1,
+          "male": 2.5312513588916676,
+          "medianFactor": 9.249271208808524,
+          "coverage80": 0.2790793259350596,
+          "intervalScore": 9.503586283846987
+        },
+        "gate": {
+          "attempts": 2434,
+          "estimates": 2434,
+          "abstentions": 0,
+          "male": 2.4909196830820903,
+          "medianFactor": 9.150919770800552,
+          "coverage80": 0.3114215283483977,
+          "intervalScore": 9.019133428160078
+        }
+      },
+      "secondary/ordinary": {
+        "v25": {
+          "attempts": 2721,
+          "estimates": 2721,
+          "abstentions": 0,
+          "male": 0.5001966039228956,
+          "medianFactor": 1.4874242924276158,
+          "coverage80": 0.6273428886438809,
+          "intervalScore": 3.9228475213806155
+        },
+        "gate": {
+          "attempts": 2721,
+          "estimates": 2721,
+          "abstentions": 0,
+          "male": 0.4138793769387451,
+          "medianFactor": 1.3542230677398668,
+          "coverage80": 0.9470782800441014,
+          "intervalScore": 2.789370842733208
+        }
+      },
+      "secondary/intermediate": {
+        "v25": {
+          "attempts": 488,
+          "estimates": 488,
+          "abstentions": 0,
+          "male": 0.8236258771140603,
+          "medianFactor": 2.230104402128234,
+          "coverage80": 0.9344262295081968,
+          "intervalScore": 2.67908166902002
+        },
+        "gate": {
+          "attempts": 488,
+          "estimates": 488,
+          "abstentions": 0,
+          "male": 0.9142340832181712,
+          "medianFactor": 2.485027297495183,
+          "coverage80": 0.9405737704918032,
+          "intervalScore": 3.3038574400428007
+        }
+      },
+      "secondary/premium": {
+        "v25": {
+          "attempts": 228,
+          "estimates": 228,
+          "abstentions": 0,
+          "male": 2.074074618505132,
+          "medianFactor": 8.467224230523037,
+          "coverage80": 0.14473684210526316,
+          "intervalScore": 13.571584987274194
+        },
+        "gate": {
+          "attempts": 228,
+          "estimates": 228,
+          "abstentions": 0,
+          "male": 1.651928509082067,
+          "medianFactor": 4.605398772943495,
+          "coverage80": 0.4868421052631579,
+          "intervalScore": 8.432682415817759
+        }
+      }
+    },
+    "developmentCheck": {
+      "all": {
+        "v25": {
+          "attempts": 5222,
+          "estimates": 5222,
+          "abstentions": 0,
+          "male": 0.6449069118460646,
+          "medianFactor": 1.32893352238771,
+          "coverage80": 0.8119494446572194,
+          "intervalScore": 3.8146139167986424
+        },
+        "gate": {
+          "attempts": 5222,
+          "estimates": 5222,
+          "abstentions": 0,
+          "male": 0.6182217301128838,
+          "medianFactor": 1.2999626950769831,
+          "coverage80": 0.8849099961700498,
+          "intervalScore": 3.563875674009321
+        }
+      },
+      "ordinary": {
+        "v25": {
+          "attempts": 3900,
+          "estimates": 3900,
+          "abstentions": 0,
+          "male": 0.2776165603550111,
+          "medianFactor": 1.2012577483336928,
+          "coverage80": 0.8938461538461538,
+          "intervalScore": 3.0742996871990314
+        },
+        "gate": {
+          "attempts": 3900,
+          "estimates": 3900,
+          "abstentions": 0,
+          "male": 0.24174066600223784,
+          "medianFactor": 1.1912041884816753,
+          "coverage80": 0.9887179487179487,
+          "intervalScore": 2.770638482462804
+        }
+      },
+      "intermediate": {
+        "v25": {
+          "attempts": 621,
+          "estimates": 621,
+          "abstentions": 0,
+          "male": 0.913780264273271,
+          "medianFactor": 2.335730900136757,
+          "coverage80": 0.9355877616747182,
+          "intervalScore": 3.056618169755031
+        },
+        "gate": {
+          "attempts": 621,
+          "estimates": 621,
+          "abstentions": 0,
+          "male": 0.9488000705726919,
+          "medianFactor": 2.415102146746582,
+          "coverage80": 0.9227053140096618,
+          "intervalScore": 3.2076120894148032
+        }
+      },
+      "premium": {
+        "v25": {
+          "attempts": 701,
+          "estimates": 701,
+          "abstentions": 0,
+          "male": 2.450130904653195,
+          "medianFactor": 9.145611778865971,
+          "coverage80": 0.24679029957203993,
+          "intervalScore": 8.604829115589814
+        },
+        "gate": {
+          "attempts": 701,
+          "estimates": 701,
+          "abstentions": 0,
+          "male": 2.4199150262697535,
+          "medianFactor": 9.133414015675426,
+          "coverage80": 0.2738944365192582,
+          "intervalScore": 8.29264134171916
+        }
+      },
+      "secondary/ordinary": {
+        "v25": {
+          "attempts": 1428,
+          "estimates": 1428,
+          "abstentions": 0,
+          "male": 0.4794441390050446,
+          "medianFactor": 1.4934584837089822,
+          "coverage80": 0.7100840336134454,
+          "intervalScore": 3.5308607255389117
+        },
+        "gate": {
+          "attempts": 1428,
+          "estimates": 1428,
+          "abstentions": 0,
+          "male": 0.3814637552684782,
+          "medianFactor": 1.3434690155779911,
+          "coverage80": 0.969187675070028,
+          "intervalScore": 2.7015339058811807
+        }
+      },
+      "secondary/intermediate": {
+        "v25": {
+          "attempts": 133,
+          "estimates": 133,
+          "abstentions": 0,
+          "male": 0.8566793797385612,
+          "medianFactor": 2.0569194872882637,
+          "coverage80": 0.9398496240601504,
+          "intervalScore": 2.999170984715764
+        },
+        "gate": {
+          "attempts": 133,
+          "estimates": 133,
+          "abstentions": 0,
+          "male": 1.0201929114072852,
+          "medianFactor": 2.751296333060715,
+          "coverage80": 0.8796992481203008,
+          "intervalScore": 3.704187707337708
+        }
+      },
+      "secondary/premium": {
+        "v25": {
+          "attempts": 59,
+          "estimates": 59,
+          "abstentions": 0,
+          "male": 1.9766964656236528,
+          "medianFactor": 5.71975459462782,
+          "coverage80": 0.22033898305084745,
+          "intervalScore": 12.136859061716777
+        },
+        "gate": {
+          "attempts": 59,
+          "estimates": 59,
+          "abstentions": 0,
+          "male": 1.6176908597458153,
+          "medianFactor": 4.014382964127217,
+          "coverage80": 0.5423728813559322,
+          "intervalScore": 8.427645002677325
+        }
+      }
+    },
+    "laterCheck": {
+      "all": {
+        "v25": {
+          "attempts": 6717,
+          "estimates": 6716,
+          "abstentions": 1,
+          "male": 0.6065653455057747,
+          "medianFactor": 1.2685629531378328,
+          "coverage80": 0.8262358546754021,
+          "intervalScore": 3.681670088448027
+        },
+        "gate": {
+          "attempts": 6717,
+          "estimates": 6717,
+          "abstentions": 0,
+          "male": 0.5866471484032761,
+          "medianFactor": 1.2690962099125362,
+          "coverage80": 0.888343010272443,
+          "intervalScore": 3.4758306966667725
+        }
+      },
+      "ordinary": {
+        "v25": {
+          "attempts": 5314,
+          "estimates": 5314,
+          "abstentions": 0,
+          "male": 0.28976029618812876,
+          "medianFactor": 1.1988286973973448,
+          "coverage80": 0.9055325555137373,
+          "intervalScore": 2.8841917616505817
+        },
+        "gate": {
+          "attempts": 5314,
+          "estimates": 5314,
+          "abstentions": 0,
+          "male": 0.2655948337832302,
+          "medianFactor": 1.1998161594951,
+          "coverage80": 0.9794881445238991,
+          "intervalScore": 2.6677669555762584
+        }
+      },
+      "intermediate": {
+        "v25": {
+          "attempts": 676,
+          "estimates": 676,
+          "abstentions": 0,
+          "male": 1.0652464432872293,
+          "medianFactor": 2.7406043052497555,
+          "coverage80": 0.8727810650887574,
+          "intervalScore": 3.136142512435853
+        },
+        "gate": {
+          "attempts": 676,
+          "estimates": 676,
+          "abstentions": 0,
+          "male": 1.0886422195892507,
+          "medianFactor": 2.7658060185117384,
+          "coverage80": 0.8757396449704142,
+          "intervalScore": 3.2240937125723215
+        }
+      },
+      "premium": {
+        "v25": {
+          "attempts": 727,
+          "estimates": 726,
+          "abstentions": 1,
+          "male": 2.4983471774254595,
+          "medianFactor": 9.346795785895434,
+          "coverage80": 0.2024793388429752,
+          "intervalScore": 10.026816741320973
+        },
+        "gate": {
+          "attempts": 727,
+          "estimates": 727,
+          "abstentions": 0,
+          "male": 2.46659671067176,
+          "medianFactor": 9.274099343937142,
+          "coverage80": 0.23383768913342504,
+          "intervalScore": 9.616442693094163
+        }
+      },
+      "secondary/ordinary": {
+        "v25": {
+          "attempts": 1933,
+          "estimates": 1933,
+          "abstentions": 0,
+          "male": 0.4983363008737477,
+          "medianFactor": 1.493346579247355,
+          "coverage80": 0.7418520434557683,
+          "intervalScore": 3.3499415072612253
+        },
+        "gate": {
+          "attempts": 1933,
+          "estimates": 1933,
+          "abstentions": 0,
+          "male": 0.4319031569422308,
+          "medianFactor": 1.4049950793907606,
+          "coverage80": 0.9451629591308847,
+          "intervalScore": 2.7549692261029683
+        }
+      },
+      "secondary/intermediate": {
+        "v25": {
+          "attempts": 141,
+          "estimates": 141,
+          "abstentions": 0,
+          "male": 0.900994144386624,
+          "medianFactor": 2.4120557494845567,
+          "coverage80": 0.8936170212765957,
+          "intervalScore": 2.9813892725319144
+        },
+        "gate": {
+          "attempts": 141,
+          "estimates": 141,
+          "abstentions": 0,
+          "male": 1.0131611286431221,
+          "medianFactor": 2.680508289584616,
+          "coverage80": 0.9078014184397163,
+          "intervalScore": 3.4030560192854895
+        }
+      },
+      "secondary/premium": {
+        "v25": {
+          "attempts": 72,
+          "estimates": 72,
+          "abstentions": 0,
+          "male": 2.0215456263564575,
+          "medianFactor": 7.785528418427582,
+          "coverage80": 0.1527777777777778,
+          "intervalScore": 12.32206474754926
+        },
+        "gate": {
+          "attempts": 72,
+          "estimates": 72,
+          "abstentions": 0,
+          "male": 1.7281563178212993,
+          "medianFactor": 6.19174618223332,
+          "coverage80": 0.4583333333333333,
+          "intervalScore": 8.274434965769814
+        }
+      }
+    }
+  },
+  "pooledDecemberJanuary": {
+    "all": {
+      "v25": {
+        "attempts": 11939,
+        "estimates": 11938,
+        "abstentions": 1,
+        "male": 0.6233369705207668,
+        "medianFactor": 1.2920856015704438,
+        "coverage80": 0.8199865974200033,
+        "intervalScore": 3.7398232691857367
+      },
+      "gate": {
+        "attempts": 11939,
+        "estimates": 11939,
+        "abstentions": 0,
+        "male": 0.600457556786518,
+        "medianFactor": 1.282629445971861,
+        "coverage80": 0.8868414440070358,
+        "intervalScore": 3.5143406951325122
+      }
+    },
+    "ordinary": {
+      "v25": {
+        "attempts": 9214,
+        "estimates": 9214,
+        "abstentions": 0,
+        "male": 0.2846202300117507,
+        "medianFactor": 1.2000470796802087,
+        "coverage80": 0.9005860646841762,
+        "intervalScore": 2.9646585415115485
+      },
+      "gate": {
+        "attempts": 9214,
+        "estimates": 9214,
+        "abstentions": 0,
+        "male": 0.25549810550605767,
+        "medianFactor": 1.1966626139524692,
+        "coverage80": 0.9833948339483395,
+        "intervalScore": 2.711309277570779
+      }
+    },
+    "intermediate": {
+      "v25": {
+        "attempts": 1297,
+        "estimates": 1297,
+        "abstentions": 0,
+        "male": 0.9927248571903392,
+        "medianFactor": 2.5345232848538273,
+        "coverage80": 0.9028527370855821,
+        "intervalScore": 3.098066477890914
+      },
+      "gate": {
+        "attempts": 1297,
+        "estimates": 1297,
+        "abstentions": 0,
+        "male": 1.0216861867910385,
+        "medianFactor": 2.607726189145901,
+        "coverage80": 0.8982266769468004,
+        "intervalScore": 3.216202357151494
+      }
+    },
+    "premium": {
+      "v25": {
+        "attempts": 1428,
+        "estimates": 1427,
+        "abstentions": 1,
+        "male": 2.474661398018764,
+        "medianFactor": 9.232352302345786,
+        "coverage80": 0.22424667133847231,
+        "intervalScore": 9.32827902188333
+      },
+      "gate": {
+        "attempts": 1428,
+        "estimates": 1428,
+        "abstentions": 0,
+        "male": 2.443680841788145,
+        "medianFactor": 9.201067847173498,
+        "coverage80": 0.2535014005602241,
+        "intervalScore": 8.966593430269333
+      }
+    },
+    "secondary/ordinary": {
+      "v25": {
+        "attempts": 3361,
+        "estimates": 3361,
+        "abstentions": 0,
+        "male": 0.49030952100213177,
+        "medianFactor": 1.493346579247355,
+        "coverage80": 0.7283546563522761,
+        "intervalScore": 3.4268092977106686
+      },
+      "gate": {
+        "attempts": 3361,
+        "estimates": 3361,
+        "abstentions": 0,
+        "male": 0.4104727893164868,
+        "medianFactor": 1.3740160699016066,
+        "coverage80": 0.9553704254686105,
+        "intervalScore": 2.7322659719295883
+      }
+    },
+    "secondary/intermediate": {
+      "v25": {
+        "attempts": 274,
+        "estimates": 274,
+        "abstentions": 0,
+        "male": 0.8794836929333674,
+        "medianFactor": 2.2728990726698375,
+        "coverage80": 0.916058394160584,
+        "intervalScore": 2.990020541584658
+      },
+      "gate": {
+        "attempts": 274,
+        "estimates": 274,
+        "abstentions": 0,
+        "male": 1.0165743662622235,
+        "medianFactor": 2.715383770624676,
+        "coverage80": 0.8941605839416058,
+        "intervalScore": 3.5492257802743414
+      }
+    },
+    "secondary/premium": {
+      "v25": {
+        "attempts": 131,
+        "estimates": 131,
+        "abstentions": 0,
+        "male": 2.001346386026416,
+        "medianFactor": 6.514819812883784,
+        "coverage80": 0.183206106870229,
+        "intervalScore": 12.238651499731587
+      },
+      "gate": {
+        "attempts": 131,
+        "estimates": 131,
+        "abstentions": 0,
+        "male": 1.6784046992987527,
+        "medianFactor": 5.1796702815631495,
+        "coverage80": 0.4961832061068702,
+        "intervalScore": 8.34343795949152
+      }
+    }
+  },
+  "secondaryPremiumUncertainty": {
+    "identities": 125,
+    "lower95": 0.11746338078246915,
+    "median": 0.162146636732224,
+    "upper95": 0.20650565360767176
+  },
+  "decision": {
+    "checks": {
+      "premiumMedian": false,
+      "premiumMale": false,
+      "bootstrapLower": true,
+      "ordinary": true,
+      "intermediate": true,
+      "premiumCoverage": false,
+      "overallCoverage": false,
+      "intervalScore": true,
+      "availability": true
+    },
+    "developmentPass": false,
+    "productionQualification": false
+  },
+  "limitations": [
+    "Both historical check windows have been exposed during prior model development.",
+    "The gate fit uses only October-November 2024, but this does not create an untouched test.",
+    "No 2026 prospective outcome or competitor data was evaluated."
+  ]
+}

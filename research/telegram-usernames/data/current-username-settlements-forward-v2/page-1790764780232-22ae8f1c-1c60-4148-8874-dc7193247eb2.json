@@ -1,0 +1,76 @@
+{
+  "schemaVersion": "username-forward-v2-local-v1",
+  "from": "2026-09-27T00:00:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "requestedEndUtime": 1790761800,
+  "collectedAt": "2026-09-30T10:39:40.232Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 57405,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 80,
+    "candidates": 1,
+    "verifiedItems": 1,
+    "wrongCollection": 0,
+    "assets": 1,
+    "sales": 1,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-30T10:39:40.232Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:70f324d3d7eed843f3b3a6aa6aa61e24a3b1373118573c934181cb6fd13dd81c",
+      "normalizedName": "trenchtown",
+      "displayName": "@trenchtown",
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "10L",
+      "feature": {
+        "characterLength": 10,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCDEFAGHD",
+        "uniqueCharacterCount": 8,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-30T08:54:34.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:9580df2aa3b38042812c6dac772efdeb14e74f03d5da20247064cca7becb1ff9",
+      "assetKind": "username",
+      "assetKey": "0:70f324d3d7eed843f3b3a6aa6aa61e24a3b1373118573c934181cb6fd13dd81c",
+      "normalizedName": "trenchtown",
+      "soldAt": "2026-09-30T08:54:34.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.4897069291156702,
+      "priceUsd": 14.8970692911567,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "mi5khQmA2sJ/MDBsGwpsrZDe/QoF2+ssOVUrWrO2h6U=",
+        "messageHash": "WmpvXbyFmFMBoqqsDj4O83NhEpIDPNgUlBNVJ2Qhs2I=",
+        "bidAt": "2026-09-23T08:54:06.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "10L"
+    }
+  ]
+}

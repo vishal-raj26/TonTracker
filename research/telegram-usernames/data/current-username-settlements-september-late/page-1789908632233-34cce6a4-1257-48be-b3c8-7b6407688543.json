@@ -1,0 +1,175 @@
+{
+  "schemaVersion": "username-local-collection-v1",
+  "from": "2026-09-10T00:00:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "collectedAt": "2026-09-20T12:50:32.233Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 12000,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 80,
+    "candidates": 16,
+    "verifiedItems": 3,
+    "wrongCollection": 13,
+    "assets": 3,
+    "sales": 3,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-20T12:50:32.233Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:eddc6c84cb740298685743682254aadbc3154848183a19678a006781ec9d160a",
+      "normalizedName": "acutiator",
+      "displayName": "@acutiator",
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "9L",
+      "feature": {
+        "characterLength": 9,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCDEADFG",
+        "uniqueCharacterCount": 7,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-10T16:26:37.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:f4153162138bcdee1e580fbe1dab80bf9479aba50f1a09e972b61c2f8761a937",
+      "normalizedName": "chuanmei8",
+      "displayName": "@chuanmei8",
+      "primaryRoute": "alphanumeric",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "9M",
+      "feature": {
+        "characterLength": 9,
+        "characterClass": "alphanumeric",
+        "routes": [
+          "alphanumeric"
+        ],
+        "patternSignature": "ABCDEFGHI",
+        "uniqueCharacterCount": 9,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-10T16:27:44.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:640c015a03bc42788027f388bd3ad7307b430506804993c57e31f3a0f2a4c18d",
+      "normalizedName": "murderbloody",
+      "displayName": "@murderbloody",
+      "primaryRoute": "pattern",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "12L",
+      "feature": {
+        "characterLength": 12,
+        "characterClass": "letters",
+        "routes": [
+          "pattern"
+        ],
+        "patternSignature": "ABCDECFGHHDI",
+        "uniqueCharacterCount": 9,
+        "maxRunLength": 2,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-10T16:29:36.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:003a4d1c8708e83ce2567cf2b7cb87d302a5df585eb102fdb01f4d7a5b9a8637",
+      "assetKind": "username",
+      "assetKey": "0:eddc6c84cb740298685743682254aadbc3154848183a19678a006781ec9d160a",
+      "normalizedName": "acutiator",
+      "soldAt": "2026-09-10T16:26:37.000Z",
+      "priceGram": 6.09,
+      "historicalUsdRate": 1.3372880891913492,
+      "priceUsd": 8.144084463175316,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "kjbUyZQO/jgWgDp/9Yvu6nnsj5RG62ug7yZjSdEOFyc=",
+        "messageHash": "oiIl5MtqC3/KLkYzFNdoiEXSCI+2G91nshdpjxHtP1s=",
+        "bidAt": "2026-09-10T16:26:37.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "9L"
+    },
+    {
+      "saleId": "toncenter-username-sale:5f0a565aaf3f6877b78be073ada9c206f45f9cf52145ad4f93a81e72c26145fc",
+      "assetKind": "username",
+      "assetKey": "0:f4153162138bcdee1e580fbe1dab80bf9479aba50f1a09e972b61c2f8761a937",
+      "normalizedName": "chuanmei8",
+      "soldAt": "2026-09-10T16:27:44.000Z",
+      "priceGram": 10,
+      "historicalUsdRate": 1.337200024695206,
+      "priceUsd": 13.37200024695206,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "4gQk6C1zYTtGCxw2jXjCh+ECwPyd9a7sH3QsZ/mt98c=",
+        "messageHash": "POTku/scUSqUuEm4sHQKRGi5dq7pkc5fchSCrRG4/lo=",
+        "bidAt": "2026-09-03T16:27:26.000Z"
+      },
+      "primaryRoute": "alphanumeric",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "9M"
+    },
+    {
+      "saleId": "toncenter-username-sale:9f8672f84aa8c2a37d99b4211baa426392fa96123da82cc35c8d25904a8751a1",
+      "assetKind": "username",
+      "assetKey": "0:640c015a03bc42788027f388bd3ad7307b430506804993c57e31f3a0f2a4c18d",
+      "normalizedName": "murderbloody",
+      "soldAt": "2026-09-10T16:29:36.000Z",
+      "priceGram": 13,
+      "historicalUsdRate": 1.3370528124031456,
+      "priceUsd": 17.38168656124089,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "j2VJcC+8VDbjbqI9hmEWLoaIhvaO/Y3mpIKlu3ZKJdk=",
+        "messageHash": "JYBnzevocgU38H+LjkK0ZoLsEYbDpj3LT63MKkLsSJE=",
+        "bidAt": "2026-09-10T16:29:36.000Z"
+      },
+      "primaryRoute": "pattern",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "12L"
+    }
+  ]
+}

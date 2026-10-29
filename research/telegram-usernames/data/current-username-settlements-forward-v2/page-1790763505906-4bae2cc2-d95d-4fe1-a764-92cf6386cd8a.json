@@ -1,0 +1,126 @@
+{
+  "schemaVersion": "username-forward-v2-local-v1",
+  "from": "2026-09-27T00:00:00Z",
+  "pipeline": "username-toncenter-settlements-v1",
+  "requestedEndUtime": 1790761800,
+  "collectedAt": "2026-09-30T10:18:25.906Z",
+  "cursor": {
+    "paginationMode": "time-offset",
+    "absoluteOffset": 35405,
+    "caughtUp": false
+  },
+  "metadata": {
+    "messages": 80,
+    "candidates": 33,
+    "verifiedItems": 2,
+    "wrongCollection": 31,
+    "assets": 2,
+    "sales": 2,
+    "pendingHistoricalUsd": 0,
+    "processedAt": "2026-09-30T10:18:25.906Z"
+  },
+  "assets": [
+    {
+      "assetKind": "username",
+      "assetKey": "0:81c34ecc2415eb030589fb7a0f7557e62f2de6ca30f2d9d2e12fe83e8e4a02ff",
+      "normalizedName": "milanobet",
+      "displayName": "@milanobet",
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "9L",
+      "feature": {
+        "characterLength": 9,
+        "characterClass": "letters",
+        "routes": [
+          "word"
+        ],
+        "patternSignature": "ABCDEFGHI",
+        "uniqueCharacterCount": 9,
+        "maxRunLength": 1,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-28T22:11:20.000Z"
+    },
+    {
+      "assetKind": "username",
+      "assetKey": "0:be124a4b6072822e7a43c703d799436813884a06f2f7b7a2cc600172440eabb9",
+      "normalizedName": "ffbbf",
+      "displayName": "@ffbbf",
+      "primaryRoute": "pattern",
+      "lengthBucket": "4-5",
+      "script": "Latin",
+      "scarcityClass": "5L",
+      "feature": {
+        "characterLength": 5,
+        "characterClass": "letters",
+        "routes": [
+          "pattern"
+        ],
+        "patternSignature": "AABBA",
+        "uniqueCharacterCount": 2,
+        "maxRunLength": 2,
+        "palindrome": false,
+        "sequence": null,
+        "containsUnderscore": false,
+        "wordHint": false
+      },
+      "sourceUpdatedAt": "2026-09-28T22:13:52.000Z"
+    }
+  ],
+  "sales": [
+    {
+      "saleId": "toncenter-username-sale:6a1caa77bb86091e04ed1d6487ca86db7e875a16adbfeecd0a936e5b28d858f9",
+      "assetKind": "username",
+      "assetKey": "0:81c34ecc2415eb030589fb7a0f7557e62f2de6ca30f2d9d2e12fe83e8e4a02ff",
+      "normalizedName": "milanobet",
+      "soldAt": "2026-09-28T22:11:20.000Z",
+      "priceGram": 777,
+      "historicalUsdRate": 1.5673841300821754,
+      "priceUsd": 1217.8574690738503,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "Ra218EhFdn07UFHosxSp0a5NoITL/AN2GpK3Ru81rDU=",
+        "messageHash": "1kbt+YlYzuWVrPspyDXCqB1J3XP9Gdoo6UvHEVttSU0=",
+        "bidAt": "2026-09-26T10:19:02.000Z"
+      },
+      "primaryRoute": "word",
+      "lengthBucket": "9-12",
+      "script": "Latin",
+      "scarcityClass": "9L"
+    },
+    {
+      "saleId": "toncenter-username-sale:576728f36cb13db4f7ce79ca882bdf2dc88c33685706255e01a6d84628e8c07d",
+      "assetKind": "username",
+      "assetKey": "0:be124a4b6072822e7a43c703d799436813884a06f2f7b7a2cc600172440eabb9",
+      "normalizedName": "ffbbf",
+      "soldAt": "2026-09-28T22:13:52.000Z",
+      "priceGram": 49,
+      "historicalUsdRate": 1.567293841296146,
+      "priceUsd": 76.79739822351115,
+      "marketplace": "Fragment",
+      "source": "toncenter-telemint-settlement",
+      "reliabilityScore": 1,
+      "qualityFlags": {
+        "verificationTier": "toncenter-telemint-bid-settlement",
+        "historicalUsdSource": "defillama",
+        "historicalUsdMethod": "linear-interpolation",
+        "txHash": "CsOCnWOli5qepnqxbEAsE5d/cH+tieRaLscScpmYo7I=",
+        "messageHash": "4ebkCv7+LeeK+7uLIL2On4QCeTC9fSuzYVkqHy8hskw=",
+        "bidAt": "2026-09-28T22:13:52.000Z"
+      },
+      "primaryRoute": "pattern",
+      "lengthBucket": "4-5",
+      "script": "Latin",
+      "scarcityClass": "5L"
+    }
+  ]
+}
