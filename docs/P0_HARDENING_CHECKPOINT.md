@@ -55,6 +55,11 @@ Current D1 access check: no PATH Wrangler and `npx --no-install` could not resol
 
 ## Off-device checkpoint
 
-User approved a reviewed checkpoint branch push to existing `vishal-raj26/TonTracker`; no main merge. Preparing a separate-index source checkpoint so the user's active branch/index/dirty work are preserved. Candidate review excludes credentials/session/runtime/skill/graph directories and root `.codex-*` evaluation dumps; original local backup preserves eligible research/source artifacts. Pattern scans found no unresolved credential matches; this is not a credential-rotation or exhaustive security certification. Push evidence will be added after remote SHA verification.
+User approved a reviewed checkpoint branch push to existing `vishal-raj26/TonTracker`; no main merge. **Source checkpoint pushed and verified:** branch `codex/p0-hardening-checkpoint-20261029`, source commit `c7bea7f48ae4918d545acf37a242be5ef006fc4c`, confirmed by `git ls-remote`. A documentation-only follow-up records this receipt on the same branch.
+
+- Separate-index checkpoint contains4,237 paths; active branch stays `codex/chart-platform-rebuild`, original HEAD stays `5d1562ae3d8692cb7409f18b3cb5f5e217817bca`, staging index hash unchanged. Existing dirty files remain intact. No main merge, deployment or PR was created.
+- Candidate review excludes credentials/session/runtime/skill/graph directories and root `.codex-*` evaluation dumps; original local backup preserves eligible research/source artifacts. Pattern scans found no unresolved credential matches; the credential-URL match in `scripts/start-active-local.js` was verified as environment-variable interpolation. This is not credential rotation or an exhaustive security certification.
+- GitHub accepted the push with large-file advisory warnings for existing research datasets57–87MB. These are retained preservation artifacts, not changes to application dependencies or production services.
+- Final HTTP/document smoke: all8 versioned JS/CSS markers match active source; health200, private source403, both CSS200, TonConnect manifest200; no preview header. All10 generated source fingerprints match, all5 stylesheet outputs match, and checked handover links have zero broken local targets.
 
 Plan: `docs/superpowers/plans/2026-10-29-p0-hardening.md`. Reviewer task is read-only. Other agents finished static/build edits; do not redo them or overwrite unrelated preexisting work.
