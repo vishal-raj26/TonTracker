@@ -8,6 +8,7 @@ const {
   createFragmentUsernameSource,
   liveCursor,
   parseCurrentCompletedSale,
+  parseActiveAuctionRows,
   parseCurrentOwner,
   parseOwnershipHistory,
   parseSearchRows,
@@ -43,6 +44,12 @@ test("parses finalized Fragment search rows into stable sale identities", () => 
   assert.equal(rows[0].isFinalized, true);
   assert.equal(rows[0].verified, false);
   assert.match(rows[0].eventId, /^fragment-sale:[0-9a-f]{64}$/);
+});
+
+test("parses active auctions as expiring market state, never completed sales", () => {
+  const html = `<table><tr class="tm-row-selectable"><a href="/username/Rare">@rare</a>
+    <div class="icon-ton">1,250</div><time datetime="2026-09-19T20:00:00Z">ends</time></tr></table>`;
+  assert.deepEqual(parseActiveAuctionRows(html), [{username:"rare",minimumBidGram:1250,endTime:"2026-09-19T20:00:00.000Z",source:"fragment-active-auction-search"}]);
 });
 
 test("ownership history stores sales and ignores transfers", () => {

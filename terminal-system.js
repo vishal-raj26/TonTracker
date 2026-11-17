@@ -1,4 +1,7 @@
 (() => {
+  // The portfolio product system uses accessible, tabular text values instead
+  // of decorative LED DOM trees. Keep the legacy renderer for older embeds.
+  if (document.body.classList.contains("portfolio-system") || document.body.classList.contains("reference-ui")) return;
   const GLYPHS = {
     "A":["01110","10001","10001","11111","10001","10001","10001"],"B":["11110","10001","10001","11110","10001","10001","11110"],"C":["01111","10000","10000","10000","10000","10000","01111"],"D":["11110","10001","10001","10001","10001","10001","11110"],
     "E":["11111","10000","10000","11110","10000","10000","11111"],"F":["11111","10000","10000","11110","10000","10000","10000"],"G":["01111","10000","10000","10111","10001","10001","01111"],"H":["10001","10001","10001","11111","10001","10001","10001"],
@@ -13,21 +16,19 @@
     "$ ":["00100","01111","10100","01110","00101","11110","00100"],"$":["00100","01111","10100","01110","00101","11110","00100"],"%":["11001","11010","00100","01000","10110","00110","00000"],"+":["000","010","010","111","010","010","000"],"-":["000","000","000","111","000","000","000"],".":["0","0","0","0","0","0","1"],",":["0","0","0","0","0","1","1"],":":["0","1","0","0","1","0","0"],"/":["00001","00010","00010","00100","01000","01000","10000"]," ":["00","00","00","00","00","00","00"]
   };
 
-  const TITLE_SELECTORS = [
-    '[data-screen="assets"] .assets-header h1',
-    '[data-screen="tokens"] .page-header h1',
-    '[data-screen="gifts"] .page-header h1',
-    '[data-screen="stickers"] .page-header h1',
-    '[data-screen="dns"] .page-header h1',
-    '[data-screen="anonymous-numbers"] .page-header h1'
-  ];
+  // Page titles use the shared application type system. Dot-matrix rendering is
+  // reserved for headline portfolio measurements, matching the Home screen.
+  const TITLE_SELECTORS = [];
   const VALUE_SELECTORS = [
     '[data-screen="home"] .graph-head h1',
+    '[data-screen="analytics"] #analyticsPortfolioValue',
+    '[data-screen="analytics"] .graph-head h1',
     '[data-screen="tokens"] .summary-card h2',
     '[data-screen="gifts"] .asset-total-banner h2',
     '[data-screen="stickers"] .asset-total-banner h2',
     '[data-screen="dns"] .identity-summary-card h2',
-    '[data-screen="anonymous-numbers"] .identity-summary-card h2'
+    '[data-screen="anonymous-numbers"] .identity-summary-card h2',
+    '[data-screen="usernames"] .identity-summary-card h2'
   ];
   function sourceText(element) {
     if (!element) return "";
@@ -39,6 +40,13 @@
   function render(element, variant) {
     const raw = sourceText(element);
     const text = raw.toUpperCase();
+    if (variant === 'value' && !/[0-9]/.test(text)) {
+      element.classList.remove('dot-matrix-text', 'dot-matrix-value');
+      delete element.dataset.dotText;
+      element.removeAttribute('aria-label');
+      element.textContent = raw;
+      return;
+    }
     if (!text || (element.dataset.dotText === text && element.querySelector('.dot-matrix-character'))) return;
     element.dataset.dotText = text;
     element.setAttribute('aria-label', raw);

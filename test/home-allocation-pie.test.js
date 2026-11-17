@@ -1,0 +1,26 @@
+const test = require('node:test');
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const vm = require('node:vm');
+const source = fs.readFileSync(require('node:path').join(__dirname,'..','app.js'),'utf8');
+test('Home pie uses priced values, keeps unpriced ownership honest and retains category routes', () => {
+  const label = {};
+  const pie = { style: {}, querySelector: () => label, setAttribute(k,v) { this[k] = v; } };
+  const legend = { innerHTML: '' };
+  const note = { replaceChildren(v) { this.text = v; } };
+  const c = vm.createContext({ document: {getElementById: id => ({homeAllocationPie:pie,homeAllocationLegend:legend,homeAllocationNote:note})[id]}, isSectionLoading: () => false, allocationShareLabel: (value,total) => `${Math.round(value/total*100)}%` });
+  vm.runInContext(source.slice(source.indexOf('function renderHomeAssetBrowser('),source.indexOf('function updateCategoryAndTopAsset(')),c);
+  c.renderHomeAssetBrowser([2,3,1,0,0,0],[75,25,0,0,0,0]);
+  assert.match(pie.style.background, /#2e79ff 0deg 270deg/);
+  assert.match(pie.style.background, /#68d69d 270deg 360deg/);
+  assert.doesNotMatch(pie.style.background, /#d6bd68/);
+  assert.match(legend.innerHTML, /data-screen-target="stickers"[\s\S]*?Unpriced/);
+  assert.match(pie['aria-label'], /Gifts 75%, Tokens 25%/);
+  assert.match(note.text, /Unpriced holdings are excluded/);
+  c.renderHomeAssetBrowser([2,0,0,0,0,0],[0,0,0,0,0,0]);
+  assert.equal(pie.style.background, 'var(--product-line)');
+  assert.equal(label.textContent, 'No prices yet');
+  c.renderHomeAssetBrowser([0,0,0,0,0,0],[0,0,0,0,0,0]);
+  assert.equal(legend.innerHTML, '');
+  assert.match(note.text, /prices are available/);
+});

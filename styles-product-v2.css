@@ -19,7 +19,7 @@
     var(--product-bg);
 }
 
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] {
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) {
   position: relative;
   isolation: isolate;
   padding: max(18px, env(safe-area-inset-top)) 16px calc(118px + env(safe-area-inset-bottom));
@@ -27,7 +27,7 @@
   overflow: hidden;
 }
 
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]::before {
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned])::before {
   content: "";
   position: absolute;
   z-index: -1;
@@ -42,37 +42,37 @@
   animation: home-ambient-drift 14s ease-in-out infinite alternate;
 }
 
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .app-header {
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .app-header {
   min-height: 48px;
   margin-bottom: 22px;
 }
 
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .identity {
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .identity {
   min-width: 0;
   gap: 9px;
   border-radius: 12px;
 }
 
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .identity-mark,
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .identity-mark svg {
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .identity-mark,
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .identity-mark svg {
   width: 32px;
   height: 32px;
 }
 
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .identity-mark .tontrack-brand-mark {
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .identity-mark .tontrack-brand-mark {
   width: 30px;
   height: 30px;
   color: var(--product-text);
 }
 
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .identity b {
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .identity b {
   color: var(--product-text);
   font-size: 16px;
   line-height: 1.1;
   letter-spacing: -0.035em;
 }
 
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .identity small {
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .identity small {
   margin-top: 3px;
   color: var(--product-muted);
   font-size: 10px;
@@ -80,7 +80,7 @@
   letter-spacing: 0;
 }
 
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .wallet-chip {
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .wallet-chip {
   min-width: 104px;
   height: 44px;
   padding: 0 14px;
@@ -92,13 +92,13 @@
   transition: background-color 160ms ease, border-color 160ms ease, transform 140ms ease;
 }
 
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .wallet-chip.is-connected {
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .wallet-chip.is-connected {
   border-color: rgba(104, 214, 157, 0.32);
   background: rgba(104, 214, 157, 0.075) !important;
   color: #9be7bc;
 }
 
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .graph-card {
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .graph-card {
   position: relative;
   padding: 19px 16px 14px;
   border: 1px solid var(--product-line);
@@ -110,14 +110,14 @@
   overflow: hidden;
 }
 
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .portfolio-kicker,
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .portfolio-source,
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .portfolio-chart-footer {
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .portfolio-kicker,
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .portfolio-source,
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .portfolio-chart-footer {
   display: flex;
   align-items: center;
 }
 
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .portfolio-kicker {
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .portfolio-kicker {
   justify-content: space-between;
   gap: 10px;
   margin-bottom: 20px;
@@ -128,28 +128,28 @@
   text-transform: uppercase;
 }
 
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .portfolio-source {
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .portfolio-source {
   gap: 5px;
   color: var(--product-muted);
   letter-spacing: 0.04em;
 }
 
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .portfolio-source svg {
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .portfolio-source svg {
   width: 12px;
   height: 12px;
 }
 
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .graph-head {
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .graph-head {
   justify-content: flex-start;
 }
 
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .graph-head p {
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .graph-head p {
   color: var(--product-muted);
   font-size: 11px;
   font-weight: 650;
 }
 
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .graph-head h1 {
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .graph-head h1 {
   margin-top: 7px;
   color: var(--product-text);
   font-size: clamp(40px, 12vw, 50px);
@@ -158,11 +158,11 @@
   font-variant-numeric: tabular-nums lining-nums;
 }
 
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .portfolio-actions-row {
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .portfolio-actions-row {
   margin-top: 11px;
 }
 
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .portfolio-actions-row > span {
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .portfolio-actions-row > span {
   position: relative;
   padding: 0 0 0 12px;
   border-radius: 0;
@@ -173,7 +173,7 @@
   font-variant-numeric: tabular-nums;
 }
 
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .portfolio-actions-row > span::before {
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .portfolio-actions-row > span::before {
   content: "";
   position: absolute;
   left: 0;
@@ -186,12 +186,12 @@
   box-shadow: 0 0 14px currentColor;
 }
 
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .portfolio-actions-row > span.negative {
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .portfolio-actions-row > span.negative {
   background: transparent;
   color: #ff8b8b;
 }
 
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .refresh-button {
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .refresh-button {
   width: 44px;
   height: 44px;
   margin: -10px -8px -10px 0;
@@ -201,25 +201,25 @@
   transition: color 160ms ease, transform 140ms ease, background-color 160ms ease;
 }
 
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .value-graph {
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .value-graph {
   position: relative;
   height: 192px;
   margin: 10px -4px 0;
   touch-action: none;
 }
 
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .value-graph canvas {
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .value-graph canvas {
   width: 100%;
   height: 192px;
   opacity: 0;
   transition: opacity 220ms ease;
 }
 
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .graph-card.is-history-ready .value-graph canvas {
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .graph-card.is-history-ready .value-graph canvas {
   opacity: 1;
 }
 
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .portfolio-chart-state {
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .portfolio-chart-state {
   position: absolute;
   inset: 12px 8px 8px;
   display: flex;
@@ -229,11 +229,11 @@
   text-align: left;
 }
 
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .portfolio-chart-state[hidden] {
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .portfolio-chart-state[hidden] {
   display: none !important;
 }
 
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .portfolio-chart-state-mark {
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .portfolio-chart-state-mark {
   width: 42px;
   height: 42px;
   display: grid;
@@ -245,23 +245,23 @@
   color: var(--product-soft);
 }
 
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .portfolio-chart-state-mark svg {
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .portfolio-chart-state-mark svg {
   width: 19px;
   height: 19px;
 }
 
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .portfolio-chart-state b,
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .portfolio-chart-state small {
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .portfolio-chart-state b,
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .portfolio-chart-state small {
   display: block;
 }
 
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .portfolio-chart-state b {
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .portfolio-chart-state b {
   color: var(--product-text);
   font-size: 13px;
   letter-spacing: -0.02em;
 }
 
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .portfolio-chart-state small {
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .portfolio-chart-state small {
   max-width: 196px;
   margin-top: 4px;
   color: var(--product-muted);
@@ -269,11 +269,11 @@
   line-height: 1.45;
 }
 
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .graph-card.is-history-loading .portfolio-chart-state-mark {
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .graph-card.is-history-loading .portfolio-chart-state-mark {
   animation: history-state-breathe 1.45s ease-in-out infinite;
 }
 
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .portfolio-chart-footer {
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .portfolio-chart-footer {
   justify-content: space-between;
   gap: 12px;
   min-height: 42px;
@@ -281,7 +281,7 @@
   border-top: 1px solid rgba(255, 255, 255, 0.07);
 }
 
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .range-selector {
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .range-selector {
   grid-template-columns: repeat(3, 44px);
   width: auto;
   margin: 0;
@@ -290,19 +290,19 @@
   background: rgba(255, 255, 255, 0.035);
 }
 
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .range-selector button {
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .range-selector button {
   min-height: 36px;
   color: #7f7f7a;
   font-size: 10px;
   transition: color 160ms ease, background-color 160ms ease, transform 140ms ease;
 }
 
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .range-selector button.is-active {
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .range-selector button.is-active {
   background: #f3f3f0;
   color: #080808;
 }
 
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .graph-updated {
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .graph-updated {
   max-width: 132px;
   margin: 0;
   color: #777772;
@@ -312,7 +312,7 @@
   text-align: right;
 }
 
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .allocation-card {
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .allocation-card {
   margin-top: 18px;
   padding: 16px;
   border: 1px solid var(--product-line);
@@ -321,16 +321,16 @@
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025);
 }
 
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .section-heading {
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .section-heading {
   min-height: 36px;
   margin-bottom: 16px;
 }
 
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .section-heading > div {
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .section-heading > div {
   min-width: 0;
 }
 
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .section-eyebrow {
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .section-eyebrow {
   margin: 0 0 4px;
   color: #74746f;
   font-size: 8px;
@@ -340,45 +340,45 @@
   text-transform: uppercase;
 }
 
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .section-heading h2 {
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .section-heading h2 {
   color: var(--product-text);
   font-size: 18px;
   letter-spacing: -0.035em;
 }
 
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .section-heading > small {
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .section-heading > small {
   color: #777772;
   font-size: 9px;
   font-weight: 650;
 }
 
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .donut-layout {
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .donut-layout {
   grid-template-columns: 114px minmax(0, 1fr);
   gap: 18px;
 }
 
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .donut-chart,
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .donut-chart canvas {
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .donut-chart,
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .donut-chart canvas {
   width: 114px !important;
   height: 114px !important;
 }
 
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .donut-chart {
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .donut-chart {
   outline: none;
   transition: transform 160ms ease;
 }
 
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .donut-chart span {
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .donut-chart span {
   color: var(--product-text);
   font-size: 13px;
   font-variant-numeric: tabular-nums;
 }
 
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .allocation-list {
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .allocation-list {
   gap: 2px;
 }
 
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .allocation-list article {
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .allocation-list article {
   min-height: 44px;
   gap: 9px;
   padding: 5px 6px;
@@ -387,43 +387,43 @@
   transition: background-color 160ms ease, opacity 160ms ease, transform 140ms ease;
 }
 
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .allocation-list b {
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .allocation-list b {
   color: var(--product-text);
   font-size: 11px;
 }
 
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .allocation-list small,
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .allocation-list strong {
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .allocation-list small,
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .allocation-list strong {
   color: var(--product-muted);
   font-size: 9px;
   font-variant-numeric: tabular-nums;
 }
 
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .legend-pill {
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .legend-pill {
   width: 18px;
   height: 5px;
 }
 
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .home-section,
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .activity-panel {
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .home-section,
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .activity-panel {
   margin-top: 24px;
 }
 
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .movement-panel {
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .movement-panel {
   padding: 0;
 }
 
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .movement-panel .section-heading {
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .movement-panel .section-heading {
   margin-bottom: 11px;
   padding: 0 2px;
 }
 
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .performer-row {
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .performer-row {
   gap: 10px;
   margin-top: 0;
 }
 
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .performer-row article {
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .performer-row article {
   min-height: 132px;
   padding: 14px;
   border-color: var(--product-line);
@@ -433,7 +433,7 @@
   transition: border-color 160ms ease, background-color 160ms ease, transform 140ms ease;
 }
 
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .performer-row article::before {
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .performer-row article::before {
   inset: auto 14px 12px;
   height: 2px;
   opacity: 0.72;
@@ -442,11 +442,11 @@
   transform: none;
 }
 
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .performer-row article:nth-child(2)::before {
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .performer-row article:nth-child(2)::before {
   background: linear-gradient(90deg, rgba(255, 118, 118, 0.9), rgba(255, 118, 118, 0.08));
 }
 
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .performer-row small {
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .performer-row small {
   color: #777772;
   font-size: 9px;
   font-weight: 750;
@@ -454,46 +454,46 @@
   text-transform: uppercase;
 }
 
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .performer-asset-line {
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .performer-asset-line {
   gap: 8px;
   margin-top: 12px;
 }
 
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .performer-asset-line img,
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .performer-asset-line em {
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .performer-asset-line img,
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .performer-asset-line em {
   width: 28px;
   height: 28px;
   flex-basis: 28px;
 }
 
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .performer-asset-line b,
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .performer-row > article > b {
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .performer-asset-line b,
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .performer-row > article > b {
   color: var(--product-text);
   font-size: 13px;
   letter-spacing: -0.02em;
 }
 
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .performer-row strong {
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .performer-row strong {
   margin-top: 10px;
   padding-bottom: 13px;
   font-size: 18px;
   font-variant-numeric: tabular-nums;
 }
 
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .activity-panel {
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .activity-panel {
   padding: 0;
   border: 0;
   border-radius: 0;
   background: transparent;
 }
 
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .activity-panel .section-heading {
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .activity-panel .section-heading {
   margin-bottom: 5px;
   padding: 0 2px 10px;
   border-bottom: 1px solid var(--product-line);
 }
 
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .text-action {
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .text-action {
   min-width: 52px;
   min-height: 44px;
   margin: -5px -8px -5px 0;
@@ -503,48 +503,48 @@
   transition: color 160ms ease, background-color 160ms ease, transform 140ms ease;
 }
 
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .activity-row {
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .activity-row {
   min-height: 66px;
   gap: 11px;
   padding: 11px 2px;
   border-bottom-color: var(--product-line);
 }
 
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .activity-row > div {
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .activity-row > div {
   flex: 1;
   min-width: 0;
 }
 
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .activity-row b,
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .activity-row small {
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .activity-row b,
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .activity-row small {
   display: block;
 }
 
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .activity-row b {
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .activity-row b {
   color: var(--product-text);
   font-size: 12px;
   letter-spacing: -0.015em;
 }
 
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .activity-row small {
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .activity-row small {
   margin-top: 3px;
   color: #777772;
   font-size: 9px;
 }
 
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .activity-row aside {
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .activity-row aside {
   min-width: 86px;
   margin-left: auto;
   text-align: right;
 }
 
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .activity-row strong {
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .activity-row strong {
   display: block;
   font-size: 11px;
   font-variant-numeric: tabular-nums;
 }
 
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .activity-dot {
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .activity-dot {
   width: 42px;
   height: 42px;
   border: 1px solid rgba(255, 255, 255, 0.07);
@@ -585,42 +585,42 @@
   color: #080808;
 }
 
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"].home-ready > .app-header,
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"].home-ready > .graph-card,
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"].home-ready > .allocation-card,
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"].home-ready > .movement-panel,
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"].home-ready > .activity-panel {
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]).home-ready > .app-header,
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]).home-ready > .graph-card,
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]).home-ready > .allocation-card,
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]).home-ready > .movement-panel,
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]).home-ready > .activity-panel {
   animation: home-section-enter 380ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"].home-ready > .graph-card { animation-delay: 35ms; }
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"].home-ready > .allocation-card { animation-delay: 70ms; }
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"].home-ready > .movement-panel { animation-delay: 105ms; }
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"].home-ready > .activity-panel { animation-delay: 140ms; }
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]).home-ready > .graph-card { animation-delay: 35ms; }
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]).home-ready > .allocation-card { animation-delay: 70ms; }
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]).home-ready > .movement-panel { animation-delay: 105ms; }
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]).home-ready > .activity-panel { animation-delay: 140ms; }
 
 @media (hover: hover) {
-  .app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .wallet-chip:hover,
-  .app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .refresh-button:hover,
-  .app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .text-action:hover,
-  .app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .allocation-list article:hover,
-  .app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .performer-row article:hover,
+  .app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .wallet-chip:hover,
+  .app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .refresh-button:hover,
+  .app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .text-action:hover,
+  .app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .allocation-list article:hover,
+  .app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .performer-row article:hover,
   .app-frame:is(.has-wallet, .is-home-screen) .dock button:hover {
     border-color: var(--product-line-strong);
     background-color: rgba(255, 255, 255, 0.075);
   }
 }
 
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .wallet-chip:active,
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .refresh-button:active,
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .text-action:active,
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .allocation-list article:active,
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .donut-chart:active,
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .performer-row article:active,
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .wallet-chip:active,
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .refresh-button:active,
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .text-action:active,
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .allocation-list article:active,
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .donut-chart:active,
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .performer-row article:active,
 .app-frame:is(.has-wallet, .is-home-screen) .dock button:active {
   transform: scale(0.97);
 }
 
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] :is(button, [role="button"]):focus-visible,
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) :is(button, [role="button"]):focus-visible,
 .app-frame:is(.has-wallet, .is-home-screen) .dock button:focus-visible {
   outline: 2px solid rgba(255, 255, 255, 0.9);
   outline-offset: 2px;
@@ -654,20 +654,20 @@
 }
 
 /* Shape pass: softer product cards and a tighter floating dock. */
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] {
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) {
   --product-card-radius: 26px;
   --product-control-radius: 18px;
 }
 
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .graph-card,
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .allocation-card,
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .performer-row article {
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .graph-card,
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .allocation-card,
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .performer-row article {
   border-radius: var(--product-card-radius);
 }
 
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .identity,
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .wallet-chip,
-.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .activity-dot {
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .identity,
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .wallet-chip,
+.app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .activity-dot {
   border-radius: var(--product-control-radius);
 }
 
@@ -688,49 +688,49 @@
 }
 
 @media (max-width: 350px) {
-  .app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .graph-head h1 {
+  .app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .graph-head h1 {
     font-size: 38px;
   }
 
-  .app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .portfolio-chart-footer {
+  .app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .portfolio-chart-footer {
     align-items: flex-end;
     flex-direction: column;
   }
 
-  .app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .graph-updated {
+  .app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .graph-updated {
     max-width: none;
     text-align: left;
     align-self: stretch;
   }
 
-  .app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .donut-layout {
+  .app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .donut-layout {
     grid-template-columns: 96px minmax(0, 1fr);
     gap: 12px;
   }
 
-  .app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .donut-chart,
-  .app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .donut-chart canvas {
+  .app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .donut-chart,
+  .app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .donut-chart canvas {
     width: 96px !important;
     height: 96px !important;
   }
 
-  .app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .performer-row {
+  .app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .performer-row {
     grid-template-columns: 1fr;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]::before,
-  .app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] .portfolio-chart-state-mark,
-  .app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"].home-ready > .app-header,
-  .app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"].home-ready > .graph-card,
-  .app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"].home-ready > .allocation-card,
-  .app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"].home-ready > .movement-panel,
-  .app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"].home-ready > .activity-panel {
+  .app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned])::before,
+  .app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) .portfolio-chart-state-mark,
+  .app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]).home-ready > .app-header,
+  .app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]).home-ready > .graph-card,
+  .app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]).home-ready > .allocation-card,
+  .app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]).home-ready > .movement-panel,
+  .app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]).home-ready > .activity-panel {
     animation: none !important;
   }
 
-  .app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"] *,
+  .app-frame:is(.has-wallet, .is-home-screen) [data-screen="home"]:not([data-ref-owned]) *,
   .app-frame:is(.has-wallet, .is-home-screen) .dock * {
     scroll-behavior: auto !important;
     transition-duration: 1ms !important;

@@ -81,6 +81,12 @@ async function runRefreshCycle(force = false) {
   });
   try {
     const result = await baselineModule.refreshKind(nextKind, { aggregateSource: true, writeExactValuations: false });
+    if (result.status === 'partial') {
+      await checkpointLedger.writeState(REFRESH_PIPELINE_KEY, { phase: 'pending', nextKind }, {
+        status: 'partial', startedAt, nextKind, preparationPhase: result.phase, preparationReason: result.reason,
+      });
+      return { ok: true, partial: true, pipeline: REFRESH_PIPELINE_KEY, pending: nextKind, preparation: result };
+    }
     const lastCompleted = new Date().toISOString();
     if (nextKind === "username") {
       await checkpointLedger.writeState(REFRESH_PIPELINE_KEY, { phase: "pending", nextKind: "dns", usernameCompletedAt: lastCompleted }, {

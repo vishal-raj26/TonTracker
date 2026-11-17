@@ -4,6 +4,7 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
 const test = require("node:test");
+const vm = require("node:vm");
 const { LogHistogram, canonicalSale, exactValuation, groupKey } = require("../scripts/refresh-identity-baselines");
 const { trainUsernameLearnedModel } = require("../lib/username-learned-model");
 const { createValuationLedgerClient } = require("../lib/valuation-ledger-client");
@@ -15,6 +16,31 @@ test("compact schema keeps normalized evidence and excludes raw payload columns"
   assert.match(sql, /CREATE INDEX IF NOT EXISTS identity_sales_comparable_idx/);
   assert.doesNotMatch(sql, /identity_sales[\s\S]*raw_payload_json/);
   assert.match(sql, /max_sales INTEGER NOT NULL DEFAULT 2000000/);
+});
+
+test("valuation reads expose only verified unexpired identity market state",()=>{
+  const source=fs.readFileSync(path.join(__dirname,"..","cloudflare","gift-registry-worker.mjs"),"utf8");
+  assert.match(source,/LEFT JOIN identity_current_market cm/);
+  assert.match(source,/cm\.verified=1[\s\S]*unixepoch\(cm\.stale_at\)>unixepoch\(\)/);
+  assert.match(source,/freshMarket \? row\.live_bid_gram/);
+});
+
+test("username projection never revives expired persisted bids and carries live expiry proof", () => {
+  const source = fs.readFileSync(path.join(__dirname, "..", "cloudflare", "gift-registry-worker.mjs"), "utf8");
+  const fn = source.slice(source.indexOf("function valuationRecord("), source.indexOf("async function readValuationRecords("));
+  const sandbox = {};
+  vm.runInNewContext(fn, sandbox);
+  const row = { asset_kind: "username", current_bid_gram: 500, current_listing_gram: 600,
+    live_bid_gram: 100, live_listing_gram: 200, live_marketplace: "Fragment",
+    live_observed_at: new Date(Date.now() - 1000).toISOString(), live_stale_at: new Date(Date.now() + 60000).toISOString() };
+  assert.equal(sandbox.valuationRecord(row).currentBidGram, 0);
+  assert.equal(sandbox.valuationRecord(row).currentListingGram, 0);
+  const live = sandbox.valuationRecord({ ...row, market_state_fresh: 1 });
+  assert.equal(live.currentBidGram, 100);
+  assert.equal(live.currentMarket.verified, true);
+  assert.equal(live.currentMarket.staleAt, row.live_stale_at);
+  assert.equal(sandbox.valuationRecord({ ...row, asset_kind: "dns" }).currentBidGram, 500,
+    "username correction must not change the DNS contract");
 });
 
 test("bounded histogram uses every observation without retaining sale objects", () => {
@@ -44,17 +70,19 @@ test("saved comparable explanations are capped while evidence count remains comp
   const valuation = exactValuation("username", "fragment-index:kick", {
     name: "kick",
     count: 47,
+    events: Array.from({ length: 47 }, (_, index) => ({ username: "kick", eventType: "sale", paymentAsset: "TON", priceUsd: 1462,
+      eventTime: new Date(Date.now() - (index + 1) * 86400000).toISOString() })),
     histogram,
     lastSoldAt: Math.floor(Date.now() / 1000),
   });
   assert.equal(valuation.evidenceCount, 47);
-  assert.equal(valuation.explanation.displayedComparableCount, 20);
+  assert.equal(valuation.explanation.displayedComparableCount, 8);
   assert.equal(valuation.confidenceBand, "high");
   assert.ok(Math.abs(valuation.estimateUsd - 1462) < 20);
   assert.equal(groupKey("route", "word"), "route|word|*|*|*");
 });
 
-test("precomputed username valuations cannot blend below the latest exact sale", () => {
+test("precomputed username valuations preserve own history through the shared evidence engine", () => {
   const nowMs = Date.now();
   const learnedModel = trainUsernameLearnedModel(Array.from({ length: 40 }, (_, index) => ({
     username: `ordinaryname${index}`, eventType: "sale", finalized: true,
@@ -68,6 +96,7 @@ test("precomputed username valuations cannot blend below the latest exact sale",
     lastSoldAt: Math.floor((nowMs - 400 * 86_400_000) / 1000),
   }, { learnedModel });
   assert.ok(valuation.estimateUsd >= 1_700);
+  assert.equal(valuation.explanation.lastSaleAnchor.priceUsd, 1700);
 });
 
 test("a single finalized sale remains visible but cannot enter the portfolio total", () => {

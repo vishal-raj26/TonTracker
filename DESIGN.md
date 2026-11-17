@@ -292,16 +292,27 @@ Order:
 
 1. Compact identity/header with wallet/source action.
 2. Portfolio value lockup with 24h delta and freshness.
-3. Portfolio history directly beneath the value.
-4. Allocation summary.
-5. Best and weakest performers.
-6. Recent activity with a route to the complete timeline.
+3. Portfolio history directly beneath the value once two real snapshots exist.
+4. Continuously moving `Featured assets` ribbon, ranked from verified or explicitly estimated wallet holdings across every supported asset category.
+5. Allocation summary.
+6. Best and weakest performers.
+7. Recent activity with a route to the complete timeline.
 
 History-first state:
 
 - When fewer than two snapshots exist, do not draw a fake line.
-- Show a calm `History starts here` state with the first saved point, snapshot time, and a short explanation that the chart builds automatically.
-- Replace the state with the chart without changing the panel height once enough points exist.
+- Hide the chart, range controls, placeholder, and their reserved height entirely. The featured ribbon sits directly below the portfolio value on this first-day state.
+- Reveal the history chart as soon as two real points exist. The featured ribbon then follows the chart and remains above Allocation.
+
+Featured-assets rules:
+
+- Build candidates only from the canonical in-memory wallet collections already used by Assets and their detail routes: tokens, Telegram Gifts, stickers, TON DNS, and Anonymous Numbers.
+- Require a positive verified value or an existing value explicitly marked by the pricing pipeline as estimated. Never fabricate a value for the ribbon.
+- Rank deterministically by price confidence, wallet value, 24h movement, and rarity, then interleave categories so one large category cannot monopolize the ribbon.
+- Keep the DOM bounded to the strongest 18 candidates for smooth mobile motion. Repeated visual copies exist only to make the loop seamless and are excluded from assistive technology.
+- Tapping an item must use the existing asset-detail route and identifier. The ribbon must not introduce a new detail or pricing path.
+- The moving track is edge-to-edge with no left or right padding; its heading remains aligned to the Home content gutter.
+- The track moves continuously at a restrained constant speed, pauses for direct interaction, and becomes a user-scrollable row when reduced motion is enabled.
 
 Home removes repeated totals, decorative sample activity, and any block that does not help a decision. Connecting an additional TON wallet remains available from the header/source control and continues in the background.
 
@@ -544,4 +555,3 @@ Primary references:
 - MDN: View Transition API
 - MDN: CSS container queries
 - MDN: `content-visibility` and CSS containment
-

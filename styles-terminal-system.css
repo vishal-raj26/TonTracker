@@ -1,11 +1,11 @@
 /* TonTrack terminal gallery - phase 1: Home and the complete Assets hierarchy. */
 .app-frame{--terminal-bg:#050505;--terminal-surface:#090909;--terminal-surface-2:#0d0d0d;--terminal-line:rgba(255,255,255,.13);--terminal-line-strong:rgba(255,255,255,.22);--terminal-ink:#f4f4ef;--terminal-soft:#aaa9a4;--terminal-muted:#74746f;--terminal-positive:#49d477;--terminal-negative:#ff555d;--terminal-mono:"Roboto Mono","SFMono-Regular",Consolas,monospace}
-.app-frame :is([data-screen="home"],[data-screen="assets"],[data-screen="tokens"],[data-screen="gifts"],[data-screen="gift-brand"],[data-screen="stickers"],[data-screen="sticker-brand"],[data-screen="detail"]){background:radial-gradient(circle at 88% -8%,rgba(255,255,255,.04),transparent 28%),var(--terminal-bg);color:var(--terminal-ink)}
-.app-frame :is([data-screen="home"],[data-screen="assets"],[data-screen="tokens"],[data-screen="gifts"],[data-screen="gift-brand"],[data-screen="stickers"],[data-screen="sticker-brand"],[data-screen="detail"])::before{content:none}
-.app-frame :is([data-screen="home"],[data-screen="assets"],[data-screen="tokens"],[data-screen="gifts"],[data-screen="gift-brand"],[data-screen="stickers"],[data-screen="sticker-brand"],[data-screen="detail"]) :is(.section-eyebrow,.graph-head p,.portfolio-strip small,.mini-detail-card .section-heading h2,.asset-total-banner>small,.summary-card>small,.control-bar label){color:var(--terminal-soft);font-family:var(--terminal-mono);font-size:10px;font-weight:500;letter-spacing:.085em;line-height:1.35;text-transform:uppercase}
+.app-frame :is([data-screen="home"]:not([data-ref-owned]),[data-screen="assets"],[data-screen="tokens"],[data-screen="gifts"],[data-screen="gift-brand"],[data-screen="stickers"],[data-screen="sticker-brand"],[data-screen="detail"]){background:radial-gradient(circle at 88% -8%,rgba(255,255,255,.04),transparent 28%),var(--terminal-bg);color:var(--terminal-ink)}
+.app-frame :is([data-screen="home"]:not([data-ref-owned]),[data-screen="assets"],[data-screen="tokens"],[data-screen="gifts"],[data-screen="gift-brand"],[data-screen="stickers"],[data-screen="sticker-brand"],[data-screen="detail"])::before{content:none}
+.app-frame :is([data-screen="home"]:not([data-ref-owned]),[data-screen="assets"],[data-screen="tokens"],[data-screen="gifts"],[data-screen="gift-brand"],[data-screen="stickers"],[data-screen="sticker-brand"],[data-screen="detail"]) :is(.section-eyebrow,.graph-head p,.portfolio-strip small,.mini-detail-card .section-heading h2,.asset-total-banner>small,.summary-card>small,.control-bar label){color:var(--terminal-soft);font-family:var(--terminal-mono);font-size:10px;font-weight:500;letter-spacing:.085em;line-height:1.35;text-transform:uppercase}
 
 /* True LED displays are reserved for identity and major measurements. */
-.app-frame :is([data-screen="home"],[data-screen="assets"],[data-screen="tokens"],[data-screen="gifts"],[data-screen="gift-brand"],[data-screen="stickers"],[data-screen="sticker-brand"]) .dot-matrix-text{display:flex!important;align-items:center;width:max-content;max-width:100%;color:transparent!important;font-size:0!important;line-height:0!important;text-shadow:none!important}
+.app-frame :is([data-screen="home"]:not([data-ref-owned]),[data-screen="assets"],[data-screen="tokens"],[data-screen="gifts"],[data-screen="gift-brand"],[data-screen="stickers"],[data-screen="sticker-brand"],[data-screen="detail"],[data-screen="analytics"]:not([data-ref-owned]),[data-screen="dns"],[data-screen="anonymous-numbers"],[data-screen="usernames"]) .dot-matrix-text{display:flex!important;flex-flow:row nowrap;align-items:center;width:max-content;max-width:100%;color:transparent!important;font-size:0!important;line-height:0!important;text-shadow:none!important}
 .app-frame .dot-matrix-character{display:grid;flex:0 0 auto;grid-template-columns:repeat(var(--dot-columns),var(--dot-size));grid-template-rows:repeat(7,var(--dot-size));gap:var(--dot-gap)}
 .app-frame .dot-matrix-led{display:block;width:var(--dot-size);height:var(--dot-size);border-radius:50%;background:rgba(244,244,239,.045)}
 .app-frame .dot-matrix-led.is-on{background:var(--terminal-ink);box-shadow:0 0 3px rgba(255,255,255,.3)}
@@ -20,26 +20,26 @@
 .app-frame :is([data-screen="tokens"],[data-screen="gifts"],[data-screen="gift-brand"],[data-screen="stickers"],[data-screen="sticker-brand"],[data-screen="detail"]) .page-header{position:sticky;top:0;z-index:18;margin:0;padding:calc(14px + env(safe-area-inset-top)) 18px 12px;border:0;border-bottom:1px solid var(--terminal-line);background:linear-gradient(180deg,rgba(5,5,5,.98) 72%,rgba(5,5,5,.84));box-shadow:none;backdrop-filter:blur(18px)}
 .app-frame :is([data-screen="tokens"],[data-screen="gifts"],[data-screen="gift-brand"],[data-screen="stickers"],[data-screen="sticker-brand"],[data-screen="detail"]) .page-header h1{font-size:20px;letter-spacing:-.04em}
 .app-frame :is([data-screen="tokens"],[data-screen="gifts"],[data-screen="gift-brand"],[data-screen="stickers"],[data-screen="sticker-brand"],[data-screen="detail"]) .icon-button{border:1px solid var(--terminal-line);border-radius:11px;background:#090909;color:var(--terminal-ink);box-shadow:none}
-.app-frame :is([data-screen="home"],[data-screen="assets"],[data-screen="tokens"],[data-screen="gifts"],[data-screen="gift-brand"],[data-screen="stickers"],[data-screen="sticker-brand"],[data-screen="detail"]) .positive{color:var(--terminal-positive)!important}
-.app-frame :is([data-screen="home"],[data-screen="assets"],[data-screen="tokens"],[data-screen="gifts"],[data-screen="gift-brand"],[data-screen="stickers"],[data-screen="sticker-brand"],[data-screen="detail"]) .negative{color:var(--terminal-negative)!important}
+.app-frame :is([data-screen="home"]:not([data-ref-owned]),[data-screen="assets"],[data-screen="tokens"],[data-screen="gifts"],[data-screen="gift-brand"],[data-screen="stickers"],[data-screen="sticker-brand"],[data-screen="detail"]) .positive{color:var(--terminal-positive)!important}
+.app-frame :is([data-screen="home"]:not([data-ref-owned]),[data-screen="assets"],[data-screen="tokens"],[data-screen="gifts"],[data-screen="gift-brand"],[data-screen="stickers"],[data-screen="sticker-brand"],[data-screen="detail"]) .negative{color:var(--terminal-negative)!important}
 
 /* Home: one continuous portfolio composition. */
-.app-frame [data-screen="home"]{padding-bottom:calc(116px + env(safe-area-inset-bottom))}
-.app-frame [data-screen="home"] :is(.app-header,.page-header){border:0;background:transparent;box-shadow:none}
-.app-frame [data-screen="home"] :is(.graph-card,.featured-collectibles,.allocation-card,.movement-panel,.activity-panel){margin-inline:18px;padding:22px 0;border:0;border-bottom:1px solid var(--terminal-line);border-radius:0;background:transparent;box-shadow:none}
-.app-frame [data-screen="home"] .graph-card{padding-top:16px}
-.app-frame [data-screen="home"] .graph-head h1{font-variant-numeric:tabular-nums}
-.app-frame [data-screen="home"] .value-graph{min-height:188px;margin-inline:-4px}
-.app-frame [data-screen="home"] .graph-card canvas{filter:grayscale(1) contrast(1.1)}
-.app-frame [data-screen="home"] .allocation-card canvas{filter:none}
-.app-frame [data-screen="home"] .allocation-list article{min-height:52px;padding:10px 0;border:0;border-bottom:1px solid var(--terminal-line);border-radius:0;background:transparent;transition:padding .2s ease,color .2s ease}
-.app-frame [data-screen="home"] .allocation-list article:hover{padding-left:5px}
-.app-frame [data-screen="home"] .allocation-list article:last-child{border-bottom:0}
-.app-frame [data-screen="home"] .allocation-list article[hidden]{display:none!important}
-.app-frame [data-screen="home"] .performer-row{gap:0;border-top:1px solid var(--terminal-line)}
-.app-frame [data-screen="home"] .performer-row article{padding:16px 12px;border:0;border-right:1px solid var(--terminal-line);border-radius:0;background:transparent;box-shadow:none}
-.app-frame [data-screen="home"] .performer-row article:last-child{border-right:0}
-.app-frame [data-screen="home"] .activity-row{padding:13px 0;border:0;border-bottom:1px solid var(--terminal-line);border-radius:0;background:transparent}
+.app-frame [data-screen="home"]:not([data-ref-owned]){padding-bottom:calc(116px + env(safe-area-inset-bottom))}
+.app-frame [data-screen="home"]:not([data-ref-owned]) :is(.app-header,.page-header){border:0;background:transparent;box-shadow:none}
+.app-frame [data-screen="home"]:not([data-ref-owned]) :is(.graph-card,.featured-collectibles,.allocation-card,.movement-panel,.activity-panel){margin-inline:18px;padding:22px 0;border:0;border-bottom:1px solid var(--terminal-line);border-radius:0;background:transparent;box-shadow:none}
+.app-frame [data-screen="home"]:not([data-ref-owned]) .graph-card{padding-top:16px}
+.app-frame [data-screen="home"]:not([data-ref-owned]) .graph-head h1{font-variant-numeric:tabular-nums}
+.app-frame [data-screen="home"]:not([data-ref-owned]) .value-graph{min-height:188px;margin-inline:-4px}
+.app-frame [data-screen="home"]:not([data-ref-owned]) .graph-card canvas{filter:grayscale(1) contrast(1.1)}
+.app-frame [data-screen="home"]:not([data-ref-owned]) .allocation-card canvas{filter:none}
+.app-frame [data-screen="home"]:not([data-ref-owned]) .allocation-list article{min-height:52px;padding:10px 0;border:0;border-bottom:1px solid var(--terminal-line);border-radius:0;background:transparent;transition:padding .2s ease,color .2s ease}
+.app-frame [data-screen="home"]:not([data-ref-owned]) .allocation-list article:hover{padding-left:5px}
+.app-frame [data-screen="home"]:not([data-ref-owned]) .allocation-list article:last-child{border-bottom:0}
+.app-frame [data-screen="home"]:not([data-ref-owned]) .allocation-list article[hidden]{display:none!important}
+.app-frame [data-screen="home"]:not([data-ref-owned]) .performer-row{gap:0;border-top:1px solid var(--terminal-line)}
+.app-frame [data-screen="home"]:not([data-ref-owned]) .performer-row article{padding:16px 12px;border:0;border-right:1px solid var(--terminal-line);border-radius:0;background:transparent;box-shadow:none}
+.app-frame [data-screen="home"]:not([data-ref-owned]) .performer-row article:last-child{border-right:0}
+.app-frame [data-screen="home"]:not([data-ref-owned]) .activity-row{padding:13px 0;border:0;border-bottom:1px solid var(--terminal-line);border-radius:0;background:transparent}
 
 /* Assets index: metrics and categories read like an instrument panel. */
 .app-frame [data-screen="assets"]{padding-bottom:calc(116px + env(safe-area-inset-bottom))}
@@ -66,9 +66,9 @@
 /* Shared shell alignment: avoid stacking screen padding with section margins. */
 .app-frame:is(.has-wallet,.is-home-screen) .dock{border-radius:999px}
 .app-frame:is(.has-wallet,.is-home-screen) .dock button{border-radius:999px}
-.app-frame [data-screen="home"],
+.app-frame [data-screen="home"]:not([data-ref-owned]),
 .app-frame [data-screen="assets"]{padding-inline:0}
-.app-frame [data-screen="home"] :is(.app-header,.page-header),
+.app-frame [data-screen="home"]:not([data-ref-owned]) :is(.app-header,.page-header),
 .app-frame [data-screen="assets"] :is(.assets-header,.page-header){padding-inline:18px}
 .app-frame [data-screen="assets"] .portfolio-strip,
 .app-frame [data-screen="assets"] .category-stack,
@@ -121,8 +121,8 @@
 .app-frame [data-screen="detail"] .financial-grid article{padding:16px;border:0;border-right:1px solid var(--terminal-line);border-bottom:1px solid var(--terminal-line);border-radius:0;background:transparent}
 
 /* Interaction and motion */
-.app-frame :is([data-screen="home"],[data-screen="assets"],[data-screen="tokens"],[data-screen="gifts"],[data-screen="gift-brand"],[data-screen="stickers"],[data-screen="sticker-brand"],[data-screen="detail"],[data-screen="analytics"],[data-screen="watchlist"],[data-screen="activity"],[data-screen="wallets"],[data-screen="settings"],[data-screen="dns"],[data-screen="anonymous-numbers"],[data-screen="usernames"]).is-active>*{animation:terminal-reveal .24s cubic-bezier(.22,.75,.25,1) both}
-.app-frame :is([data-screen="home"],[data-screen="assets"],[data-screen="tokens"],[data-screen="gifts"],[data-screen="gift-brand"],[data-screen="stickers"],[data-screen="sticker-brand"],[data-screen="detail"]) :is(button,[role="button"],article[data-screen-target]):focus-visible{outline:2px solid var(--terminal-ink);outline-offset:3px}
+.app-frame :is([data-screen="home"]:not([data-ref-owned]),[data-screen="assets"],[data-screen="tokens"],[data-screen="gifts"],[data-screen="gift-brand"],[data-screen="stickers"],[data-screen="sticker-brand"],[data-screen="detail"],[data-screen="analytics"]:not([data-ref-owned]),[data-screen="watchlist"],[data-screen="activity"],[data-screen="wallets"],[data-screen="settings"],[data-screen="dns"],[data-screen="anonymous-numbers"],[data-screen="usernames"]).is-active>*{animation:terminal-reveal .24s cubic-bezier(.22,.75,.25,1) both}
+.app-frame :is([data-screen="home"]:not([data-ref-owned]),[data-screen="assets"],[data-screen="tokens"],[data-screen="gifts"],[data-screen="gift-brand"],[data-screen="stickers"],[data-screen="sticker-brand"],[data-screen="detail"]) :is(button,[role="button"],article[data-screen-target]):focus-visible{outline:2px solid var(--terminal-ink);outline-offset:3px}
 @keyframes terminal-reveal{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 
 /* Shared dock remains the only prominent floating surface. */
@@ -132,8 +132,8 @@
 @media(max-width:359px){.app-frame .dot-matrix-title{--dot-size:1.85px;--dot-gap:1.05px}.app-frame .dot-matrix-value{--dot-size:2.4px;--dot-gap:1.25px}.app-frame .dot-matrix-compact{--dot-size:.95px;--dot-gap:.52px}.app-frame [data-screen="assets"] .category-stack article{grid-template-columns:30px minmax(0,1fr) 88px 12px}}
 
 /* Home owns the single screen gutter; the header must not add a second one. */
-.app-frame:is(.has-wallet,.is-home-screen) [data-screen="home"]{padding-inline:18px}
-.app-frame:is(.has-wallet,.is-home-screen) [data-screen="home"]>.app-header{padding-inline:0}
+.app-frame:is(.has-wallet,.is-home-screen) [data-screen="home"]:not([data-ref-owned]){padding-inline:18px}
+.app-frame:is(.has-wallet,.is-home-screen) [data-screen="home"]:not([data-ref-owned])>.app-header{padding-inline:0}
 @media(prefers-reduced-motion:reduce){.app-frame .screen *{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
 /* Product-v2 specificity bridge: remove the legacy boxed detail shell. */
 body.product-v2 .app-frame [data-screen="detail"] .page-header{margin:0;border:0;background:linear-gradient(180deg,rgba(5,5,5,.99),rgba(5,5,5,.76) 72%,transparent);box-shadow:none}
@@ -182,18 +182,18 @@ body.product-v2 .app-frame .dock button.active{border-radius:999px}
 @media(max-width:359px){.app-frame [data-screen="tokens"] .holdings-list article{grid-template-columns:44px minmax(0,1fr) 104px;column-gap:10px}.app-frame [data-screen="tokens"] .holdings-list article>aside,.app-frame [data-screen="activity"] .activity-row>aside{width:104px}.app-frame [data-screen="activity"] .activity-row{grid-template-columns:44px minmax(0,1fr) 104px;column-gap:10px}}
 
 /* Shared root-screen system for portfolio utilities. */
-body.product-v2 .app-frame :is([data-screen="analytics"],[data-screen="watchlist"],[data-screen="activity"],[data-screen="settings"],[data-screen="wallets"],[data-screen="dns"],[data-screen="anonymous-numbers"],[data-screen="usernames"]){padding:18px 18px calc(116px + env(safe-area-inset-bottom));background:#050505;color:var(--ui-text);font-family:var(--ui-font)}
-body.product-v2 .app-frame :is([data-screen="analytics"],[data-screen="watchlist"],[data-screen="activity"],[data-screen="settings"],[data-screen="wallets"],[data-screen="dns"],[data-screen="anonymous-numbers"],[data-screen="usernames"]) .page-header{min-height:48px;margin:0 0 22px;padding:0;border:0;background:transparent;box-shadow:none}
-body.product-v2 .app-frame :is([data-screen="analytics"],[data-screen="watchlist"],[data-screen="activity"],[data-screen="settings"],[data-screen="wallets"],[data-screen="dns"],[data-screen="anonymous-numbers"],[data-screen="usernames"]) .page-header h1{font-size:24px;font-weight:700;letter-spacing:-.03em}
-body.product-v2 .app-frame :is([data-screen="analytics"],[data-screen="watchlist"],[data-screen="activity"],[data-screen="settings"]) :is(.graph-card,.summary-card,.search-card,.insight-grid article,.profile-actions){border-color:var(--terminal-line);background:#090909;box-shadow:none}
-body.product-v2 .app-frame [data-screen="analytics"] .insight-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;margin-top:18px;background:var(--terminal-line)}
-body.product-v2 .app-frame [data-screen="analytics"] .insight-grid article{min-height:112px;padding:16px;border:0;border-radius:0}
-body.product-v2 .app-frame [data-screen="analytics"] .data-state-note{margin:10px 0 0;color:var(--ui-muted);font-size:11px;line-height:1.5}
+body.product-v2 .app-frame :is([data-screen="analytics"]:not([data-ref-owned]),[data-screen="watchlist"],[data-screen="activity"],[data-screen="settings"],[data-screen="wallets"],[data-screen="dns"],[data-screen="anonymous-numbers"],[data-screen="usernames"]){padding:18px 18px calc(116px + env(safe-area-inset-bottom));background:#050505;color:var(--ui-text);font-family:var(--ui-font)}
+body.product-v2 .app-frame :is([data-screen="analytics"]:not([data-ref-owned]),[data-screen="watchlist"],[data-screen="activity"],[data-screen="settings"],[data-screen="wallets"],[data-screen="dns"],[data-screen="anonymous-numbers"],[data-screen="usernames"]) .page-header{min-height:44px;margin:0 0 20px;padding:0;border:0;background:transparent;box-shadow:none}
+body.product-v2 .app-frame :is([data-screen="analytics"]:not([data-ref-owned]),[data-screen="watchlist"],[data-screen="activity"],[data-screen="settings"],[data-screen="wallets"],[data-screen="dns"],[data-screen="anonymous-numbers"],[data-screen="usernames"]) .page-header h1{font-size:22px;font-weight:700;line-height:1.15;letter-spacing:-.025em}
+body.product-v2 .app-frame :is([data-screen="analytics"]:not([data-ref-owned]),[data-screen="watchlist"],[data-screen="activity"],[data-screen="settings"]) :is(.graph-card,.summary-card,.search-card,.insight-grid article,.profile-actions){border-color:var(--terminal-line);background:#090909;box-shadow:none}
+body.product-v2 .app-frame [data-screen="analytics"]:not([data-ref-owned]) .insight-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;margin-top:18px;background:var(--terminal-line)}
+body.product-v2 .app-frame [data-screen="analytics"]:not([data-ref-owned]) .insight-grid article{min-height:112px;padding:16px;border:0;border-radius:0}
+body.product-v2 .app-frame [data-screen="analytics"]:not([data-ref-owned]) .data-state-note{margin:10px 0 0;color:var(--ui-muted);font-size:11px;line-height:1.5}
 body.product-v2 .app-frame [data-screen="watchlist"] .watchlist-summary{margin-bottom:18px}
 body.product-v2 .app-frame .portfolio-empty-state{min-height:92px;color:var(--ui-muted)}
 /* Utility screens share the root canvas gutter; legacy child margins must not reintroduce 20px rails. */
-body.product-v2 .app-frame :is([data-screen="analytics"],[data-screen="watchlist"],[data-screen="activity"],[data-screen="wallets"],[data-screen="settings"]) :is(.utility-hero,.graph-card,.insight-grid,.utility-card,.watchlist-summary,.activity-overview,.search-card,.activity-filter-row,.holdings-list,.connect-panel,.profile-actions){margin-left:0;margin-right:0}
-body.product-v2 .app-frame :is([data-screen="analytics"],[data-screen="watchlist"],[data-screen="activity"],[data-screen="wallets"],[data-screen="settings"]) :is(.utility-hero,.graph-card,.utility-card,.connect-panel,.profile-actions){width:auto;max-width:none}
+body.product-v2 .app-frame :is([data-screen="analytics"]:not([data-ref-owned]),[data-screen="watchlist"],[data-screen="activity"],[data-screen="wallets"],[data-screen="settings"]) :is(.utility-hero,.graph-card,.insight-grid,.utility-card,.watchlist-summary,.activity-overview,.search-card,.activity-filter-row,.holdings-list,.connect-panel,.profile-actions){margin-left:0;margin-right:0}
+body.product-v2 .app-frame :is([data-screen="analytics"]:not([data-ref-owned]),[data-screen="watchlist"],[data-screen="activity"],[data-screen="wallets"],[data-screen="settings"]) :is(.utility-hero,.graph-card,.utility-card,.connect-panel,.profile-actions){width:auto;max-width:none}
 body.product-v2 .app-frame .utility-hero{display:flex;min-height:126px;margin:0 0 16px;padding:20px;align-items:center;justify-content:space-between;gap:18px;border:1px solid var(--terminal-line);border-radius:22px;background:radial-gradient(circle at 88% 12%,rgba(255,255,255,.08),transparent 42%),#090909}
 body.product-v2 .app-frame .utility-hero small{color:var(--ui-muted);font-size:10px;font-weight:650;letter-spacing:.08em;text-transform:uppercase}
 body.product-v2 .app-frame .utility-hero h2{margin:7px 0 5px;color:var(--ui-text);font-size:26px;letter-spacing:-.035em}
@@ -226,13 +226,13 @@ body.product-v2 .app-frame .page-header .header-actions{display:flex;align-items
 @keyframes refresh-spin{to{transform:rotate(1turn)}}
 /* Home + Assets typography and scale pass. LED is reserved for identity and headline totals. */
 body.product-v2 .app-frame{--ui-font:"Manrope",Inter,system-ui,sans-serif;--ui-text:#f4f4f0;--ui-secondary:#aaa9a4;--ui-muted:#858680;--ui-faint:#686964}
-body.product-v2 .app-frame :is([data-screen="home"],[data-screen="assets"],[data-screen="tokens"],[data-screen="gifts"],[data-screen="gift-brand"],[data-screen="stickers"],[data-screen="sticker-brand"],[data-screen="detail"]){font-family:var(--ui-font);color:var(--ui-text)}
-body.product-v2 .app-frame :is([data-screen="home"],[data-screen="assets"],[data-screen="tokens"],[data-screen="gifts"],[data-screen="gift-brand"],[data-screen="stickers"],[data-screen="sticker-brand"],[data-screen="detail"]) :is(button,input,select,textarea){font-family:var(--ui-font)}
-body.product-v2 .app-frame :is([data-screen="home"],[data-screen="assets"],[data-screen="tokens"],[data-screen="gifts"],[data-screen="gift-brand"],[data-screen="stickers"],[data-screen="sticker-brand"],[data-screen="detail"]) :is(.section-eyebrow,.graph-head p,.portfolio-strip small,.mini-detail-card .section-heading h2,.asset-total-banner>small,.summary-card>small,.control-bar label){color:var(--ui-muted);font-family:var(--ui-font);font-size:10.5px;font-weight:650;letter-spacing:.07em;line-height:1.4;text-transform:uppercase}
+body.product-v2 .app-frame :is([data-screen="home"]:not([data-ref-owned]),[data-screen="assets"],[data-screen="tokens"],[data-screen="gifts"],[data-screen="gift-brand"],[data-screen="stickers"],[data-screen="sticker-brand"],[data-screen="detail"]){font-family:var(--ui-font);color:var(--ui-text)}
+body.product-v2 .app-frame :is([data-screen="home"]:not([data-ref-owned]),[data-screen="assets"],[data-screen="tokens"],[data-screen="gifts"],[data-screen="gift-brand"],[data-screen="stickers"],[data-screen="sticker-brand"],[data-screen="detail"]) :is(button,input,select,textarea){font-family:var(--ui-font)}
+body.product-v2 .app-frame :is([data-screen="home"]:not([data-ref-owned]),[data-screen="assets"],[data-screen="tokens"],[data-screen="gifts"],[data-screen="gift-brand"],[data-screen="stickers"],[data-screen="sticker-brand"],[data-screen="detail"]) :is(.section-eyebrow,.graph-head p,.portfolio-strip small,.mini-detail-card .section-heading h2,.asset-total-banner>small,.summary-card>small,.control-bar label){color:var(--ui-muted);font-family:var(--ui-font);font-size:10.5px;font-weight:650;letter-spacing:.07em;line-height:1.4;text-transform:uppercase}
 body.product-v2 .app-frame :is([data-screen="tokens"],[data-screen="gifts"],[data-screen="gift-brand"],[data-screen="stickers"],[data-screen="sticker-brand"],[data-screen="detail"]) .page-header h1:not(.dot-matrix-text){color:var(--ui-text);font-size:22px;font-weight:700;line-height:1.1;letter-spacing:-.025em}
 body.product-v2 .app-frame .dot-matrix-title{--dot-size:1.82px;--dot-gap:1px;gap:2.8px}
 body.product-v2 .app-frame .dot-matrix-value{--dot-size:2.2px;--dot-gap:1.15px;gap:3px}
-body.product-v2 .app-frame :is([data-screen="home"],[data-screen="assets"]) :is(.section-heading h2,.allocation-card h2,.movement-panel h2,.activity-panel h2){color:var(--ui-text);font-family:var(--ui-font);font-size:17px;font-weight:700;line-height:1.2;letter-spacing:-.025em}
+body.product-v2 .app-frame :is([data-screen="home"]:not([data-ref-owned]),[data-screen="assets"]) :is(.section-heading h2,.allocation-card h2,.movement-panel h2,.activity-panel h2){color:var(--ui-text);font-family:var(--ui-font);font-size:17px;font-weight:700;line-height:1.2;letter-spacing:-.025em}
 body.product-v2 .app-frame :is([data-screen="tokens"] .holdings-list,[data-screen="gifts"] .collectible-grid,[data-screen="gift-brand"] .collectible-grid,[data-screen="stickers"] .collectible-grid,[data-screen="sticker-brand"] .collectible-grid) b{color:var(--ui-text);font-family:var(--ui-font);font-size:14px;font-weight:650;line-height:1.25;letter-spacing:-.018em}
 body.product-v2 .app-frame :is([data-screen="tokens"] .holdings-list,[data-screen="gifts"] .collectible-grid,[data-screen="gift-brand"] .collectible-grid,[data-screen="stickers"] .collectible-grid,[data-screen="sticker-brand"] .collectible-grid) small{color:var(--ui-muted);font-family:var(--ui-font);font-size:10.5px;font-weight:500;line-height:1.4}
 body.product-v2 .app-frame :is([data-screen="tokens"] .holdings-list,[data-screen="gifts"] .collectible-grid,[data-screen="gift-brand"] .collectible-grid,[data-screen="stickers"] .collectible-grid,[data-screen="sticker-brand"] .collectible-grid) strong{color:var(--ui-text);font-family:var(--ui-font);font-variant-numeric:tabular-nums}
@@ -261,7 +261,7 @@ body.product-v2 .app-frame [data-screen="assets"] .feature-asset .asset-icon{wid
 body.product-v2 .app-frame [data-screen="assets"] .feature-asset b{color:var(--ui-text);font-family:var(--ui-font);font-size:14px;font-weight:650;letter-spacing:-.018em}
 body.product-v2 .app-frame [data-screen="assets"] .feature-asset small{margin-top:4px;color:var(--ui-muted);font-family:var(--ui-font);font-size:10.5px}
 body.product-v2 .app-frame [data-screen="assets"] .feature-asset>strong{width:96px;justify-self:end;color:var(--ui-text);font-family:var(--ui-font);font-size:14px;font-weight:650;letter-spacing:-.02em;text-align:right;font-variant-numeric:tabular-nums}
-body.product-v2 .app-frame :is([data-screen="home"] .allocation-list article,[data-screen="assets"] .category-stack article,[data-screen="tokens"] .holdings-list article,[data-screen="gifts"] .collectible-card,[data-screen="gift-brand"] .collectible-card,[data-screen="stickers"] .collectible-card,[data-screen="sticker-brand"] .collectible-card):hover{padding-left:0}
+body.product-v2 .app-frame :is([data-screen="home"]:not([data-ref-owned]) .allocation-list article,[data-screen="assets"] .category-stack article,[data-screen="tokens"] .holdings-list article,[data-screen="gifts"] .collectible-card,[data-screen="gift-brand"] .collectible-card,[data-screen="stickers"] .collectible-card,[data-screen="sticker-brand"] .collectible-card):hover{padding-left:0}
 
 /* Onboarding dock treatment: compact rounded shell with a single active tile. */
 body.product-v2 .app-frame .dock{width:min(352px,calc(100vw - 40px));min-height:70px;bottom:calc(16px + env(safe-area-inset-bottom));gap:4px;padding:7px;border:1px solid var(--terminal-line-strong);border-radius:22px;background:#090909;box-shadow:none;backdrop-filter:none}
@@ -409,10 +409,10 @@ body.product-v2 .app-frame .dock button.active span{display:block}
 
 /* One mobile gutter across entry screens and every nested asset view. */
 .app-frame:is(.has-wallet,.is-home-screen){--screen-gutter:18px}
-.app-frame:is(.has-wallet,.is-home-screen) [data-screen="home"]{padding-inline:var(--screen-gutter)}
-.app-frame :is([data-screen="assets"],[data-screen="tokens"],[data-screen="gifts"],[data-screen="gift-brand"],[data-screen="stickers"],[data-screen="sticker-brand"],[data-screen="detail"],[data-screen="analytics"],[data-screen="watchlist"],[data-screen="activity"],[data-screen="wallets"],[data-screen="settings"]){padding-inline:var(--screen-gutter)}
+.app-frame:is(.has-wallet,.is-home-screen) [data-screen="home"]:not([data-ref-owned]){padding-inline:var(--screen-gutter)}
+.app-frame :is([data-screen="assets"],[data-screen="tokens"],[data-screen="gifts"],[data-screen="gift-brand"],[data-screen="stickers"],[data-screen="sticker-brand"],[data-screen="detail"],[data-screen="analytics"]:not([data-ref-owned]),[data-screen="watchlist"],[data-screen="activity"],[data-screen="wallets"],[data-screen="settings"]){padding-inline:var(--screen-gutter)}
 .app-frame [data-screen="assets"] :is(.portfolio-strip,.category-stack,.mini-detail-card){margin-inline:0}
-.app-frame [data-screen="home"] :is(.graph-card,.featured-collectibles,.allocation-card,.movement-panel,.activity-panel){margin-inline:0}
+.app-frame [data-screen="home"]:not([data-ref-owned]) :is(.graph-card,.featured-collectibles,.allocation-card,.movement-panel,.activity-panel){margin-inline:0}
 .app-frame [data-screen="detail"] :is(.gift-traits-card,.gift-floor-card,.gift-sales-card,.gift-demand-card,.gift-origin-card,.price-panel,.sales-panel,.market-intel,.trait-panel,.financial-grid){margin-inline:0}
 
 /* Category screens inherit the Assets gutter; child sections must not add it again. */
@@ -597,29 +597,29 @@ body.product-v2 .app-frame .dock button.active span{display:block}
 }
 
 /* Home history and the continuously ranked portfolio ribbon. */
-.app-frame [data-screen="home"] .graph-card.is-history-hidden{
+.app-frame [data-screen="home"]:not([data-ref-owned]) .graph-card.is-history-hidden{
   padding-bottom:18px;
 }
-.app-frame [data-screen="home"] .graph-card.is-history-hidden :is(.value-graph,.portfolio-chart-footer){
+.app-frame [data-screen="home"]:not([data-ref-owned]) .graph-card.is-history-hidden :is(.value-graph,.portfolio-chart-footer){
   display:none;
 }
-.app-frame [data-screen="home"] .featured-collectibles[hidden]{
+.app-frame [data-screen="home"]:not([data-ref-owned]) .featured-collectibles[hidden]{
   display:none!important;
 }
-.app-frame [data-screen="home"] .featured-collectibles{
+.app-frame [data-screen="home"]:not([data-ref-owned]) .featured-collectibles{
   position:relative;
   padding-top:18px;
   padding-bottom:20px;
   overflow:hidden;
 }
-.app-frame [data-screen="home"] .featured-collectibles-heading{
+.app-frame [data-screen="home"]:not([data-ref-owned]) .featured-collectibles-heading{
   display:flex;
   align-items:flex-end;
   justify-content:space-between;
   gap:16px;
   margin-bottom:14px;
 }
-.app-frame [data-screen="home"] .featured-collectibles-heading h2{
+.app-frame [data-screen="home"]:not([data-ref-owned]) .featured-collectibles-heading h2{
   margin:0;
   color:var(--terminal-ink);
   font-family:var(--ui-font);
@@ -628,37 +628,37 @@ body.product-v2 .app-frame .dock button.active span{display:block}
   line-height:1.2;
   letter-spacing:-.025em;
 }
-.app-frame [data-screen="home"] .featured-collectibles-heading>small{
+.app-frame [data-screen="home"]:not([data-ref-owned]) .featured-collectibles-heading>small{
   color:var(--terminal-muted);
   font-family:var(--terminal-mono);
   font-size:9px;
   letter-spacing:.08em;
   text-transform:uppercase;
 }
-.app-frame [data-screen="home"] .featured-collectibles-viewport{
+.app-frame [data-screen="home"]:not([data-ref-owned]) .featured-collectibles-viewport{
   width:calc(100% + (var(--screen-gutter) * 2));
   margin-inline:calc(var(--screen-gutter) * -1);
   overflow:hidden;
   -webkit-mask-image:none;
   mask-image:none;
 }
-.app-frame [data-screen="home"] .featured-collectibles-track{
+.app-frame [data-screen="home"]:not([data-ref-owned]) .featured-collectibles-track{
   display:flex;
   width:max-content;
   will-change:transform;
   animation:featured-assets-flow var(--featured-duration,44s) linear infinite;
 }
-.app-frame [data-screen="home"] .featured-collectibles-viewport:is(:hover,:focus-within,.is-paused) .featured-collectibles-track{
+.app-frame [data-screen="home"]:not([data-ref-owned]) .featured-collectibles-viewport:is(:hover,:focus-within,.is-paused) .featured-collectibles-track{
   animation-play-state:paused;
 }
-.app-frame [data-screen="home"] .featured-collectibles-sequence{
+.app-frame [data-screen="home"]:not([data-ref-owned]) .featured-collectibles-sequence{
   display:flex;
   align-items:stretch;
   gap:10px;
   margin-right:0;
   padding:0;
 }
-.app-frame [data-screen="home"] .featured-asset-card{
+.app-frame [data-screen="home"]:not([data-ref-owned]) .featured-asset-card{
   position:relative;
   width:148px;
   min-height:196px;
@@ -674,21 +674,21 @@ body.product-v2 .app-frame .dock button.active span{display:block}
   overflow:hidden;
   transition:border-color .2s ease,transform .2s ease,background-color .2s ease;
 }
-.app-frame [data-screen="home"] button.featured-asset-card{
+.app-frame [data-screen="home"]:not([data-ref-owned]) button.featured-asset-card{
   appearance:none;
   font:inherit;
   cursor:pointer;
 }
-.app-frame [data-screen="home"] .featured-asset-card:nth-child(3n+2){
+.app-frame [data-screen="home"]:not([data-ref-owned]) .featured-asset-card:nth-child(3n+2){
   transform:translateY(6px);
 }
-.app-frame [data-screen="home"] .featured-asset-card:nth-child(3n){
+.app-frame [data-screen="home"]:not([data-ref-owned]) .featured-asset-card:nth-child(3n){
   transform:translateY(2px);
 }
-.app-frame [data-screen="home"] button.featured-asset-card:active{
+.app-frame [data-screen="home"]:not([data-ref-owned]) button.featured-asset-card:active{
   transform:translateY(2px) scale(.975);
 }
-.app-frame [data-screen="home"] .featured-asset-visual{
+.app-frame [data-screen="home"]:not([data-ref-owned]) .featured-asset-visual{
   position:relative;
   min-width:0;
   display:grid;
@@ -699,7 +699,7 @@ body.product-v2 .app-frame .dock button.active span{display:block}
     #0b0b0b;
   overflow:hidden;
 }
-.app-frame [data-screen="home"] .featured-asset-visual::after{
+.app-frame [data-screen="home"]:not([data-ref-owned]) .featured-asset-visual::after{
   content:"";
   position:absolute;
   inset:0;
@@ -707,42 +707,42 @@ body.product-v2 .app-frame .dock button.active span{display:block}
   border-radius:inherit;
   pointer-events:none;
 }
-.app-frame [data-screen="home"] .featured-asset-art,
-.app-frame [data-screen="home"] .featured-asset-art img,
-.app-frame [data-screen="home"] .featured-asset-visual>.asset-icon{
+.app-frame [data-screen="home"]:not([data-ref-owned]) .featured-asset-art,
+.app-frame [data-screen="home"]:not([data-ref-owned]) .featured-asset-art img,
+.app-frame [data-screen="home"]:not([data-ref-owned]) .featured-asset-visual>.asset-icon{
   width:92px;
   height:92px;
 }
-.app-frame [data-screen="home"] .featured-asset-art{
+.app-frame [data-screen="home"]:not([data-ref-owned]) .featured-asset-art{
   display:grid;
   place-items:center;
   border-radius:12px;
   overflow:hidden;
 }
-.app-frame [data-screen="home"] .featured-asset-art img{
+.app-frame [data-screen="home"]:not([data-ref-owned]) .featured-asset-art img{
   display:block;
   object-fit:contain;
 }
-.app-frame [data-screen="home"] .featured-asset-art :is(.animated-art,.gift-layered-art,.gift-layered-stage){
+.app-frame [data-screen="home"]:not([data-ref-owned]) .featured-asset-art :is(.animated-art,.gift-layered-art,.gift-layered-stage){
   width:92px;
   height:92px;
 }
-.app-frame [data-screen="home"] .featured-asset-art svg{
+.app-frame [data-screen="home"]:not([data-ref-owned]) .featured-asset-art svg{
   width:28px;
   height:28px;
 }
-.app-frame [data-screen="home"] .featured-asset-visual>.asset-icon{
+.app-frame [data-screen="home"]:not([data-ref-owned]) .featured-asset-visual>.asset-icon{
   display:grid;
   place-items:center;
   border:0;
   background:transparent;
   font-size:16px;
 }
-.app-frame [data-screen="home"] .featured-asset-visual>.asset-icon img{
+.app-frame [data-screen="home"]:not([data-ref-owned]) .featured-asset-visual>.asset-icon img{
   width:84px!important;
   height:84px!important;
 }
-.app-frame [data-screen="home"] .featured-estimated{
+.app-frame [data-screen="home"]:not([data-ref-owned]) .featured-estimated{
   position:absolute;
   right:7px;
   top:7px;
@@ -757,11 +757,11 @@ body.product-v2 .app-frame .dock button.active span{display:block}
   text-transform:uppercase;
   backdrop-filter:blur(8px);
 }
-.app-frame [data-screen="home"] :is(.featured-asset-copy,.featured-asset-value){
+.app-frame [data-screen="home"]:not([data-ref-owned]) :is(.featured-asset-copy,.featured-asset-value){
   min-width:0;
   display:block;
 }
-.app-frame [data-screen="home"] .featured-asset-copy small{
+.app-frame [data-screen="home"]:not([data-ref-owned]) .featured-asset-copy small{
   display:block;
   color:var(--terminal-muted);
   font-family:var(--terminal-mono);
@@ -769,7 +769,7 @@ body.product-v2 .app-frame .dock button.active span{display:block}
   letter-spacing:.08em;
   text-transform:uppercase;
 }
-.app-frame [data-screen="home"] .featured-asset-copy b{
+.app-frame [data-screen="home"]:not([data-ref-owned]) .featured-asset-copy b{
   display:block;
   margin-top:4px;
   overflow:hidden;
@@ -781,7 +781,7 @@ body.product-v2 .app-frame .dock button.active span{display:block}
   text-overflow:ellipsis;
   white-space:nowrap;
 }
-.app-frame [data-screen="home"] .featured-asset-copy em{
+.app-frame [data-screen="home"]:not([data-ref-owned]) .featured-asset-copy em{
   display:block;
   margin-top:3px;
   overflow:hidden;
@@ -791,19 +791,19 @@ body.product-v2 .app-frame .dock button.active span{display:block}
   text-overflow:ellipsis;
   white-space:nowrap;
 }
-.app-frame [data-screen="home"] .featured-asset-value{
+.app-frame [data-screen="home"]:not([data-ref-owned]) .featured-asset-value{
   display:flex;
   align-items:baseline;
   justify-content:space-between;
   gap:7px;
 }
-.app-frame [data-screen="home"] .featured-asset-value strong{
+.app-frame [data-screen="home"]:not([data-ref-owned]) .featured-asset-value strong{
   color:var(--terminal-ink);
   font-size:12px;
   font-weight:750;
   font-variant-numeric:tabular-nums;
 }
-.app-frame [data-screen="home"] .featured-asset-value small{
+.app-frame [data-screen="home"]:not([data-ref-owned]) .featured-asset-value small{
   max-width:62px;
   overflow:hidden;
   color:#777772;
@@ -816,21 +816,21 @@ body.product-v2 .app-frame .dock button.active span{display:block}
   to{transform:translate3d(-50%,0,0)}
 }
 @media(hover:hover){
-  .app-frame [data-screen="home"] button.featured-asset-card:hover{
+  .app-frame [data-screen="home"]:not([data-ref-owned]) button.featured-asset-card:hover{
     border-color:rgba(255,255,255,.28);
     background:linear-gradient(155deg,rgba(255,255,255,.1),rgba(255,255,255,.02) 52%,rgba(255,255,255,.065));
   }
 }
 @media(prefers-reduced-motion:reduce){
-  .app-frame [data-screen="home"] .featured-collectibles-viewport{
+  .app-frame [data-screen="home"]:not([data-ref-owned]) .featured-collectibles-viewport{
     overflow-x:auto;
     scrollbar-width:none;
     -webkit-mask-image:none;
     mask-image:none;
   }
-  .app-frame [data-screen="home"] .featured-collectibles-viewport::-webkit-scrollbar{display:none}
-  .app-frame [data-screen="home"] .featured-collectibles-track{animation:none}
-  .app-frame [data-screen="home"] .featured-collectibles-sequence[aria-hidden="true"]{display:none}
+  .app-frame [data-screen="home"]:not([data-ref-owned]) .featured-collectibles-viewport::-webkit-scrollbar{display:none}
+  .app-frame [data-screen="home"]:not([data-ref-owned]) .featured-collectibles-track{animation:none}
+  .app-frame [data-screen="home"]:not([data-ref-owned]) .featured-collectibles-sequence[aria-hidden="true"]{display:none}
 }
 
 /* Verified identity assets: TON DNS, Telegram usernames, and Fragment anonymous numbers */
@@ -988,6 +988,7 @@ body.product-v2 .app-frame .dock button.active span{display:block}
   font-size:12px;
 }
 .app-frame .identity-detail-row b{max-width:58%;color:var(--ui-text);font-weight:600;text-align:right}
+.app-frame .identity-detail-row small{display:block;margin-top:4px;line-height:1.5;color:var(--ui-muted)}
 .app-frame .identity-detail-note{display:grid;grid-template-columns:34px minmax(0,1fr);gap:12px;padding:16px}
 .app-frame .identity-detail-note svg{width:22px;height:22px;color:#b9b9b5}
 .app-frame .identity-detail-note b,
@@ -1243,4 +1244,438 @@ body.product-v2 .app-frame :is(
   }
   .app-frame [data-screen="detail"] .gift-detail-pill-row{gap:6px}
   .app-frame [data-screen="detail"] .gift-detail-pill-row .gift-trait-pill.is-rich-trait b{font-size:11px}
+}
+
+/* Home-derived shared UI normalization.  Keep media-rich detail surfaces scoped above. */
+.app-frame{
+  --screen-gutter:18px;
+  --dock-clearance:calc(116px + env(safe-area-inset-bottom));
+  --row-height:84px;
+  --row-art:44px;
+  --ui-font:"Manrope",Inter,system-ui,sans-serif;
+}
+.app-frame .screen{
+  padding-inline:var(--screen-gutter);
+  padding-bottom:var(--dock-clearance);
+  font-family:var(--ui-font);
+}
+.app-frame :is([data-screen="dns"],[data-screen="anonymous-numbers"],[data-screen="usernames"]){padding-inline:var(--screen-gutter)}
+.app-frame :is([data-screen="analytics"]:not([data-ref-owned]),[data-screen="watchlist"],[data-screen="activity"],[data-screen="settings"] )>.page-header{
+  display:flex;
+  min-height:44px;
+  margin:0 0 20px;
+  align-items:center;
+  justify-content:space-between;
+}
+.app-frame :is([data-screen="analytics"]:not([data-ref-owned]),[data-screen="watchlist"],[data-screen="settings"])>.page-header h1{
+  width:auto;
+  overflow:visible;
+  font-family:var(--ui-font);
+  text-align:left;
+  white-space:normal!important;
+}
+.app-frame .screen>.page-header{
+  grid-template-columns:minmax(44px,auto) minmax(0,1fr) minmax(44px,auto);
+  min-height:44px;
+  margin-bottom:20px;
+}
+.app-frame .screen>.page-header .icon-button,
+.app-frame .screen>.page-header>.icon-button:first-child,
+.app-frame .screen>.page-header>.icon-button:last-child{width:44px;height:44px;min-width:44px;min-height:44px}
+.app-frame .screen>.page-header>.header-actions{display:flex;grid-column:3;grid-row:1;min-width:44px;align-items:center;justify-content:flex-end;gap:4px}
+.app-frame .screen>.page-header>.header-actions .icon-button{flex:0 0 44px}
+.app-frame :is(.holdings-list,.identity-asset-list,.profile-actions,.activity-filter-row,.utility-breakdown,.connector-list) :is(b,small,span,button,a){font-family:var(--ui-font)}
+.app-frame :is(.holdings-list,.identity-asset-list,.activity-row,.utility-breakdown) :is(strong,b,aside){font-variant-numeric:tabular-nums}
+
+/* Flat lists and utility surfaces match Home's divider rhythm. */
+.app-frame [data-screen="assets"] .category-stack,
+.app-frame :is([data-screen="analytics"]:not([data-ref-owned]),[data-screen="watchlist"],[data-screen="settings"],[data-screen="wallets"]) :is(.utility-hero,.utility-card,.connect-panel,.profile-actions,.portfolio-empty-state),
+.app-frame .identity-summary-card{
+  border:0;
+  border-radius:0;
+  background:transparent;
+  box-shadow:none;
+}
+.app-frame [data-screen="assets"] .category-stack{padding:0;border-top:1px solid var(--terminal-line)}
+.app-frame [data-screen="assets"] .category-stack::before{padding:14px 0 8px;font-family:var(--ui-font);font-size:10.5px;font-weight:650;letter-spacing:.07em}
+.app-frame [data-screen="assets"] .category-stack article,
+.app-frame :is([data-screen="watchlist"],[data-screen="wallets"]) .holdings-list>article,
+.app-frame .identity-asset-list>article{
+  min-height:var(--row-height);
+  padding:14px 0;
+  border:0;
+  border-bottom:1px solid var(--terminal-line);
+  border-radius:0;
+  background:transparent;
+  box-shadow:none;
+}
+.app-frame [data-screen="assets"] .category-stack article{grid-template-columns:var(--row-art) minmax(0,1fr) 96px 16px}
+.app-frame [data-screen="assets"] .category-stack .asset-icon,
+.app-frame .identity-asset-art{width:var(--row-art);height:var(--row-art);border-radius:12px}
+.app-frame [data-screen="assets"] .category-stack :is(b,strong),
+.app-frame .identity-asset-list>article :is(b,small){font-family:var(--ui-font)}
+.app-frame [data-screen="assets"] .category-stack strong,
+.app-frame .identity-asset-list>article aside{font-variant-numeric:tabular-nums;text-align:right}
+.app-frame .identity-search-card,.app-frame .identity-asset-list{margin-right:0;margin-left:0}
+.app-frame .identity-asset-list{margin-top:12px}
+.app-frame .identity-asset-list>article{grid-template-columns:var(--row-art) minmax(0,1fr) 108px;gap:12px}
+.app-frame .identity-empty-state,
+.app-frame .portfolio-empty-state{min-height:var(--row-height);padding:16px 0;border-bottom:1px solid var(--terminal-line);border-radius:0;background:transparent;text-align:left}
+
+/* Analytics and watchlist stay calm and data-led rather than card-heavy. */
+.app-frame :is([data-screen="analytics"]:not([data-ref-owned]),[data-screen="watchlist"]) .utility-hero{min-height:0;margin:0 0 20px;padding:0 0 20px;border-bottom:1px solid var(--terminal-line)}
+.app-frame :is([data-screen="analytics"]:not([data-ref-owned]),[data-screen="watchlist"]) .utility-hero-icon{width:44px;height:44px;flex-basis:44px;border-radius:12px}
+.app-frame [data-screen="analytics"]:not([data-ref-owned]) :is(.graph-card,.insight-grid,.utility-card){margin-top:20px;border:0;border-radius:0;background:transparent;box-shadow:none}
+.app-frame [data-screen="analytics"]:not([data-ref-owned]) .insight-grid{border-top:1px solid var(--terminal-line);background:transparent}
+.app-frame [data-screen="analytics"]:not([data-ref-owned]) .insight-grid article{min-height:84px;padding:14px 10px 14px 0;border-right:1px solid var(--terminal-line);border-bottom:1px solid var(--terminal-line);background:transparent}
+.app-frame [data-screen="analytics"]:not([data-ref-owned]) .utility-card{padding:20px 0;border-top:1px solid var(--terminal-line);border-bottom:1px solid var(--terminal-line)}
+
+/* Activity rows, states, and filters use the same readable data-row contract. */
+.app-frame [data-screen="activity"] .activity-filter-row{gap:8px;margin-bottom:14px;overflow-x:auto}
+.app-frame [data-screen="activity"] .activity-filter-row .pill{min-width:44px;min-height:44px;padding:0 14px;border:1px solid var(--terminal-line);border-radius:999px;background:transparent;color:var(--ui-muted);font-family:var(--ui-font)}
+.app-frame [data-screen="activity"] .activity-filter-row .pill.active{background:var(--terminal-ink);color:#050505}
+.app-frame [data-screen="activity"] .activity-row{min-height:var(--row-height);padding-top:14px;padding-bottom:14px;border-bottom:1px solid var(--terminal-line);font-family:var(--ui-font)}
+.app-frame [data-screen="activity"] .activity-row b{font-family:var(--ui-font);font-weight:650}
+.app-frame [data-screen="activity"] .activity-row :is(div,aside){min-width:0}
+.app-frame [data-screen="activity"] .activity-row :is(b,small,strong){overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.app-frame [data-screen="activity"] .activity-row .dot-matrix-text{display:block!important;color:inherit!important;font-size:inherit!important;line-height:inherit!important}
+.app-frame [data-screen="activity"] .activity-row .dot-matrix-character{display:none!important}
+
+/* Wallets and settings use terminal rows, not legacy blue or rounded cards. */
+.app-frame [data-screen="wallets"] .connect-panel{position:relative;display:grid;grid-template-columns:44px minmax(0,1fr) auto;min-height:0;padding:16px 0 20px;border-bottom:1px solid var(--terminal-line);align-items:center;gap:12px;text-align:left}
+.app-frame [data-screen="wallets"] .connect-panel.small .wallet-glyph{grid-row:1/3;width:44px;height:44px;margin:0;border:1px solid var(--terminal-line);border-radius:12px;background:#0a0a0a;color:var(--ui-text)}
+.app-frame [data-screen="wallets"] .connect-panel h2{grid-column:2;margin:0;font-size:17px;line-height:1.2;letter-spacing:-.025em}
+.app-frame [data-screen="wallets"] .connect-panel p{grid-column:2;max-width:30ch;margin:3px 0 0;color:var(--ui-muted);font-size:11px;line-height:1.45}
+.app-frame [data-screen="wallets"] .connect-panel button{grid-column:3;grid-row:1/3;min-width:92px;height:40px;padding:0 14px;border:1px solid var(--terminal-line-strong);border-radius:10px;background:#101010;color:var(--ui-text);font-size:12px;font-weight:700}
+.app-frame [data-screen="wallets"] .connect-panel button.is-connected{border-color:rgba(110,227,166,.28);background:rgba(110,227,166,.1);color:var(--terminal-positive)}
+@media(max-width:359px){.app-frame [data-screen="wallets"] .connect-panel{grid-template-columns:40px minmax(0,1fr)}.app-frame [data-screen="wallets"] .connect-panel button{grid-column:2;grid-row:3;justify-self:start;margin-top:8px}}
+.app-frame [data-screen="settings"] .profile-actions{gap:0;border-top:1px solid var(--terminal-line)}
+.app-frame [data-screen="settings"] .profile-actions> :is(button,a,.currency-setting,.settings-status){min-height:56px;padding:0;border:0;border-bottom:1px solid var(--terminal-line);border-radius:0;background:transparent;color:var(--ui-text);box-shadow:none}
+.app-frame [data-screen="settings"] .profile-actions> :is(button,a,.currency-setting,.settings-status):not(.settings-credit){display:flex;align-items:center;gap:12px}
+.app-frame [data-screen="settings"] .profile-actions .settings-credit{min-height:48px;color:var(--ui-muted);font-size:10px;line-height:1.4}
+.app-frame [data-screen="settings"] .profile-actions [data-wallet-logout]{color:#ff8b8b}
+.app-frame .currency-setting{display:flex;align-items:center;gap:12px}
+.app-frame .currency-setting>#currencySettingLabel{flex:1;min-width:0;text-align:left}
+.app-frame .currency-options{display:inline-flex;min-height:44px;align-items:center;gap:2px;padding:3px;border:1px solid var(--terminal-line);border-radius:999px}
+.app-frame .currency-options button{min-width:52px;min-height:36px;padding:0 10px;border:0;border-radius:999px;background:transparent;color:var(--ui-muted);font-family:var(--ui-font);font-size:10px;font-weight:700}
+.app-frame .currency-options button.is-active{background:var(--terminal-ink);color:#050505}
+
+/* Sheets retain their behavior while sharing the Home near-black material. */
+.app-frame :is(.wallet-sheet-panel,.wallet-action-panel,.tx-sheet-panel){border:1px solid var(--terminal-line-strong);border-bottom:0;border-radius:22px 22px 0 0;background:#090909;color:var(--ui-text);box-shadow:0 -14px 36px rgba(0,0,0,.34)}
+.app-frame :is(.wallet-sheet-panel,.wallet-action-panel,.tx-sheet-panel)::before{display:none}
+.app-frame :is(.wallet-sheet-head,.tx-sheet-panel>header){min-height:44px}
+.app-frame :is(.wallet-sheet-close,.wallet-sheet-back,.tx-sheet-close){width:44px;height:44px;min-width:44px;min-height:44px;border:1px solid var(--terminal-line);border-radius:11px;background:#0d0d0d;color:var(--ui-text)}
+.app-frame :is(.wallet-options button,.wallet-action-panel button){min-height:56px;border-color:var(--terminal-line);background:transparent;color:var(--ui-text)}
+.app-frame :is(.wallet-sheet-backdrop,.wallet-action-backdrop,.tx-sheet-backdrop){background:rgba(0,0,0,.68)}
+.app-frame .token-sort-popover{overflow:hidden;border:1px solid var(--terminal-line-strong);border-radius:14px;background:#090909;color:var(--ui-text);box-shadow:0 18px 44px rgba(0,0,0,.42),0 2px 8px rgba(0,0,0,.3)}
+.app-frame .token-sort-popover::before{display:none}
+.app-frame .token-sort-popover button{min-height:44px;border:0;border-radius:0;background:transparent;color:var(--ui-text);font-family:var(--ui-font);font-size:13px;font-weight:650}
+.app-frame .token-sort-popover button+button{border-top:1px solid var(--terminal-line)}
+.app-frame .token-sort-popover button:is(:hover,.is-active){background:rgba(110,227,166,.08);color:var(--terminal-positive)}
+.app-frame .token-sort-popover button svg{width:17px;height:17px;stroke-width:1.8}
+.app-frame .section-ready-toast{top:auto;bottom:calc(94px + env(safe-area-inset-bottom));min-width:0;max-width:calc(100% - 36px);padding:9px 13px;border:1px solid rgba(110,227,166,.22);border-radius:12px;background:rgba(9,9,9,.94);color:var(--ui-text);box-shadow:0 12px 30px rgba(0,0,0,.34);font-size:11px;line-height:1.35;transform:translateX(-50%) translateY(8px)}
+.app-frame .section-ready-toast.is-visible{transform:translateX(-50%) translateY(0)}
+
+@media(max-width:359px){
+  .app-frame [data-screen="activity"] .activity-row{grid-template-columns:44px minmax(0,1fr) 96px;column-gap:9px}
+  .app-frame [data-screen="activity"] .activity-row>aside{width:96px}
+  .app-frame .screen>.page-header>.header-actions{gap:2px}
+  .app-frame .screen>.page-header>.header-actions .icon-button{flex-basis:40px;width:40px;height:40px;min-width:40px;min-height:40px}
+}
+
+/* Cross-screen contract: connection state must not change route geometry or controls. */
+.app-frame,
+.app-frame.has-wallet,
+.app-frame.is-home-screen{
+  --screen-gutter:18px;
+  --dock-clearance:calc(116px + env(safe-area-inset-bottom));
+}
+.app-frame:is(.has-wallet,.is-home-screen) .screen,
+.app-frame .screen{
+  padding-inline:var(--screen-gutter);
+  padding-bottom:var(--dock-clearance);
+}
+.app-frame:is(.has-wallet,.is-home-screen) [data-screen="assets"] .mini-detail-card,
+.app-frame [data-screen="assets"] .mini-detail-card{margin-right:0;margin-left:0}
+.app-frame .screen>.page-header{
+  display:grid;
+  grid-template-columns:44px minmax(0,1fr) minmax(44px,auto);
+  align-items:center;
+  column-gap:8px;
+  min-height:44px;
+  margin:0 0 20px;
+  padding:0;
+}
+.app-frame .screen>.page-header>h1{min-width:0;margin:0;font-family:var(--ui-font);font-size:22px;line-height:1.15;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.app-frame .screen>.page-header>h1:first-child{grid-column:1/3}
+.app-frame .screen>.page-header>.icon-button:first-child{grid-column:1}
+.app-frame .screen>.page-header>.icon-button:first-child+h1{grid-column:2}
+.app-frame .screen>.page-header>.header-actions,
+.app-frame .screen>.page-header>.icon-button:last-child{grid-column:3;justify-self:end}
+.app-frame .screen :is(button,[role="button"],a,input,select):focus-visible,
+.app-frame :is(.wallet-sheet-panel,.wallet-action-panel,.tx-sheet-panel,.token-sort-popover) :is(button,a,input):focus-visible{
+  outline:2px solid var(--terminal-ink);
+  outline-offset:3px;
+}
+.app-frame .screen :is(button,[role="button"],article[data-screen-target]):active,
+.app-frame :is(.wallet-sheet-panel,.wallet-action-panel,.tx-sheet-panel,.token-sort-popover) button:active{transform:scale(.97)}
+.app-frame :is(.summary-card,.asset-total-banner,.identity-summary-card,.utility-hero,.utility-card,.connect-panel,.portfolio-empty-state,.identity-empty-state){box-shadow:none}
+.app-frame :is(.search-card,.control-bar){margin-right:0;margin-left:0}
+.app-frame :is(.portfolio-empty-state,.identity-empty-state,.utility-empty-copy){color:var(--ui-muted)}
+.app-frame [data-screen="settings"] .profile-actions> :is(button,a,.currency-setting)[aria-pressed="true"]{color:var(--terminal-ink)}
+.app-frame [data-screen="settings"] .profile-actions>button[aria-pressed="true"]>i:last-child{color:var(--terminal-positive)}
+
+/* Connected-state product rules are more specific; restate the shared Home surfaces here. */
+.app-frame:is(.has-wallet,.is-home-screen) :is([data-screen="tokens"] .summary-card,[data-screen="gifts"] .asset-total-banner,[data-screen="gift-brand"] .asset-total-banner,[data-screen="stickers"] .asset-total-banner,[data-screen="sticker-brand"] .asset-total-banner){
+  margin-right:0;
+  margin-left:0;
+  padding-right:0;
+  padding-left:0;
+  border:0;
+  border-bottom:1px solid var(--terminal-line);
+  border-radius:0;
+  background:transparent;
+  box-shadow:none;
+}
+.app-frame:is(.has-wallet,.is-home-screen) :is([data-screen="analytics"]:not([data-ref-owned]),[data-screen="watchlist"],[data-screen="settings"]) .utility-hero{
+  min-height:0;
+  padding:0 0 20px;
+  border:0;
+  border-bottom:1px solid var(--terminal-line);
+  border-radius:0;
+  background:transparent;
+  box-shadow:none;
+}
+.app-frame:is(.has-wallet,.is-home-screen) [data-screen="analytics"]:not([data-ref-owned]) :is(.graph-card,.insight-grid,.utility-card),
+.app-frame:is(.has-wallet,.is-home-screen) [data-screen="activity"] :is(.activity-overview,.search-card){
+  border-radius:0;
+  background:transparent;
+  box-shadow:none;
+}
+@media(max-width:359px){
+  .app-frame .screen>.page-header{grid-template-columns:40px minmax(0,1fr) minmax(40px,auto);column-gap:4px}
+  .app-frame .screen>.page-header>.icon-button,
+  .app-frame .screen>.page-header>.header-actions .icon-button{flex-basis:40px;width:40px;height:40px;min-width:40px;min-height:40px}
+  .app-frame .screen>.page-header>h1{font-size:18px}
+  .app-frame .screen>.page-header>h1.is-compact-title{font-size:15px}
+}
+
+/* Analytics and Activity use Home's flat, data-first section rhythm. */
+body.product-v2 .app-frame :is([data-screen="analytics"]:not([data-ref-owned]),[data-screen="activity"]){
+  padding:18px var(--screen-gutter) var(--dock-clearance);
+  background:radial-gradient(circle at 88% -8%,rgba(255,255,255,.04),transparent 28%),var(--terminal-bg);
+  color:var(--ui-text);
+  font-family:var(--ui-font);
+}
+body.product-v2 .app-frame :is([data-screen="analytics"]:not([data-ref-owned]),[data-screen="activity"])>.page-header{
+  min-height:44px;
+  margin:0 0 20px;
+  padding:0;
+  border:0;
+  border-radius:0;
+  background:transparent;
+  box-shadow:none;
+}
+body.product-v2 .app-frame :is([data-screen="analytics"]:not([data-ref-owned]),[data-screen="activity"])>.page-header h1{
+  color:var(--ui-text);
+  font-family:var(--ui-font);
+  font-size:22px;
+  font-weight:700;
+  line-height:1.15;
+  letter-spacing:-.025em;
+}
+body.product-v2 .app-frame [data-screen="analytics"]:not([data-ref-owned]) .utility-hero{
+  min-height:0;
+  margin:0;
+  padding:2px 0 20px;
+  border:0;
+  border-bottom:1px solid var(--terminal-line);
+  border-radius:0;
+  background:transparent;
+  box-shadow:none;
+}
+body.product-v2 .app-frame [data-screen="analytics"]:not([data-ref-owned]) .utility-hero h2{font-size:28px;font-variant-numeric:tabular-nums}
+body.product-v2 .app-frame [data-screen="analytics"]:not([data-ref-owned]) .utility-hero-icon{width:44px;height:44px;flex-basis:44px;border-radius:12px;background:#0a0a0a}
+body.product-v2 .app-frame [data-screen="analytics"]:not([data-ref-owned]) :is(.graph-card,.utility-card){
+  width:auto;
+  max-width:none;
+  margin:0;
+  padding:20px 0;
+  border:0;
+  border-bottom:1px solid var(--terminal-line);
+  border-radius:0;
+  background:transparent;
+  box-shadow:none;
+}
+body.product-v2 .app-frame [data-screen="analytics"]:not([data-ref-owned]) .graph-card .graph-head{margin:0 0 12px}
+body.product-v2 .app-frame [data-screen="analytics"]:not([data-ref-owned]) .graph-card .value-graph{min-height:188px;margin-inline:-4px}
+body.product-v2 .app-frame [data-screen="analytics"]:not([data-ref-owned]) .graph-card canvas{filter:grayscale(1) contrast(1.1)}
+body.product-v2 .app-frame [data-screen="analytics"]:not([data-ref-owned]) .insight-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:0;
+  margin:0;
+  border:0;
+  border-bottom:1px solid var(--terminal-line);
+  border-radius:0;
+  background:transparent;
+}
+body.product-v2 .app-frame [data-screen="analytics"]:not([data-ref-owned]) .insight-grid article{
+  min-height:84px;
+  padding:14px 12px 14px 0;
+  border:0;
+  border-right:1px solid var(--terminal-line);
+  border-bottom:1px solid var(--terminal-line);
+  border-radius:0;
+  background:transparent;
+  box-shadow:none;
+}
+body.product-v2 .app-frame [data-screen="analytics"]:not([data-ref-owned]) .insight-grid article:nth-child(even){padding-right:0;padding-left:12px;border-right:0}
+body.product-v2 .app-frame [data-screen="analytics"]:not([data-ref-owned]) .insight-grid article:nth-last-child(-n+2){border-bottom:0}
+body.product-v2 .app-frame [data-screen="analytics"]:not([data-ref-owned]) :is(.graph-head p,.utility-hero small,.insight-grid small,.utility-card .section-heading small){color:var(--ui-muted);font-family:var(--ui-font);font-size:10.5px;font-weight:650;letter-spacing:.07em;text-transform:uppercase}
+body.product-v2 .app-frame [data-screen="analytics"]:not([data-ref-owned]) :is(.insight-grid b,.insight-grid strong,.utility-breakdown strong){font-family:var(--ui-font);font-variant-numeric:tabular-nums}
+
+body.product-v2 .app-frame [data-screen="activity"] .activity-overview{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:0;
+  margin:0 0 18px;
+  overflow:visible;
+  border:0;
+  border-top:1px solid var(--terminal-line);
+  border-bottom:1px solid var(--terminal-line);
+  border-radius:0;
+  background:transparent;
+}
+body.product-v2 .app-frame [data-screen="activity"] .activity-overview article{min-height:76px;padding:14px 10px;background:transparent;border-right:1px solid var(--terminal-line)}
+body.product-v2 .app-frame [data-screen="activity"] .activity-overview article:first-child{padding-left:0}
+body.product-v2 .app-frame [data-screen="activity"] .activity-overview article:last-child{padding-right:0;border-right:0}
+body.product-v2 .app-frame [data-screen="activity"] .activity-overview small{color:var(--ui-muted);font-family:var(--ui-font);font-size:10px;font-weight:650;letter-spacing:.07em}
+body.product-v2 .app-frame [data-screen="activity"] .activity-overview b{color:var(--ui-text);font-family:var(--ui-font);font-size:20px;font-variant-numeric:tabular-nums}
+body.product-v2 .app-frame [data-screen="activity"] .search-card{
+  min-height:44px;
+  margin:0 0 12px;
+  padding:0 12px;
+  border:1px solid var(--terminal-line);
+  border-radius:11px;
+  background:#090909;
+  box-shadow:none;
+}
+body.product-v2 .app-frame [data-screen="activity"] .activity-filter-row{gap:8px;margin:0 0 14px;padding:0;overflow-x:auto}
+body.product-v2 .app-frame [data-screen="activity"] .activity-filter-row .pill{min-width:44px;min-height:44px;border-radius:999px;font-family:var(--ui-font)}
+body.product-v2 .app-frame [data-screen="activity"] .holdings-list{margin:0;border-top:1px solid var(--terminal-line)}
+body.product-v2 .app-frame [data-screen="activity"] .activity-row{
+  min-height:84px;
+  padding:14px 0;
+  border:0;
+  border-bottom:1px solid var(--terminal-line);
+  border-radius:0;
+  background:transparent;
+  box-shadow:none;
+  color:var(--ui-text);
+  font-family:var(--ui-font);
+}
+body.product-v2 .app-frame [data-screen="activity"] .activity-row :is(b,strong){color:var(--ui-text);font-family:var(--ui-font);font-variant-numeric:tabular-nums}
+body.product-v2 .app-frame [data-screen="activity"] .activity-row small{color:var(--ui-muted);font-family:var(--ui-font)}
+body.product-v2 .app-frame [data-screen="analytics"]:not([data-ref-owned]) :is(.graph-card,.utility-card){background:transparent!important;box-shadow:none!important}
+
+/* Re-enable the visible sort/filter rail. A legacy connected-state rule hid
+   these controls even though their handlers and labels remain part of the UI. */
+body.product-v2 .app-frame:is(.has-wallet,.is-home-screen) :is([data-screen="gifts"],[data-screen="stickers"]) .control-bar{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+  gap:10px;
+  margin:18px 0 0;
+}
+body.product-v2 .app-frame :is([data-screen="gifts"],[data-screen="stickers"]) .control-bar label{min-width:0;display:grid;gap:7px}
+body.product-v2 .app-frame :is([data-screen="gifts"],[data-screen="stickers"]) .control-bar select{width:100%;min-width:0;height:45px;padding:0 13px;border:1px solid var(--terminal-line);border-radius:9px;background:#090909;color:var(--ui-text);font:inherit;font-size:12px;color-scheme:dark}
+
+/* Data rows must never expand to their longest wallet address on a narrow
+   shell. The same min-content contract is shared by wallet, identity and
+   activity lists. */
+.app-frame :is([data-screen="wallets"],[data-screen="watchlist"]) .holdings-list>article,
+.app-frame :is([data-screen="wallets"],[data-screen="watchlist"]) .holdings-list>article>div,
+.app-frame :is([data-screen="wallets"],[data-screen="watchlist"]) .holdings-list>article>aside,
+.app-frame .identity-asset-list>article>div,
+.app-frame .identity-asset-list>article>aside{min-width:0}
+.app-frame :is([data-screen="wallets"],[data-screen="watchlist"]) .holdings-list>article :is(b,small),
+.app-frame .identity-asset-list>article :is(b,small){display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.app-frame [data-screen="wallets"] .holdings-list>article{grid-template-columns:44px minmax(0,1fr) minmax(76px,108px);column-gap:12px}
+
+/* All bottom sheets share the centered app-shell geometry on desktop and the
+   full-width geometry naturally on phones. */
+.app-frame .tx-sheet{left:50%;right:auto;width:min(390px,100vw);transform:translateX(-50%)}
+.app-frame .tx-sheet-panel{left:0;right:0}
+
+/* Analytics is a Home-derived measurement surface, not a second flat theme. */
+body.product-v2 .app-frame [data-screen="analytics"]:not([data-ref-owned]) :is(.utility-hero,.graph-card,.insight-grid,.utility-card){
+  border:1px solid rgba(255,255,255,.11);
+  border-radius:26px;
+  background:linear-gradient(180deg,#0f0f0f 0%,#080808 100%)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.024)!important;
+}
+body.product-v2 .app-frame [data-screen="analytics"]:not([data-ref-owned]) .utility-hero{margin:0 0 16px;padding:20px}
+body.product-v2 .app-frame [data-screen="analytics"]:not([data-ref-owned]) .graph-card{margin:0 0 16px;padding:20px}
+body.product-v2 .app-frame [data-screen="analytics"]:not([data-ref-owned]) .insight-grid{gap:0;margin:0 0 16px;overflow:hidden}
+body.product-v2 .app-frame [data-screen="analytics"]:not([data-ref-owned]) .utility-card{margin:0;padding:20px}
+
+/* Keep utility surfaces and search controls on the same material contract. */
+body.product-v2 .app-frame [data-screen="settings"] .profile-actions{
+  border:0;
+  border-radius:0;
+  background:transparent!important;
+  box-shadow:none!important;
+}
+body.product-v2 .app-frame :is([data-screen="gifts"],[data-screen="stickers"],[data-screen="activity"],[data-screen="dns"],[data-screen="anonymous-numbers"],[data-screen="usernames"]) .search-card{
+  min-height:48px;
+  border-radius:11px;
+}
+
+/* Identity summaries sit on the screen gutter, never inside a second gutter. */
+.app-frame .identity-summary-card{margin-left:0;margin-right:0}
+
+/* The live wallet action panel must not grow beyond the app shell. */
+.app-frame .wallet-action-panel{width:100%;min-width:0;box-sizing:border-box}
+body.product-v2 .app-frame [data-screen="analytics"]:not([data-ref-owned]) .insight-grid article{background:transparent}
+
+/* Token, gift and sticker details use one immersive Home card treatment. */
+body.product-v2 .app-frame [data-screen="detail"] :is(.enhanced-detail-hero,.gift-detail-hero-card,.sticker-detail-hero-card){
+  border:1px solid rgba(255,255,255,.11);
+  border-radius:22px;
+  background:linear-gradient(180deg,#0f0f0f 0%,#080808 100%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.024);
+}
+body.product-v2 .app-frame [data-screen="detail"] :is(.gift-detail-layout,.sticker-detail-layout){padding-inline:0}
+
+/* Give the scrollable page a little more breathing room when the viewport is
+   short enough for the fixed dock to cover the final rows. */
+@media(max-height:620px){
+  .app-frame:is(.has-wallet,.is-home-screen) .screen,
+  .app-frame .screen,
+  body.product-v2 .app-frame :is([data-screen="home"]:not([data-ref-owned]),[data-screen="assets"],[data-screen="tokens"],[data-screen="gifts"],[data-screen="gift-brand"],[data-screen="stickers"],[data-screen="sticker-brand"],[data-screen="detail"],[data-screen="analytics"]:not([data-ref-owned]),[data-screen="watchlist"],[data-screen="activity"],[data-screen="wallets"],[data-screen="settings"],[data-screen="dns"],[data-screen="anonymous-numbers"],[data-screen="usernames"]){scroll-padding-bottom:calc(156px + env(safe-area-inset-bottom));padding-bottom:calc(156px + env(safe-area-inset-bottom))}
+  .app-frame .dock{background:#090909;backdrop-filter:none;-webkit-backdrop-filter:none}
+}
+
+/* Final shared-title contract: Assets inherited a legacy uppercase treatment
+   that made it look lighter and less related to the other Home-derived routes. */
+.app-frame.has-wallet [data-screen="assets"]>.assets-header h1{
+  color:var(--ui-text);
+  font-family:var(--ui-font);
+  font-size:clamp(18px,5.5vw,22px);
+  font-weight:700;
+  line-height:1.15;
+  letter-spacing:-.025em;
+  text-transform:none;
+  text-shadow:none;
+}
+
+/* Keep long identity titles readable inside the shared three-column header. */
+.app-frame [data-screen="detail"].is-identity-detail>.page-header h1{
+  font-size:16px!important;
+  letter-spacing:-.018em!important;
+}
+
+@media(max-width:359px){
+  body.product-v2 .app-frame :is([data-screen="tokens"],[data-screen="gifts"],[data-screen="gift-brand"],[data-screen="stickers"],[data-screen="sticker-brand"],[data-screen="detail"])>.page-header h1:not(.dot-matrix-text){font-size:18px!important}
+  .app-frame [data-screen="detail"].is-identity-detail>.page-header h1{font-size:14px!important}
 }

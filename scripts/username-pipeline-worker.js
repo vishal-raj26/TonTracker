@@ -5,6 +5,7 @@ const { Pool } = require("pg");
 const { createUsernameStore } = require("../lib/username-store");
 const { classifyTelegramUsername } = require("../lib/username-structural");
 const { estimateTelegramUsernameValue } = require("../lib/username-estimator");
+const { usernamePortfolioEligible } = require("../lib/username-publication");
 const { USERNAME_CALIBRATION_VERSION, USERNAME_ESTIMATOR_VERSION, USERNAME_FEATURE_VERSION } = require("../lib/username-engine");
 
 const databaseUrl = String(process.env.USERNAME_DATABASE_URL || process.env.DNS_DATABASE_URL || process.env.DATABASE_URL || "").trim();
@@ -43,9 +44,8 @@ async function processJob(job) {
   // cannot put an identity into a portfolio total. That needs repeated sales
   // of this exact username, regardless of how confident a generic model is.
   const portfolioEligible = process.env.USERNAME_PORTFOLIO_ESTIMATES_ENABLED === "1"
-    && estimate.status === "estimated"
     && estimate.ownSaleCount >= 2
-    && ["medium", "high"].includes(estimate.confidenceBand);
+    && usernamePortfolioEligible(estimate);
   await store.upsertValuation({ nftAddress, usernameNormalized: estimate.username, estimateUsd: estimate.estimateUsd, rangeLowUsd: estimate.rangeLowUsd, rangeHighUsd: estimate.rangeHighUsd, confidenceScore: estimate.confidenceScore, confidenceBand: estimate.confidenceBand, valuationStatus: estimate.status, portfolioEligible, evidenceCount: estimate.evidenceCount, effectiveCompCount: estimate.effectiveCompCount, ownSaleCount: estimate.ownSaleCount, currentListingGram: inputs.target.lowest_ask_gram, currentBidGram: inputs.target.highest_bid_gram, estimatorVersion: USERNAME_ESTIMATOR_VERSION, calibrationVersion: USERNAME_CALIBRATION_VERSION, explanation: { route: target.primaryRoute, evidence: "public-finalized-market-sale-ledger" }, valuedAt, staleAt: new Date(valuedAt.getTime() + staleHours * 3_600_000) }, estimate.comparables);
 }
 async function cycle() {
