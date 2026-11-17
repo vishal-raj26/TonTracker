@@ -34,5 +34,5 @@ test("analytics and activity retain their usable controls and visible data regio
   assert.match(html, /data-screen="activity"[\s\S]*?id="activityTotalCount"[\s\S]*?id="activitySearch"[\s\S]*?data-activity-filter="All"/);
   assert.match(html, /class="wallet-action-panel" role="dialog" aria-modal="true" aria-labelledby="walletActionTitle"/);
   assert.match(html, /class="tx-sheet-panel" role="dialog" aria-modal="true" aria-labelledby="txAmountTitle"/);
-  assert.match(html, /role="button" tabindex="0" data-screen-target="anonymous-numbers"/);
+  assert.match(html, /role="button" tabindex="0" data-screen-target="stickers"/);
 });

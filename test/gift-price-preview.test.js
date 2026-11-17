@@ -67,7 +67,7 @@ test("legacy cached preview provenance cannot expose mock-price wording in the U
   const vm = require("node:vm");
   const source = fs.readFileSync(path.join(__dirname, "..", "app.js"), "utf8");
   const context = vm.createContext({});
-  vm.runInContext(source.slice(source.indexOf("function marketSourceLabel("), source.indexOf("function identityAssetId(")), context);
+  vm.runInContext(source.slice(source.indexOf("function marketSourceLabel("), source.indexOf("function renderAssetDetail(")), context);
   for (const label of ["Mock prices", "Mock UI preview", "mock-ui-preview", "UI Preview", "Preview market prices"]) {
     assert.equal(context.marketSourceLabel(label), "Reference");
   }

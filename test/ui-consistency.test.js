@@ -13,7 +13,7 @@ const terminal = fs.readFileSync(path.join(root, "terminal-system.js"), "utf8");
 
 test("all static header icon controls have accessible names", () => {
   const headers = [...html.matchAll(/<header class="page-header"[^>]*>([\s\S]*?)<\/header>/g)].map((match) => match[1]);
-  assert.ok(headers.length >= 14);
+  assert.ok(headers.length >= 11);
   for (const header of headers) {
     const buttons = [...header.matchAll(/<button class="icon-button"([^>]*)>/g)];
     for (const [, attributes] of buttons) assert.match(attributes, /aria-label="[^"]+"/);
@@ -70,11 +70,6 @@ test("dot-matrix display is reserved for numeric measurements", () => {
   assert.match(terminal, /element\.classList\.remove\('dot-matrix-text', 'dot-matrix-value'\)/);
 });
 
-test("identity measurements share the horizontal numeric display contract", () => {
-  assert.match(styles, /\[data-screen="dns"\],\[data-screen="anonymous-numbers"\],\[data-screen="usernames"\]\) \.dot-matrix-text\{display:flex!important;flex-flow:row nowrap/);
-  assert.match(terminal, /\[data-screen="usernames"\] \.identity-summary-card h2/);
-});
-
 test("settings expose real state instead of an unsupported theme toggle", () => {
   assert.match(html, /Privacy mode: Off/);
   assert.match(html, /Refresh frequency: Off/);
@@ -84,15 +79,14 @@ test("settings expose real state instead of an unsupported theme toggle", () => 
 });
 
 test("wallet sources use guarded counts and the shared connected treatment", () => {
-  assert.match(app, /const totalAssets = tokenCount \+ nftCount \+ dnsCount \+ usernameCount \+ anonymousNumberCount/);
+  assert.match(app, /const totalAssets = tokenCount \+ nftCount;/);
   assert.match(app, /totalAssets === 1 \? "asset" : "assets"/);
-  assert.match(app, /const identitySummary = \[/);
   assert.doesNotMatch(app, /data\.summary\.tokenCount \+ data\.summary\.nftCount/);
   assert.match(styles, /\[data-screen="wallets"\] \.connect-panel button\.is-connected\{border-color:rgba\(110,227,166/);
   assert.match(app, /saveWalletAssetSnapshot\(liveWalletData\);\s*updateWalletScreen\(liveWalletData, Number\(liveWalletData\.summary\?\.totalUsd/);
 });
 
-test("shared asset totals include every visible identity category", () => {
+test("shared asset totals include every visible asset category", () => {
   assert.match(app, /const holdings = walletHoldingCount\(tokens\)/);
   assert.match(app, /function walletHoldingCount\(tokens = latestVisibleTokens\)/);
   assert.match(app, /Object\.values\(holdings\)\.reduce\(\(sum, count\) => sum \+ count, 0\)\} tracked assets/);

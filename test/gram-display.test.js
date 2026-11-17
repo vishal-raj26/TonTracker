@@ -22,7 +22,6 @@ test("native currency is presented as GRAM while TON network labels remain intac
   assert.ok(fs.existsSync(path.join(__dirname, "..", "assets", "branding", "gram-diamond-mark.svg")));
   assert.match(appSource, /<h2>TON Network<\/h2>/);
   assert.match(htmlSource, /Connect TON Wallet/);
-  assert.match(htmlSource, /TON DNS/);
 });
 
 test("assets monetary value is not converted to dot-matrix display", () => {

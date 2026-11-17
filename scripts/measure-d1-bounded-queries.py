@@ -14,14 +14,7 @@ ROOT=Path(__file__).resolve().parent.parent
 
 def database(kind,size):
     db=sqlite3.connect(':memory:')
-    if kind=='identity':
-        for path in ['cloudflare/valuation-read-model-migrations/0002_valuation_read_model_bootstrap.sql','cloudflare/valuation-read-model-migrations/0003_bounded_maintenance.sql']:
-            db.executescript((ROOT/path).read_text())
-        db.executemany("INSERT INTO identity_sales(sale_id,asset_kind,asset_key,normalized_name,sold_at,price_gram,historical_usd_rate,price_usd,marketplace,source) VALUES(?,'username',?,?,?,1,1,?,'test','test')",
-            ((f's{i:05}',f'key{i}',f'name{i}',i+1,i+1) for i in range(size)))
-        db.executemany("INSERT INTO identity_assets(asset_kind,asset_key,normalized_name,display_name,source_updated_at) VALUES('username',?,?,?,'2026-01-01')",
-            ((f'key{i}',f'name{i}',f'name{i}') for i in range(size)))
-    elif kind=='compact':
+    if kind=='compact':
         for path in ['cloudflare/gift-sales-compact-schema.sql','cloudflare/gift-sales-bounded-maintenance.sql']:
             db.executescript((ROOT/path).read_text())
         db.execute("INSERT INTO gift_sale_combos(combo_id,collection_key,collection_name,model_key,model_name,backdrop_key,backdrop_name) VALUES(1,'a','a','m','m','b','b')")

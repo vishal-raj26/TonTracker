@@ -12,8 +12,6 @@ const roles = {
     args: [],
     env: { TONTRACK_MODE: "estimate-history-once" },
   },
-  "username-market": { script: "scripts/rebuild-username-ledger.js", args: [] },
-  "identity-baselines": { script: "scripts/refresh-identity-baselines.js", args: [] },
 };
 
 const job = roles[requestedRole];

@@ -24,7 +24,7 @@ export async function maintenanceReady(database, kind) {
 
 export async function advanceCounter(database, table) {
   // table comes exclusively from the allowlist below; never from a request.
-  if (!['identity_assets','identity_sales','valuation_records','gift_sale_events','gift_sale_combos'].includes(table)) throw new Error('Unsupported counter');
+  if (!['gift_sale_events','gift_sale_combos'].includes(table)) throw new Error('Unsupported counter');
   const key = table === 'gift_sale_events' ? 'sale_id' : 'rowid';
   const cursor=key==='rowid'?'CAST(cursor AS INTEGER)':'cursor';
   await database.prepare(`UPDATE bounded_maintenance_state SET
@@ -128,9 +128,9 @@ export async function boundedCompactStats(database) {
 }
 
 export async function boundedCounterBootstrap(database,scope,requestedSteps=1) {
-  if(!['identity','compact'].includes(scope)) throw new Error('Unsupported bootstrap scope');
+  if(scope!=='compact') throw new Error('Unsupported bootstrap scope');
   if(!await maintenanceReady(database,scope)) return {status:'migration-required'};
-  const tables=scope==='identity'?['identity_assets','identity_sales','valuation_records']:['gift_sale_events','gift_sale_combos'];
+  const tables=['gift_sale_events','gift_sale_combos'];
   const steps=Math.max(1,Math.min(4,Math.floor(Number(requestedSteps)||1)));
   return withMaintenanceLease(database,`maintenance:${scope}`,async()=> {
     const counters={};
@@ -139,10 +139,6 @@ export async function boundedCounterBootstrap(database,scope,requestedSteps=1) {
       for(const table of tables) counters[table]=await advanceCounter(database,table);
       completedSteps++;
       if(tables.every(table=>counters[table]?.status==='complete')) break;
-    }
-    if(scope==='identity') for(const [table,column] of [['identity_assets','tracked_assets'],['identity_sales','tracked_sales'],['valuation_records','tracked_valuations']]) {
-      await database.prepare(`UPDATE identity_storage_policy SET ${column}=(SELECT total FROM bounded_maintenance_state WHERE job_key=?1),updated_at=CURRENT_TIMESTAMP
-        WHERE policy_key='primary' AND EXISTS(SELECT 1 FROM bounded_maintenance_state WHERE job_key=?1 AND status='complete')`).bind(`count:${table}`).run();
     }
     return {status:tables.every(table=>counters[table]?.status==='complete')?'complete':'partial',scope,counters,
       steps:completedSteps,sourceRowBudget:completedSteps*tables.length*MAINTENANCE_PAGE_SIZE*3};
@@ -185,27 +181,5 @@ export async function boundedLegacyRetention(database,cutoff) {
   const last=page.results?.at(-1);
   await saveState(database,job,page.results?.length===MAINTENANCE_PAGE_SIZE ? {soldAt:last.sold_at,saleId:last.sale_id} : {},lease);
   return {status:'complete',examined:page.results?.length || 0,deletedEvents};
-  });
-}
-
-export async function boundedIdentityMaintenance(database) {
-  if (!await maintenanceReady(database, 'identity')) return { status: 'migration-required' };
-  return withMaintenanceLease(database,'maintenance:identity',async()=> {
-  const reconciliation = {};
-  for (const [table,column] of [['identity_assets','tracked_assets'],['identity_sales','tracked_sales'],['valuation_records','tracked_valuations']]) {
-    reconciliation[table] = await advanceCounter(database, table);
-    // Read the authoritative trigger counter inside this statement; a concurrent
-    // ingestion cannot be overwritten by an earlier JS snapshot of the count.
-    await database.prepare(`UPDATE identity_storage_policy SET ${column}=(SELECT total FROM bounded_maintenance_state WHERE job_key=?1),updated_at=CURRENT_TIMESTAMP
-      WHERE policy_key='primary' AND EXISTS(SELECT 1 FROM bounded_maintenance_state WHERE job_key=?1 AND status='complete')`)
-      .bind(`count:${table}`).run();
-  }
-  const cutoff = new Date(Date.now()-30*86400000).toISOString();
-  const aliasCutoff = new Date(Date.now()-90*86400000).toISOString();
-  await database.prepare(`DELETE FROM identity_current_market WHERE rowid IN
-    (SELECT rowid FROM identity_current_market INDEXED BY identity_current_market_expiry_bounded_idx WHERE stale_at<?1 ORDER BY stale_at LIMIT ${MAINTENANCE_PAGE_SIZE})`).bind(cutoff).run();
-  await database.prepare(`DELETE FROM identity_asset_aliases WHERE rowid IN
-    (SELECT rowid FROM identity_asset_aliases INDEXED BY identity_aliases_expiry_bounded_idx WHERE last_seen_at<?1 ORDER BY last_seen_at LIMIT ${MAINTENANCE_PAGE_SIZE})`).bind(aliasCutoff).run();
-  return { status: Object.values(reconciliation).every(row=>row?.status==='complete') ? 'complete' : 'partial', reconciliation };
   });
 }

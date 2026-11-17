@@ -14,12 +14,12 @@ function walletPayload() {
   return {
     importedAt: new Date().toISOString(),
     account: { address: fixtureAddress, displayAddress: "fixture…wallet", tonName: "Fixture Wallet" },
-    summary: { totalUsd: 15, tonValueUsd: 5, jettonsValueUsd: 10, tonUsdRate: 5, tokenCount: 2, giftCount: 0, stickerCount: 0, dnsCount: 0 },
+    summary: { totalUsd: 15, tonValueUsd: 5, jettonsValueUsd: 10, tonUsdRate: 5, tokenCount: 2, giftCount: 0, stickerCount: 0 },
     assets: {
       ton: { balance: 1, priceUsd: 5, valueUsd: 5, symbol: "TON", name: "Toncoin" },
       jettons: [{ address: "jetton-fixture", masterAddress: "jetton-fixture", symbol: "FIX", name: "Fixture Token", balance: 10, priceUsd: 1, valueUsd: 10, verified: true }],
       jettonInventory: { status: "partial", providers: { fixture: { provider: "fixture", status: "ready" } } },
-      collectibles: [], dns: [], usernames: [], anonymousNumbers: [],
+      collectibles: [],
     },
     warnings: ["Collectibles are loading"], history: [], historyStatus: [], activity: [],
   };
@@ -29,9 +29,6 @@ function collectiblePayload() {
   return {
     gifts: [{ address: "gift-fixture", type: "gift", name: "Fixture Gift", collection: "Fixture Collection", model: "Model", backdrop: "Backdrop", image: "" }],
     stickers: [{ address: "sticker-fixture", type: "sticker", name: "Fixture Sticker", collection: "Fixture Stickers", image: "" }],
-    dns: [{ address: "dns-fixture", type: "dns", name: "fixture.ton", domain: "fixture.ton", valueUsd: 0 }],
-    usernames: [{ address: "username-fixture", type: "telegram_username", name: "@fixture", username: "fixture", valueUsd: 0 }],
-    anonymousNumbers: [{ address: "number-fixture", type: "anonymous_number", name: "+888 0000 0000", number: "+888 0000 0000", valueUsd: 0 }],
   };
 }
 

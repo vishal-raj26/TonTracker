@@ -1,0 +1,905 @@
+/* Reference sheets 01–09, translated to TonTrack's existing components.
+ * Presentation only: routes, sections, media, datasets and data states are unchanged.
+ * Legacy sheets remain loaded for layout/behavior. These scoped bridges intentionally
+ * outrank their screen-specific rules; new visual values live in the tokens below.
+ */
+/* The source mobile canvas has no reserved desktop scrollbar gutter. */
+html:has(> body.reference-ui) { scrollbar-width: none; }
+html:has(> body.reference-ui)::-webkit-scrollbar { display: none; }
+body.product-v2.reference-ui {
+  --ref-bg: #080808;
+  --ref-surface: #111111;
+  --ref-raised: #181818;
+  --ref-border: #272727;
+  --ref-text: #ffffff;
+  --ref-secondary: #a0a0a0;
+  --ref-tertiary: #888888;
+  --ref-muted: #666666;
+  --ref-font: Inter, Manrope, system-ui, sans-serif;
+  --ref-gutter: 20px;
+  --ref-card-gap: 20px;
+  --ref-section-gap: 32px;
+  --ref-radius: 24px;
+  --ref-inner-radius: 16px;
+  --ref-pill: 999px;
+  --ref-control: 44px;
+  --ref-row-height: 80px;
+  --ref-row-padding: 20px;
+  --ref-art-size: 48px;
+  --ref-glass: linear-gradient(140deg, #ffffff14, #ffffff05);
+  --ref-hero: radial-gradient(ellipse at 88% -12%, #cf789847, transparent 65%), linear-gradient(132deg, #624457, #422338 49%, #170815 100%);
+  --ref-card: linear-gradient(118deg, #161616 0%, #101010 48%, #080808 100%);
+  --ref-shadow: inset 0 1px 1px #ffffff10, inset 0 -1px 1px #00000050, 0 8px 24px #00000020;
+  --font: var(--ref-font);
+  --ink: var(--ref-text);
+  --text: var(--ref-text);
+  --muted: var(--ref-secondary);
+  --line: var(--ref-border);
+  --panel: var(--ref-surface);
+  --panel-strong: var(--ref-raised);
+  --radius: var(--ref-inner-radius);
+  background: #000;
+  color: var(--ref-text);
+}
+body.product-v2.reference-ui .app-frame {
+  --terminal-bg: var(--ref-bg);
+  --terminal-ink: var(--ref-text);
+  --terminal-muted: var(--ref-tertiary);
+  --terminal-soft: var(--ref-secondary);
+  --terminal-line: var(--ref-border);
+  --terminal-line-strong: #383838;
+  --terminal-mono: var(--ref-font);
+  --ui-font: var(--ref-font);
+  --ui-text: var(--ref-text);
+  --ui-muted: var(--ref-secondary);
+  --screen-gutter: var(--ref-gutter);
+  --product-text: var(--ref-text);
+  --product-muted: var(--ref-secondary);
+  --product-line: var(--ref-border);
+  --product-line-strong: #383838;
+  --product-bg: var(--ref-bg);
+  max-width: 393px;
+  margin-inline: auto;
+  background: var(--ref-bg) !important;
+}
+body.product-v2.reference-ui .app-frame .screen {
+  padding: max(24px, env(safe-area-inset-top)) var(--ref-gutter) calc(120px + env(safe-area-inset-bottom)) !important;
+  background: var(--ref-bg) !important;
+  font-family: var(--ref-font) !important;
+  color: var(--ref-text);
+}
+body.product-v2.reference-ui .app-frame .screen::before { content: none !important; }
+body.product-v2.reference-ui .app-frame .screen > :is(section, header, .holding-list-status, .acquired-label) {
+  margin-inline: 0 !important;
+  max-width: 100%;
+  min-width: 0;
+}
+body.product-v2.reference-ui .app-frame .screen > :is(section, .holding-list-status) { margin-bottom: var(--ref-card-gap) !important; }
+body.product-v2.reference-ui .app-frame .screen > :is(.bottom-pad, #giftDetailMount) { padding-bottom: 0 !important; }
+
+/* One type scale, including summaries, collection stats and secondary details. */
+body.product-v2.reference-ui .app-frame :is(h1, h2, h3, b, strong, p, small, label, span, button, input, select, time, em) {
+  font-family: var(--ref-font) !important;
+}
+body.product-v2.reference-ui .app-frame :is(.section-eyebrow, .portfolio-kicker, .graph-head p, .summary-card > small,
+  .asset-total-banner > small, .control-bar label, .utility-hero small, .insight-grid small,
+  .token-metric-card small, .financial-grid small, .portfolio-strip small,
+  .activity-overview small, .gift-detail-price-lockup > span) {
+  color: var(--ref-secondary) !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  line-height: 1.5 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+}
+body.product-v2.reference-ui .app-frame :is(.graph-head h1, .summary-card h2, .asset-total-banner h2, :where(#analyticsPortfolioValue, #detailValue), .gift-detail-floor-row > strong) {
+  display: block !important;
+  color: var(--ref-text) !important;
+  font-size: clamp(30px, 9vw, 42px) !important;
+  font-weight: 400 !important;
+  letter-spacing: -.025em !important;
+  line-height: 1.15 !important;
+  font-variant-numeric: lining-nums tabular-nums;
+  overflow-wrap: anywhere;
+}
+body.product-v2.reference-ui .app-frame :is(.section-heading h2, .featured-collectibles-heading h2) {
+  font-size: 20px !important;
+  font-weight: 500 !important;
+  letter-spacing: -.035em !important;
+  line-height: 1.25 !important;
+}
+body.product-v2.reference-ui .app-frame :is(.graph-updated, .data-state-note, .gift-detail-footnote,
+  .gift-detail-floor-sub, .detail-empty-state, .utility-empty-copy, .holding-list-status small,
+  .acquired-label, #portfolioHistoryContext:not([data-ref-owned])) {
+  color: var(--ref-secondary) !important;
+  font-size: 12px !important;
+  line-height: 1.55 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+}
+body.product-v2.reference-ui .app-frame :is(.section-heading, .featured-collectibles-heading) { margin-bottom: 16px !important; }
+body.product-v2.reference-ui .app-frame :is(.page-header, .app-header) {
+  position: relative !important;
+  top: auto !important;
+  min-height: 48px !important;
+  margin: 0 0 24px !important;
+  padding: 0 !important;
+  gap: 12px !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+}
+body.product-v2.reference-ui .app-frame .page-header h1 {
+  color: var(--ref-text) !important;
+  font-size: 20px !important;
+  font-weight: 400 !important;
+  line-height: 1.2 !important;
+  letter-spacing: -.02em !important;
+  text-transform: none !important;
+  white-space: normal !important;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  margin: 0;
+  text-align: left;
+}
+/* Preserve reachable back navigation on the existing long secondary pages. */
+body.product-v2.reference-ui .app-frame .page-header:has(> .icon-button:first-child) {
+  position: sticky !important;
+  top: max(8px, env(safe-area-inset-top)) !important;
+  z-index: 18;
+  background: var(--ref-bg) !important;
+}
+body.product-v2.reference-ui .app-frame .identity { gap: 12px; }
+body.product-v2.reference-ui .app-frame .identity b { font-size: 16px; font-weight: 600; }
+body.product-v2.reference-ui .app-frame .identity small { font-size: 12px; color: var(--ref-secondary); }
+
+/* Surfaces: the same card language for existing metrics, charts and details. */
+body.product-v2.reference-ui .app-frame :is(.graph-card:not([data-ref-owned]), .allocation-card:not([data-ref-owned]), .summary-card, .asset-total-banner, .utility-hero, .utility-card, .mini-detail-card, .portfolio-strip,
+  .gift-detail-hero-card, .enhanced-detail-hero, .gift-detail-card,
+  .price-panel, .sales-panel, .market-intel, .holder-ring-card, .ton-network-card,
+  .profile-actions, .connect-panel.small, .activity-overview) {
+  border: 1px solid var(--ref-border) !important;
+  border-radius: var(--ref-radius) !important;
+  background: var(--ref-card) !important;
+  box-shadow: var(--ref-shadow) !important;
+  padding: 20px !important;
+}
+/* Sheet 07 metric material frames existing category summary information. */
+body.product-v2.reference-ui .app-frame :is(.summary-card, .asset-total-banner) {
+  background: var(--ref-card) !important;
+  border-color: #ffffff1c !important;
+  min-height: 153px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 8px;
+}
+body.product-v2.reference-ui .app-frame :is(.summary-card, .asset-total-banner) :is(h2, p) { margin: 0; }
+body.product-v2.reference-ui .app-frame :is(.featured-collectibles, .movement-panel, .activity-panel) {
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  margin-top: var(--ref-section-gap) !important;
+}
+body.product-v2.reference-ui .app-frame .graph-head:not([data-ref-owned]) { margin: 8px 0 12px !important; }
+body.product-v2.reference-ui .app-frame .portfolio-kicker { gap: 12px; }
+body.product-v2.reference-ui .app-frame .portfolio-source { color: var(--ref-secondary); font-size: 11px; }
+body.product-v2.reference-ui .app-frame .value-graph:not([data-ref-owned]) { height: 200px !important; min-height: 200px !important; margin: 16px 0 12px !important; }
+body.product-v2.reference-ui .app-frame .graph-card canvas { filter: none !important; }
+body.product-v2.reference-ui .app-frame .portfolio-chart-footer { gap: 12px; flex-wrap: wrap; }
+body.product-v2.reference-ui .app-frame .portfolio-actions-row { margin: 8px 0 0; }
+body.product-v2.reference-ui .app-frame .portfolio-actions-row > span { font-size: 12px; }
+body.product-v2.reference-ui .app-frame .analytics-hero { align-items: center; gap: 16px; }
+body.product-v2.reference-ui .app-frame .analytics-hero p { color: var(--ref-secondary); font-size: 13px; line-height: 1.5; }
+body.product-v2.reference-ui .app-frame [data-screen="analytics"] .graph-head h1 { font-size: 32px !important; }
+
+/* Buttons and selectors share touch targets and one white selected state. */
+body.product-v2.reference-ui .app-frame :is(.icon-button, .refresh-button:not([data-ref-owned]), .ui-icon-action, .product-preview-head button,
+  .product-filter-sheet header button, .tx-sheet-close) {
+  flex-shrink: 0;
+  width: var(--ref-control) !important;
+  height: var(--ref-control) !important;
+  min-width: var(--ref-control) !important;
+  min-height: var(--ref-control) !important;
+  padding: 10px !important;
+  border: 1px solid var(--ref-border) !important;
+  border-radius: var(--ref-pill) !important;
+  color: var(--ref-text) !important;
+  background: var(--ref-glass) !important;
+  box-shadow: inset 0 1px 1px #ffffff0b !important;
+}
+body.product-v2.reference-ui .app-frame svg.lucide { width: 22px; height: 22px; stroke-width: 1.75 !important; stroke-dasharray: none !important; }
+body.product-v2.reference-ui .app-frame :is(.range-selector:not([data-ref-owned]), .token-range-selector, .gift-chart-range, .currency-options) {
+  gap: 6px !important;
+  padding: 4px !important;
+  border: 1px solid var(--ref-border) !important;
+  border-radius: var(--ref-pill) !important;
+  background: #0a0a0a !important;
+}
+body.product-v2.reference-ui .app-frame :is(.range-selector:not([data-ref-owned]), .token-range-selector, .gift-chart-range) {
+  display: flex !important;
+  flex-wrap: wrap;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+}
+body.product-v2.reference-ui .app-frame :is(.range-selector:not([data-ref-owned]) button, .token-range-selector button,
+  .gift-chart-range button, .currency-options button, .pill, .toggle-chip, .wallet-chip) {
+  min-height: var(--ref-control) !important;
+  min-width: var(--ref-control) !important;
+  padding: 10px 16px !important;
+  border: 1px solid var(--ref-border) !important;
+  border-radius: var(--ref-pill) !important;
+  background: var(--ref-glass) !important;
+  color: var(--ref-secondary) !important;
+  font-size: 12px !important;
+  font-weight: 400 !important;
+  letter-spacing: 0 !important;
+}
+body.product-v2.reference-ui .app-frame :is(.range-selector:not([data-ref-owned]), .token-range-selector, .gift-chart-range) button { border-radius: 16px !important; border-color: #ffffff1d !important; }
+body.product-v2.reference-ui .app-frame .currency-options button { border-color: transparent !important; }
+body.product-v2.reference-ui .app-frame :is(.range-selector:not([data-ref-owned]) button.is-active, .token-range-selector button.is-active,
+  .gift-chart-range button.is-active, .currency-options button.is-active, .pill.active, .pill.is-active) {
+  background: var(--ref-text) !important;
+  color: #080808 !important;
+}
+body.product-v2.reference-ui .app-frame .wallet-chip.is-connected { color: var(--ref-text) !important; border-color: #383838 !important; }
+body.product-v2.reference-ui .app-frame :is(.primary-button, .wallet-address-form button, .connect-panel.small > button) {
+  min-height: 48px;
+  padding: 12px 20px;
+  border-radius: var(--ref-pill) !important;
+  color: #080808 !important;
+  background: var(--ref-text) !important;
+  font-size: 14px;
+  font-weight: 600;
+}
+body.product-v2.reference-ui .app-frame :is(button, a, [role="button"], input, select):focus-visible {
+  outline: 2px solid #fff !important;
+  outline-offset: 3px;
+}
+body.product-v2.reference-ui .app-frame button:disabled { opacity: .45; cursor: not-allowed; }
+@media (hover: hover) {
+  body.product-v2.reference-ui .app-frame :is(button, [role="button"]):not(:disabled):hover { filter: brightness(1.12); }
+}
+body.product-v2.reference-ui .app-frame :is(button, [role="button"]):active { opacity: .8; }
+
+/* Asset rows: real art remains unchanged; a quiet container frames each holding. */
+body.product-v2.reference-ui .app-frame :is(.holdings-list, .category-stack, .collectible-grid) {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+  gap: var(--ref-card-gap) !important;
+  padding: 0 !important;
+  border: 0 !important;
+  margin-top: 0 !important;
+}
+body.product-v2.reference-ui .app-frame :is(.holdings-list > article, .category-stack > article,
+  .collectible-card, .activity-panel .activity-row) {
+  min-height: var(--ref-row-height) !important;
+  margin: 0 !important;
+  padding: 15px var(--ref-row-padding) !important;
+  border: 1px solid var(--ref-border) !important;
+  border-radius: var(--ref-radius) !important;
+  background: var(--ref-card) !important;
+  box-shadow: var(--ref-shadow) !important;
+  gap: 12px !important;
+}
+body.product-v2.reference-ui .app-frame :is(.holdings-list > article, .category-stack > article) { grid-template-columns: 48px minmax(0, 1fr) auto !important; }
+body.product-v2.reference-ui .app-frame .category-stack > article { display: grid; }
+body.product-v2.reference-ui .app-frame :is(.asset-icon, .activity-dot, .utility-hero-icon) {
+  width: 48px !important;
+  height: 48px !important;
+  min-width: 48px;
+  flex-basis: 48px;
+  border: 1px solid #303030 !important;
+  border-radius: var(--ref-inner-radius) !important;
+  background: radial-gradient(ellipse at 30% 15%, #ffffff0d, transparent 70%), linear-gradient(140deg, #292929, #1b1b1b) !important;
+  color: var(--ref-text) !important;
+  box-shadow: inset 0 1px 1px #ffffff10, inset 0 -1px 1px #0003 !important;
+}
+body.product-v2.reference-ui .app-frame :is(.holdings-list, .category-stack, .activity-panel) :is(b, strong),
+body.product-v2.reference-ui .app-frame .collectible-card h3 {
+  font-size: 16px !important;
+  font-weight: 400 !important;
+  line-height: 1.35 !important;
+  letter-spacing: -.02em !important;
+}
+body.product-v2.reference-ui .app-frame :is(.holdings-list, .category-stack, .collectible-card, .activity-row) small {
+  color: var(--ref-secondary);
+  font-size: 12px !important;
+  line-height: 1.5 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+}
+body.product-v2.reference-ui .app-frame :is(.holdings-list) aside { max-width: 116px; min-width: 0; }
+body.product-v2.reference-ui .app-frame .category-stack strong { max-width: 112px; font-size: 16px !important; text-align: right; }
+body.product-v2.reference-ui .app-frame .category-stack article::after { content: none !important; }
+body.product-v2.reference-ui .app-frame .collectible-top { column-gap: 12px; }
+body.product-v2.reference-ui .app-frame .collectible-top :is(.collectible-art, .sticker-art, .gift-pfp-stack, .animated-art) { border-radius: var(--ref-inner-radius) !important; }
+body.product-v2.reference-ui .app-frame .collectible-card .value-stack strong { font-size: 24px !important; font-weight: 500; }
+/* Sheet 03: art | name + secondary | right-aligned value + state. */
+body.product-v2.reference-ui .app-frame .collectible-card.reference-asset-row {
+  display: grid !important;
+  grid-template-columns: var(--ref-art-size) minmax(0, 1fr) minmax(72px, auto);
+  align-items: center;
+  column-gap: 12px !important;
+  row-gap: 8px !important;
+  transition: border-color 160ms ease, opacity 160ms ease;
+}
+body.product-v2.reference-ui .app-frame .reference-asset-row > :is(.animated-art, .gift-pfp-stack, .sticker-pfp-stack) {
+  width: var(--ref-art-size) !important;
+  height: var(--ref-art-size) !important;
+  min-width: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: 1px solid #ffffff0d !important;
+  border-radius: 16px !important;
+  background: linear-gradient(145deg, #303030, #1b1b1b) !important;
+  box-shadow: inset 0 1px 0 #ffffff08 !important;
+  overflow: hidden;
+}
+body.product-v2.reference-ui .app-frame .reference-asset-row .reference-row-copy { min-width: 0; }
+body.product-v2.reference-ui .app-frame .reference-row-copy h3 { margin: 0 !important; overflow-wrap: anywhere; }
+body.product-v2.reference-ui .app-frame .reference-row-copy small { display: block; margin-top: 2px; overflow-wrap: anywhere; }
+body.product-v2.reference-ui .app-frame .reference-asset-row .reference-row-value {
+  margin: 0 !important;
+  gap: 3px !important;
+  text-align: right;
+  align-self: center;
+  min-width: 0;
+  max-width: 112px;
+}
+body.product-v2.reference-ui .app-frame .collectible-card.reference-asset-row .reference-row-value strong {
+  font-size: 16px !important;
+  font-weight: 500 !important;
+  letter-spacing: -.02em !important;
+  line-height: 1.3 !important;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+body.product-v2.reference-ui .app-frame .collectible-card.reference-asset-row .reference-row-value strong.is-value-unavailable { font-size: 12px !important; color: var(--ref-secondary) !important; }
+body.product-v2.reference-ui .app-frame .reference-row-value small { font-size: 11px !important; line-height: 1.35 !important; overflow-wrap: anywhere; }
+
+body.product-v2.reference-ui .app-frame .reference-asset-row .holding-performance { grid-column: 2 / -1; margin: 0; }
+body.product-v2.reference-ui .app-frame .reference-asset-row .gift-pfp-stack .animated-art {
+  position: absolute;
+  inset: 0 !important;
+  width: 48px !important;
+  height: 48px !important;
+  transform: none !important;
+}
+body.product-v2.reference-ui .app-frame .reference-asset-row .gift-pfp-stack .animated-art:nth-child(2) { transform: translate(6px, 6px) scale(.78) !important; transform-origin: bottom right; }
+body.product-v2.reference-ui .app-frame .reference-asset-row .gift-pfp-stack > b { position: absolute; right: 1px; bottom: 1px; z-index: 2; font-size: 10px !important; padding: 1px 3px; background: #080808d9; border-radius: 4px; }
+body.product-v2.reference-ui .app-frame :is(.pnl-box, .trait-card, .tag-number, .status-badge, .gift-model-badges b) {
+  border-color: var(--ref-border) !important;
+  background: var(--ref-raised) !important;
+  box-shadow: none !important;
+}
+body.product-v2.reference-ui .app-frame .pnl-row { gap: 12px !important; }
+body.product-v2.reference-ui .app-frame .pnl-box { border-radius: 12px !important; padding: 12px !important; border: 1px solid var(--ref-border) !important; }
+
+/* Filters retain native select behavior and all existing search/sort hooks. */
+body.product-v2.reference-ui .app-frame .control-bar { margin-top: 0 !important; padding: 0 !important; gap: 12px !important; }
+body.product-v2.reference-ui .app-frame .control-bar label { min-width: 0; }
+body.product-v2.reference-ui .app-frame :is(.control-bar select, .search-card, .wallet-address-form input,
+  .product-filter-sheet > input) {
+  min-height: 48px !important;
+  padding: 12px 16px !important;
+  border: 1px solid var(--ref-border) !important;
+  border-radius: var(--ref-inner-radius) !important;
+  background: var(--ref-surface) !important;
+  color: var(--ref-text) !important;
+  box-shadow: none !important;
+  font-size: 13px !important;
+}
+body.product-v2.reference-ui .app-frame .search-card { margin-top: 0 !important; gap: 12px; }
+body.product-v2.reference-ui .app-frame .search-card input { font-size: 14px !important; color: var(--ref-text); min-width: 0; }
+body.product-v2.reference-ui .app-frame input::placeholder { color: var(--ref-tertiary); }
+body.product-v2.reference-ui .app-frame .control-bar select { border-radius: var(--ref-pill) !important; background: linear-gradient(145deg, #202020, #131313) !important; }
+body.product-v2.reference-ui .app-frame .holding-list-status { padding: 0; margin-top: -8px; }
+body.product-v2.reference-ui .app-frame .holding-list-status { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+body.product-v2.reference-ui .app-frame :is(h1, h2, h3) { text-transform: none !important; }
+body.product-v2.reference-ui .app-frame .asset-total-banner h2.is-value-unavailable { font-size: 24px !important; letter-spacing: -.03em !important; }
+body.product-v2.reference-ui .app-frame .asset-total-banner > div { gap: 12px; }
+body.product-v2.reference-ui .app-frame .asset-total-banner > div > span { flex-shrink: 0; font-size: 12px; }
+body.product-v2.reference-ui .app-frame .portfolio-strip b { letter-spacing: -.035em !important; font-weight: 500 !important; font-variant-numeric: tabular-nums; }
+body.product-v2.reference-ui .app-frame :is(.token-chart-ranges, .gift-unit-toggle, .gift-detail-chart-range) {
+  display: flex; flex-wrap: wrap; gap: 6px; padding: 0;
+  border: 0 !important; border-radius: 0 !important;
+  background: transparent !important;
+}
+body.product-v2.reference-ui .app-frame :is(.mini-button, .gift-unit-toggle button, .gift-detail-chart-range button) {
+  min-height: 44px !important; min-width: 44px; padding: 10px 12px;
+  border-radius: 16px !important; border: 1px solid #ffffff1d !important;
+  background: var(--ref-glass) !important; font-size: 12px !important; font-weight: 400 !important;
+  color: var(--ref-secondary) !important;
+}
+body.product-v2.reference-ui .app-frame :is(.mini-button.active, .gift-unit-toggle button.active, .gift-unit-toggle button.is-active, .gift-detail-chart-range button.active) {
+  background: #fff !important; color: #080808 !important;
+}
+body.product-v2.reference-ui .app-frame .gift-detail-hero-card::before,
+body.product-v2.reference-ui .app-frame .gift-detail-hero-card::after { content: none !important; }
+body.product-v2.reference-ui .app-frame .gift-model-estimate { color: var(--ref-secondary) !important; font-size: 12px !important; }
+body.product-v2.reference-ui .app-frame :is(.collection-supply-metric small, .collection-ownership-row small) {
+  font-size: 12px !important; color: var(--ref-secondary) !important; line-height: 1.5;
+}
+
+body.product-v2.reference-ui .app-frame .profile-actions :is(button, .currency-setting, .settings-status) { font-weight: 500 !important; }
+body.product-v2.reference-ui .app-frame #currencySettingLabel { font-size: 12px; white-space: nowrap; }
+body.product-v2.reference-ui .app-frame .utility-card .section-heading small {
+  font-size: 12px !important; text-transform: none !important; letter-spacing: 0 !important;
+}
+body.product-v2.reference-ui .app-frame .import-loader-progress-track > b { background: #fff !important; }
+body.product-v2.reference-ui .app-frame .gift-detail-toggle-row { gap: 6px !important; }
+body.product-v2.reference-ui .app-frame :is([data-price-mode], [data-gift-detail-range], [data-sticker-detail-range]) {
+  min-width: 44px !important; min-height: 44px !important; padding: 10px 16px !important;
+  border: 1px solid var(--ref-border) !important; border-radius: var(--ref-pill) !important;
+  background: var(--ref-raised) !important; color: var(--ref-secondary) !important;
+  font-size: 12px !important; font-weight: 500 !important;
+}
+body.product-v2.reference-ui .app-frame :is([data-price-mode].is-active, [data-gift-detail-range].is-active, [data-sticker-detail-range].is-active) {
+  background: #fff !important; color: #080808 !important;
+}
+body.product-v2.reference-ui .app-frame :is(.collection-supply h3, .collection-ownership h3) {
+  font-size: 14px !important; font-weight: 600 !important; letter-spacing: 0 !important;
+}
+body.product-v2.reference-ui .app-frame .collection-mint-price strong { font-weight: 500 !important; font-size: 32px !important; }
+body.product-v2.reference-ui .app-frame :is(.collection-supply-metric strong, .collection-ownership-copy strong) { font-weight: 500 !important; font-variant-numeric: tabular-nums; }
+
+/* Existing metric grids stay grids; their cards use the same proportions. */
+body.product-v2.reference-ui .app-frame :is(.insight-grid, .performer-row, .financial-grid, .token-metric-grid) {
+  gap: var(--ref-card-gap) !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+body.product-v2.reference-ui .app-frame :is(.insight-grid > article, .performer-row > article, .financial-grid > article, .token-metric-card) {
+  padding: 16px !important;
+  min-width: 0;
+  border: 1px solid var(--ref-border) !important;
+  border-radius: var(--ref-radius) !important;
+  background: var(--ref-card) !important;
+  box-shadow: var(--ref-shadow) !important;
+}
+body.product-v2.reference-ui .app-frame :is(.insight-grid, .token-metric-grid, .financial-grid) b {
+  font-size: 18px !important;
+  font-weight: 500 !important;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+body.product-v2.reference-ui .app-frame .insight-grid strong { font-size: 13px; }
+body.product-v2.reference-ui .app-frame .allocation-list article { min-height: 44px !important; padding: 8px 0 !important; border-color: var(--ref-border) !important; }
+body.product-v2.reference-ui .app-frame .allocation-list b { font-size: 13px; }
+body.product-v2.reference-ui .app-frame .allocation-list :is(small, strong) { font-size: 12px; }
+body.product-v2.reference-ui .app-frame .donut-layout { gap: 20px; }
+body.product-v2.reference-ui .app-frame .donut-chart span { font-size: 20px; font-weight: 500; font-variant-numeric: tabular-nums; }
+body.product-v2.reference-ui .app-frame .featured-asset-card:not([data-ref-owned]) { border-radius: var(--ref-inner-radius) !important; border-color: var(--ref-border) !important; background: var(--ref-card) !important; }
+
+/* Detail pages retain their full, expanded content and verified layered media. */
+body.product-v2.reference-ui .app-frame :is(.gift-detail-layout, .sticker-detail-layout) { padding: 0 !important; gap: var(--ref-card-gap) !important; }
+body.product-v2.reference-ui .app-frame .gift-detail-art-stage::after { content: none !important; }
+body.product-v2.reference-ui .app-frame .gift-detail-glow { display: none !important; }
+/* Sheets 02/04 hero construction: quiet label/name left, real art right,
+ * prominent financial value below. Keep every existing trait and price note. */
+body.product-v2.reference-ui .app-frame :is(.gift-detail-hero-card, .enhanced-detail-hero, [data-screen="home"] .graph-card:not([data-ref-owned])) {
+  background: var(--ref-hero) !important;
+}
+body.product-v2.reference-ui .app-frame [data-screen="detail"].is-token-detail .enhanced-detail-hero {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) 48px;
+  align-items: center !important;
+  justify-items: start !important;
+  gap: 12px;
+  min-height: 160px !important;
+  text-align: left !important;
+}
+body.product-v2.reference-ui .app-frame [data-screen="detail"].is-token-detail :is(#detailIcon, .token-detail-logo) {
+  grid-column: 2;
+  grid-row: 1 / 3;
+  width: 48px !important;
+  height: 48px !important;
+  margin: 0 !important;
+  border: 1px solid #ffffff12 !important;
+  border-radius: 16px !important;
+  background: linear-gradient(145deg, #303030, #1c1c1c) !important;
+  box-shadow: var(--ref-shadow);
+}
+body.product-v2.reference-ui .app-frame [data-screen="detail"].is-token-detail #detailName {
+  grid-column: 1;
+  grid-row: 1;
+  margin: 0 !important;
+  font-size: 16px !important;
+  font-weight: 500 !important;
+  color: var(--ref-secondary) !important;
+}
+body.product-v2.reference-ui .app-frame [data-screen="detail"].is-token-detail #detailValue {
+  display: flex !important;
+  grid-column: 1;
+  grid-row: 2;
+  flex-wrap: wrap;
+  justify-content: flex-start !important;
+  margin: 0 !important;
+  text-align: left !important;
+}
+body.product-v2.reference-ui .app-frame [data-screen="detail"].is-token-detail #detailMintLine {
+  grid-column: 1 / -1;
+  margin: 0 !important;
+  text-align: left !important;
+  color: var(--ref-secondary) !important;
+  font-size: 12px !important;
+}
+body.product-v2.reference-ui .app-frame .gift-detail-hero-inner {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) 96px;
+  align-items: center;
+  gap: 16px;
+  text-align: left !important;
+}
+body.product-v2.reference-ui .app-frame .gift-detail-hero-inner > :is(.gift-detail-art-stage, .sticker-detail-hero-art) {
+  grid-column: 2;
+  grid-row: 1;
+  width: 96px !important;
+  max-width: 96px !important;
+  min-width: 0 !important;
+  height: 96px !important;
+  min-height: 96px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+body.product-v2.reference-ui .app-frame .gift-detail-hero-inner :is(.gift-detail-hero-art, .sticker-detail-hero-art) {
+  width: 96px !important;
+  height: 96px !important;
+  min-height: 96px !important;
+  border-radius: 16px !important;
+}
+body.product-v2.reference-ui .app-frame .gift-detail-title-block { grid-row: 1; grid-column: 1; text-align: left !important; gap: 4px; }
+body.product-v2.reference-ui .app-frame .gift-detail-title-block h2 { font-size: 24px !important; font-weight: 500 !important; line-height: 1.2; letter-spacing: -.025em; }
+body.product-v2.reference-ui .app-frame .gift-detail-title-block small { font-size: 12px !important; line-height: 1.5; }
+body.product-v2.reference-ui .app-frame .gift-detail-hero-inner > :is(.gift-detail-pill-row, .gift-detail-price-lockup, .gift-detail-floor-row, .gift-detail-floor-sub) {
+  grid-column: 1 / -1;
+  min-width: 0;
+  text-align: left !important;
+  justify-content: flex-start !important;
+  margin: 0 !important;
+}
+body.product-v2.reference-ui .app-frame .gift-detail-price-lockup { align-items: flex-start !important; padding-top: 16px; border-top: 1px solid #ffffff0a; }
+body.product-v2.reference-ui .app-frame .gift-detail-floor-row { width: 100%; justify-content: space-between !important; }
+body.product-v2.reference-ui .app-frame .sticker-detail-hero-card { min-height: 0 !important; }
+body.product-v2.reference-ui .app-frame .sticker-detail-layout .gift-detail-card { animation: none !important; }
+body.product-v2.reference-ui .app-frame .gift-detail-pill-row { gap: 8px; }
+body.product-v2.reference-ui .app-frame .gift-detail-pill-row span { padding: 8px 12px; border-radius: 16px; background: var(--ref-glass) !important; border-color: #ffffff1d !important; font-size: 12px; font-weight: 400; line-height: 18px; }
+body.product-v2.reference-ui .app-frame :is(.price-panel canvas, .gift-detail-chart, .gift-chart-loading) { height: 157px !important; min-height: 157px !important; max-width: 100%; touch-action: pan-y; }
+body.product-v2.reference-ui .app-frame .gift-detail-section-icon { background: var(--ref-raised); border-radius: 12px; }
+body.product-v2.reference-ui .app-frame :is(.gift-detail-data-row, .gift-origin-row, .tx-detail-list > div) { padding-block: 12px; border-color: var(--ref-border); }
+body.product-v2.reference-ui .app-frame :is(.chart-tooltip, .gift-detail-chart-tooltip) { border: 1px solid #383838; border-radius: var(--ref-pill); background: #222; color: #fff; font-size: 12px; }
+body.product-v2.reference-ui .app-frame .detail-note-stack { margin: 0 0 20px; }
+body.product-v2.reference-ui .app-frame .profile-actions { padding: 8px 16px !important; }
+body.product-v2.reference-ui .app-frame .profile-actions :is(button, .currency-setting, .settings-status, .settings-credit) {
+  min-height: 64px;
+  border-color: var(--ref-border);
+  border-radius: 0;
+  background: transparent;
+  font-size: 14px;
+}
+body.product-v2.reference-ui .app-frame .profile-actions span { min-width: 0; }
+
+/* The existing five destinations, not the reference's trading/AI navigation. */
+body.product-v2.reference-ui .app-frame .dock {
+  width: min(353px, calc(100% - 40px));
+  height: 79px;
+  min-height: 79px;
+  bottom: calc(16px + env(safe-area-inset-bottom));
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  padding: 9px 4px;
+  gap: 0;
+  border: 1px solid #ffffff30;
+  border-radius: 40px;
+  background: radial-gradient(ellipse at 50% 115%, #ffffff06, transparent 65%), linear-gradient(112deg, #292929, #202020 52%, #292929);
+  box-shadow: 0 5px 16px #0005, inset 0 1px 0 #ffffff12, inset 0 -1px 0 #0005;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+body.product-v2.reference-ui .app-frame .dock button { height: 59px; min-height: 59px; min-width: 0; border-radius: 30px; color: var(--ref-text); display: grid; place-items: center; padding: 0; position: relative; isolation: isolate; }
+body.product-v2.reference-ui .app-frame .dock button span { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+body.product-v2.reference-ui .app-frame .dock button.is-active { background: transparent; color: #fff; }
+body.product-v2.reference-ui .app-frame .dock button.is-active::before { content: ""; position: absolute; width: 52px; height: 52px; border-radius: 50%; background: linear-gradient(150deg, #1b1b1b, #0d0d0d); box-shadow: inset 0 1px 0 #ffffff09; z-index: -1; }
+body.product-v2.reference-ui .app-frame .dock button[data-screen-target="analytics"]::before {
+  content: ""; position: absolute; width: 48px; height: 47px; border-radius: 50%; z-index: -1;
+  background: url("./assets/branding/reference-nav-orb.png") center / contain no-repeat;
+  box-shadow: 0 0 22px 5px #a320ec50;
+}
+body.product-v2.reference-ui .app-frame .dock button[data-screen-target="analytics"].is-active::before { box-shadow: 0 0 24px 6px #a320ec65; }
+body.product-v2.reference-ui .app-frame .dock button[data-screen-target="analytics"] svg { visibility: hidden; }
+body.product-v2.reference-ui .app-frame .dock svg.lucide { width: 27px; height: 27px; stroke-width: 1.75 !important; }
+body.product-v2.reference-ui .app-frame .dock-indicator { display: none !important; }
+body.product-v2.reference-ui .app-frame :is(.wallet-modal-panel, .wallet-action-panel, .tx-sheet-panel,
+  .token-sort-popover, .product-filter-sheet, .sticker-thumb-panel) {
+  background: var(--ref-raised) !important;
+  border: 1px solid #383838 !important;
+  border-radius: var(--ref-radius) !important;
+  color: var(--ref-text);
+}
+body.product-v2.reference-ui .app-frame .wallet-options button { min-height: 80px; padding: 16px; gap: 12px; }
+body.product-v2.reference-ui .app-frame :is(.wallet-action-panel > button, .token-sort-popover > button) { min-height: 56px; font-size: 14px; }
+/* Reconstructed production components. data-ref-owned retires the old Home
+ * selectors in the historical sheets; these rules own its geometry/material. */
+body.product-v2.reference-ui .app-frame [data-screen="analytics"][data-ref-owned] .reference-analytics-chart {
+  padding: 0; margin: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none;
+}
+body.product-v2.reference-ui .app-frame .reference-analytics-chart .graph-head { margin: 0 0 16px; align-items: flex-end; }
+body.product-v2.reference-ui .app-frame .reference-analytics-chart .graph-head p { margin: 0 0 8px; }
+body.product-v2.reference-ui .app-frame .reference-analytics-chart .graph-head h1 { margin: 0; }
+body.product-v2.reference-ui .app-frame .reference-analytics-chart .graph-head > span { max-width: 100px; padding: 0; border: 0; border-radius: 0; background: transparent; text-align: right; font-size: 11px; font-weight: 400; line-height: 16px; color: var(--ref-secondary); }
+body.product-v2.reference-ui .app-frame .reference-analytics-chart .value-graph { height: 157px; min-height: 157px; margin: 0; touch-action: pan-y; }
+body.product-v2.reference-ui .app-frame .reference-analytics-chart .value-graph[hidden] { display: none; }
+body.product-v2.reference-ui .app-frame .reference-analytics-chart .data-state-note { margin: 12px 0 0; }
+body.product-v2.reference-ui .app-frame [data-screen="analytics"][data-ref-owned] .insight-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: 20px; }
+body.product-v2.reference-ui .app-frame [data-screen="analytics"][data-ref-owned] .insight-grid article { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; min-height: 132px; }
+body.product-v2.reference-ui .app-frame [data-screen="analytics"][data-ref-owned] .insight-grid article :is(small, b, strong) { margin: 0; }
+body.product-v2.reference-ui .app-frame [data-screen="analytics"][data-ref-owned] .insight-grid article strong { margin-top: auto; }
+body.product-v2.reference-ui .app-frame [data-screen="home"][data-ref-owned] {
+  position: relative;
+  isolation: isolate;
+}
+body.product-v2.reference-ui .app-frame [data-screen="home"][data-ref-owned]::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 0 0 auto;
+  height: 310px;
+  pointer-events: none;
+  background: radial-gradient(ellipse at 70% 0, #ffffff0b, transparent 75%);
+}
+body.product-v2.reference-ui .app-frame [data-screen="home"][data-ref-owned] .identity-mark {
+  width: 44px; height: 44px; border-radius: 16px;
+  display: grid; place-items: center;
+  background: linear-gradient(140deg, #ffffff12, #ffffff06);
+  border: 1px solid #ffffff0a;
+}
+body.product-v2.reference-ui .app-frame [data-screen="home"][data-ref-owned] .identity-mark svg { width: 27px; height: 27px; }
+body.product-v2.reference-ui .app-frame [data-screen="home"][data-ref-owned] .identity b { font-size: 16px; font-weight: 400; line-height: 22px; letter-spacing: -.015em; }
+body.product-v2.reference-ui .app-frame [data-screen="home"][data-ref-owned] .identity small { font-size: 12px; font-weight: 400; line-height: 18px; }
+body.product-v2.reference-ui .app-frame .reference-header-wallet {
+  display: grid; place-items: center; position: relative;
+  width: 44px; height: 44px; min-width: 44px; padding: 0;
+  color: white; border: 1px solid #ffffff20; border-radius: 50%;
+  background: linear-gradient(135deg, #ffffff1b, #ffffff0b);
+  box-shadow: inset 0 1px 0 #ffffff0b;
+}
+.reference-header-wallet span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+body.product-v2.reference-ui .app-frame #homePortfolio {
+  display: grid; gap: 20px; padding: 0; margin-top: 0;
+  border: 0; border-radius: 0; background: transparent; box-shadow: none;
+}
+#homePortfolio .reference-balance-card {
+  position: relative; isolation: isolate; overflow: hidden;
+  display: flex; flex-direction: column; min-height: 193px; padding: 20px 16px 12px;
+  border: 1px solid #ffffff1a; border-radius: 24px;
+  background: var(--ref-hero);
+  box-shadow: inset 0 1px 1px #ffffff0c, inset 0 -1px 2px #0003;
+}
+/* Only the text-free decorative fold at x438/y197 is visible. All UI in the
+ * source sheet lies outside this clip; live values/buttons remain HTML. */
+#homePortfolio .reference-balance-fold { position: absolute; z-index: -1; width: 90.45px; height: 129px; top: 0; right: 0; overflow: hidden; pointer-events: none; mask-image: linear-gradient(to right, transparent, black 24%), linear-gradient(to bottom, black 88%, transparent); mask-composite: intersect; }
+#homePortfolio .reference-balance-fold img { position: absolute; width: 712.1px; max-width: none; height: auto; left: -295.64px; top: -132.97px; }
+#homePortfolio .reference-balance-copy { min-width: 0; padding-inline: 3px; }
+#homePortfolio .reference-balance-label { margin: 0; color: #bdbdbd; font-size: 14px; font-weight: 400; line-height: 20px; letter-spacing: -.015em; }
+#homePortfolio .reference-balance-line { display: flex; align-items: baseline; gap: 10px; margin-top: 2px; }
+#homePortfolio #homePortfolioValue { display: flex; flex-wrap: wrap; align-items: baseline; margin: 0; min-width: 0; font-size: 42px; font-weight: 400; line-height: 1.18; letter-spacing: -.035em; color: white; font-variant-numeric: lining-nums proportional-nums; }
+#homePortfolio .reference-value-fraction { font-size: 26px; color: #a6a6a6; letter-spacing: -.03em; }
+#homePortfolio .reference-value-unit { font-size: 16px; margin-left: 6px; letter-spacing: 0; color: #bdbdbd; }
+#homePortfolio .reference-value-visibility { display: grid; place-items: center; align-self: center; width: 32px; height: 44px; padding: 0; flex-shrink: 0; border: 0; background: transparent; color: #eee; }
+#homePortfolio .reference-value-visibility svg { width: 19px; height: 19px; }
+#homePortfolio .reference-balance-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: auto; padding-top: 18px; }
+#homePortfolio .reference-glass-button {
+  display: flex; align-items: center; justify-content: flex-start; gap: 8px;
+  width: auto; height: 52px; min-height: 52px; margin: 0; padding: 8px 10px;
+  border: 1px solid #ffffff1c; border-radius: 20px;
+  background: linear-gradient(140deg, #ffffff11, #ffffff05);
+  color: white; font-size: 14px; font-weight: 400; line-height: 20px;
+  box-shadow: inset 0 1px 0 #ffffff05;
+}
+#homePortfolio .reference-button-well { display: grid; place-items: center; flex-shrink: 0; width: 32px; height: 32px; border-radius: 50%; background: #ffffff17; }
+#homePortfolio .reference-button-well svg { width: 18px; height: 18px; }
+#homePortfolio .reference-history {
+  padding: 20px 16px 16px; min-width: 0;
+  border: 1px solid #ffffff16; border-radius: 24px;
+  background: radial-gradient(ellipse at 65% -10%, #78384e30, transparent 75%), linear-gradient(150deg, #24141e, #0b080a 70%);
+  box-shadow: inset 0 1px 0 #ffffff09, inset 0 -1px 0 #0004;
+}
+#homePortfolio .reference-history > .range-selector { margin-bottom: 16px; }
+#homePortfolio .reference-history-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; }
+#homePortfolio .portfolio-history-readout { display: flex; flex-direction: column; gap: 3px; }
+#homePortfolio .portfolio-history-readout[hidden] { display: none; }
+#homePortfolio .portfolio-history-readout small { font-size: 11px; font-weight: 400; line-height: 16px; color: #a0a0a0; }
+#homePortfolio .portfolio-history-readout strong { font-size: 24px; line-height: 28px; letter-spacing: -.025em; font-weight: 400; font-variant-numeric: tabular-nums; }
+#homePortfolio .portfolio-actions-row { margin: 0; text-align: right; max-width: 150px; font-size: 11px; line-height: 16px; }
+#homePortfolio .portfolio-actions-row > span { display: inline; padding: 0; border: 0; border-radius: 0; background: transparent; color: #a0a0a0; font-size: 11px; font-weight: 400; }
+#homePortfolio .portfolio-actions-row > span.negative { color: #e98b91; }
+#homePortfolio .value-graph { height: 157px; min-height: 157px; margin: 12px 0 0; touch-action: pan-y; }
+#homePortfolio .portfolio-chart-footer { display: flex; justify-content: space-between; align-items: center; flex-wrap: nowrap; gap: 12px; margin-top: 16px; }
+#homePortfolio .range-selector { display: flex; gap: 6px; margin: 0; padding: 0; border: 0; background: transparent; border-radius: 0; box-shadow: none; }
+#homePortfolio .range-selector button { width: 58px; height: 40px; min-width: 44px; min-height: 40px; margin: 0; padding: 8px; border: 1px solid #ffffff1d; border-radius: 16px; background: linear-gradient(135deg, #ffffff10, #ffffff05); color: #e2e2e2; font-size: 12px; font-weight: 400; }
+#homePortfolio .range-selector button.is-active { border-color: #fff; color: #111; background: linear-gradient(#fff, #f2f2f2); box-shadow: inset 0 1px 0 white; }
+#homePortfolio .graph-updated { margin: 0; text-align: right; font-size: 10px; line-height: 14px; color: #888; }
+#homePortfolio .reference-source-note { display: block; margin: 0; text-align: right; color: #888; font-size: 11px; line-height: 16px; }
+#homePortfolio #portfolioHistoryContext { margin: 8px 0 0; font-size: 10px; line-height: 14px; font-weight: 400; color: #888; }
+#homePortfolio .reference-history-empty { display: flex; align-items: center; gap: 12px; min-height: 88px; padding: 0; border: 0; border-radius: 0; background: transparent; }
+#homePortfolio .reference-history-empty[hidden] { display: none; }
+#homePortfolio .reference-history-empty b { font-size: 14px; font-weight: 400; line-height: 20px; }
+#homePortfolio .reference-history-empty p { margin: 4px 0 0; font-size: 12px; line-height: 17px; color: #a0a0a0; }
+#homePortfolio .reference-status-well { display: grid; place-items: center; flex-shrink: 0; width: 48px; height: 48px; background: linear-gradient(140deg, #292929, #191919); border: 1px solid #ffffff12; border-radius: 16px; }
+#homePortfolio.is-history-hidden .value-graph { display: none; }
+#homePortfolio.is-history-hidden .reference-history-head { display: none; }
+#homePortfolio.is-history-hidden .portfolio-chart-footer { margin-top: 12px; }
+body.product-v2.reference-ui .app-frame [data-screen="home"][data-ref-owned] :is(.section-heading, .featured-collectibles-heading) { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+body.product-v2.reference-ui .app-frame [data-screen="home"][data-ref-owned] :is(.section-heading h2, .featured-collectibles-heading h2) { margin: 0; }
+body.product-v2.reference-ui .app-frame [data-screen="home"][data-ref-owned] :is(.section-heading h2, .featured-collectibles-heading h2) { font-weight: 400 !important; letter-spacing: -.025em !important; }
+body.product-v2.reference-ui .app-frame [data-screen="home"][data-ref-owned] :is(.ui-icon-cue, .ui-scope-cue) { width: auto; min-width: 0; height: 24px; padding: 0; border: 0; border-radius: 0; background: none; box-shadow: none; color: #a0a0a0; gap: 5px; }
+body.product-v2.reference-ui .app-frame [data-screen="home"][data-ref-owned] :is(.ui-icon-cue, .ui-scope-cue) svg { width: 18px; height: 18px; stroke-width: 1.5; }
+body.product-v2.reference-ui .app-frame [data-screen="home"][data-ref-owned] .ui-scope-cue span { font-size: 12px; font-weight: 400; }
+body.product-v2.reference-ui .app-frame [data-screen="home"][data-ref-owned] .reference-section-action { display: flex; align-items: center; gap: 4px; width: auto; min-height: 44px; padding: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; color: #a0a0a0; font-size: 13px; font-weight: 400; }
+body.product-v2.reference-ui .app-frame [data-screen="home"][data-ref-owned] .reference-section-action svg { width: 16px; height: 16px; }
+body.product-v2.reference-ui .app-frame [data-screen="home"][data-ref-owned] .featured-collectibles-viewport { container-type: inline-size; width: 100%; margin: 0; overflow-x: auto; overflow-y: hidden; padding: 0 0 2px; scroll-snap-type: x mandatory; scrollbar-width: none; }
+body.product-v2.reference-ui .app-frame [data-screen="home"][data-ref-owned] .featured-collectibles-viewport::-webkit-scrollbar { display: none; }
+body.product-v2.reference-ui .app-frame [data-screen="home"][data-ref-owned] .featured-collectibles-track { display: flex; gap: 20px; width: max-content; animation: none; }
+body.product-v2.reference-ui .app-frame [data-screen="home"][data-ref-owned] .featured-asset-card {
+  display: grid; grid-template-columns: 48px minmax(0, 1fr) auto; align-items: center; gap: 12px;
+  width: 100cqw; flex: 0 0 100cqw; min-width: 0; height: 80px; min-height: 80px; padding: 15px 20px;
+  border: 1px solid #ffffff16; border-radius: 24px; background: var(--ref-card);
+  color: white; text-align: left; box-shadow: inset 0 1px 0 #ffffff09, inset 0 -1px 0 #0004; transform: none; scroll-snap-align: start;
+}
+body.product-v2.reference-ui .app-frame [data-screen="home"][data-ref-owned] :is(.featured-asset-visual, .featured-asset-art, .featured-asset-visual > .asset-icon) { display: grid; place-items: center; width: 48px; height: 48px; min-height: 0; margin: 0; padding: 0; border: 1px solid #ffffff12; border-radius: 16px; background: linear-gradient(135deg, #303030, #191919); overflow: hidden; }
+body.product-v2.reference-ui .app-frame [data-screen="home"][data-ref-owned] .featured-asset-visual > :is(.featured-asset-art, .asset-icon) { border: 0; border-radius: 0; background: none; }
+body.product-v2.reference-ui .app-frame [data-screen="home"][data-ref-owned] .featured-asset-visual::after { content: none; }
+body.product-v2.reference-ui .app-frame [data-screen="home"][data-ref-owned] .featured-asset-visual :is(img, .animated-art, .gift-layered-art, .gift-layered-stage) { width: 48px; height: 48px; object-fit: contain; border-radius: 0; }
+body.product-v2.reference-ui .app-frame [data-screen="home"][data-ref-owned] .featured-asset-copy { min-width: 0; }
+body.product-v2.reference-ui .app-frame [data-screen="home"][data-ref-owned] .featured-asset-copy b { display: block; margin: 0; font-size: 16px; line-height: 22px; font-weight: 400; letter-spacing: -.025em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+body.product-v2.reference-ui .app-frame [data-screen="home"][data-ref-owned] .featured-asset-copy em { display: block; margin: 2px 0 0; color: #a0a0a0; font-size: 12px; font-weight: 400; line-height: 17px; font-style: normal; letter-spacing: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+body.product-v2.reference-ui .app-frame [data-screen="home"][data-ref-owned] .featured-asset-value { display: flex; flex-direction: column; align-items: flex-end; justify-content: center; gap: 2px; margin: 0; min-width: 0; }
+body.product-v2.reference-ui .app-frame [data-screen="home"][data-ref-owned] .featured-asset-value strong { font-size: 16px; font-weight: 400; line-height: 22px; letter-spacing: -.025em; font-variant-numeric: tabular-nums; }
+body.product-v2.reference-ui .app-frame [data-screen="home"][data-ref-owned] .featured-asset-value small { font-size: 12px; line-height: 17px; font-weight: 400; color: #a0a0a0; }
+body.product-v2.reference-ui .app-frame [data-screen="home"][data-ref-owned] .featured-asset-value small.positive { color: #5ee64a; }
+body.product-v2.reference-ui .app-frame [data-screen="home"][data-ref-owned] .featured-asset-value small.negative { color: #f04747; }
+body.product-v2.reference-ui .app-frame #homeAllocation { position: relative; margin-top: 32px; padding: 20px; border: 1px solid #ffffff16; border-radius: 24px; background: radial-gradient(ellipse at 80% 0, #ffffff04, transparent 70%), var(--ref-card); box-shadow: inset 0 1px 0 #ffffff09, inset 0 -1px 0 #0004; }
+#homeAllocation .donut-layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0; align-items: center; }
+#homeAllocation .reference-allocation-caption { grid-row: 2; grid-column: 1; color: #a0a0a0; margin: 4px 0 0; font-size: 12px; line-height: 18px; }
+#homeAllocation .donut-chart { grid-row: 1; grid-column: 1; display: block; width: 100%; height: 38px; min-width: 0; margin: 0; position: relative; }
+#homeAllocation .donut-chart canvas { position: static; display: block; width: 96px; height: 96px; }
+#homeAllocation .donut-chart canvas[hidden] { display: none !important; }
+#homeAllocation .donut-chart span { position: static; width: auto; height: auto; transform: none; text-align: left; font-size: 32px; line-height: 38px; font-weight: 400; letter-spacing: -.035em; }
+#homeAllocation .allocation-list { grid-row: 3; grid-column: 1; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); min-width: 0; column-gap: 10px; row-gap: 0; margin-top: 20px; }
+#homeAllocation .allocation-list article { display: grid; grid-template-columns: 5px minmax(0, 1fr); gap: 8px; background: transparent; border: 0; border-radius: 0; }
+#homeAllocation .allocation-list b { font-size: 13px; font-weight: 400; line-height: 18px; }
+#homeAllocation .allocation-list :is(small, strong) { font-size: 11px; font-weight: 400; line-height: 16px; }
+body.product-v2.reference-ui .app-frame #homeAllocation .allocation-list article { display: flex; flex-direction: column; position: relative; min-width: 0; min-height: 0 !important; padding: 0 !important; gap: 0; align-items: stretch; }
+body.product-v2.reference-ui .app-frame #homeAllocation .allocation-list :is(b, small, strong) { display: block; margin: 0; }
+body.product-v2.reference-ui .app-frame #homeAllocation .allocation-list b { font-size: 11px; line-height: 16px; font-weight: 400; white-space: nowrap; text-align: center; color: #a0a0a0; }
+body.product-v2.reference-ui .app-frame #homeAllocation .allocation-list small { font-size: 10px; line-height: 14px; text-align: center; color: #888; }
+body.product-v2.reference-ui .app-frame #homeAllocation .allocation-list strong { position: static; font-size: 10px; line-height: 14px; font-weight: 400; white-space: nowrap; text-align: center; color: #a0a0a0; }
+#homeAllocation .legend-pill { display: none; }
+#homeAllocation .reference-allocation-stack { position: relative; display: block; width: 100%; height: 112px; margin-bottom: 8px; overflow: hidden; background: #262426; border-radius: 2px; mask-image: url("./assets/branding/reference-allocation-mask.svg"); mask-size: 100% 100%; mask-repeat: no-repeat; }
+#homeAllocation .allocation-list .metric-skeleton { display: inline-block; width: 100%; max-width: 100%; height: 8px; }
+#homeAllocation .reference-allocation-fill { position: absolute; bottom: 0; left: 0; width: 100%; height: calc(var(--allocation-share, 0) * 1%); background: linear-gradient(90deg, #ecc773, #fff4cf 65%, #fff); box-shadow: inset 0 1px 1px #fff9; }
+#homeAllocation .allocation-list.is-filtered article:not(.is-selected) { filter: none; opacity: .55; }
+#homeAllocation .allocation-list article.is-selected .reference-allocation-fill { background: linear-gradient(90deg, #ffdc80, #fff); }
+#homeAllocation .legend-pill { width: 5px; height: 5px; border-radius: 50%; }
+body.product-v2.reference-ui .app-frame [data-screen="home"][data-ref-owned] .performer-row { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; margin-top: 0; }
+body.product-v2.reference-ui .app-frame [data-screen="home"][data-ref-owned] .performer-row article { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 12px; min-height: 76px; padding: 14px 16px; border: 1px solid #ffffff16; border-radius: 24px; background: radial-gradient(ellipse at 75% -15%, #ffffff05, transparent 65%), var(--ref-card); box-shadow: inset 0 1px 0 #ffffff09, inset 0 -1px 0 #0004; }
+body.product-v2.reference-ui .app-frame [data-screen="home"][data-ref-owned] .performer-row article::before { content: none; }
+body.product-v2.reference-ui .app-frame [data-screen="home"][data-ref-owned] .performer-asset-line { display: flex; align-items: center; gap: 12px; min-width: 0; }
+body.product-v2.reference-ui .app-frame [data-screen="home"][data-ref-owned] .performer-asset-line :is(img, em) { display: grid; place-items: center; width: 40px; height: 40px; min-width: 40px; border-radius: 14px; flex-shrink: 0; object-fit: cover; background: linear-gradient(140deg, #292929, #191919); border: 1px solid #ffffff12; font-style: normal; font-size: 11px; }
+body.product-v2.reference-ui .app-frame [data-screen="home"][data-ref-owned] .performer-asset-line :is(img, em)[hidden] { display: none !important; }
+body.product-v2.reference-ui .app-frame [data-screen="home"][data-ref-owned] .performer-asset-line > span { min-width: 0; }
+body.product-v2.reference-ui .app-frame [data-screen="home"][data-ref-owned] .performer-asset-line b { display: block; margin: 0; font-size: 15px; line-height: 20px; font-weight: 400; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+body.product-v2.reference-ui .app-frame [data-screen="home"][data-ref-owned] .performer-asset-line small { display: block; margin-top: 3px; font-size: 11px; line-height: 15px; color: #a0a0a0; text-transform: none; letter-spacing: 0; }
+body.product-v2.reference-ui .app-frame [data-screen="home"][data-ref-owned] .performer-row strong { display: block; margin: 0; font-size: 26px; line-height: 32px; font-weight: 400; letter-spacing: -.035em; font-variant-numeric: tabular-nums; }
+body.product-v2.reference-ui .app-frame [data-screen="home"][data-ref-owned] .performer-row article[hidden] { display: none !important; }
+body.product-v2.reference-ui .app-frame [data-screen="home"][data-ref-owned] .performer-row article.is-unavailable { grid-column: 1 / -1; min-height: 76px; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 12px; }
+body.product-v2.reference-ui .app-frame [data-screen="home"][data-ref-owned] .performer-row article.is-unavailable strong { margin: 0; }
+body.product-v2.reference-ui .app-frame [data-screen="home"][data-ref-owned] .activity-panel { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0; }
+body.product-v2.reference-ui .app-frame [data-screen="home"][data-ref-owned] .activity-panel .section-heading { margin-bottom: -4px !important; }
+body.product-v2.reference-ui .app-frame [data-screen="home"][data-ref-owned] .activity-row {
+  display: grid; grid-template-columns: 48px minmax(0, 1fr) minmax(0, 128px); align-items: center;
+  height: 80px; min-height: 80px !important; padding: 15px 20px !important; gap: 12px !important;
+  border: 1px solid #ffffff16 !important; box-shadow: inset 0 1px 0 #ffffff09, inset 0 -1px 0 #0004 !important;
+}
+body.product-v2.reference-ui .app-frame [data-screen="home"][data-ref-owned] .activity-row > :is(div, aside) { min-width: 0; width: auto; margin: 0; }
+body.product-v2.reference-ui .app-frame [data-screen="home"][data-ref-owned] .activity-row > div :is(b, small) { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+body.product-v2.reference-ui .app-frame [data-screen="home"][data-ref-owned] .activity-row > div b { font-size: 16px !important; line-height: 20px !important; }
+body.product-v2.reference-ui .app-frame [data-screen="home"][data-ref-owned] .activity-row > div small { font-size: 11px !important; line-height: 14px !important; }
+body.product-v2.reference-ui .app-frame [data-screen="home"][data-ref-owned] .activity-row aside strong { display: block; font-size: 14px !important; line-height: 18px !important; overflow-wrap: anywhere; }
+body.product-v2.reference-ui .app-frame [data-screen="home"][data-ref-owned] .activity-row aside strong.is-long-value { font-size: 12px !important; line-height: 15px !important; }
+body.product-v2.reference-ui .app-frame [data-screen="home"][data-ref-owned] .activity-row aside strong span { display: block; }
+body.product-v2.reference-ui .app-frame [data-screen="home"][data-ref-owned] .activity-row aside small { font-size: 11px !important; line-height: 14px !important; }
+body.product-v2.reference-ui .app-frame [data-screen="home"][data-ref-owned] .activity-row:not([data-tx-hash]) { grid-template-columns: 48px minmax(0, 1fr); }
+body.product-v2.reference-ui .app-frame [data-screen="home"][data-ref-owned] .activity-row:not([data-tx-hash]) aside { display: none; }
+/* Home comparison and ledger: one surface each, no nested row cards. */
+body.product-v2.reference-ui .app-frame [data-screen="home"][data-ref-owned] :is(.movement-panel, .activity-panel) {
+  padding: 16px !important; border: 1px solid transparent !important; border-radius: 24px !important;
+  background: radial-gradient(ellipse at 0 0, #ffffff09, transparent 65%), linear-gradient(145deg, #191819, #0b0b0c 65%) padding-box, linear-gradient(135deg, #ffffff36, #ffffff0d 45%, #ffffff1a) border-box !important;
+  box-shadow: inset 0 1px 0 #ffffff0c, inset 0 -1px 0 #0006, 0 8px 24px #05050545 !important;
+}
+body.product-v2.reference-ui .app-frame [data-screen="home"][data-ref-owned] :is(.movement-panel, .activity-panel) .section-heading { margin: 0 0 16px !important; }
+body.product-v2.reference-ui .app-frame [data-screen="home"][data-ref-owned] .performer-row { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 !important; }
+body.product-v2.reference-ui .app-frame [data-screen="home"][data-ref-owned] .performer-row article {
+  display: flex; flex-direction: column; align-items: stretch; justify-content: flex-start;
+  margin: 0 !important; min-height: 128px !important; padding: 0 16px 0 0 !important; gap: 0; border: 0 !important; border-radius: 0 !important;
+  background: transparent !important; box-shadow: none !important;
+}
+body.product-v2.reference-ui .app-frame [data-screen="home"][data-ref-owned] .performer-row article + article { padding: 0 0 0 16px !important; border-left: 1px solid #ffffff1a !important; }
+body.product-v2.reference-ui .app-frame [data-screen="home"][data-ref-owned] .performer-row .mover-label { font-size: 12px; line-height: 18px; color: #a0a0a0; font-weight: 400; }
+body.product-v2.reference-ui .app-frame [data-screen="home"][data-ref-owned] .performer-row strong { order: 0; margin: 6px 0 18px; font-size: 34px; line-height: 40px; overflow-wrap: anywhere; }
+body.product-v2.reference-ui .app-frame [data-screen="home"][data-ref-owned] .performer-asset-line { margin-top: auto; gap: 8px; }
+body.product-v2.reference-ui .app-frame [data-screen="home"][data-ref-owned] .performer-asset-line b { font-size: 12px; line-height: 17px; }
+body.product-v2.reference-ui .app-frame [data-screen="home"][data-ref-owned] .performer-asset-line small { font-size: 10px; line-height: 14px; }
+body.product-v2.reference-ui .app-frame [data-screen="home"][data-ref-owned] .performer-row article.is-unavailable { display: flex; flex-direction: row; align-items: center; min-height: 76px; padding: 0; }
+body.product-v2.reference-ui .app-frame [data-screen="home"][data-ref-owned] .performer-row article.is-unavailable .performer-asset-line { margin-top: 0; }
+body.product-v2.reference-ui .app-frame [data-screen="home"][data-ref-owned] .performer-asset-line :is(img, em),
+body.product-v2.reference-ui .app-frame [data-screen="home"][data-ref-owned] .activity-row .activity-dot {
+  width: 40px; height: 40px; min-width: 40px; border-radius: 14px;
+  background: radial-gradient(ellipse at 25% 0, #ffffff12, transparent 65%), linear-gradient(145deg, #303033, #19191b) !important;
+  border: 1px solid #ffffff20 !important; box-shadow: inset 0 1px 1px #ffffff18, inset 0 -2px 3px #0005, 0 3px 6px #05050555;
+}
+body.product-v2.reference-ui .app-frame [data-screen="home"][data-ref-owned] .activity-panel { gap: 0; }
+body.product-v2.reference-ui .app-frame [data-screen="home"][data-ref-owned] .activity-panel .section-heading { margin-bottom: 8px !important; }
+body.product-v2.reference-ui .app-frame [data-screen="home"][data-ref-owned] .activity-row[data-tx-hash] {
+  position: relative; height: 76px; min-height: 76px !important; padding: 12px 0 !important; border-radius: 0 !important;
+  background: transparent !important; border: 0 !important; box-shadow: none !important;
+  grid-template-columns: 36px minmax(0, 1fr) minmax(0, 104px); gap: 10px !important;
+}
+body.product-v2.reference-ui .app-frame [data-screen="home"][data-ref-owned] .activity-row[data-tx-hash] + .activity-row { border-top: 1px solid #ffffff12 !important; }
+body.product-v2.reference-ui .app-frame [data-screen="home"][data-ref-owned] .activity-row[data-tx-hash] .activity-dot { width: 36px; height: 36px; min-width: 36px; border-radius: 50%; border: 0 !important; box-shadow: none; background: #ffffff06 !important; }
+body.product-v2.reference-ui .app-frame [data-screen="home"][data-ref-owned] .activity-row[data-tx-hash] > div b { font-size: 14px !important; }
+body.product-v2.reference-ui .app-frame [data-screen="home"][data-ref-owned] .activity-row[data-tx-hash] aside strong { font-size: 13px !important; }
+body.product-v2.reference-ui .app-frame [data-screen="home"][data-ref-owned] .activity-row[data-tx-hash] aside strong.is-long-value { font-size: 11px !important; }
+body.product-v2.reference-ui .app-frame [data-screen="home"][data-ref-owned] .activity-row:not([data-tx-hash]) { height: auto; min-height: 88px !important; padding: 16px !important; grid-template-columns: 40px minmax(0, 1fr); gap: 12px !important; }
+body.product-v2.reference-ui .app-frame [data-screen="home"][data-ref-owned] .activity-row:not([data-tx-hash]) .activity-dot { width: 40px; height: 40px; border-radius: 14px; }
+body.product-v2.reference-ui .app-frame [data-screen="home"][data-ref-owned] .activity-row:not([data-tx-hash]) > div small { white-space: normal; }
+body.product-v2.reference-ui .app-frame [data-screen="home"][data-ref-owned] .activity-row.home-ledger-empty { display: flex; flex-direction: column; justify-content: center; text-align: center; min-height: 132px !important; background: transparent !important; border: 0 !important; box-shadow: none !important; }
+body.product-v2.reference-ui .app-frame [data-screen="home"][data-ref-owned] .home-ledger-empty > div b { font-size: 14px !important; }
+.app-frame.is-private #homePortfolio :is(#homePortfolioValue, #portfolioChartValue) { filter: blur(8px); user-select: none; }
+@media (max-width: 359px) {
+  body.product-v2.reference-ui .app-frame #homeAllocation .allocation-list b { font-size: 9px; }
+  #homePortfolio #homePortfolioValue { font-size: 36px; }
+  #homePortfolio .reference-value-fraction { font-size: 23px; }
+  #homePortfolio .reference-glass-button { font-size: 12px; padding-inline: 8px; gap: 6px; }
+  #homeAllocation .allocation-list { column-gap: 6px; }
+  body.product-v2.reference-ui .app-frame [data-screen="home"][data-ref-owned] .featured-asset-card { grid-template-columns: 48px minmax(0, 1fr) auto; padding-inline: 14px; gap: 10px; }
+  body.product-v2.reference-ui .app-frame [data-screen="home"][data-ref-owned] .activity-row { grid-template-columns: 48px minmax(0, 1fr) minmax(0, 104px); padding-inline: 14px !important; gap: 8px !important; }
+  body.product-v2.reference-ui .app-frame [data-screen="home"][data-ref-owned] .performer-row article { padding-right: 10px !important; }
+  body.product-v2.reference-ui .app-frame [data-screen="home"][data-ref-owned] .performer-row article + article { padding-left: 10px !important; padding-right: 0 !important; }
+  body.product-v2.reference-ui .app-frame [data-screen="home"][data-ref-owned] .performer-asset-line { gap: 8px; }
+  body.product-v2.reference-ui .app-frame [data-screen="home"][data-ref-owned] .performer-row strong { font-size: 28px; }
+  body.product-v2.reference-ui .app-frame [data-screen="home"][data-ref-owned] :is(.movement-panel, .activity-panel) { padding: 12px !important; }
+  body.product-v2.reference-ui .app-frame [data-screen="home"][data-ref-owned] .activity-row[data-tx-hash] { padding-inline: 0 !important; grid-template-columns: 36px minmax(0, 1fr) minmax(0, 84px); gap: 8px !important; }
+  body.product-v2.reference-ui .app-frame [data-screen="home"][data-ref-owned] .activity-row[data-tx-hash] .activity-dot { width: 36px; height: 36px; min-width: 36px; }
+}
+body.product-v2.reference-ui .app-frame .portfolio-empty-state { min-height: 100px !important; }
+body.product-v2.reference-ui .app-frame :is(.skeleton, .metric-skeleton) { border-radius: 8px; background-color: #242424; }
+@media (min-width: 360px) and (max-width: 389px) {
+  body.product-v2.reference-ui .app-frame #homeAllocation .allocation-list b { font-size: 10px; }
+}
+@media (max-width: 359px) {
+  body.product-v2.reference-ui { --ref-gutter: 20px; }
+  body.product-v2.reference-ui .app-frame :is(.graph-card:not([data-ref-owned]), .allocation-card:not([data-ref-owned]), .utility-hero, .utility-card, .gift-detail-card) { padding: 16px !important; }
+  body.product-v2.reference-ui .app-frame .page-header { gap: 8px !important; }
+  body.product-v2.reference-ui .app-frame .page-header h1 { font-size: 18px !important; }
+  body.product-v2.reference-ui .app-frame .category-stack strong { max-width: 84px; }
+  body.product-v2.reference-ui .app-frame .reference-asset-row { grid-template-columns: 48px minmax(0, 1fr) minmax(64px, 88px); column-gap: 8px !important; }
+  body.product-v2.reference-ui .app-frame .dock { width: calc(100% - 40px) !important; }
+  body.product-v2.reference-ui .app-frame .donut-layout { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: reduce) {
+  body.product-v2.reference-ui .app-frame *, body.product-v2.reference-ui .app-frame *::before, body.product-v2.reference-ui .app-frame *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

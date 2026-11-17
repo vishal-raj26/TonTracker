@@ -1,10 +1,5 @@
 # TonTrack Working Rules
 
-## Username Rebuild Continuity
-
-- When resuming the Telegram username estimator rebuild, read `docs/USERNAME_REBUILD_CHECKPOINT.md` first, then the current worktree and its linked source-of-truth document. Do not restart completed work from older handovers.
-- Update that checkpoint after material changes, including verification results, pending commands and exact next steps. Keep unresolved valuation-quality issues marked incomplete.
-
 ## Active Workspace And Server
 
 - The only active project is `C:\Users\vishu\Documents\New project\ton-portfolio-chart-platform`.
@@ -27,41 +22,7 @@
 - Do not redesign, refactor, research, or modify adjacent screens unless requested.
 - Treat one-gift or one-token tests as isolated tests. Do not generalize them automatically.
 - Preserve existing user changes and unrelated dirty-worktree files.
-
-## Telegram Username Estimator Rebuild Exception
-
-When the user explicitly requests work on rebuilding, redesigning, researching,
-evaluating, or improving the Telegram username estimator, treat that task as
-an authorized architecture/research/refactor task.
-
-For that task only:
-
-- The agent may inspect all files, database structures, APIs, workers, caches,
-  services, frontend consumers, and documentation materially connected to
-  Telegram username valuation.
-- The agent may redesign or replace the existing estimator architecture when
-  evidence shows a better architecture is warranted.
-- The agent may perform external web/API/market research needed to understand
-  current Telegram collectible username markets, Fragment, TON data sources,
-  comparable sales, historical sales, and valuation methods.
-- The agent may edit relevant files without asking for approval again after
-  stating what it intends to change.
-- The agent may change estimator-related internal API/database contracts when
-  necessary, but must update and verify every affected caller.
-- New dependencies are allowed only when they provide a meaningful advantage
-  and the reason is documented.
-- Existing username-estimator documentation, formulas, scoring weights,
-  assumptions, prompts, heuristics, and architecture are historical reference,
-  NOT canonical requirements. Audit them independently and retain only what
-  can be justified.
-- Do not preserve a legacy estimator behavior merely for compatibility if it
-  materially damages valuation quality.
-- TON DNS valuation documentation remains canonical for TON DNS only. Do not
-  automatically apply TON DNS assumptions or valuation architecture to
-  Telegram usernames.
-- Preserve unrelated TonTrack functionality and unrelated user changes.
-- The task is not complete until the implementation is tested and its valuation
-  behavior is evaluated against real historical examples where possible.
+- TonTrack tracks only GRAM/jettons, Telegram Gifts and NFT sticker packs. TON DNS domains, Telegram usernames and anonymous numbers are out of scope: do not fetch, classify, store (including D1), value, estimate or display them. Server discovery drops their collections via `isExcludedIdentityNft`. Resolving a `.ton` name to a wallet address for import, and showing a `.ton` label for an address, remain allowed.
 
 ## Speed And Token Use
 
@@ -79,7 +40,6 @@ For that task only:
 - Reject stale, ambiguous, illiquid, or mismatched market data instead of showing a bogus price.
 - Show a loading or unavailable state when verified data is not ready.
 - Keep wallet-specific caches isolated and clear previous-wallet state on wallet changes.
-- Before changing TON DNS discovery, pricing, AI classification, market ingestion, storage, or UI valuation states, read `docs/TON_DNS_VALUATION_SOURCE_OF_TRUTH.md` and `docs/TON_DNS_ESTIMATOR_IMPLEMENTATION_PLAN.md`. Treat them as the canonical product, architecture, and implementation records for this feature.
 
 ## Gifts And Stickers
 

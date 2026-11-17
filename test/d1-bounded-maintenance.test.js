@@ -4,7 +4,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const { DatabaseSync } = require('node:sqlite');
 const {spawnSync}=require('node:child_process');
-const measuredQueries={identity:[],compact:[],legacy:[]};
+const measuredQueries={compact:[],legacy:[]};
 
 function sqliteD1(schema) {
   const sqlite = new DatabaseSync(':memory:');
@@ -23,40 +23,6 @@ function sqliteD1(schema) {
     catch (error) { sqlite.exec('ROLLBACK'); throw error; }
   } };
 }
-const schema = () => fs.readFileSync('cloudflare/valuation-read-model-migrations/0002_valuation_read_model_bootstrap.sql', 'utf8');
-
-test('identity maintenance advances bounded pages and never overwrites counters with partial totals', async () => {
-  const { maintainIdentityStorage } = await import('../cloudflare/gift-registry-worker.mjs');
-  assert.equal(typeof maintainIdentityStorage, 'function', 'maintenance must expose its real bounded entry point');
-  const db = sqliteD1(schema());
-  db.sqlite.exec(fs.readFileSync('cloudflare/valuation-read-model-migrations/0003_bounded_maintenance.sql', 'utf8'));
-  const insert = db.sqlite.prepare("INSERT INTO identity_assets(asset_kind,asset_key,normalized_name,display_name,source_updated_at) VALUES ('username',?,?,?,'2026-01-01')");
-  for (let i = 0; i < 1005; i++) insert.run(`key${i}`, `name${i}`, `name${i}`);
-  db.sqlite.exec("UPDATE identity_storage_policy SET tracked_assets=1005 WHERE policy_key='primary'");
-  const first = await maintainIdentityStorage({ VALUATION_READ_MODEL: db });
-  assert.equal(first.reconciliation.identity_assets.status, 'partial');
-  assert.equal(db.sqlite.prepare("SELECT tracked_assets FROM identity_storage_policy").get().tracked_assets, 1005);
-  db.sqlite.exec("DELETE FROM identity_assets WHERE rowid=1");
-  db.sqlite.exec("INSERT INTO identity_assets(rowid,asset_kind,asset_key,normalized_name,display_name,source_updated_at) VALUES(1,'username','replacement','replacement','replacement','2026-01-01')");
-  for (let i = 0; i < 4; i++) await maintainIdentityStorage({ VALUATION_READ_MODEL: db });
-  assert.equal(db.sqlite.prepare("SELECT tracked_assets FROM identity_storage_policy").get().tracked_assets, 1005);
-  for (const { sql, args } of db.queries) {
-    const plan = db.sqlite.prepare('EXPLAIN QUERY PLAN ' + sql).all(...args).map(row=>row.detail).join('\n');
-    assert.doesNotMatch(plan, /SCAN identity_(assets|sales)\b/, 'identity pages must seek the primary key');
-  }
-  measuredQueries.identity.push(...db.queries);
-  db.sqlite.close();
-});
-
-test('missing bounded schema fails closed instead of running legacy cleanup', async () => {
-  const { maintainIdentityStorage } = await import('../cloudflare/gift-registry-worker.mjs');
-  assert.equal(typeof maintainIdentityStorage, 'function');
-  const db = sqliteD1(schema());
-  const result = await maintainIdentityStorage({ VALUATION_READ_MODEL: db });
-  assert.equal(result.status, 'migration-required');
-  assert.equal(db.queries.some(({ sql }) => /DELETE FROM/.test(sql)), false);
-  db.sqlite.close();
-});
 
 module.exports = { sqliteD1 };
 
@@ -101,38 +67,6 @@ test('legacy retention preserves ten tied observations per exact identity across
   db.sqlite.close();
 });
 
-test('baseline source prepares full exact quantiles and chronological training before publishing', async () => {
-  const worker=await import('../cloudflare/gift-registry-worker.mjs');
-  assert.equal(typeof worker.readIdentityBaselineSource,'function');
-  const db=sqliteD1(schema());
-  db.sqlite.exec(fs.readFileSync('cloudflare/valuation-read-model-migrations/0003_bounded_maintenance.sql','utf8'));
-  const put=db.sqlite.prepare(`INSERT INTO identity_sales(sale_id,asset_kind,asset_key,normalized_name,sold_at,price_gram,historical_usd_rate,price_usd,marketplace,source) VALUES(?,'username',?,?,?,1,1,?,'test','test')`);
-  for(let i=0;i<1100;i++) put.run(`s${String(i).padStart(5,'0')}`,`key${i}`,`name${i}`,i+1,i+1);
-  const env={VALUATION_READ_MODEL:db,INGEST_SECRET:'secret'};
-  const request=()=>new Request('http://local/identity/baseline-source/read',{method:'POST',headers:{authorization:'Bearer secret'},body:JSON.stringify({assetKind:'username',trainingLimit:256})});
-  let result;
-  for(let i=0;i<15;i++) {
-    const response=await worker.readIdentityBaselineSource(request(),env);
-    result=await response.json();
-    if(result.status==='complete') break;
-    assert.equal(response.status,202);
-    assert.equal(result.groups,undefined,'partial corpus must not leak into published baselines');
-  }
-  assert.equal(result.status,'complete');
-  assert.equal(result.ledgerSaleCount,1100);
-  const global=result.groups.find(row=>row.scope==='global');
-  assert.equal(global.evidence_count,1100);
-  assert.deepEqual([global.range_low_usd,global.midpoint_usd,global.range_high_usd],[220,550,880]);
-  assert.equal(result.training[0].price_usd,1100);
-  assert.equal(result.training.length,256);
-  const before=db.queries.length;
-  await worker.readIdentityBaselineSource(request(),env);
-  const repeated=db.queries.slice(before);
-  assert.equal(repeated.filter(({sql})=>/FROM identity_sales.*ORDER BY/s.test(sql)).length,0,'fresh read must use prepared output');
-  measuredQueries.identity.push(...db.queries);
-  db.sqlite.close();
-});
-
 function measureQueries() {
   const selected={};
   for(const [kind,queries] of Object.entries(measuredQueries)) {
@@ -154,97 +88,6 @@ function measureQueries() {
   console.log('[bounded D1 SQL measurement]',JSON.stringify({smallCorpus:report.smallCorpus,largeCorpus:report.largeCorpus,
     queries:report.queries.map(({kind,smallSteps,largeSteps})=>({kind,smallSteps,largeSteps}))}));
 }
-
-test('baseline preparation freezes a full corpus while subsequent ingestion continues', async () => {
-  const {prepareIdentityBaselineSource}=await import('../cloudflare/identity-baseline-preparation.mjs');
-  const db=sqliteD1(schema());
-  db.sqlite.exec(fs.readFileSync('cloudflare/valuation-read-model-migrations/0003_bounded_maintenance.sql','utf8'));
-  const put=db.sqlite.prepare(`INSERT INTO identity_sales(sale_id,asset_kind,asset_key,normalized_name,sold_at,price_gram,historical_usd_rate,price_usd,marketplace,source) VALUES(?,'username',?,?,?,1,1,?,'test','test')`);
-  for(let i=0;i<10;i++) put.run(`s${i}`,`key${i}`,`name${i}`,i+1,i+1);
-  // The one-page copy freezes all ten rows; subsequent ingestion must neither
-  // restart forever nor mix fresh rows into a half-prepared generation.
-  const started=Math.floor(Date.now()/1000);
-  await prepareIdentityBaselineSource(db,'username',256,started);
-  put.run('new','new','new',11,1000);
-  let result;
-  for(let i=0;i<10;i++) {
-    result=await prepareIdentityBaselineSource(db,'username',256,started+1+i);
-    if(result.status==='complete') break;
-  }
-  assert.equal(result.status,'complete');
-  assert.equal(result.ledgerSaleCount,10);
-  assert.equal(result.groups.find(row=>row.scope==='global').midpoint_usd,5);
-  db.sqlite.close();
-});
-
-test('material corrections restart preparation but identical upserts do not', async()=> {
-  const {prepareIdentityBaselineSource}=await import('../cloudflare/identity-baseline-preparation.mjs');
-  const db=sqliteD1(schema());
-  db.sqlite.exec(fs.readFileSync('cloudflare/valuation-read-model-migrations/0003_bounded_maintenance.sql','utf8'));
-  const put=db.sqlite.prepare(`INSERT INTO identity_sales(sale_id,asset_kind,asset_key,normalized_name,sold_at,price_gram,historical_usd_rate,price_usd,marketplace,source) VALUES(?,'username',?,?,?,1,1,?,'test','test')`);
-  for(let i=0;i<1100;i++) put.run(`s${String(i).padStart(5,'0')}`,`key${i}`,`name${i}`,i+1,i+1);
-  await prepareIdentityBaselineSource(db,'username',256);
-  db.sqlite.exec("UPDATE identity_sales SET price_usd=price_usd WHERE sale_id='s00000'");
-  assert.equal(db.sqlite.prepare("SELECT revision FROM identity_source_revision WHERE asset_kind='username'").get().revision,0);
-  db.sqlite.exec("UPDATE identity_sales SET price_usd=5000 WHERE sale_id='s00000'");
-  assert.equal(db.sqlite.prepare("SELECT revision FROM identity_source_revision WHERE asset_kind='username'").get().revision,1);
-  let result;
-  for(let i=0;i<12;i++) {
-    result=await prepareIdentityBaselineSource(db,'username',256);
-    if(result.status==='complete') break;
-  }
-  assert.equal(result.status,'complete');
-  assert.equal(result.ledgerSaleCount,1100);
-  assert.equal(result.groups.find(row=>row.scope==='global').midpoint_usd,551);
-  db.sqlite.close();
-});
-
-test('held baseline lease returns partial without examining source rows',async()=> {
-  const {prepareIdentityBaselineSource}=await import('../cloudflare/identity-baseline-preparation.mjs');
-  const db=sqliteD1(schema());
-  db.sqlite.exec(fs.readFileSync('cloudflare/valuation-read-model-migrations/0003_bounded_maintenance.sql','utf8'));
-  db.sqlite.prepare("INSERT INTO identity_baseline_preparation(asset_kind,lease_until,lease_token) VALUES('username',?,'other')").run(Math.floor(Date.now()/1000)+60);
-  const result=await prepareIdentityBaselineSource(db,'username',256);
-  assert.equal(result.status,'partial');
-  assert.equal(result.reason,'lease-held');
-  assert.equal(db.queries.some(({sql})=>/FROM identity_sales/.test(sql)),false);
-  db.sqlite.close();
-});
-
-test('expired baseline lease cannot publish even when no replacement owner takes over',async()=> {
-  const {prepareIdentityBaselineSource}=await import('../cloudflare/identity-baseline-preparation.mjs');
-  const db=sqliteD1(schema());
-  db.sqlite.exec(fs.readFileSync('cloudflare/valuation-read-model-migrations/0003_bounded_maintenance.sql','utf8'));
-  await prepareIdentityBaselineSource(db,'username',256);
-  await prepareIdentityBaselineSource(db,'username',256);
-  // The real SQLite clock advances beyond the held lease during the final
-  // training page. No competing invocation changes its token or checkpoint.
-  const prepare=db.prepare.bind(db);
-  const started=Math.floor(Date.now()/1000);
-  db.prepare=(sql)=> {
-    if(sql.includes('FROM identity_sales INDEXED BY')) {
-      db.sqlite.function('unixepoch',()=>started+61);
-    }
-    return prepare(sql);
-  };
-  const result=await prepareIdentityBaselineSource(db,'username',256);
-  assert.equal(result.status,'partial');
-  assert.match(result.reason,/lease-expired/);
-  assert.equal(db.sqlite.prepare("SELECT published_json FROM identity_baseline_preparation WHERE asset_kind='username'").get().published_json,null);
-  db.sqlite.close();
-});
-
-test('empty source completes without invented baseline values',async()=> {
-  const {prepareIdentityBaselineSource}=await import('../cloudflare/identity-baseline-preparation.mjs');
-  const db=sqliteD1(schema());
-  db.sqlite.exec(fs.readFileSync('cloudflare/valuation-read-model-migrations/0003_bounded_maintenance.sql','utf8'));
-  let result;
-  for(let i=0;i<3;i++) result=await prepareIdentityBaselineSource(db,'username',256);
-  assert.equal(result.status,'complete');
-  assert.deepEqual(result.groups,[]);
-  assert.deepEqual(result.training,[]);
-  db.sqlite.close();
-});
 
 test('automatic compact stats report unknown counts until bounded bootstrap completes',async()=> {
   const {compactSalesShardStats}=await import('../cloudflare/gift-registry-worker.mjs');
@@ -283,30 +126,11 @@ test('touched-combo compaction bounds a cold oversized identity without scanning
   db.sqlite.close();
 });
 
-test('counter bootstrap exposes durable progress and stops after its explicit page budget',async()=> {
-  const {boundedCounterBootstrap}=await import('../cloudflare/bounded-maintenance.mjs');
-  const db=sqliteD1(schema());
-  db.sqlite.exec(fs.readFileSync('cloudflare/valuation-read-model-migrations/0003_bounded_maintenance.sql','utf8'));
-  const put=db.sqlite.prepare("INSERT INTO identity_assets(asset_kind,asset_key,normalized_name,display_name,source_updated_at) VALUES('username',?,?,?,'2026-01-01')");
-  for(let i=0;i<2500;i++) put.run(`key${i}`,`name${i}`,`name${i}`);
-  const first=await boundedCounterBootstrap(db,'identity',1);
-  assert.equal(first.status,'partial');
-  assert.equal(first.counters.identity_assets.total,500);
-  assert.equal(first.sourceRowBudget,4500);
-  const final=await boundedCounterBootstrap(db,'identity',4);
-  assert.equal(final.counters.identity_assets.total,2500);
-  // A full page needs one final empty seek before readiness is certified.
-  assert.equal(final.status,'partial');
-  assert.equal((await boundedCounterBootstrap(db,'identity',1)).status,'complete');
-  assert.equal(db.sqlite.prepare('SELECT tracked_assets FROM identity_storage_policy').get().tracked_assets,2500);
-  db.sqlite.close();
-});
-
 test('operator bootstrap requires explicit row budget and execution opt-in before any network access',()=> {
-  let result=spawnSync(process.execPath,['scripts/bootstrap-d1-maintenance.js','--scope','identity'],{encoding:'utf8'});
+  let result=spawnSync(process.execPath,['scripts/bootstrap-d1-maintenance.js','--scope','compact'],{encoding:'utf8'});
   assert.equal(result.status,1);
   assert.match(result.stderr,/--row-budget/);
-  result=spawnSync(process.execPath,['scripts/bootstrap-d1-maintenance.js','--scope','identity','--row-budget','10000'],{encoding:'utf8'});
+  result=spawnSync(process.execPath,['scripts/bootstrap-d1-maintenance.js','--scope','compact','--row-budget','10000'],{encoding:'utf8'});
   assert.equal(result.status,1);
   assert.match(result.stderr,/--execute/);
 });

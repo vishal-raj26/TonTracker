@@ -3,7 +3,7 @@
 const assert = require("node:assert/strict");
 const test = require("node:test");
 const { attributeHistoricalUsd, clearHistoricalRateCache, loadHistoricalGramUsd } = require("../lib/gram-usd-history");
-const { normalizePoints } = require("../lib/dns-historical-rates");
+const { normalizePoints } = require("../lib/historical-rates");
 
 test("normalizes Unix-second market timestamps before matching historical sales", () => {
   const points = normalizePoints([[1_754_000_000, 3.25]]);

@@ -306,7 +306,7 @@ History-first state:
 
 Featured-assets rules:
 
-- Build candidates only from the canonical in-memory wallet collections already used by Assets and their detail routes: tokens, Telegram Gifts, stickers, TON DNS, and Anonymous Numbers.
+- Build candidates only from the canonical in-memory wallet collections already used by Assets and their detail routes: tokens, Telegram Gifts, and stickers.
 - Require a positive verified value or an existing value explicitly marked by the pricing pipeline as estimated. Never fabricate a value for the ribbon.
 - Rank deterministically by price confidence, wallet value, 24h movement, and rarity, then interleave categories so one large category cannot monopolize the ribbon.
 - Keep the DOM bounded to the strongest 18 candidates for smooth mobile motion. Repeated visual copies exist only to make the loop seamless and are excluded from assistive technology.

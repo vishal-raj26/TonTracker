@@ -14,14 +14,11 @@ test("proxies only the CPU-heavy wallet aggregate while retaining edge APIs", ()
   assert.doesNotMatch(worker, /pathname\.startsWith\("\/api\/"\).*proxyHeavyWalletImport/s);
 });
 
-test("revalues proxied identity assets with the current edge runtimes", () => {
-  assert.match(worker, /await warmValuationRuntimes\(\)/);
-  assert.match(worker, /dnsRuntime\.valueAssets/);
-  assert.match(worker, /usernameRuntime\.valueAssets/);
-  assert.match(worker, /payload\.summary\.identityValueUsd = identityValue/);
-  assert.match(worker, /payload\.summary\.totalUsd = Math\.max/);
-  assert.match(worker, /dnsRuntime\.enqueueAssets/);
-  assert.match(worker, /usernameRuntime\.enqueueAssets/);
+test("strips out-of-scope identity assets from proxied wallet responses", () => {
+  for (const key of ["dns", "usernames", "anonymousNumbers"]) assert.match(worker, new RegExp(`delete assets\\.${key};`));
+  assert.match(worker, /payload\.summary\.totalUsd = Math\.max\(0, Number\(payload\.summary\.totalUsd \|\| 0\) - oldIdentityValue\)/);
+  assert.doesNotMatch(worker, /dnsRuntime|usernameRuntime|warmValuationRuntimes/);
+  assert.doesNotMatch(config, /VALUATION_READ_MODEL_URL|DNS_PORTFOLIO|USERNAME_/);
 });
 
 test("declares a stable heavy API origin", () => {

@@ -11,14 +11,10 @@ worker, or second copy of a long-running Gift worker.
 | **TonTrack API** | `npm start` | always on | Serves the Mini App and reads prepared D1 materializations only. |
 | **Gift floor singleton** | `npm start` + `GIFT_COMBO_CONTINUOUS=1` | always on | Writes complete Thermos floor snapshots and compact seven-day history. |
 | **Gift sales singleton** | `npm start` + `GIFT_SALES_CONTINUOUS=1` | always on | Backfills and polls GiftSatellite sales under its durable checkpoint. |
-| **DNS D1 cron** | `python -m dns_worker direct-d1-cycle --page-size 25` | every 5 minutes | Seeds verified DNS ownership, then writes compact verified sale evidence. |
-| **Username market cron** | `npm run worker:run -- --role username-market` | every 5 minutes | Advances one resumable Fragment market page. |
-| **Identity baseline cron** | `npm run worker:run -- --role identity-baselines` | hourly at minute 7 | Rebuilds prepared DNS and Username valuations. |
 
-The DNS service is a separate Python deployment from `dns-worker/`. Deploy it
-using `railway up dns-worker --path-as-root --service dns-d1-ingest-cron
---environment production --detach`; deploying it from the repository root can
-replace its Python command with the web server.
+TON DNS, Telegram username and anonymous-number tracking was removed on
+2026-11-17. The former `dns-d1-ingest-cron`, `username-market-cron` and
+`identity-baseline-cron` services must not be redeployed.
 
 ## Required Variables
 
@@ -108,7 +104,7 @@ docs/dune-gift-collection-stats.sql
 ## Storage
 
 Cloudflare D1 is the production source of truth for current Gift floors,
-seven-day compact history, compact sales, and identity valuations. Do not store
+seven-day compact history and compact sales. Do not store
 raw scanner payloads or repeated complete snapshots in D1. PostgreSQL is
 rollback-only until parity is verified, and no active production worker may
 write new valuation data to it.
@@ -144,7 +140,6 @@ npm run worker:gift-sales:once
 - Users do not trigger gift history building.
 - One Gift floor singleton publishes complete snapshots and seven-day history.
 - One Gift sales singleton preserves 365-day sale evidence under a durable checkpoint.
-- Bounded DNS, Username, and baseline crons can resume safely without duplicate workers.
 - Gift detail pages read already-stored graph history instantly.
 - `GET /api/health` returns the active runtime mode and Railway revision, so a
   Mini App can be checked against the intended deployment before debugging UI

@@ -85,6 +85,7 @@ test("public NFT discovery remains available without an API key", async () => {
     inferStickerBrandName: () => "", expandStickerAliases: () => [],
     stickerAddressKeys: () => [], normalizeStickerKey: (value) => value,
     isSuspiciousStickerCandidate: () => false,
+    isExcludedIdentityNft: () => false,
   };
   vm.runInNewContext(block, sandbox);
   const result = await sandbox.walletNftsByType("wallet");
@@ -417,8 +418,8 @@ test("token and collectible refreshes cannot erase each other's wallet state", (
   assert.match(appSource, /snapshot\.walletKey !== key[\s\S]*?WALLET_ASSET_SNAPSHOT_TTL_MS/);
   assert.match(appSource, /payload = mergeLastGoodWalletAssets\(payload, cleanAddress\)/);
   assert.match(appSource, /function mergeCollectiblePayloadIntoWallet\(payload = \{\}\)/);
-  assert.match(appSource, /collectibles: \[\.\.\.gifts, \.\.\.stickers\], dns, usernames, anonymousNumbers/);
-  assert.match(appSource, /mergeCollectiblePayloadIntoWallet\(payload\);[\s\S]*?updateIdentityAssetsFromWallet/);
+  assert.match(appSource, /assets: \{ \.\.\.current, collectibles: \[\.\.\.gifts, \.\.\.stickers\] \}/);
+  assert.match(appSource, /mergeCollectiblePayloadIntoWallet\(payload\);[\s\S]*?syncAssetsSummary\(\);[\s\S]*?updateAllocationUi\(\);/);
   assert.match(appSource, /saveWalletAssetSnapshot\(liveWalletData\)/);
   assert.match(appSource, /Using the last verified wallet result while live data retries/);
 });
@@ -512,23 +513,36 @@ test("wallet import loader exposes branded progress and a usable-data dismissal 
   assert.match(appSource, /catch \(error\)[\s\S]*?stopImportLoaderPulse\(\);\s*setImportLoader\(false\);/);
 });
 
-test("identity categories stay loading until collectible discovery has a terminal result", () => {
+test("TON DNS, usernames and anonymous numbers are not imported, valued or rendered", () => {
   const appSource = fs.readFileSync(require.resolve("../app.js"), "utf8");
-  assert.match(appSource, /function walletCollectiblesArePending\(data = \{\}\)/);
-  assert.match(appSource, /options\.terminal !== false && !walletCollectiblesArePending\(data\)/);
-  assert.match(appSource, /updateIdentityAssetsFromWallet\(\{ assets: payload \}, \{ preserveExistingOnEmpty: true, terminal: true \}\)/);
-  assert.match(appSource, /Identity asset import failed/);
-  assert.match(appSource, /setIdentityImportTerminal\(dnsAssets\.length \|\| anonymousNumberAssets\.length \|\| usernameAssets\.length/);
+  const htmlSource = fs.readFileSync(require.resolve("../index.html"), "utf8");
+  for (const removed of [/dnsAssets/, /usernameAssets/, /anonymousNumberAssets/, /identityAssetValue/, /renderIdentityAsset/, /ton_dns/, /telegram_username/, /anonymous_number/]) {
+    assert.doesNotMatch(appSource, removed);
+  }
+  assert.doesNotMatch(htmlSource, /data-screen(?:-target)?="(?:dns|usernames|anonymous-numbers)"/);
+  assert.match(appSource, /const allocationState = \{ gifts: 0, tokens: 0, stickers: 0 \};/);
 });
 
-test("collectible completion waits for the shared identity request and records an unavailable terminal state", () => {
+test("server discovery excludes identity collections before pricing or caching", () => {
+  const server = require("../server");
+  const raw = (address) => ({ collection: { address } });
+  assert.equal(server.isExcludedIdentityNft(raw("0:b774d95eb20543f186c06b371ab88ad704f7e256130caf96189368a7d0cb6ccf")), true);
+  assert.equal(server.isExcludedIdentityNft(raw("0:80d78a35f955a14b679faa887ff4cd5bfc0f43b4a4eea2a7e6927f3701b273c2")), true);
+  assert.equal(server.isExcludedIdentityNft(raw("0:0e41dc1dc3c9067ed24248580e12b3359818d83dee0304fabcf80845eafafdb2")), true);
+  assert.equal(server.isExcludedIdentityNft(raw("0:" + "ab".repeat(32))), false);
+  const source = fs.readFileSync(require.resolve("../server.js"), "utf8");
+  assert.match(source, /uniqueWalletNfts\(mergedRows\)\.filter\(\(item\) => !isExcludedIdentityNft\(item\)\)/);
+  assert.doesNotMatch(source, /dnsRuntime|usernameRuntime|identityValueUsd|\/api\/(?:dns|username)-estimator/);
+});
+
+test("collectible completion waits for the shared collectibles request and records an unavailable terminal state", () => {
   const appSource = fs.readFileSync(require.resolve("../app.js"), "utf8");
   const collectibleBlock = appSource.slice(
     appSource.indexOf("function updateCollectiblesFromWallet"),
     appSource.indexOf("const updateGiftsFromWallet"),
   );
-  assert.match(collectibleBlock, /const identityReady = fetchWalletCollectiblesPayload\(walletAddress, \{ force: true \}\)/);
-  assert.match(collectibleBlock, /return Promise\.allSettled\(\[\s*identityReady,/);
+  assert.match(collectibleBlock, /const collectiblesMerged = fetchWalletCollectiblesPayload\(walletAddress, \{ force: true \}\)/);
+  assert.match(collectibleBlock, /return Promise\.allSettled\(\[\s*collectiblesMerged,/);
   assert.match(collectibleBlock, /return \{ status: "ready", payload \}/);
   assert.match(collectibleBlock, /return \{ status: "unavailable", error \}/);
 });

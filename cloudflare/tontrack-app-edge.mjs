@@ -2,31 +2,11 @@ import { httpServerHandler } from "cloudflare:node";
 import serverModule from "../server.js";
 
 const nodeHandler = httpServerHandler(serverModule.server);
-let valuationWarmPromise = null;
 
 function configureRegistryService(env) {
   globalThis.__tontrackRegistryFetch = env.REGISTRY_SERVICE
     ? (url, options) => env.REGISTRY_SERVICE.fetch(new Request(url, options))
     : null;
-}
-
-function warmValuationRuntimes() {
-  if (!valuationWarmPromise) {
-    valuationWarmPromise = Promise.all([
-      serverModule.dnsRuntime.warm(),
-      serverModule.usernameRuntime.warm(),
-    ]).catch((error) => {
-      // A transient read-model failure must not permanently poison this isolate.
-      valuationWarmPromise = null;
-      throw error;
-    });
-  }
-  return valuationWarmPromise;
-}
-
-function portfolioIdentityValue(asset = {}) {
-  if (asset.portfolioEligible === false) return 0;
-  return Math.max(0, Number(asset.floorUsd || asset.estimatedUsd || 0));
 }
 
 async function proxyHeavyWalletImport(request, env, ctx) {
@@ -44,28 +24,20 @@ async function proxyHeavyWalletImport(request, env, ctx) {
   }));
   if (!response.ok) return response;
   const payload = await response.json();
+  // TON DNS, usernames and anonymous numbers are out of scope. Strip them if an
+  // older heavy origin still returns them, so they never reach totals or the UI.
   const assets = payload?.assets || {};
-  const tonRate = Number(payload?.summary?.tonUsdRate || 0);
-  const oldIdentityValue = Number(payload?.summary?.identityValueUsd || 0);
-  await warmValuationRuntimes();
-  const [dns, usernames] = await Promise.all([
-    serverModule.dnsRuntime.valueAssets(Array.isArray(assets.dns) ? assets.dns : [], tonRate),
-    serverModule.usernameRuntime.valueAssets(Array.isArray(assets.usernames) ? assets.usernames : []),
-  ]);
-  assets.dns = dns;
-  assets.usernames = usernames;
-  const identityValue = [...dns, ...usernames, ...(Array.isArray(assets.anonymousNumbers) ? assets.anonymousNumbers : [])]
-    .reduce((sum, asset) => sum + portfolioIdentityValue(asset), 0);
+  delete assets.dns;
+  delete assets.usernames;
+  delete assets.anonymousNumbers;
   if (payload.summary) {
-    payload.summary.identityValueUsd = identityValue;
-    payload.summary.totalUsd = Math.max(0, Number(payload.summary.totalUsd || 0) - oldIdentityValue + identityValue);
-    payload.summary.dnsCount = dns.length;
-    payload.summary.usernameCount = usernames.length;
+    const oldIdentityValue = Number(payload.summary.identityValueUsd || 0);
+    payload.summary.totalUsd = Math.max(0, Number(payload.summary.totalUsd || 0) - oldIdentityValue);
+    delete payload.summary.identityValueUsd;
+    delete payload.summary.dnsCount;
+    delete payload.summary.usernameCount;
+    delete payload.summary.anonymousNumberCount;
   }
-  ctx.waitUntil(Promise.all([
-    serverModule.dnsRuntime.enqueueAssets(dns),
-    serverModule.usernameRuntime.enqueueAssets(usernames),
-  ]).catch(() => undefined));
   const responseHeaders = new Headers(response.headers);
   responseHeaders.set("content-type", "application/json; charset=utf-8");
   responseHeaders.set("cache-control", "no-store");
@@ -81,12 +53,6 @@ export default {
       return proxied || nodeHandler.fetch(request, env, ctx);
     }
     if (pathname.startsWith("/api/") || pathname === "/tonconnect-manifest.json") {
-      const warm = warmValuationRuntimes();
-      if (pathname.startsWith("/api/dns-estimator/") || pathname.startsWith("/api/username-estimator/")) {
-        await warm;
-      } else {
-        ctx.waitUntil(warm.catch(() => undefined));
-      }
       return nodeHandler.fetch(request, env, ctx);
     }
     return env.ASSETS.fetch(request);

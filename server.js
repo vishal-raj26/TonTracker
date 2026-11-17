@@ -6,8 +6,6 @@ const { URL } = require("url");
 const { execFile } = require("child_process");
 const { Address } = require("@ton/core");
 const crypto = require("crypto");
-const { createDnsRuntime } = require("./lib/dns-runtime");
-const { createUsernameRuntime } = require("./lib/username-runtime");
 const giftPricePreview = require("./lib/gift-price-preview");
 
 // `__dirname` is unavailable after the CommonJS server is bundled for the
@@ -47,9 +45,14 @@ const tonCenterApiBase = String(process.env.TONCENTER_API_BASE || "https://tonce
 const tonCenterApiKey = String(process.env.TONCENTER_API_KEY || "");
 const usdTonRate = 0;
 const nativeTonLogo = "/assets/branding/gram-diamond-mark.svg";
-const TON_DNS_COLLECTION_RAW = "0:b774d95eb20543f186c06b371ab88ad704f7e256130caf96189368a7d0cb6ccf";
-const TELEGRAM_USERNAMES_COLLECTION_RAW = "0:80d78a35f955a14b679faa887ff4cd5bfc0f43b4a4eea2a7e6927f3701b273c2";
-const ANONYMOUS_NUMBERS_COLLECTION_RAW = "0:0e41dc1dc3c9067ed24248580e12b3359818d83dee0304fabcf80845eafafdb2";
+// TON DNS domains, Telegram usernames and anonymous numbers are out of scope.
+// Their collections are excluded at discovery so they are never priced, cached,
+// counted in totals or returned to the client.
+const EXCLUDED_IDENTITY_COLLECTIONS_RAW = new Set([
+  "0:b774d95eb20543f186c06b371ab88ad704f7e256130caf96189368a7d0cb6ccf", // TON DNS
+  "0:80d78a35f955a14b679faa887ff4cd5bfc0f43b4a4eea2a7e6927f3701b273c2", // Telegram usernames
+  "0:0e41dc1dc3c9067ed24248580e12b3359818d83dee0304fabcf80845eafafdb2", // Anonymous numbers
+]);
 const JETTON_QUALITY_RULES = {
   minUnverifiedDexLiquidityUsd: 50,
   minStaleDexVolumeUsd: 5,
@@ -116,11 +119,6 @@ const duneGiftCollectionStatsQueryId = String(process.env.DUNE_GIFT_COLLECTION_S
 let giftSnapshotPgPool = null;
 let giftSnapshotPgInitPromise = null;
 let giftSnapshotPgUnavailableLogged = false;
-// The compact registry Worker is the verified public read path. Keep it as a
-// final fallback so edge instances never start with a blank valuation source.
-const valuationReadModelUrl = String(process.env.VALUATION_READ_MODEL_URL || d1GiftRegistryUrl || publicGiftRegistryUrl).replace(/\/+$/, "");
-const dnsRuntime = createDnsRuntime({ valuationReadModelUrl });
-const usernameRuntime = createUsernameRuntime({ valuationReadModelUrl });
 const diffCache = new Map();
 const chartCache = new Map();
 const jettonHistoryCache = new Map();
@@ -4661,112 +4659,11 @@ function rawCollectionAddress(item = {}) {
   }
 }
 
-function identityNftType(item = {}) {
-  const collectionAddress = rawCollectionAddress(item);
-  if (collectionAddress === TON_DNS_COLLECTION_RAW) return "ton_dns";
-  if (collectionAddress === TELEGRAM_USERNAMES_COLLECTION_RAW) return "telegram_username";
-  if (collectionAddress === ANONYMOUS_NUMBERS_COLLECTION_RAW) return "anonymous_number";
-  return "";
-}
-
-function verifiedTonListing(item = {}, tonRate = 0) {
-  const sale = item?.sale || item?.raw?.sale || null;
-  const price = sale?.price || null;
-  const tokenName = String(price?.token_name || price?.tokenName || "").trim().toLowerCase();
-  const currencyType = String(price?.currency_type || price?.currencyType || "").trim().toLowerCase();
-  const image = String(price?.image || "").toLowerCase();
-  const nativeAliases = new Set(["gram", "ton", "toncoin"]);
-  const isNativeGram = currencyType === "native"
-    && (nativeAliases.has(tokenName) || (!tokenName && /gram|ton_symbol|toncoin/.test(image)));
-  const rawValue = Number(price?.value || 0);
-  const decimals = Math.max(0, Math.min(18, Number(price?.decimals ?? 9)));
-  const floorTon = isNativeGram && Number.isFinite(rawValue) && rawValue > 0
-    ? rawValue / (10 ** decimals)
-    : 0;
-  if (!(floorTon > 0)) return null;
-  return {
-    floorTon,
-    floorUsd: floorTon * Number(tonRate || 0),
-    floorStatus: "priced",
-    valuationKind: "active-listing",
-    listed: true,
-    listedCount: 1,
-    marketPlatform: String(sale?.market?.name || "Marketplace"),
-    priceSource: "verified-native-gram-listing",
-    listingAddress: String(sale?.address || ""),
-    snapshotAt: new Date().toISOString(),
-  };
-}
-
-function identityAssetFields(item = {}, type = "", tonRate = 0) {
-  const name = String(item?.metadata?.name || item?.name || "").trim();
-  const tokenAddress = String(item?.address || item?.tokenAddress || "").trim();
-  const buttons = Array.isArray(item?.metadata?.buttons) ? item.metadata.buttons : [];
-  const manageUrl = String(buttons.find((button) => /manage/i.test(String(button?.label || "")))?.uri || "");
-  const listing = verifiedTonListing(item, tonRate);
-  const unavailable = {
-    floorTon: 0,
-    floorUsd: 0,
-    floorStatus: "unavailable",
-    valuationKind: "unavailable",
-    listed: false,
-    listedCount: 0,
-    marketPlatform: "",
-    priceSource: "none",
-  };
-  if (type === "ton_dns") {
-    const domain = [
-      item?.content?.domain,
-      item?.raw?.content?.domain,
-      item?.raw?.raw?.content?.domain,
-      item?.metadata?.domain,
-      name,
-    ].map((value) => String(value || "").trim().toLocaleLowerCase("und").replace(/\.+$/u, ""))
-      .find((value) => value.endsWith(".ton")) || "";
-    return {
-      ...(listing || unavailable),
-      domain,
-      displayName: domain || "TON domain",
-      manageUrl,
-      marketUrl: tokenAddress ? `https://getgems.io/nft/${encodeURIComponent(tokenAddress)}` : "https://getgems.io/collection/ton-dns",
-    };
-  }
-  if (type === "telegram_username") {
-    const username = [
-      item?.content?.username,
-      item?.content?.domain,
-      item?.raw?.content?.username,
-      item?.raw?.content?.domain,
-      item?.raw?.raw?.content?.username,
-      item?.raw?.raw?.content?.domain,
-      item?.metadata?.username,
-      item?.metadata?.domain,
-      name,
-    ].map((value) => String(value || "").trim().toLocaleLowerCase("und")
-      .replace(/^https?:\/\/(?:www\.)?(?:t\.me|telegram\.me)\//u, "")
-      .replace(/^@+/u, "")
-      .replace(/\.(?:t\.me|telegram\.me)$/u, "")
-      .replace(/\/+$/u, ""))
-      .find((value) => /^[a-z0-9_]{4,32}$/u.test(value) && value !== "telegram_username") || "";
-    return {
-      ...(listing || unavailable),
-      username,
-      displayName: username ? `@${username}` : "Telegram username",
-      marketUrl: username ? `https://fragment.com/username/${encodeURIComponent(username)}` : "https://fragment.com/usernames",
-    };
-  }
-  const digits = name.replace(/\D/g, "");
-  return {
-    ...(listing || unavailable),
-    number: digits,
-    displayNumber: name || (digits ? `+${digits}` : "Anonymous number"),
-    marketUrl: digits ? `https://fragment.com/number/${digits}` : "https://fragment.com/numbers",
-  };
+function isExcludedIdentityNft(item = {}) {
+  return EXCLUDED_IDENTITY_COLLECTIONS_RAW.has(rawCollectionAddress(item));
 }
 
 function nftCategory(item) {
-  const identityType = identityNftType(item);
-  if (identityType) return identityType;
   const name = String(item?.metadata?.name || "");
   const collection = String(item?.collection?.name || "");
   const description = String(item?.metadata?.description || item?.collection?.description || "");
@@ -4836,7 +4733,7 @@ function mediaKind(url = "") {
 }
 
 function normalizeNfts(payload) {
-  return (payload?.nft_items || []).map((item) => {
+  return (payload?.nft_items || []).filter((item) => !isExcludedIdentityNft(item)).map((item) => {
     const collection = item?.collection?.name || "Unknown collection";
     const name = item?.metadata?.name || collection || "Telegram Collectible";
     const type = nftCategory(item);
@@ -4873,9 +4770,6 @@ async function fetchWalletNfts(address) {
     return [
       ...classified.gifts,
       ...classified.stickers,
-      ...(classified.dns || []),
-      ...(classified.usernames || []),
-      ...(classified.anonymousNumbers || []),
     ];
   } catch (error) {
     console.warn("Wallet NFTs unavailable", error.message);
@@ -5184,24 +5078,17 @@ function sameAddress(a, b) {
 function portfolioSummary(account, jettons, nfts, events, tonUsdRate = usdTonRate) {
   const tonValueUsd = account.balanceTon * tonUsdRate;
   const jettonsValueUsd = jettons.reduce((sum, jetton) => sum + (jetton.valueUsd || 0), 0);
-  const identityValueUsd = nfts
-    .filter((asset) => asset.type === "ton_dns" || asset.type === "telegram_username" || asset.type === "anonymous_number")
-    .reduce((sum, asset) => sum + Number(asset.floorUsd || 0), 0);
-  const totalUsd = tonValueUsd + jettonsValueUsd + identityValueUsd;
+  const totalUsd = tonValueUsd + jettonsValueUsd;
   return {
     wallet: account.displayAddress,
     tonBalance: account.balanceTon,
     tonUsdRate,
     tonValueUsd,
     jettonsValueUsd,
-    identityValueUsd,
     totalUsd,
     tokenCount: jettons.length + 1,
     giftCount: nfts.filter((asset) => asset.type === "gift").length,
     stickerCount: nfts.filter((asset) => asset.type === "sticker").length,
-    dnsCount: nfts.filter((asset) => asset.type === "ton_dns").length,
-    usernameCount: nfts.filter((asset) => asset.type === "telegram_username").length,
-    anonymousNumberCount: nfts.filter((asset) => asset.type === "anonymous_number").length,
     nftCount: nfts.length,
     recentActivityCount: events.length,
   };
@@ -6066,10 +5953,10 @@ async function walletImport(address, { forceRefresh = false } = {}) {
   // potentially slow discovery/pricing work; reuse a warm result when it is
   // available and let the shared request populate the cache in background.
   const collectibleAddress = normalizedAccount.address || address;
-  const collectiblesKey = `${canonicalAddressKey(collectibleAddress)}:wallet-v11-identity-assets-v1`;
+  const collectiblesKey = `${canonicalAddressKey(collectibleAddress)}:wallet-v12-gifts-stickers-v1`;
   const cachedCollectibles = cachedMapValue(collectiblesCache, collectiblesKey);
   const collectibles = cachedCollectibles || {
-    gifts: [], stickers: [], dns: [], usernames: [], anonymousNumbers: [], source: "pending",
+    gifts: [], stickers: [], source: "pending",
   };
   if (!cachedCollectibles) {
     getCollectiblesShared(collectibleAddress).catch((error) => {
@@ -6077,12 +5964,7 @@ async function walletImport(address, { forceRefresh = false } = {}) {
     });
   }
   const walletCollectibles = [...(collectibles.gifts || []), ...(collectibles.stickers || [])];
-  const nfts = [
-    ...walletCollectibles,
-    ...(collectibles.dns || []),
-    ...(collectibles.usernames || []),
-    ...(collectibles.anonymousNumbers || []),
-  ];
+  const nfts = walletCollectibles;
   const events = [];
   const currentTonUsd = initial.tonUsdRate;
   const summary = portfolioSummary(normalizedAccount, jettons, nfts, events, currentTonUsd);
@@ -6120,9 +6002,6 @@ async function walletImport(address, { forceRefresh = false } = {}) {
       jettons,
       jettonInventory: inventoryStatus,
       collectibles: walletCollectibles,
-      dns: collectibles.dns || [],
-      usernames: collectibles.usernames || [],
-      anonymousNumbers: collectibles.anonymousNumbers || [],
     },
     activity: events,
     warnings: [
@@ -8079,8 +7958,7 @@ async function thermosGiftFloorLookup(aliasObject = {}, aliases = [], tonRate = 
 }
 
 function classifyNft(item = {}) {
-  const identityType = identityNftType(item);
-  if (identityType) return identityType;
+  if (isExcludedIdentityNft(item)) return "other";
   if (isDeniedCollectible(item.collection?.name || "", item.metadata?.name || "")) return "other";
   if (isSuspiciousStickerCandidate(item.collection?.name || "", item.metadata?.name || "", item.metadata?.description || item.collection?.description || "")) return "other";
   const attributes = Array.isArray(item.metadata?.attributes) ? item.metadata.attributes : [];
@@ -8312,12 +8190,9 @@ async function walletNftsByType(address) {
     .map((result) => result.reason?.message)
     .filter(Boolean)
     .join("; ");
-  const uniqueRows = uniqueWalletNfts(mergedRows);
+  const uniqueRows = uniqueWalletNfts(mergedRows).filter((item) => !isExcludedIdentityNft(item));
   const items = uniqueRows.map((item) => {
     const normalized = normalizeWalletNft(item);
-    if (normalized.type === "ton_dns" || normalized.type === "telegram_username" || normalized.type === "anonymous_number") {
-      Object.assign(normalized, identityAssetFields(item, normalized.type, tonRate));
-    }
     const suspicious = isSuspiciousStickerCandidate(normalized.collection, normalized.name, normalized.description);
     const match = stickerRegistryMatch(normalized);
     if (normalized.type === "other" && match && !suspicious && !isDeniedCollectible(normalized.collection, normalized.name)) normalized.type = "sticker";
@@ -8372,9 +8247,6 @@ async function walletNftsByType(address) {
   return {
     gifts: items.filter((item) => item.type === "gift"),
     stickers: items.filter((item) => item.type === "sticker"),
-    dns: items.filter((item) => item.type === "ton_dns"),
-    usernames: items.filter((item) => item.type === "telegram_username"),
-    anonymousNumbers: items.filter((item) => item.type === "anonymous_number"),
     otherCount: items.filter((item) => item.type === "other").length,
     source: discoverySource,
     error: discoveryError || undefined,
@@ -8382,7 +8254,7 @@ async function walletNftsByType(address) {
 }
 
 async function getCollectibles(address) {
-  const key = `${canonicalAddressKey(address)}:wallet-v11-identity-assets-v1`;
+  const key = `${canonicalAddressKey(address)}:wallet-v12-gifts-stickers-v1`;
   const cached = cachedMapValue(collectiblesCache, key);
   if (cached) return cached;
   const tonRate = await settleWithin(tonUsdRate(), 1_500, usdTonRate);
@@ -8391,23 +8263,10 @@ async function getCollectibles(address) {
   const unresolvedGifts = (classified.gifts || []).map((gift) => ({
     ...gift, floorStatus: "unavailable", priceLoading: false,
   }));
-  [classified.gifts, classified.dns, classified.usernames] = await Promise.all([
-    settleWithin(priceWalletGiftsFromD1(classified.gifts || [], tonRate, `collectibles:${canonicalAddressKey(address)}`), 8_000, unresolvedGifts),
-    settleWithin(dnsRuntime.valueAssets(classified.dns || [], tonRate), 4_000, classified.dns || []),
-    settleWithin(usernameRuntime.valueAssets(classified.usernames || [], tonRate), 4_000, classified.usernames || []),
-  ]);
-  dnsRuntime.enqueueAssets(classified.dns).catch((error) => {
-    console.warn(`[dns-estimator] wallet refresh queue failed: ${error.message}`);
-  });
-  usernameRuntime.enqueueAssets(classified.usernames).catch((error) => {
-    console.warn(`[username-estimator] wallet refresh queue failed: ${error.message}`);
-  });
+  classified.gifts = await settleWithin(priceWalletGiftsFromD1(classified.gifts || [], tonRate, `collectibles:${canonicalAddressKey(address)}`), 8_000, unresolvedGifts);
   const owned = [
     ...classified.gifts,
     ...classified.stickers,
-    ...(classified.dns || []),
-    ...(classified.usernames || []),
-    ...(classified.anonymousNumbers || []),
   ];
   if (owned.length) {
     const withFloors = owned.map((item) => {
@@ -8429,15 +8288,9 @@ async function getCollectibles(address) {
         totalSupply: Number(floor.totalSupply || item.totalSupply || 0),
       };
     });
-    const identityNeedsRefresh = withFloors.some((item) =>
-      (item.type === "ton_dns" && item.dnsValuationStatus === "processing")
-      || (item.type === "telegram_username" && item.usernameValuationStatus === "processing"));
     return setCachedMapValue(collectiblesCache, key, {
       gifts: withFloors.filter((item) => item.type === "gift"),
       stickers: withFloors.filter((item) => item.type === "sticker"),
-      dns: withFloors.filter((item) => item.type === "ton_dns"),
-      usernames: withFloors.filter((item) => item.type === "telegram_username"),
-      anonymousNumbers: withFloors.filter((item) => item.type === "anonymous_number"),
       priceSummary: {
         gifts: {
           total: classified.gifts.length,
@@ -8446,13 +8299,13 @@ async function getCollectibles(address) {
         },
       },
       source: classified.source || "tonapi-wallet",
-    }, identityNeedsRefresh ? 15 * 1000 : classified.gifts.some((item) => item.floorStatus === "unavailable") ? 60 * 1000 : 5 * 60 * 1000);
+    }, classified.gifts.some((item) => item.floorStatus === "unavailable") ? 60 * 1000 : 5 * 60 * 1000);
   }
 
   // Successful discovery with no supported holdings is a valid empty result.
   // Do not turn it into an error merely because optional Getgems is offline.
   if (!classified.error) return setCachedMapValue(collectiblesCache, key, {
-    gifts: [], stickers: [], dns: [], usernames: [], anonymousNumbers: [],
+    gifts: [], stickers: [],
     source: classified.source || "tonapi-wallet",
   }, 5 * 60 * 1000);
 
@@ -8478,9 +8331,6 @@ async function getCollectibles(address) {
     const fallback = {
       gifts,
       stickers: items.filter((item) => item.type === "sticker"),
-      dns: [],
-      usernames: [],
-      anonymousNumbers: [],
       priceSummary: {
         gifts: {
           total: gifts.length,
@@ -8496,9 +8346,6 @@ async function getCollectibles(address) {
     return {
       gifts: [],
       stickers: [],
-      dns: [],
-      usernames: [],
-      anonymousNumbers: [],
       source: "tonapi-wallet",
       error: classified.error || error.message,
     };
@@ -8506,7 +8353,7 @@ async function getCollectibles(address) {
 }
 
 function getCollectiblesShared(address) {
-  const key = `${canonicalAddressKey(address)}:wallet-v11-identity-assets-v1`;
+  const key = `${canonicalAddressKey(address)}:wallet-v12-gifts-stickers-v1`;
   const cached = cachedMapValue(collectiblesCache, key);
   if (cached) return Promise.resolve(cached);
   if (collectiblesRequests.has(key)) return collectiblesRequests.get(key);
@@ -9960,46 +9807,6 @@ async function handleApi(req, res, url) {
       return json(res, 200, giftPricePreview.apiResponse(url.pathname, url.searchParams, body));
     }
   }
-  if (url.pathname === "/api/dns-estimator/status" && req.method === "GET") {
-    return json(res, 200, await dnsRuntime.status());
-  }
-  if (url.pathname === "/api/dns-estimator/valuation" && req.method === "GET") {
-    const domain = String(url.searchParams.get("domain") || "").trim();
-    if (!domain) return json(res, 400, { error: "domain is required", valuation: null });
-    const valuation = await dnsRuntime.getValuationByDomain(domain);
-    return json(res, valuation ? 200 : 404, { valuation });
-  }
-  if (url.pathname === "/api/dns-estimator/valuations" && req.method === "POST") {
-    try {
-      const body = await readJsonBody(req, 64 * 1024);
-      const addresses = Array.isArray(body.addresses) ? body.addresses.slice(0, 500) : [];
-      const rows = await dnsRuntime.lookupValuations(addresses);
-      return json(res, 200, { valuations: [...rows.values()] });
-    } catch (error) {
-      return json(res, 400, { error: error.message, valuations: [] });
-    }
-  }
-  if (url.pathname === "/api/username-estimator/status" && req.method === "GET") {
-    return json(res, 200, await usernameRuntime.status());
-  }
-  if (url.pathname === "/api/username-estimator/valuation" && req.method === "GET") {
-    const username = String(url.searchParams.get("username") || "").trim();
-    if (!username) return json(res, 400, { error: "username is required", valuation: null });
-    const valuation = url.searchParams.get("evidence") === "1"
-      ? await usernameRuntime.getValuationDetailByUsername(username)
-      : await usernameRuntime.getValuationByUsername(username);
-    return json(res, valuation ? 200 : 404, { valuation });
-  }
-  if (url.pathname === "/api/username-estimator/valuations" && req.method === "POST") {
-    try {
-      const body = await readJsonBody(req, 64 * 1024);
-      const addresses = Array.isArray(body.addresses) ? body.addresses.slice(0, 500) : [];
-      const rows = await usernameRuntime.lookupPublishedValuations(addresses);
-      return json(res, 200, { valuations: [...rows.values()] });
-    } catch (error) {
-      return json(res, 400, { error: error.message, valuations: [] });
-    }
-  }
   if (url.pathname === "/api/telegram/webapp/assets" && req.method === "POST") {
     try {
       const { initData } = await readJsonBody(req, 64 * 1024);
@@ -10745,12 +10552,6 @@ function startServer() {
       }, 15000);
     }
     prewarmGiftCollectionStats("startup");
-    dnsRuntime.warm().catch((error) => {
-      console.warn(`[dns-estimator] startup warm failed: ${error.message}`);
-    });
-    usernameRuntime.warm().catch((error) => {
-      console.warn(`[username-estimator] startup warm failed: ${error.message}`);
-    });
   });
 
   setInterval(() => prewarmGiftCollectionStats("scheduled"), 15 * 60 * 1000);
@@ -10915,7 +10716,6 @@ module.exports = {
   startGiftSnapshotWorker,
   refreshEstimatedGiftHistoryTargetsNow,
   startEstimateHistoryWorker,
-  verifiedTonListing,
   normalizeJettons,
   normalizeTonCenterJettons,
   applyJettonImageRegistry,
@@ -10940,8 +10740,6 @@ module.exports = {
   tonCenterNftToTonApi,
   shouldFallbackWalletNfts,
   uniqueWalletNfts,
-  dnsRuntime,
-  usernameRuntime,
-  identityAssetFields,
+  isExcludedIdentityNft,
   startServer
 };

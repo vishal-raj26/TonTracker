@@ -1,7 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 const { loadHistoricalGramUsd } = require("../lib/gram-usd-history");
-const { normalizePoints } = require("../lib/dns-historical-rates");
+const { normalizePoints } = require("../lib/historical-rates");
 
 const root = path.resolve(__dirname, "..");
 const envFile = path.join(root, ".env");

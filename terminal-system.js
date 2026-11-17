@@ -25,10 +25,7 @@
     '[data-screen="analytics"] .graph-head h1',
     '[data-screen="tokens"] .summary-card h2',
     '[data-screen="gifts"] .asset-total-banner h2',
-    '[data-screen="stickers"] .asset-total-banner h2',
-    '[data-screen="dns"] .identity-summary-card h2',
-    '[data-screen="anonymous-numbers"] .identity-summary-card h2',
-    '[data-screen="usernames"] .identity-summary-card h2'
+    '[data-screen="stickers"] .asset-total-banner h2'
   ];
   function sourceText(element) {
     if (!element) return "";

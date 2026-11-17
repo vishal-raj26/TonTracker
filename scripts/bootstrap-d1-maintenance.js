@@ -11,15 +11,15 @@ async function main() {
   const budget=Number(args.includes('--row-budget')?value('--row-budget'):0);
   if(!Number.isSafeInteger(budget) || budget<=0) throw new Error('--row-budget must be an explicit positive integer');
   if(!args.includes('--execute')) throw new Error('--execute is required to write resumable D1 counter checkpoints');
-  if(!['identity','compact'].includes(scope)) throw new Error('--scope must be identity or compact');
+  if(scope!=='compact') throw new Error('--scope must be compact');
   if(scope==='compact' && !args.includes('--shard')) throw new Error('--shard is required for compact counters');
   const steps=Number(args.includes('--steps')?value('--steps'):1);
   const requests=Number(args.includes('--requests')?value('--requests'):1);
   if(!Number.isSafeInteger(steps)||steps<1||steps>4) throw new Error('--steps must be between 1 and 4');
   if(!Number.isSafeInteger(requests)||requests<1||requests>1000) throw new Error('--requests must be between 1 and 1000');
-  const requestBudget=steps*(scope==='identity'?3:2)*500*3;
+  const requestBudget=steps*2*500*3;
   if(budget<requestBudget) throw new Error('--row-budget is smaller than one requested bounded step');
-  const base=String(process.env.D1_REGISTRY_URL || process.env.VALUATION_READ_MODEL_URL || '').replace(/\/+$/,'');
+  const base=String(process.env.D1_REGISTRY_URL || '').replace(/\/+$/,'');
   const secret=process.env.D1_INGEST_SECRET;
   if(!base || !secret) throw new Error('Set D1_REGISTRY_URL and D1_INGEST_SECRET explicitly');
   let spent=0;

@@ -92,7 +92,7 @@ test("detail artwork fits its reference grid and token hero uses the same readin
 test("all existing screen containers and navigation destinations are preserved", () => {
   const html = read("index.html");
   const screens = [...html.matchAll(/<main[^>]+data-screen="([^"]+)"/g)].map(m => m[1]);
-  assert.deepEqual(screens, ["home", "assets", "tokens", "gifts", "gift-brand", "stickers", "dns", "anonymous-numbers", "usernames", "sticker-brand", "analytics", "watchlist", "activity", "detail", "wallets", "settings"]);
+  assert.deepEqual(screens, ["home", "assets", "tokens", "gifts", "gift-brand", "stickers", "sticker-brand", "analytics", "watchlist", "activity", "detail", "wallets", "settings"]);
   const nav = html.match(/<nav class="dock five"[\s\S]*?<\/nav>/)[0];
   assert.deepEqual([...nav.matchAll(/data-screen-target="([^"]+)"/g)].map(m => m[1]), ["home", "assets", "analytics", "watchlist", "settings"]);
 });

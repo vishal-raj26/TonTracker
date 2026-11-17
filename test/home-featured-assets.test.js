@@ -27,8 +27,7 @@ test("builds featured candidates from every current wallet asset source", () => 
   assert.match(app, /\["gift", groupedAssetChildren\(giftAssets\)\]/);
   assert.match(app, /\["sticker", groupedAssetChildren\(stickerAssets\)\]/);
   assert.match(app, /\["token", latestVisibleTokens\]/);
-  assert.match(app, /\["ton_dns", dnsAssets\]/);
-  assert.match(app, /\["anonymous_number", anonymousNumberAssets\]/);
+  assert.doesNotMatch(app, /dnsAssets|anonymousNumberAssets|usernameAssets/);
 });
 
 test("renders a bounded swipeable preview in value order without losing detail routes", () => {

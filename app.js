@@ -110,7 +110,7 @@ let activeGiftDetailRequest = 0;
 let activeHistoryWalletKey = "";
 let homeEntrancePlayed = false;
 let latestCollectibleStatus = "";
-const allocationState = { gifts: 0, tokens: 0, stickers: 0, dns: 0, anonymousNumbers: 0, usernames: 0 };
+const allocationState = { gifts: 0, tokens: 0, stickers: 0 };
 let detailWarmupQueue = [];
 let detailWarmupActive = 0;
 let detailWarmupGeneration = 0;
@@ -132,9 +132,6 @@ const SECTION_LABELS = {
   tokens: "Tokens",
   gifts: "Gifts",
   stickers: "Stickers",
-  dns: "TON DNS",
-  "anonymous-numbers": "Anonymous Numbers",
-  usernames: "Telegram Usernames",
   activity: "Activity",
   graph: "Graph",
 };
@@ -145,9 +142,6 @@ const navGroup = {
   "gift-brand": "assets",
   stickers: "assets",
   "sticker-brand": "assets",
-  dns: "assets",
-  "anonymous-numbers": "assets",
-  usernames: "assets",
   detail: "assets",
   activity: "home",
   wallets: "settings",
@@ -493,9 +487,6 @@ const stickerAssets = [
     chart: [378, 390, 402, 398, 407, 414, 410],
   },
 ];
-const dnsAssets = [];
-const anonymousNumberAssets = [];
-const usernameAssets = [];
 
 const tokenDetails = {
   toncoin: {
@@ -2209,7 +2200,6 @@ function featuredAssetKey(asset = {}, type = "asset") {
 
 function featuredAssetPricingTier(asset = {}, type = "asset") {
   if (type === "token") return Number(asset.priceUsd || 0) > 0 ? 3 : 1;
-  if (type === "ton_dns" || type === "anonymous_number" || type === "telegram_username") return identityAssetValue(asset) > 0 ? 3 : 1;
   if (isEstimatedAsset(asset)) return 2;
   return asset.floorStatus === "priced" || asset.marketVerified || asset.marketPlatform ? 3 : 1;
 }
@@ -2217,17 +2207,12 @@ function featuredAssetPricingTier(asset = {}, type = "asset") {
 function featuredAssetCandidate(asset = {}, type = "asset") {
   const valueUsd = type === "token"
     ? Number(asset.valueUsd || 0)
-    : (type === "ton_dns" || type === "anonymous_number" || type === "telegram_username")
-      ? identityAssetValue(asset)
-      : Number(asset.floorUsd || 0);
+    : Number(asset.floorUsd || 0);
   if (!(valueUsd > 0) || !asset.id) return null;
   const labels = {
     token: "TON token",
     gift: "Telegram Gift",
     sticker: "Sticker",
-    ton_dns: "TON DNS",
-    anonymous_number: "Anonymous Number",
-    telegram_username: "Telegram Username",
   };
   const title = type === "gift"
     ? giftDetailTitle(asset)
@@ -2262,9 +2247,6 @@ function featuredAssetCandidates() {
     ["gift", groupedAssetChildren(giftAssets)],
     ["sticker", groupedAssetChildren(stickerAssets)],
     ["token", latestVisibleTokens],
-    ["ton_dns", dnsAssets],
-    ["anonymous_number", anonymousNumberAssets],
-    ["telegram_username", usernameAssets],
   ];
   const seen = new Set();
   const buckets = sources.map(([type, assets]) => {
@@ -2301,8 +2283,8 @@ function featuredAssetArtHtml(candidate) {
   }
   const image = resolveTokenImage(asset.image || "");
   return image
-    ? `<span class="featured-asset-art is-identity"><img src="${escapeHtml(image)}" alt="${escapeHtml(title)}" loading="eager" decoding="async"></span>`
-    : `<span class="featured-asset-art is-identity"><i data-lucide="${escapeHtml(asset.icon || (type === "ton_dns" ? "globe-2" : type === "telegram_username" ? "at-sign" : "phone"))}"></i></span>`;
+    ? `<span class="featured-asset-art"><img src="${escapeHtml(image)}" alt="${escapeHtml(title)}" loading="eager" decoding="async"></span>`
+    : `<span class="featured-asset-art"><i data-lucide="${escapeHtml(asset.icon || "circle")}"></i></span>`;
 }
 
 function renderFeaturedAssetCard(candidate, interactive = true) {
@@ -2438,322 +2420,6 @@ function marketSourceLabel(value = "") {
   return String(value || "");
 }
 
-function identityAssetId(item = {}, type = "identity", index = 0) {
-  const address = String(item.tokenAddress || item.address || "").trim().toLowerCase();
-  const suffix = address ? address.replace(/[^a-z0-9]/g, "").slice(-18) : String(index);
-  return `${type}-${suffix || index}`;
-}
-
-function identityTypeMeta(type = "ton_dns") {
-  if (type === "telegram_username") return { key: "usernames", listId: "usernamesList", searchId: "usernamesSearch", valueId: "usernamesTotalValue", summaryId: "usernamesSummaryText", countId: "usernamesCountLabel", noun: "username", collection: "Telegram Usernames", label: "Telegram username", icon: "at-sign", tone: "username-bg", empty: "No Telegram usernames found" };
-  if (type === "anonymous_number") return { key: "anonymousNumbers", listId: "anonymousNumbersList", searchId: "anonymousNumbersSearch", valueId: "anonymousNumbersTotalValue", summaryId: "anonymousNumbersSummaryText", countId: "anonymousNumbersCountLabel", noun: "number", collection: "Anonymous Numbers", label: "Telegram anonymous number", icon: "phone", tone: "number-bg", empty: "No anonymous numbers found" };
-  return { key: "dns", listId: "dnsList", searchId: "dnsSearch", valueId: "dnsTotalValue", summaryId: "dnsSummaryText", countId: "dnsCountLabel", noun: "domain", collection: "TON DNS", label: "TON DNS domain", icon: "globe-2", tone: "dns-bg", empty: "No TON domains found" };
-}
-
-function normalizeIdentityAsset(item = {}, type = "ton_dns", index = 0) {
-  const isDns = type === "ton_dns";
-  const isUsername = type === "telegram_username";
-  const meta = identityTypeMeta(type);
-  const id = identityAssetId(item, type, index);
-  const floorTon = Number(item.floorTon || 0);
-  const floorUsd = Number(item.floorUsd || 0);
-  const valuationKind = String(item.valuationKind || "");
-  const hasAcceptedValue = item.floorStatus === "priced"
-    && ((!isUsername && valuationKind === "active-listing" && floorTon > 0)
-      || (isDns && valuationKind === "dns-estimate" && floorTon > 0)
-      || (isUsername && identityAssetValue({ ...item, type }) > 0));
-  const hasDnsEstimate = isDns && Number(item.estimatedGram || 0) > 0;
-  const hasUsernameEstimate = isUsername && ["priced", "indicative"].includes(item.floorStatus)
-    && ["username-estimate", "username-estimate-low"].includes(valuationKind)
-    && ["estimated", "indicative"].includes(item.usernameValuationStatus)
-    && usernameEstimateFresh(item)
-    && Number.isFinite(Number(item.estimatedUsd || item.floorUsd || 0))
-    && Number(item.estimatedUsd || item.floorUsd || 0) > 0;
-  const hasEstimate = hasDnsEstimate || hasUsernameEstimate;
-  const marketFresh = !isUsername || usernameMarketFresh(item);
-  const listingGram = marketFresh ? Number(item.currentListingGram || (valuationKind === "active-listing" ? floorTon : 0) || 0) : 0;
-  return {
-    id,
-    type,
-    name: isDns
-      ? String(item.domain || item.displayName || item.name || "TON domain")
-      : isUsername
-        ? String(item.displayName || item.username || item.name || "Telegram username").replace(/^@?/, "@")
-        : String(item.displayNumber || item.name || "Anonymous number"),
-    domain: String(item.domain || ""),
-    number: String(item.number || ""),
-    username: String(item.username || item.displayName || item.name || "").replace(/^@+/, ""),
-    collection: String(item.collection || meta.collection),
-    tokenAddress: String(item.tokenAddress || item.address || ""),
-    image: resolveTokenImage(item.image || ""),
-    description: String(item.description || ""),
-    floorTon: hasAcceptedValue ? floorTon : 0,
-    floorUsd: hasAcceptedValue ? floorUsd : 0,
-    valueUsd: hasAcceptedValue ? floorUsd : 0,
-    floorStatus: hasAcceptedValue ? "priced" : hasEstimate ? "estimated-low" : "unavailable",
-    valuationKind: hasAcceptedValue ? valuationKind : hasDnsEstimate ? "dns-estimate-low" : hasUsernameEstimate ? "username-estimate-low" : "unavailable",
-    listed: listingGram > 0,
-    listedCount: listingGram > 0 ? 1 : 0,
-    marketPlatform: listingGram > 0 ? String(item.marketPlatform || "Getgems") : "",
-    marketUrl: String(item.marketUrl || ""),
-    manageUrl: String(item.manageUrl || ""),
-    verified: Boolean(item.verified),
-    icon: meta.icon,
-    tone: meta.tone,
-    estimatedGram: Number(item.estimatedGram || 0),
-    estimatedUsd: isUsername && !hasUsernameEstimate ? 0 : Number(item.estimatedUsd || 0),
-    rangeLowGram: Number(item.rangeLowGram || 0),
-    rangeHighGram: Number(item.rangeHighGram || 0),
-    rangeLowUsd: Number(item.rangeLowUsd || 0),
-    rangeHighUsd: Number(item.rangeHighUsd || 0),
-    confidenceScore: Number(item.confidenceScore || 0),
-    confidenceBand: String(item.confidenceBand || ""),
-    portfolioEligible: Boolean(item.portfolioEligible),
-    evidenceCount: Number(item.evidenceCount || 0),
-    effectiveCompCount: Number(item.effectiveCompCount || 0),
-    currentListingGram: listingGram,
-    currentListingUsd: Number(item.currentListingUsd || listingGram * usdTonRate || 0),
-    currentBidGram: marketFresh ? Number(item.currentBidGram || 0) : 0,
-    currentBidUsd: marketFresh ? Number(item.currentBidUsd || 0) : 0,
-    currentMarket: item.currentMarket || null,
-    dnsValuationStatus: String(item.dnsValuationStatus || ""),
-    usernameValuationStatus: String(item.usernameValuationStatus || ""),
-    estimatorVersion: String(item.estimatorVersion || ""),
-    valuedAt: item.valuedAt || null,
-    staleAt: item.staleAt || null,
-    valuationStale: Boolean(item.valuationStale),
-    valuationExplanation: item.valuationExplanation || {},
-  };
-}
-
-function identityAssetValue(asset = {}) {
-  if (asset.type === "telegram_username" || String(asset.valuationKind || "").startsWith("username-estimate")) {
-    const value = Number(asset.floorUsd || 0);
-    return asset.floorStatus === "priced" && asset.valuationKind === "username-estimate"
-      && asset.portfolioEligible === true && asset.usernameValuationStatus === "estimated"
-      && ["medium", "high"].includes(String(asset.confidenceBand || "").toLowerCase())
-      && usernameEstimateFresh(asset) && Number.isFinite(value) && value > 0 ? value : 0;
-  }
-  return asset.floorStatus === "priced"
-    && (asset.valuationKind === "active-listing" || asset.valuationKind === "dns-estimate" || asset.valuationKind === "username-estimate")
-    ? Number(asset.floorUsd || 0)
-    : 0;
-}
-
-function usernameEstimateFresh(asset = {}) {
-  const valuedAt = Date.parse(asset.valuedAt || "");
-  const staleAt = Date.parse(asset.staleAt || "");
-  const now = Date.now();
-  return !asset.valuationStale && Number.isFinite(valuedAt) && valuedAt <= now
-    && Number.isFinite(staleAt) && staleAt > now && staleAt > valuedAt;
-}
-
-function usernameMarketFresh(asset = {}) {
-  const market = asset.currentMarket;
-  const observedAt = Date.parse(market?.observedAt || ""), staleAt = Date.parse(market?.staleAt || "");
-  const now = Date.now();
-  return market?.verified === true && Number.isFinite(observedAt) && observedAt <= now
-    && Number.isFinite(staleAt) && staleAt > now && staleAt > observedAt;
-}
-
-function renderIdentityAssetRows(type, query = "") {
-  const typeMeta = identityTypeMeta(type);
-  const isDns = type === "ton_dns";
-  const isUsername = type === "telegram_username";
-  const assets = isDns ? dnsAssets : isUsername ? usernameAssets : anonymousNumberAssets;
-  const list = document.getElementById(typeMeta.listId);
-  if (!list) return;
-  if (isSectionLoading(typeMeta.key)) {
-    list.innerHTML = Array.from({ length: 3 }, () => `<article class="identity-asset-row identity-skeleton-row"><span class="identity-asset-art ${typeMeta.tone} skeleton"></span><div><b class="skeleton">&nbsp;</b><small class="skeleton">&nbsp;</small></div><aside><b class="skeleton">&nbsp;</b><small class="skeleton">&nbsp;</small></aside></article>`).join("");
-    return;
-  }
-  const term = String(query || "").trim().toLowerCase();
-  const rows = [...assets]
-    .filter((asset) => !term || `${asset.name} ${asset.domain} ${asset.number} ${asset.username}`.toLowerCase().includes(term))
-    .sort((a, b) => identityAssetValue(b) - identityAssetValue(a) || a.name.localeCompare(b.name));
-  if (!rows.length) {
-    list.innerHTML = `<div class="identity-empty-state"><i data-lucide="${typeMeta.icon}"></i><b>${term ? "No matching assets" : typeMeta.empty}</b><small>${term ? "Try another search." : "Assets from the verified collection will appear after wallet import."}</small></div>`;
-    window.lucide?.createIcons();
-    return;
-  }
-  list.innerHTML = rows.map((asset) => {
-    const value = identityAssetValue(asset);
-    const estimate = Number(asset.estimatedUsd || 0);
-    const isEstimate = asset.valuationKind === "dns-estimate" || asset.valuationKind === "dns-estimate-low"
-      || (isUsername && usernameEstimateFresh(asset) && ["estimated", "indicative"].includes(asset.usernameValuationStatus)
-        && ["username-estimate", "username-estimate-low"].includes(asset.valuationKind));
-    const isIndicative = asset.dnsValuationStatus === "indicative"
-      || asset.usernameValuationStatus === "indicative"
-      || asset.valuationExplanation?.provenance === "broad-verified-sales-baseline"
-      || asset.valuationExplanation?.provenance === "verified-sales-archetype-baseline";
-    const displayValue = value > 0 ? value : isUsername ? isEstimate && Number.isFinite(estimate) ? estimate : 0 : estimate;
-    const valuationState = asset.usernameValuationStatus || asset.dnsValuationStatus;
-    const meta = isEstimate
-      ? isUsername
-        ? "Market estimate"
-        : `${asset.estimatedGram.toLocaleString(undefined, { maximumFractionDigits: 2 })} GRAM ${isIndicative ? "market baseline" : "estimate"}`
-      : value > 0
-        ? `${asset.floorTon.toLocaleString(undefined, { maximumFractionDigits: 2 })} GRAM listing`
-        : valuationState === "processing"
-          ? "Valuation is processing"
-          : "No verified market evidence";
-    const art = asset.image
-      ? `<span class="identity-asset-art ${asset.tone}"><img src="${escapeHtml(asset.image)}" alt="" loading="lazy"></span>`
-      : `<span class="identity-asset-art ${asset.tone}"><i data-lucide="${asset.icon}"></i></span>`;
-    return `<article role="button" tabindex="0" data-screen-target="detail" data-asset="${escapeHtml(asset.id)}">
-      ${art}
-      <div><b>${escapeHtml(asset.name)}</b><small>${asset.verified ? "Verified collection" : escapeHtml(asset.collection)}</small></div>
-      <aside><b>${displayValue > 0 ? money(displayValue) : valuationState === "processing" ? "Evaluating" : "Unavailable"}</b><small>${escapeHtml(meta)}</small>${isEstimate ? `<em class="identity-estimate-pill">${isIndicative || (isUsername && !value) ? "Indicative" : "Estimated"}</em>` : ""}</aside>
-    </article>`;
-  }).join("");
-  window.lucide?.createIcons();
-}
-
-function renderIdentityAssetScreens() {
-  const groups = [
-    { assets: dnsAssets, type: "ton_dns", valueId: "dnsTotalValue", summaryId: "dnsSummaryText", countId: "dnsCountLabel", noun: "domain" },
-    { assets: anonymousNumberAssets, type: "anonymous_number", valueId: "anonymousNumbersTotalValue", summaryId: "anonymousNumbersSummaryText", countId: "anonymousNumbersCountLabel", noun: "number" },
-    { assets: usernameAssets, type: "telegram_username", valueId: "usernamesTotalValue", summaryId: "usernamesSummaryText", countId: "usernamesCountLabel", noun: "username" },
-  ];
-  groups.forEach(({ assets, type, valueId, summaryId, countId, noun }) => {
-    const loading = isSectionLoading(identityTypeMeta(type).key);
-    if (loading) {
-      const value = document.getElementById(valueId);
-      if (value) value.innerHTML = `<span class="metric-skeleton metric-skeleton-large"></span>`;
-      setText(`#${summaryId}`, `Loading ${noun}s…`);
-      setText(`#${countId}`, `Loading ${noun}s…`);
-      renderIdentityAssetRows(type, "");
-      return;
-    }
-    const total = assets.reduce((sum, asset) => sum + identityAssetValue(asset), 0);
-    const priced = assets.filter((asset) => identityAssetValue(asset) > 0).length;
-    setText(`#${valueId}`, money(total));
-    setText(`#${summaryId}`, `${assets.length} ${noun}${assets.length === 1 ? "" : "s"} · ${priced} priced`);
-    setText(`#${countId}`, `${assets.length} ${noun}${assets.length === 1 ? "" : "s"}`);
-    const search = document.getElementById(identityTypeMeta(type).searchId);
-    renderIdentityAssetRows(type, search?.value || "");
-  });
-  renderFeaturedCollectibles();
-}
-
-function walletCollectiblesArePending(data = {}) {
-  if (String(data?.assets?.collectibles?.source || "").toLowerCase() === "pending") return true;
-  return (data?.warnings || []).some((warning) => /collectibles are loading/i.test(String(warning)));
-}
-
-function setIdentityImportTerminal(message = "") {
-  ["dns", "anonymousNumbers", "usernames"].forEach((key) => {
-    const label = key === "dns" ? "Domains" : key === "anonymousNumbers" ? "Anonymous numbers" : "Usernames";
-    setSectionReady(key, message ? `${label} ${message}` : `${label} ready`, { toast: false });
-  });
-}
-
-function updateIdentityAssetsFromWallet(data = {}, options = {}) {
-  const replaceAssets = (target, incoming, type) => {
-    if (!Array.isArray(incoming)) return;
-    const authoritativeUsername = type === "telegram_username" && options.terminal === true && !data?.assets?.stale;
-    if (options.preserveExistingOnEmpty && !incoming.length && target.length && !authoritativeUsername) return;
-    if (type === "telegram_username") target.forEach(asset => { delete assetDetails[asset.id]; });
-    target.splice(0, target.length, ...incoming.map((item, index) => normalizeIdentityAsset(item, type, index)));
-  };
-  replaceAssets(dnsAssets, data?.assets?.dns, "ton_dns");
-  replaceAssets(anonymousNumberAssets, data?.assets?.anonymousNumbers, "anonymous_number");
-  replaceAssets(usernameAssets, data?.assets?.usernames, "telegram_username");
-  [...dnsAssets, ...anonymousNumberAssets, ...usernameAssets].forEach((asset) => {
-    assetDetails[asset.id] = asset;
-  });
-  // /api/wallet deliberately returns a fast shell while collectible discovery is
-  // still running. Do not turn identity skeletons into empty states until the
-  // authoritative /api/collectibles response has settled.
-  if (options.terminal !== false && !walletCollectiblesArePending(data)) {
-    setIdentityImportTerminal();
-  }
-  renderIdentityAssetScreens();
-}
-
-function renderIdentityAssetDetail(detail) {
-  const isDns = detail.type === "ton_dns";
-  const isUsername = detail.type === "telegram_username";
-  const typeMeta = identityTypeMeta(detail.type);
-  toggleGiftDetailLayout(true);
-  const detailScreen = document.querySelector('[data-screen="detail"]');
-  detailScreen?.classList.toggle("is-identity-detail", true);
-  setText('[data-screen="detail"] > .page-header h1', isDns ? "TON DNS" : isUsername ? "Telegram Username" : "Anonymous Number");
-  const mount = document.getElementById("giftDetailMount");
-  const hasValue = identityAssetValue(detail) > 0;
-  const usernameEstimate = Number(detail.estimatedUsd || detail.floorUsd || 0);
-  const hasEstimate = (isDns && Number(detail.estimatedGram || 0) > 0)
-    || (isUsername && usernameEstimateFresh(detail) && ["estimated", "indicative"].includes(detail.usernameValuationStatus)
-      && ["username-estimate", "username-estimate-low"].includes(detail.valuationKind)
-      && Number.isFinite(usernameEstimate) && usernameEstimate > 0);
-  const isEstimate = detail.valuationKind === "dns-estimate" || detail.valuationKind === "dns-estimate-low" || detail.valuationKind === "username-estimate" || detail.valuationKind === "username-estimate-low";
-  const isIndicative = detail.dnsValuationStatus === "indicative"
-    || detail.usernameValuationStatus === "indicative"
-    || detail.valuationExplanation?.provenance === "broad-verified-sales-baseline"
-    || detail.valuationExplanation?.provenance === "verified-sales-archetype-baseline";
-  const valuationState = detail.usernameValuationStatus || detail.dnsValuationStatus;
-  const heroUsd = hasValue ? detail.floorUsd : hasEstimate ? detail.estimatedUsd : 0;
-  const heroGram = isEstimate ? detail.estimatedGram : detail.floorTon;
-  const art = detail.image
-    ? `<div class="identity-detail-art ${detail.tone}"><img src="${escapeHtml(detail.image)}" alt="${escapeHtml(detail.name)}"></div>`
-    : `<div class="identity-detail-art ${detail.tone}"><i data-lucide="${detail.icon}"></i></div>`;
-  if (mount) {
-    mount.innerHTML = `<section class="identity-detail-layout">
-      <article class="identity-detail-hero">
-        ${art}
-        <small>${typeMeta.label}</small>
-        <h2>${escapeHtml(detail.name)}</h2>
-        <div class="identity-detail-value">
-          <span>${isUsername && isEstimate ? "Estimated market value" : isIndicative ? "Indicative market value" : isEstimate ? "Estimated value" : hasValue ? "Active GRAM listing" : "Portfolio value"}</span>
-          <b>${heroUsd > 0 ? money(heroUsd) : valuationState === "processing" ? "Evaluating" : "Unavailable"}</b>
-          <small>${isUsername && isEstimate ? `${detail.evidenceCount.toLocaleString()} completed sales considered` : heroGram > 0 ? `${heroGram.toLocaleString(undefined, { maximumFractionDigits: 2 })} GRAM${isEstimate ? "" : ` &middot; ${escapeHtml(detail.marketPlatform)}`}` : "Verified market evidence is still being processed."}</small>
-        </div>
-      </article>
-      ${hasEstimate ? `<article class="identity-detail-card identity-estimate-card">
-        <div class="section-heading"><h2>Valuation range</h2><span class="identity-estimate-pill">${isIndicative ? "Indicative" : "Estimated"}</span></div>
-        <div class="identity-range"><b>${isUsername ? money(detail.rangeLowUsd) : `${detail.rangeLowGram.toLocaleString(undefined, { maximumFractionDigits: 2 })} GRAM`}</b><span>to</span><b>${isUsername ? money(detail.rangeHighUsd) : `${detail.rangeHighGram.toLocaleString(undefined, { maximumFractionDigits: 2 })} GRAM`}</b></div>
-        <div class="identity-detail-row"><span>Confidence</span><b>${escapeHtml((detail.confidenceBand || "low").replace(/^./, (letter) => letter.toUpperCase()))}</b></div>
-        <div class="identity-detail-row"><span>Comparable sales</span><b>${detail.evidenceCount.toLocaleString()}</b></div>
-        <div class="identity-detail-row"><span>Last valued</span><b>${detail.valuedAt ? new Date(detail.valuedAt).toLocaleString([], { dateStyle: "medium", timeStyle: "short" }) : "Processing"}</b></div>
-      </article>` : ""}
-      ${isUsername && detail.valuationExplanation?.lastSaleAnchor ? `<article class="identity-detail-card">
-        <div class="section-heading"><h2>Historical sale evidence</h2></div>
-        <div class="identity-detail-row"><span>Last sale (historical USD)</span><b>${money(detail.valuationExplanation.lastSaleAnchor.priceUsd)}</b></div>
-        <div class="identity-detail-row"><span>Sale date</span><b>${escapeHtml(new Date(detail.valuationExplanation.lastSaleAnchor.soldAt).toLocaleDateString())}</b></div>
-        <p>A historical sale anchors this estimate. It is not a guaranteed current price or minimum value.</p>
-      </article>` : ""}
-      ${isUsername && detail.valuationExplanation?.comparables?.length ? `<article class="identity-detail-card">
-        <div class="section-heading"><h2>Market evidence</h2></div>
-        ${detail.valuationExplanation.comparables.slice(0, 5).map((row) => `<div class="identity-detail-row"><span>@${escapeHtml(row.username)}${row.exact ? " (own sale)" : ""}<small>${escapeHtml((row.reasons || []).join(" · "))}</small></span><b>${money(row.priceUsd)}</b></div>`).join("")}
-      </article>` : ""}
-      ${(isDns || (isUsername && usernameMarketFresh(detail))) && (detail.currentListingGram > 0 || detail.currentBidGram > 0) ? `<article class="identity-detail-card">
-        <div class="section-heading"><h2>Current market</h2>${iconCueHtml("radio", "Live market signals", "is-live")}</div>
-        ${detail.currentListingGram > 0 ? `<div class="identity-detail-row"><span>Verified ask</span><b>${detail.currentListingGram.toLocaleString(undefined, { maximumFractionDigits: 2 })} GRAM</b></div>` : ""}
-        ${detail.currentBidGram > 0 ? `<div class="identity-detail-row"><span>Verified bid</span><b>${detail.currentBidGram.toLocaleString(undefined, { maximumFractionDigits: 2 })} GRAM</b></div>` : ""}
-      </article>` : ""}
-      <article class="identity-detail-card">
-        <div class="section-heading"><h2>Asset details</h2><span class="text-action">On-chain</span></div>
-        <div class="identity-detail-row"><span>Collection</span><b>${typeMeta.collection}</b></div>
-        <div class="identity-detail-row"><span>Ownership</span><b>${detail.verified ? "Verified" : "On-chain"}</b></div>
-        <div class="identity-detail-row"><span>Valuation</span><b>${isUsername && isEstimate ? "Market estimate" : isIndicative ? "Sale-only market baseline" : isEstimate ? "Comparable estimate" : hasValue ? "Active listing" : valuationState === "processing" ? "Evaluating" : "Unavailable"}</b></div>
-        <div class="identity-detail-row"><span>Marketplace</span><b>${detail.currentListingGram > 0 || (hasValue && !isEstimate) ? escapeHtml(detail.marketPlatform || "Getgems") : isDns ? "Getgems" : "Fragment"}</b></div>
-      </article>
-      <article class="identity-detail-note">
-        <i data-lucide="shield-check"></i>
-        <div><b>Evidence-based valuation</b><small>${isUsername ? "Only finalized native-GRAM username sales with the historical GRAM/USD rate are comparable evidence. Asks and bids are shown separately and cannot set the estimate. This is a model estimate, not an executable quote. Sparse sales and premium names may be substantially mispriced; current-market accuracy has not been independently qualified." : isDns ? "Completed native-GRAM sales set the estimate. Verified asks and bids are shown separately and cannot dictate the midpoint." : "Only a verified active listing denominated in native GRAM is counted. Jettons and ambiguous prices are excluded."}</small></div>
-      </article>
-    </section>`;
-  }
-  const externalButton = document.querySelector('[data-screen="detail"] .page-header .icon-button:last-child');
-  if (externalButton) {
-    externalButton.hidden = !detail.marketUrl;
-    externalButton.onclick = () => {
-      if (detail.marketUrl) window.open(detail.marketUrl, "_blank", "noopener,noreferrer");
-    };
-  }
-  window.lucide?.createIcons();
-}
-
 function renderAssetDetail(assetId) {
   const detail = assetDetails[assetId];
   if (!detail) {
@@ -2765,12 +2431,6 @@ function renderAssetDetail(assetId) {
   detailScreen?.classList.toggle("is-token-detail", detail.type === "token");
   detailScreen?.classList.toggle("is-gift-detail", detail.type === "gift");
   detailScreen?.classList.toggle("is-sticker-detail", detail.type === "sticker");
-  detailScreen?.classList.toggle("is-identity-detail", detail.type === "ton_dns" || detail.type === "anonymous_number" || detail.type === "telegram_username");
-  if (detail.type === "ton_dns" || detail.type === "anonymous_number" || detail.type === "telegram_username") {
-    renderIdentityAssetDetail(detail);
-    applyCurrencyDisplay();
-    return true;
-  }
   setText(
     '[data-screen="detail"] > .page-header h1',
     detail.type === "gift"
@@ -5480,9 +5140,6 @@ function clearStaticPortfolioPreview() {
   lastTonConnectAddress = "";
   giftAssets.splice(0, giftAssets.length);
   stickerAssets.splice(0, stickerAssets.length);
-  dnsAssets.splice(0, dnsAssets.length);
-  anonymousNumberAssets.splice(0, anonymousNumberAssets.length);
-  usernameAssets.splice(0, usernameAssets.length);
   resetWalletBoundUi();
   renderCollectibleGrids();
 }
@@ -5941,8 +5598,7 @@ function saveWalletAssetSnapshot(data = liveWalletData) {
   const previous = loadWalletAssetSnapshot(address) || {};
   const previousAssets = previous.assets || {};
   const incomingAssets = data.assets || {};
-  const retain = (key) => Array.isArray(incomingAssets[key]) && (incomingAssets[key].length
-    || (key === "usernames" && incomingAssets.usernameInventoryStatus === "ready"))
+  const retain = (key) => Array.isArray(incomingAssets[key]) && incomingAssets[key].length
     ? incomingAssets[key].map(cacheableWalletAsset)
     : (previousAssets[key] || []);
   const compact = {
@@ -5952,10 +5608,6 @@ function saveWalletAssetSnapshot(data = liveWalletData) {
       ton: incomingAssets.ton || previousAssets.ton,
       jettons: retain("jettons"),
       collectibles: retain("collectibles"),
-      dns: retain("dns"),
-      usernames: retain("usernames"),
-      usernameInventoryStatus: incomingAssets.usernameInventoryStatus || previousAssets.usernameInventoryStatus || "",
-      anonymousNumbers: retain("anonymousNumbers"),
     },
   };
   try {
@@ -5977,9 +5629,6 @@ function mergeLastGoodWalletAssets(data = {}, address = "") {
       ton: Number(assets.ton?.balance || 0) > 0 || Number(cachedAssets.ton?.balance || 0) <= 0 ? assets.ton : cachedAssets.ton,
       jettons: ((Array.isArray(assets.jettons) && assets.jettons.length) || inventoryStatus === "ready") ? assets.jettons : (cachedAssets.jettons || []),
       collectibles: ((Array.isArray(assets.collectibles) && assets.collectibles.length) || !collectiblesPending) ? assets.collectibles : (cachedAssets.collectibles || []),
-      dns: ((Array.isArray(assets.dns) && assets.dns.length) || !collectiblesPending) ? assets.dns : (cachedAssets.dns || []),
-      usernames: ((Array.isArray(assets.usernames) && assets.usernames.length) || !collectiblesPending) ? assets.usernames : (cachedAssets.usernames || []),
-      anonymousNumbers: ((Array.isArray(assets.anonymousNumbers) && assets.anonymousNumbers.length) || !collectiblesPending) ? assets.anonymousNumbers : (cachedAssets.anonymousNumbers || []),
     },
   };
 }
@@ -6003,21 +5652,14 @@ function mergeCollectiblePayloadIntoWallet(payload = {}) {
   const choose = (incoming, existing) => Array.isArray(incoming) ? incoming : (existing || []);
   const gifts = choose(payload.gifts, (current.collectibles || []).filter((item) => item.type === "gift"));
   const stickers = choose(payload.stickers, (current.collectibles || []).filter((item) => item.type === "sticker"));
-  const dns = choose(payload.dns, current.dns);
-  const usernames = choose(payload.usernames, current.usernames);
-  const anonymousNumbers = choose(payload.anonymousNumbers, current.anonymousNumbers);
   liveWalletData = {
     ...liveWalletData,
-    assets: { ...current, collectibles: [...gifts, ...stickers], dns, usernames, anonymousNumbers,
-      usernameInventoryStatus: Array.isArray(payload.usernames) ? payload.stale ? "stale" : "ready" : current.usernameInventoryStatus },
+    assets: { ...current, collectibles: [...gifts, ...stickers] },
     summary: {
       ...(liveWalletData.summary || {}),
       giftCount: gifts.length,
       stickerCount: stickers.length,
       nftCount: gifts.length + stickers.length,
-      dnsCount: dns.length,
-      usernameCount: usernames.length,
-      anonymousNumberCount: anonymousNumbers.length,
     },
   };
   saveWalletAssetSnapshot(liveWalletData);
@@ -6124,9 +5766,6 @@ async function importWallet(address, options = {}) {
     setSectionLoading("gifts", "Scanning wallet gifts...");
     setSectionLoading("stickers", "Scanning sticker packs...");
   }
-  setSectionLoading("dns", "Loading TON domains...");
-  setSectionLoading("anonymousNumbers", "Loading anonymous numbers...");
-  setSectionLoading("usernames", "Loading Telegram usernames...");
   setSectionLoading("activity", "Preparing recent activity...");
   if (isGraphHistoryLoadingEnabled()) setSectionLoading("graph", "Preparing graph preview...");
   else setSectionReady("graph", "Graph history paused for this session.", { toast: false });
@@ -6287,7 +5926,6 @@ async function restoreSavedWallet() {
 function applyImportedWallet(data, options = {}) {
   if (!hasTonWalletPortfolio()) return Promise.resolve();
   if (Number(data.summary?.tonUsdRate) > 0) usdTonRate = Number(data.summary.tonUsdRate);
-  updateIdentityAssetsFromWallet(data);
   const totalUsd = Number(data.summary?.totalUsd || 0);
   homePortfolioValue = totalUsd;
   homePortfolioDelta = 0;
@@ -6380,9 +6018,6 @@ function resetWalletSwitchState(nextAddress = "", options = {}) {
   }
   walletGiftGroups = [];
   walletStickerGroups = [];
-  dnsAssets.splice(0, dnsAssets.length);
-  anonymousNumberAssets.splice(0, anonymousNumberAssets.length);
-  usernameAssets.splice(0, usernameAssets.length);
   if (!preserveTelegram) {
     telegramGiftGroups = [];
     telegramStickerGroups = [];
@@ -6395,10 +6030,6 @@ function resetWalletSwitchState(nextAddress = "", options = {}) {
   allocationState.gifts = preserveTelegram ? collectibleTotals().gifts : 0;
   allocationState.tokens = 0;
   allocationState.stickers = preserveTelegram ? collectibleTotals().stickers : 0;
-  allocationState.dns = 0;
-  allocationState.anonymousNumbers = 0;
-  allocationState.usernames = 0;
-  renderIdentityAssetScreens();
   document.querySelectorAll("[data-range]").forEach((button) => button.classList.remove("is-loading"));
   setCollectiblesBanner("gifts", preserveTelegram ? "" : (nextAddress ? "Loading wallet gifts..." : ""));
   setCollectiblesBanner("stickers", preserveTelegram ? "" : (nextAddress ? "Loading wallet stickers..." : ""));
@@ -6434,9 +6065,6 @@ function resetWalletBoundUi() {
   allocationState.gifts = 0;
   allocationState.tokens = 0;
   allocationState.stickers = 0;
-  allocationState.dns = 0;
-  allocationState.anonymousNumbers = 0;
-  allocationState.usernames = 0;
   latestVisibleTokens = [];
   renderTokenEmptyState("Connect wallet to load tokens");
   resetPerformerCards();
@@ -6475,13 +6103,6 @@ async function disconnectWallet() {
   stopPortfolioRefresh();
   walletGiftGroups = [];
   walletStickerGroups = [];
-  dnsAssets.splice(0, dnsAssets.length);
-  anonymousNumberAssets.splice(0, anonymousNumberAssets.length);
-  usernameAssets.splice(0, usernameAssets.length);
-  allocationState.dns = 0;
-  allocationState.anonymousNumbers = 0;
-  allocationState.usernames = 0;
-  renderIdentityAssetScreens();
   liveWalletData = null;
   liveWalletAddress = "";
   try { localStorage.removeItem(WALLET_ASSET_SNAPSHOT_KEY); } catch {}
@@ -6751,9 +6372,6 @@ function collectibleTotals() {
   return {
     gifts: giftAssets.reduce((sum, asset) => sum + liveValue(asset), 0),
     stickers: stickerAssets.reduce((sum, asset) => sum + liveValue(asset), 0),
-    dns: dnsAssets.reduce((sum, asset) => sum + identityAssetValue(asset), 0),
-    anonymousNumbers: anonymousNumberAssets.reduce((sum, asset) => sum + identityAssetValue(asset), 0),
-    usernames: usernameAssets.reduce((sum, asset) => sum + identityAssetValue(asset), 0),
   };
 }
 
@@ -6772,10 +6390,7 @@ function updateAllocationUi(force = false) {
   const totals = collectibleTotals();
   allocationState.gifts = totals.gifts;
   allocationState.stickers = totals.stickers;
-  allocationState.dns = totals.dns;
-  allocationState.anonymousNumbers = totals.anonymousNumbers;
-  allocationState.usernames = totals.usernames;
-  const total = Math.max(0, allocationState.gifts + allocationState.tokens + allocationState.stickers + allocationState.dns + allocationState.anonymousNumbers + allocationState.usernames);
+  const total = Math.max(0, allocationState.gifts + allocationState.tokens + allocationState.stickers);
   if (walletConnected || telegramConnected) {
     homePortfolioValue = total;
     if (liveWalletData?.summary) liveWalletData.summary.totalUsd = total;
@@ -6787,31 +6402,25 @@ function updateAllocationUi(force = false) {
     giftAssets.reduce((sum, asset) => sum + Number(asset.count || 1), 0),
     latestVisibleTokens.filter((token) => Number(token.balance || 0) > 0).length,
     stickerAssets.reduce((sum, asset) => sum + stickerOwnedCount(asset), 0),
-    dnsAssets.length,
-    anonymousNumberAssets.length,
-    usernameAssets.length,
   ];
-  const values = [allocationState.gifts, allocationState.tokens, allocationState.stickers, allocationState.dns, allocationState.anonymousNumbers, allocationState.usernames];
+  const values = [allocationState.gifts, allocationState.tokens, allocationState.stickers];
   renderHomeAssetBrowser(ownedCounts, values);
   const valuedGroups = values.filter((value) => value > 0).length;
   const unpricedGroups = values.filter((value, index) => value <= 0 && ownedCounts[index] > 0).length;
   document.getElementById("homeMixMeta")?.replaceChildren(`${valuedGroups} priced${unpricedGroups ? ` · ${unpricedGroups} unpriced` : ""}`);
-  const discoveringHoldings = ["gifts", "tokens", "stickers", "dns", "anonymous-numbers", "usernames"].some(isSectionLoading);
+  const discoveringHoldings = ["gifts", "tokens", "stickers"].some(isSectionLoading);
   document.getElementById("homeHoldingsCount")?.replaceChildren(discoveringHoldings ? "Discovering holdings…" : `${ownedCounts.reduce((sum, count) => sum + count, 0)} holdings total`);
   [
     [1, allocationState.gifts],
     [2, allocationState.tokens],
     [3, allocationState.stickers],
-    [4, allocationState.dns],
-    [5, allocationState.anonymousNumbers],
-    [6, allocationState.usernames],
   ].forEach(([index, value]) => {
     const row = document.querySelector(`.allocation-list article:nth-child(${index})`);
     const ownedCount = ownedCounts[index - 1];
     if (row) row.hidden = ownedCount <= 0;
     const strong = document.querySelector(`.allocation-list article:nth-child(${index}) strong`);
     const small = document.querySelector(`.allocation-list article:nth-child(${index}) small`);
-    const key = index === 1 ? "gifts" : index === 2 ? "tokens" : index === 3 ? "stickers" : index === 4 ? "dns" : index === 5 ? "anonymous-numbers" : "usernames";
+    const key = index === 1 ? "gifts" : index === 2 ? "tokens" : "stickers";
     if (isSectionLoading(key) || (["gifts", "stickers"].includes(key) && value <= 0 && hasPendingCollectiblePrices(key))) {
       if (strong) strong.innerHTML = `<span class="metric-skeleton"></span>`;
       if (small) small.innerHTML = isSectionLoading(key) ? `<span class="metric-skeleton metric-skeleton-small"></span>` : `${ownedCount} owned`;
@@ -6829,9 +6438,9 @@ function renderHomeAssetBrowser(counts, values) {
   const pie = document.getElementById("homeAllocationPie");
   const legend = document.getElementById("homeAllocationLegend");
   if (!pie || !legend) return;
-  const routes = ["gifts", "tokens", "stickers", "dns", "anonymous-numbers", "usernames"];
-  const labels = ["Gifts", "Tokens", "Stickers", "TON DNS", "Numbers", "Usernames"];
-  const colors = ["#2e79ff", "#68d69d", "#d6bd68", "#8b7cff", "#ef8c73", "#64d6d2"];
+  const routes = ["gifts", "tokens", "stickers"];
+  const labels = ["Gifts", "Tokens", "Stickers"];
+  const colors = ["#2e79ff", "#68d69d", "#d6bd68"];
   const safeValues = routes.map((_, index) => {
     const value = Number(values[index]);
     return Number.isFinite(value) && value > 0 ? value : 0;
@@ -6863,9 +6472,6 @@ function updateCategoryAndTopAsset(tokenValue = allocationState.tokens) {
   const totals = collectibleTotals();
   const giftCategory = document.querySelector('[data-screen="assets"] .category-stack article[data-screen-target="gifts"] strong');
   const stickerCategory = document.querySelector('[data-screen="assets"] .category-stack article[data-screen-target="stickers"] strong');
-  const dnsCategory = document.querySelector('[data-screen="assets"] .category-stack article[data-screen-target="dns"] strong');
-  const numberCategory = document.querySelector('[data-screen="assets"] .category-stack article[data-screen-target="anonymous-numbers"] strong');
-  const usernameCategory = document.querySelector('[data-screen="assets"] .category-stack article[data-screen-target="usernames"] strong');
   const giftCount = giftAssets.reduce((sum, asset) => sum + Number(asset.count || 1), 0);
   const stickerCount = stickerAssets.reduce((sum, asset) => sum + stickerOwnedCount(asset), 0);
   const setEmptyState = (element, count, valueLabel) => {
@@ -6888,16 +6494,10 @@ function updateCategoryAndTopAsset(tokenValue = allocationState.tokens) {
     else if (isSectionLoading("stickers") || (totals.stickers <= 0 && hasPendingCollectiblePrices("stickers"))) stickerCategory.innerHTML = `<span class="metric-skeleton"></span>`;
     else setEmptyState(stickerCategory, stickerCount, money(totals.stickers));
   }
-  setEmptyState(dnsCategory, dnsAssets.length, totals.dns > 0 ? money(totals.dns) : `${dnsAssets.length} domain${dnsAssets.length === 1 ? "" : "s"}`);
-  setEmptyState(numberCategory, anonymousNumberAssets.length, totals.anonymousNumbers > 0 ? money(totals.anonymousNumbers) : `${anonymousNumberAssets.length} number${anonymousNumberAssets.length === 1 ? "" : "s"}`);
-  setEmptyState(usernameCategory, usernameAssets.length, totals.usernames > 0 ? money(totals.usernames) : `${usernameAssets.length} username${usernameAssets.length === 1 ? "" : "s"}`);
   const candidates = [
     ...latestVisibleTokens.map((token) => ({ id: token.id, name: token.name, category: "TON token", value: Number(token.valueUsd || 0), icon: token.image, symbol: token.symbol })),
     ...giftAssets.map((asset) => ({ id: asset.id, name: asset.name, category: "Gift", value: Number(asset.floorUsd || 0), icon: asset.image, symbol: "GFT" })),
     ...stickerAssets.map((asset) => ({ id: asset.id, name: asset.name, category: "Sticker", value: Number(asset.floorUsd || 0), icon: asset.image, symbol: "STK" })),
-    ...dnsAssets.map((asset) => ({ id: asset.id, name: asset.name, category: "TON DNS", value: identityAssetValue(asset), icon: asset.image, symbol: "DNS" })),
-    ...anonymousNumberAssets.map((asset) => ({ id: asset.id, name: asset.name, category: "Anonymous Number", value: identityAssetValue(asset), icon: asset.image, symbol: "NUM" })),
-    ...usernameAssets.map((asset) => ({ id: asset.id, name: asset.name, category: "Telegram Username", value: identityAssetValue(asset), icon: asset.image, symbol: "@" })),
   ].filter((asset) => asset.value > 0).sort((a, b) => b.value - a.value);
   const top = candidates[0];
   const card = document.querySelector('[data-screen="assets"] .mini-detail-card');
@@ -6909,7 +6509,7 @@ function updateCategoryAndTopAsset(tokenValue = allocationState.tokens) {
     card.setAttribute("role", "button");
     card.setAttribute("tabindex", "0");
     const isToken = top.category === "TON token" || top.category === "GRAM Token";
-    const topTone = isToken ? "token-bg" : top.category === "Gift" ? "gift-bg" : top.category === "Sticker" ? "sticker-bg" : top.category === "TON DNS" ? "dns-bg" : top.category === "Telegram Username" ? "username-bg" : "number-bg";
+    const topTone = isToken ? "token-bg" : top.category === "Gift" ? "gift-bg" : "sticker-bg";
     const logo = top.icon
       ? `<span class="asset-icon ${topTone}"><img src="${escapeHtml(resolveTokenImage(top.icon))}" alt="${escapeHtml(top.symbol || top.name)}" onerror="this.parentElement.textContent='${escapeHtml((top.symbol || top.category).slice(0,3))}'"></span>`
       : `<span class="asset-icon ${topTone}">${escapeHtml((top.symbol || top.category).slice(0,3))}</span>`;
@@ -7020,9 +6620,6 @@ function walletHoldingCount(tokens = latestVisibleTokens) {
     tokens: tokens.length,
     gifts: giftCount,
     stickers: stickerCount,
-    dns: dnsAssets.length,
-    anonymousNumbers: anonymousNumberAssets.length,
-    usernames: usernameAssets.length,
   };
 }
 
@@ -7060,13 +6657,13 @@ function syncAssetsSummary(data = liveWalletData, tokens = latestVisibleTokens, 
   const address = truncateWalletAddress(data?.account?.displayAddress || liveWalletAddress);
   if (strip) {
     const totals = collectibleTotals();
-    const knownTotal = tokenValue + totals.gifts + totals.stickers + totals.dns + totals.anonymousNumbers + totals.usernames;
+    const knownTotal = tokenValue + totals.gifts + totals.stickers;
     const totalHtml = isSectionLoading("tokens") && !tokens.length
       ? `<span class="metric-skeleton"></span>`
       : money(knownTotal);
     const itemsHtml = isSectionLoading("tokens") && !tokens.length
       ? `<span class="metric-skeleton metric-skeleton-small"></span>`
-      : `${tokenCount + holdings.gifts + holdings.stickers + holdings.dns + holdings.anonymousNumbers + holdings.usernames}`;
+      : `${tokenCount + holdings.gifts + holdings.stickers}`;
     const movement = rangePnl("1D");
     const movementHtml = movement.available
       ? `<strong class="${movement.delta < 0 ? "negative" : "positive"}">History ${signedPct(movement.pct)} <em>24H</em></strong>`
@@ -7126,9 +6723,6 @@ function renderAnalyticsBreakdown(totalUsd = homePortfolioValue) {
     ["Tokens", Number(allocationState.tokens || 0), "token-bg"],
     ["Gifts", Number(allocationState.gifts || 0), "gift-bg"],
     ["Stickers", Number(allocationState.stickers || 0), "sticker-bg"],
-    ["Domains", Number(allocationState.dns || 0), "domain-bg"],
-    ["Numbers", Number(allocationState.anonymousNumbers || 0), "number-bg"],
-    ["Usernames", Number(allocationState.usernames || 0), "username-bg"],
   ].filter(([, value]) => value > 0);
   const count = document.getElementById("analyticsCategoryCount");
   if (count) count.textContent = `${categories.length} ${categories.length === 1 ? "category" : "categories"}`;
@@ -7521,9 +7115,6 @@ function mergeTokenRefreshIntoWallet(current = {}, fresh = {}) {
       totalUsd: currentSummary.totalUsd ?? freshSummary.totalUsd,
       giftCount: currentSummary.giftCount ?? freshSummary.giftCount,
       stickerCount: currentSummary.stickerCount ?? freshSummary.stickerCount,
-      dnsCount: currentSummary.dnsCount ?? freshSummary.dnsCount,
-      usernameCount: currentSummary.usernameCount ?? freshSummary.usernameCount,
-      anonymousNumberCount: currentSummary.anonymousNumberCount ?? freshSummary.anonymousNumberCount,
       nftCount: currentSummary.nftCount ?? freshSummary.nftCount,
     },
     assets: {
@@ -7643,7 +7234,7 @@ function fetchWalletCollectiblesPayload(walletAddress, options = {}) {
   const request = fetchJsonFast(`/api/collectibles?address=${encodeURIComponent(walletAddress)}&t=${Date.now()}`, 30_000)
     .then((payload) => {
       // Discovery failure is not proof of an empty wallet. Route it through
-      // the verified-cache fallback shared by gifts, stickers and identities.
+      // the verified-cache fallback shared by gifts and stickers.
       if (payload?.error) throw new Error(payload.error);
       collectiblePayloadCache.set(key, payload);
       return payload;
@@ -7679,30 +7270,22 @@ function updateCollectiblesFromWallet(data, options = {}) {
   const currentRequest = () => isCurrentImportSession(options.importSessionId)
     && walletStateKey(liveWalletAddress) === requestWalletKey;
   const hasSnapshot = renderImportedCollectiblesSnapshot(data?.assets?.collectibles);
-  const identityReady = fetchWalletCollectiblesPayload(walletAddress, { force: true })
+  const collectiblesMerged = fetchWalletCollectiblesPayload(walletAddress, { force: true })
     .then((payload) => {
       if (payload?.error) throw new Error(payload.error);
       if (!currentRequest()) return { status: "superseded" };
       mergeCollectiblePayloadIntoWallet(payload);
-      updateIdentityAssetsFromWallet({ assets: payload }, { preserveExistingOnEmpty: true, terminal: true });
       syncAssetsSummary();
       updateAllocationUi();
       return { status: "ready", payload };
     })
     .catch((error) => {
       if (!currentRequest()) return { status: "superseded" };
-      console.warn("Identity asset import failed", error);
-      // A failure is terminal for this import session, but it must be explicit:
-      // retain a verified snapshot when present and never pretend an empty fast
-      // shell was an authoritative result.
-      updateIdentityAssetsFromWallet({ assets: {} }, { preserveExistingOnEmpty: true, terminal: false });
-      setIdentityImportTerminal(dnsAssets.length || anonymousNumberAssets.length || usernameAssets.length
-        ? "retained from the last verified result · live refresh unavailable"
-        : "unavailable · retry refresh");
+      console.warn("Collectibles payload merge failed", error);
       return { status: "unavailable", error };
     });
   return Promise.allSettled([
-    identityReady,
+    collectiblesMerged,
     updateGiftsFromWallet(walletAddress, { loading: !hasSnapshot, preserveExistingOnEmpty: hasSnapshot, importSessionId: options.importSessionId }),
     updateStickersFromWallet(walletAddress, { loading: !hasSnapshot, preserveExistingOnEmpty: hasSnapshot, importSessionId: options.importSessionId }),
   ]).then(() => {
@@ -8276,17 +7859,9 @@ function updateWalletScreen(data, tonUsd) {
   const giftCount = Math.max(0, Number(summary.giftCount || 0));
   const stickerCount = Math.max(0, Number(summary.stickerCount || 0));
   const nftCount = Math.max(giftCount + stickerCount, Number(summary.nftCount || 0));
-  const dnsCount = Math.max(0, Number(summary.dnsCount || data.assets?.dns?.length || 0));
-  const usernameCount = Math.max(0, Number(summary.usernameCount || data.assets?.usernames?.length || 0));
-  const anonymousNumberCount = Math.max(0, Number(summary.anonymousNumberCount || data.assets?.anonymousNumbers?.length || 0));
-  const totalAssets = tokenCount + nftCount + dnsCount + usernameCount + anonymousNumberCount;
+  const totalAssets = tokenCount + nftCount;
   const address = data.account?.address || liveWalletAddress || "";
-  const identitySummary = [
-    dnsCount ? `${dnsCount} ${dnsCount === 1 ? "domain" : "domains"}` : "",
-    anonymousNumberCount ? `${anonymousNumberCount} ${anonymousNumberCount === 1 ? "number" : "numbers"}` : "",
-    usernameCount ? `${usernameCount} ${usernameCount === 1 ? "username" : "usernames"}` : "",
-  ].filter(Boolean).join(" · ");
-  list.innerHTML = `<article><span class="asset-icon token-bg"><i data-lucide="wallet"></i></span><div><b>${escapeHtml(walletLabel)}</b><small>${escapeHtml(address)} · ${totalAssets} ${totalAssets === 1 ? "asset" : "assets"}</small></div><aside><b>${money(Number(tonUsd || 0))}</b><small>${escapeHtml(truncateWalletAddress(address))}</small></aside></article><article><span class="asset-icon gift-bg"><i data-lucide="message-circle"></i></span><div><b>TON collectibles</b><small>${giftCount} gifts · ${stickerCount} stickers · ${nftCount} NFTs${identitySummary ? ` · ${identitySummary}` : ""}</small></div><aside><b>Imported</b><small>Verified providers</small></aside></article>`;
+  list.innerHTML = `<article><span class="asset-icon token-bg"><i data-lucide="wallet"></i></span><div><b>${escapeHtml(walletLabel)}</b><small>${escapeHtml(address)} · ${totalAssets} ${totalAssets === 1 ? "asset" : "assets"}</small></div><aside><b>${money(Number(tonUsd || 0))}</b><small>${escapeHtml(truncateWalletAddress(address))}</small></aside></article><article><span class="asset-icon gift-bg"><i data-lucide="message-circle"></i></span><div><b>TON collectibles</b><small>${giftCount} gifts · ${stickerCount} stickers · ${nftCount} NFTs</small></div><aside><b>Imported</b><small>Verified providers</small></aside></article>`;
 }
 
 function renderActivityRows(events = [], limit = HOME_ACTIVITY_LIMIT) {
@@ -8580,8 +8155,8 @@ function compactMoney(value) {
 function renderDonut(progress = 1) {
   const host = document.getElementById("donut-chart") || document.querySelector(".allocation-donut") || document.querySelector(".donut-chart");
   if (!host) return;
-  const values = [allocationState.gifts, allocationState.tokens, allocationState.stickers, allocationState.dns, allocationState.anonymousNumbers, allocationState.usernames];
-  const labels = ["Gifts", "GRAM & Jettons", "Stickers", "TON DNS", "Anon Numbers", "Usernames"];
+  const values = [allocationState.gifts, allocationState.tokens, allocationState.stickers];
+  const labels = ["Gifts", "GRAM & Jettons", "Stickers"];
   const total = values.reduce((sum, value) => sum + Math.max(0, Number(value || 0)), 0);
   const selectedValue = selectedAllocation === null ? total : values[selectedAllocation];
   const centerValue = host.querySelector("span");
@@ -8604,16 +8179,12 @@ function renderDonut(progress = 1) {
       styles.getPropertyValue("--blue").trim() || "#2e79ff",
       styles.getPropertyValue("--mint").trim() || "#68d69d",
       styles.getPropertyValue("--amber").trim() || "#d6bd68",
-      "#8b7cff",
-      "#ef8c73",
-      "#64d6d2",
     ],
   });
   const allocationColors = [
     styles.getPropertyValue("--blue").trim() || "#2e79ff",
     styles.getPropertyValue("--mint").trim() || "#68d69d",
     styles.getPropertyValue("--amber").trim() || "#d6bd68",
-    "#8b7cff", "#ef8c73", "#64d6d2",
   ];
   const preview = document.getElementById("homeMixPreview");
   if (preview) preview.innerHTML = total > 0 ? values.map((value, index) => value > 0
@@ -8638,7 +8209,7 @@ function renderDonut(progress = 1) {
       stack.style.setProperty("--allocation-share", String(share));
       const owned = item.querySelector("small");
       if (owned?.textContent.includes(" owned")) owned.textContent = owned.textContent.split(" owned")[0];
-      item.querySelector("b").textContent = ["Gifts", "Tokens", "Stickers", "DNS", "Nums", "Names"][index];
+      item.querySelector("b").textContent = ["Gifts", "Tokens", "Stickers"][index];
       const ownedLabel = owned?.textContent && /^\d/.test(owned.textContent) ? `${owned.textContent} owned` : "Holdings loading";
       item.setAttribute("aria-label", `${labels[index]}, ${ownedLabel}, ${values[index] > 0 ? item.querySelector("strong")?.textContent || "Price unavailable" : "Price unavailable"}, ${values[index] > 0 ? allocationShareLabel(values[index], total) : "unpriced"}`);
       item.setAttribute("title", item.getAttribute("aria-label"));
@@ -9261,9 +8832,6 @@ document.querySelector("#giftSearch")?.addEventListener("input", renderGiftGrid)
 document.querySelector("#stickerSort")?.addEventListener("change", renderStickerGrid);
 document.querySelector("#stickerFilter")?.addEventListener("change", renderStickerGrid);
 document.querySelector("#stickerSearch")?.addEventListener("input", renderStickerGrid);
-document.querySelector("#dnsSearch")?.addEventListener("input", (event) => renderIdentityAssetRows("ton_dns", event.currentTarget.value));
-document.querySelector("#anonymousNumbersSearch")?.addEventListener("input", (event) => renderIdentityAssetRows("anonymous_number", event.currentTarget.value));
-document.querySelector("#usernamesSearch")?.addEventListener("input", (event) => renderIdentityAssetRows("telegram_username", event.currentTarget.value));
 const scrollTopButton = document.querySelector("#scrollTopButton");
 function updateScrollTopButton() {
   scrollTopButton?.classList.toggle("is-visible", window.scrollY > 420);
@@ -9303,7 +8871,7 @@ allocationDonut?.addEventListener("click", (event) => {
   const x = event.clientX - rect.left - rect.width / 2;
   const y = event.clientY - rect.top - rect.height / 2;
   const hit = Charts.donutHitIndex(
-    [allocationState.gifts, allocationState.tokens, allocationState.stickers, allocationState.dns, allocationState.anonymousNumbers, allocationState.usernames],
+    [allocationState.gifts, allocationState.tokens, allocationState.stickers],
     x,
     y,
     rect.width,
