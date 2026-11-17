@@ -22,5 +22,5 @@ test("strips out-of-scope identity assets from proxied wallet responses", () => 
 });
 
 test("declares a stable heavy API origin", () => {
-  assert.match(config, /"HEAVY_API_ORIGIN": "https:\/\/tontracker-production-01f4\.up\.railway\.app"/);
+  assert.match(config, /"HEAVY_API_ORIGIN": "https:\/\/tontracker-production-ac6b9dd1\.up\.railway\.app"/);
 });
